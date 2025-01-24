@@ -49,16 +49,16 @@ if (isset($_POST['id'])) {
 		$newPath = CIRCUIT_BASE_PATH.$circuitImg->url;
 		eval('image'.$ext2.'($destination, "$newPath");');
 
-		$diffPoids = @filesize($newPath) - @filesize($path);
-		if ($diffPoids > 0) {
+		$size_diff = @filesize($newPath) - @filesize($path);
+		if ($size_diff > 0) {
 			include('../includes/file-quotas.php');
 			$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
-			$poids = file_total_size(array('identifiants'=> $ownerIds));
-			$poids += $diffPoids;
+			$file_size = file_total_size(array('identifiants'=> $ownerIds));
+			$file_size += $size_diff;
 		}
 		else
-			$poids = 0;
-		if ($poids && $poids > file_total_quota($circuit)) {
+			$file_size = 0;
+		if ($file_size && $file_size > file_total_quota($circuit)) {
 			@unlink($newPath);
 			$circuitImg->url = $oldUrl;
 		}

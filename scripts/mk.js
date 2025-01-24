@@ -38,6 +38,32 @@ var isOnline = (page=="OL");
 var isMCups = (isCup && (NBCIRCUITS>4));
 var clRuleVars = {};
 var clGlobalVars;
+
+function isBallonBattle()
+{
+	return course == "BB";
+}
+function isTimeTrial()
+{
+	return course == "CM";
+}
+function isVSRace()
+{
+	return course == "VS";
+}
+function isGrandPrix()
+{
+	return course == "GP";
+}
+function isOnlineRace()
+{
+	return course == "CL";
+}
+function isChallenges()
+{
+	return course == "CH";
+}
+
 function xhr(page, send, onload, backoff) {
 	if (!backoff)
 		backoff = 1000;
@@ -52,7 +78,7 @@ function xhr(page, send, onload, backoff) {
 			}
 		}
 		else
-			xhr_object = new XMLHttpRequest(); 
+			xhr_object = new XMLHttpRequest();
 	}
 	xhr_object.open("POST", "api/"+page, true);
 	xhr_object.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -133,7 +159,7 @@ for (circuits in oMaps) {
 	oMap.ref = circuits.replace("map", "")*1;
 	if (oMap.aipoints && oMap.aipoints[0] && oMap.aipoints[0].length && !Array.isArray(oMap.aipoints[0][0]))
 		oMap.aipoints = [oMap.aipoints];
-	if (!oMap.horspistes) {
+	if (!oMap.horspistes) { /* horspistes = offRoad */
 		oMap.horspistes = {};
 		if (oMap.horspiste) {
 			oMap.horspistes["herbe"] = oMap.horspiste;
@@ -190,7 +216,7 @@ function setQuality(iValue) {
 	iRendering = iValue;
 	baseOptions["quality"] = iValue;
 	resetQuality();
-	
+
 	if (iQuality == 5)
 		localStorage.removeItem("iQuality");
 	else
@@ -793,9 +819,9 @@ if (!pause) {
 		baseCp0 = {};
 		pUnlockMap = {};
 		var i = 0;
-		for (joueurs in cp) {
-			baseCp0[joueurs] = cp[joueurs];
-			pUnlockMap[joueurs] = pUnlocked[i];
+		for (players in cp) {
+			baseCp0[players] = cp[players];
+			pUnlockMap[players] = pUnlocked[i];
 			i++;
 		}
 		if (typeof characterRoster !== "undefined") {
@@ -816,9 +842,9 @@ if (!pause) {
 	baseCp = {};
 	customPersos = baseCustomPersos();
 	nBasePersos = 0;
-	for (joueurs in cp) {
-		aPlayers.push(joueurs);
-		baseCp[joueurs] = cp[joueurs];
+	for (players in cp) {
+		aPlayers.push(players);
+		baseCp[players] = cp[players];
 		nBasePersos++;
 	}
 }
@@ -826,7 +852,7 @@ if (!pause) {
 var strPlayer = new Array();
 var oMap;
 var lMaps, pMaps;
-var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+var iDifficulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
 var iRecord;
 var iTrajet;
 var jTrajets;
@@ -847,8 +873,8 @@ if (pause) {
 	oDoubleItemsEnabled = !!fInfos.double_items;
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
-	if (course != "CM")
-		iDificulty = fInfos.difficulty;
+	if (!isTimeTrial())
+		iDifficulty = fInfos.difficulty;
 	else {
 		iTrajet = fInfos.my_route;
 		gPersos = fInfos.perso;
@@ -873,13 +899,13 @@ var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oEx
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
-	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(),
-	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(), oPlanCarapacesNoires = new Array(),
-	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
+	oPlanFakeItems = new Array(), oPlanBananas = new Array(), oPlanBobOmbs = new Array(), oPlanMushroom = new Array(), oPlanStarsDrop = new Array(),
+	oPlanShells = new Array(), oPlanRedShells = new Array(), oPlanBlueShells = new Array(), oPlanBlackShells = new Array(),
+	oPlanStars = new Array(), oPlanBulletBills = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(),
-	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
-	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
+	oPlanFakeItems2 = new Array(), oPlanBananas2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanMushroom2 = new Array(), oPlanStarsDrop2 = new Array(),
+	oPlanShells2 = new Array(), oPlanRedShells2 = new Array(), oPlanBlueShells2 = new Array(), oPlanBlackShells2 = new Array(),
+	oPlanStars2 = new Array(), oPlanBulletBills2 = new Array(), oPlanTeams2 = new Array();
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
@@ -914,7 +940,7 @@ function setPlanPos(frameState, lMap) {
 	var oPlayer = frameState.players[0];
 	if (oSpecCam)
 		oPlayer = frameState.karts[oSpecCam.playerId];
-	if (oPlayer.teleport > 3 || oPlayer.tombe > 10) return;
+	if (oPlayer.teleport > 3 || oPlayer.fall > 10) return;
 	var frameItems = frameState.items;
 	var oCamera = oPlayer;
 	if (oSpecCam)
@@ -925,7 +951,7 @@ function setPlanPos(frameState, lMap) {
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
 	function createObject(src, eltW, iPlanCtn, before) {
 		var res = document.createElement("img");
-		res.src = "images/map_icons/"+ src +".png";
+		res.src = "images/map_icons/"+ ((src in itemToImageName) ? itemToImageName[src] : src) +".png";
 		res.style.position = "absolute";
 		res.style.width = eltW+"px";
 		res.className = "pixelated";
@@ -1049,10 +1075,10 @@ function setPlanPos(frameState, lMap) {
 				}
 			}
 			if (updatePos) {
-				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
+				var iCharR = oKart.ref.bulletbill ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW);
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.spinning*360/21, iCharW, iMapW);
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
@@ -1146,21 +1172,21 @@ function setPlanPos(frameState, lMap) {
 	setDecorPos(oPlanDecor, oObjWidth, oPlanCtn, oPlanSize);
 	setDecorPos(oPlanDecor2, oObjWidth2, oPlanCtn2, oPlanSize2);
 
-	syncObjects(oPlanFauxObjets,frameItems["fauxobjet"],"objet", oObjWidth,oPlanCtn);
-	syncObjects(oPlanFauxObjets2,frameItems["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["fauxobjet"].length;i++) {
-		var fauxobjet = frameItems["fauxobjet"][i];
-		setObject(oPlanFauxObjets[i],fauxobjet.x,fauxobjet.y, oObjWidth,oPlanSize, fauxobjet.ref.team,200);
-		setObject(oPlanFauxObjets2[i],fauxobjet.x,fauxobjet.y, oObjWidth2,oPlanSize2, fauxobjet.ref.team,200);
-		oPlanFauxObjets[i].style.zIndex = oPlanFauxObjets2[i].style.zIndex = 2;
+	syncObjects(oPlanFakeItems,frameItems["fakeItem"],"objet", oObjWidth,oPlanCtn);
+	syncObjects(oPlanFakeItems2,frameItems["fakeItem"],"objet", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["fakeItem"].length;i++) {
+		var fakeItem = frameItems["fakeItem"][i];
+		setObject(oPlanFakeItems[i],fakeItem.x,fakeItem.y, oObjWidth,oPlanSize, fakeItem.ref.team,200);
+		setObject(oPlanFakeItems2[i],fakeItem.x,fakeItem.y, oObjWidth2,oPlanSize2, fakeItem.ref.team,200);
+		oPlanFakeItems[i].style.zIndex = oPlanFakeItems2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBananes,frameItems["banane"],"banane", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBananes2,frameItems["banane"],"banane", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["banane"].length;i++) {
-		var banane = frameItems["banane"][i];
-		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.ref.team,100);
-		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.ref.team,100);
-		oPlanBananes[i].style.zIndex = oPlanBananes2[i].style.zIndex = 2;
+	syncObjects(oPlanBananas,frameItems["banana"],"banana", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBananas2,frameItems["banana"],"banana", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["banana"].length;i++) {
+		var banana = frameItems["banana"][i];
+		setObject(oPlanBananas[i],banana.x,banana.y, oObjWidth,oPlanSize, banana.ref.team,100);
+		setObject(oPlanBananas2[i],banana.x,banana.y, oObjWidth2,oPlanSize2, banana.ref.team,100);
+		oPlanBananas[i].style.zIndex = oPlanBananas2[i].style.zIndex = 2;
 	}
 	syncObjects(oPlanPoisons,frameItems["poison"],"poison", oObjWidth,oPlanCtn);
 	syncObjects(oPlanPoisons2,frameItems["poison"],"poison", oObjWidth2,oPlanCtn2);
@@ -1170,21 +1196,21 @@ function setPlanPos(frameState, lMap) {
 		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.ref.team,100);
 		oPlanPoisons[i].style.zIndex = oPlanPoisons2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanChampis,frameItems["champi"],"champi", oObjWidth,oPlanCtn);
-	syncObjects(oPlanChampis2,frameItems["champi"],"champi", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["champi"].length;i++) {
-		var champi = frameItems["champi"][i];
-		setObject(oPlanChampis[i],champi.x,champi.y, oObjWidth,oPlanSize, -1,100);
-		setObject(oPlanChampis2[i],champi.x,champi.y, oObjWidth2,oPlanSize2, -1,100);
-		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
+	syncObjects(oPlanMushroom,frameItems["mushroom"],"mushroom", oObjWidth,oPlanCtn);
+	syncObjects(oPlanMushroom2,frameItems["mushroom"],"mushroom", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["mushroom"].length;i++) {
+		var mushroom = frameItems["mushroom"][i];
+		setObject(oPlanMushroom[i],mushroom.x,mushroom.y, oObjWidth,oPlanSize, -1,100);
+		setObject(oPlanMushroom2[i],mushroom.x,mushroom.y, oObjWidth2,oPlanSize2, -1,100);
+		oPlanMushroom[i].style.zIndex = oPlanMushroom2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanEtoilesDrop,frameItems["etoile"],"etoile", oObjWidth,oPlanCtn);
-	syncObjects(oPlanEtoilesDrop2,frameItems["etoile"],"etoile", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["etoile"].length;i++) {
-		var etoile = frameItems["etoile"][i];
-		setObject(oPlanEtoilesDrop[i],etoile.x,etoile.y, oObjWidth,oPlanSize, -1,100);
-		setObject(oPlanEtoilesDrop2[i],etoile.x,etoile.y, oObjWidth2,oPlanSize2, -1,100);
-		oPlanEtoilesDrop[i].style.zIndex = oPlanEtoilesDrop2[i].style.zIndex = 2;
+	syncObjects(oPlanStarsDrop,frameItems["star"],"star", oObjWidth,oPlanCtn);
+	syncObjects(oPlanStarsDrop2,frameItems["star"],"star", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["star"].length;i++) {
+		var star = frameItems["star"][i];
+		setObject(oPlanStarsDrop[i],star.x,star.y, oObjWidth,oPlanSize, -1,100);
+		setObject(oPlanStarsDrop2[i],star.x,star.y, oObjWidth2,oPlanSize2, -1,100);
+		oPlanStarsDrop[i].style.zIndex = oPlanStarsDrop2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team,defaultTeam) {
@@ -1212,79 +1238,79 @@ function setPlanPos(frameState, lMap) {
 	setBobombPos(oPlanBobOmbs, oObjWidth,oPlanCtn, oPlanSize, oExpWidth);
 	setBobombPos(oPlanBobOmbs2, oObjWidth2,oPlanCtn2, oPlanSize2, oExpWidth2);
 
-	syncObjects(oPlanCarapaces,frameItems["carapace"],"carapace", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapaces2,frameItems["carapace"],"carapace", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["carapace"].length;i++) {
-		var carapace = frameItems["carapace"][i];
-		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.ref.team,200);
-		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.ref.team,200).style.zIndex = 2;
+	syncObjects(oPlanShells,frameItems["shell"],"shell", oObjWidth,oPlanCtn);
+	syncObjects(oPlanShells2,frameItems["shell"],"shell", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["shell"].length;i++) {
+		var shell = frameItems["shell"][i];
+		setObject(oPlanShells[i],shell.x,shell.y, oObjWidth,oPlanSize, shell.ref.team,200);
+		setObject(oPlanShells2[i],shell.x,shell.y, oObjWidth2,oPlanSize2, shell.ref.team,200).style.zIndex = 2;
 	}
 
-	syncObjects(oPlanCarapacesRouges,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapacesRouges2,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["carapace-rouge"].length;i++) {
-		var carapaceRouge = frameItems["carapace-rouge"][i];
-		setObject(oPlanCarapacesRouges[i],carapaceRouge.x,carapaceRouge.y, oObjWidth,oPlanSize, carapaceRouge.ref.team,200);
-		setObject(oPlanCarapacesRouges2[i],carapaceRouge.x,carapaceRouge.y, oObjWidth2,oPlanSize2, carapaceRouge.ref.team,200).style.zIndex = 2;
-		if (carapaceRouge.ref.owner)
-			oPlanCarapacesRouges[i].style.zIndex = 2;
+	syncObjects(oPlanRedShells,frameItems["red-shell"],"red-shell", oObjWidth,oPlanCtn);
+	syncObjects(oPlanRedShells2,frameItems["red-shell"],"red-shell", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["red-shell"].length;i++) {
+		var redShell = frameItems["red-shell"][i];
+		setObject(oPlanRedShells[i],redShell.x,redShell.y, oObjWidth,oPlanSize, redShell.ref.team,200);
+		setObject(oPlanRedShells2[i],redShell.x,redShell.y, oObjWidth2,oPlanSize2, redShell.ref.team,200).style.zIndex = 2;
+		if (redShell.ref.owner)
+			oPlanRedShells[i].style.zIndex = 2;
 	}
 
-	function setCarapacesBleuesPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,frameItems["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
-		for (var i=0;i<frameItems["carapace-bleue"].length;i++) {
-			var carapaceBleue = frameItems["carapace-bleue"][i];
-			if (carapaceBleue.ref.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.ref.team,"0");
-				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.ref.cooldown/10, 0);
-				iPlanCarapacesBleues[i].style.background = "";
+	function setBlueShellsPos(iPlanBlueShells, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
+		syncObjects(iPlanBlueShells,frameItems["blue-shell"],"blue-shell",iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["blue-shell"].length;i++) {
+			var blueShell = frameItems["blue-shell"][i];
+			if (blueShell.ref.cooldown <= 0) {
+				posImg(iPlanBlueShells[i], blueShell.x,blueShell.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",blueShell.ref.team,"0");
+				iPlanBlueShells[i].style.width = iExpWidth +"px";
+				iPlanBlueShells[i].style.opacity = Math.max(1+blueShell.ref.cooldown/10, 0);
+				iPlanBlueShells[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.ref.team,200).style.zIndex = 2;
+				setObject(iPlanBlueShells[i],blueShell.x,blueShell.y, iObjWidth,iPlanSize, blueShell.ref.team,200).style.zIndex = 2;
 		}
 	}
-	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
-	setCarapacesBleuesPos(oPlanCarapacesBleues2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
+	setBlueShellsPos(oPlanBlueShells, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
+	setBlueShellsPos(oPlanBlueShells2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
-	function setCarapacesNoiresPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,frameItems["carapace-noire"],"carapace-noire",iObjWidth,iPlanCtn);
-		for (var i=0;i<frameItems["carapace-noire"].length;i++) {
-			var carapaceNoire = frameItems["carapace-noire"][i];
-			if (carapaceNoire.ref.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceNoire.x,carapaceNoire.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceNoire.ref.team,"D");
-				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceNoire.ref.cooldown/10, 0);
-				iPlanCarapacesBleues[i].style.background = "";
+	function setBlackShellsPos(iPlanBlueShells, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
+		syncObjects(iPlanBlueShells,frameItems["black-shell"],"black-shell",iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["black-shell"].length;i++) {
+			var blackShell = frameItems["black-shell"][i];
+			if (blackShell.ref.cooldown <= 0) {
+				posImg(iPlanBlueShells[i], blackShell.x,blackShell.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",blackShell.ref.team,"D");
+				iPlanBlueShells[i].style.width = iExpWidth +"px";
+				iPlanBlueShells[i].style.opacity = Math.max(1+blackShell.ref.cooldown/10, 0);
+				iPlanBlueShells[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapaceNoire.x,carapaceNoire.y, iObjWidth,iPlanSize, carapaceNoire.ref.team,200).style.zIndex = 2;
+				setObject(iPlanBlueShells[i],blackShell.x,blackShell.y, iObjWidth,iPlanSize, blackShell.ref.team,200).style.zIndex = 2;
 		}
 	}
-	setCarapacesNoiresPos(oPlanCarapacesNoires, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
-	setCarapacesNoiresPos(oPlanCarapacesNoires2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
+	setBlackShellsPos(oPlanBlackShells, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
+	setBlackShellsPos(oPlanBlackShells2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
-	var oStars = new Array(), oBillBalls = new Array();
+	var oStars = new Array(), oBulletBills = new Array();
 	for (var i=0;i<frameState.karts.length;i++) {
 		var oKart = frameState.karts[i];
-		if (oKart.ref.etoile)
+		if (oKart.ref.star)
 			oStars.push(oKart);
-		else if (oKart.ref.billball)
-			oBillBalls.push(oKart);
+		else if (oKart.ref.bulletbill)
+			oBulletBills.push(oKart);
 	}
-	syncObjects(oPlanEtoiles,oStars,"etoile", oObjWidth,oPlanCtn);
-	syncObjects(oPlanEtoiles2,oStars,"etoile", oObjWidth2,oPlanCtn2);
+	syncObjects(oPlanStars,oStars,"star", oObjWidth,oPlanCtn);
+	syncObjects(oPlanStars2,oStars,"star", oObjWidth2,oPlanCtn2);
 	for (var i=0;i<oStars.length;i++) {
-		setObject(oPlanEtoiles[i],oStars[i].x,oStars[i].y, oObjWidth,oPlanSize);
-		setObject(oPlanEtoiles2[i],oStars[i].x,oStars[i].y, oStarWidth2,oPlanSize2).style.width = oStarWidth2+"px";
-		oPlanEtoiles[i].style.zIndex = oPlanEtoiles2[i].style.zIndex = 2;
+		setObject(oPlanStars[i],oStars[i].x,oStars[i].y, oObjWidth,oPlanSize);
+		setObject(oPlanStars2[i],oStars[i].x,oStars[i].y, oStarWidth2,oPlanSize2).style.width = oStarWidth2+"px";
+		oPlanStars[i].style.zIndex = oPlanStars2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBillballs,oBillBalls,"billball", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBillballs2,oBillBalls,"billball", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<oBillBalls.length;i++) {
-		posImg(oPlanBillballs[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth,oPlanSize).style.width = oBBWidth +"px";
-		posImg(oPlanBillballs2[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
-		oPlanBillballs[i].style.zIndex = oPlanBillballs2[i].style.zIndex = 2;
+	syncObjects(oPlanBulletBills,oBulletBills,"bulletbill", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBulletBills2,oBulletBills,"bulletbill", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<oBulletBills.length;i++) {
+		posImg(oPlanBulletBills[i],oBulletBills[i].x,oBulletBills[i].y, Math.round(oCamera.rotation), oBBWidth,oPlanSize).style.width = oBBWidth +"px";
+		posImg(oPlanBulletBills2[i],oBulletBills[i].x,oBulletBills[i].y, Math.round(oCamera.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
+		oPlanBulletBills[i].style.zIndex = oPlanBulletBills2[i].style.zIndex = 2;
 	}
 }
 function initPlan(lMap) {
@@ -1377,7 +1403,7 @@ function initPlan(lMap) {
 		oPlanSea.setAttribute("width", oPlanSize +"px");
 		oPlanSea.setAttribute("height", oPlanSize +"px");
 		oPlanCtn.appendChild(oPlanSea);
-		
+
 		oPlanSea2 = document.createElement("canvas");
 		oPlanSea2.style.position = "absolute";
 		oPlanSea2.style.left = "0px";
@@ -1448,7 +1474,7 @@ function initPlan(lMap) {
 		oCharacter.style.position = "absolute";
 		oCharacter.style.zIndex = 1;
 		oCharacter.style.width = oCharWidth +"px";
-		oCharacter.src = getMapIcSrc(aKarts[i].personnage);
+		oCharacter.src = getMapIconSrcForChar(aKarts[i].personnage);
 		oCharacter.className = "pixelated";
 		oPlanCharacters.push(oCharacter);
 
@@ -1456,7 +1482,7 @@ function initPlan(lMap) {
 		oCharacter2.style.position = "absolute";
 		oCharacter2.style.zIndex = 1;
 		oCharacter2.style.width = oCharWidth2 +"px";
-		oCharacter2.src = getMapIcSrc(aKarts[i].personnage);
+		oCharacter2.src = getMapIconSrcForChar(aKarts[i].personnage);
 		oCharacter2.className = "pixelated";
 		oPlanCharacters2.push(oCharacter2);
 	}
@@ -1513,19 +1539,19 @@ function resetPlan(lMap) {
 	oPlanPoisons.length = 0;
 	oPlanDecor = {};
 	oPlanAssets = {};
-	oPlanFauxObjets.length = 0;
-	oPlanBananes.length = 0;
+	oPlanFakeItems.length = 0;
+	oPlanBananas.length = 0;
 	oPlanBobOmbs.length = 0;
-	oPlanChampis.length = 0;
-	oPlanEtoilesDrop.length = 0;
+	oPlanMushroom.length = 0;
+	oPlanStarsDrop.length = 0;
 
-	oPlanCarapaces.length = 0;
-	oPlanCarapacesRouges.length = 0;
-	oPlanCarapacesBleues.length = 0;
-	oPlanCarapacesNoires.length = 0;
+	oPlanShells.length = 0;
+	oPlanRedShells.length = 0;
+	oPlanBlueShells.length = 0;
+	oPlanBlackShells.length = 0;
 
-	oPlanEtoiles.length = 0;
-	oPlanBillballs.length = 0;
+	oPlanStars.length = 0;
+	oPlanBulletBills.length = 0;
 	oPlanTeams.length = 0;
 
 	oPlanCharacters2.length = 0;
@@ -1533,24 +1559,24 @@ function resetPlan(lMap) {
 	oPlanCoins2.length = 0;
 	oPlanDecor2 = {};
 	oPlanAssets2 = {};
-	oPlanFauxObjets2.length = 0;
-	oPlanBananes2.length = 0;
+	oPlanFakeItems2.length = 0;
+	oPlanBananas2.length = 0;
 	oPlanBobOmbs2.length = 0;
 	oPlanPoisons2.length = 0;
-	oPlanChampis2.length = 0;
-	oPlanEtoilesDrop2.length = 0;
+	oPlanMushroom2.length = 0;
+	oPlanStarsDrop2.length = 0;
 
-	oPlanCarapaces2.length = 0;
-	oPlanCarapacesRouges2.length = 0;
-	oPlanCarapacesBleues2.length = 0;
-	oPlanCarapacesNoires2.length = 0;
+	oPlanShells2.length = 0;
+	oPlanRedShells2.length = 0;
+	oPlanBlueShells2.length = 0;
+	oPlanBlackShells2.length = 0;
 
-	oPlanEtoiles2.length = 0;
-	oPlanBillballs2.length = 0;
+	oPlanStars2.length = 0;
+	oPlanBulletBills2.length = 0;
 	oPlanTeams2.length = 0;
 	customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
-	removePlan();	
+	removePlan();
 	initPlan(lMap);
 	initCustomDecorsSprites(lMap);
 }
@@ -1604,7 +1630,7 @@ function loadMap() {
 			regularCycle();
 		};
 	}
-	
+
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
 	formulaire.dataset.disabled = 1;
@@ -1625,23 +1651,23 @@ function loadMap() {
 		hudScreen.style.width = iWidth*iScreenScale +"px";
 		hudScreen.style.height = iHeight*iScreenScale +"px";
 
-		var oTemps = document.createElement("div");
-		oTemps.id = "temps"+i;
-		oTemps.style.right = Math.round(iScreenScale*0.6+1) +"px";
-		oTemps.style.top = Math.round(iScreenScale*0.4+3) +"px";
-		oTemps.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+		var oTime = document.createElement("div");
+		oTime.id = "time"+i;
+		oTime.style.right = Math.round(iScreenScale*0.6+1) +"px";
+		oTime.style.top = Math.round(iScreenScale*0.4+3) +"px";
+		oTime.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 		var shadowShift = Math.round(iScreenScale/8) +"px";
 		var shadowShift2 = Math.round(iScreenScale/4) +"px";
-		oTemps.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
-		hudScreen.appendChild(oTemps);
+		oTime.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
+		hudScreen.appendChild(oTime);
 
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
 		oCompteur.style.left = Math.round(iScreenScale/2) +"px";
-		oCompteur.style.bottom = ((course != "BB") ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
+		oCompteur.style.bottom = ((!isBallonBattle()) ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
 		oCompteur.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 		if (!pause || !fInfos.replay) {
-			if (course != "BB") {
+			if (!isBallonBattle()) {
 				oCompteur.innerHTML = '<div></div><div class="glow"></div>';
 				var oCompteurDivs = oCompteur.querySelectorAll("div");
 				for (var j=0;j<oCompteurDivs.length;j++) {
@@ -1672,10 +1698,10 @@ function loadMap() {
 			oObjet.style.height = Math.round(iScreenScale * 18/3) +"px";
 			oObjet.style.visibility = "visible";
 		}
-		var oRoulette = document.createElement("div");
-		oRoulette.id = "roulette"+i;
-		oRoulette.className = "itemChamber";
-		oObjet.appendChild(oRoulette);
+		var oWheel = document.createElement("div");
+		oWheel.id = "wheel"+i;
+		oWheel.className = "itemChamber";
+		oObjet.appendChild(oWheel);
 		var oCountdown = document.createElement("div");
 		oCountdown.id = "countdown"+i;
 		oCountdown.style.position = "absolute";
@@ -1698,10 +1724,10 @@ function loadMap() {
 			oReserve.style.height = Math.round(iScreenScale * 18/5) +"px";
 			oReserve.style.visibility = "hidden";
 		}
-		var oRoulette = document.createElement("div");
-		oRoulette.id = "roulette2"+i;
-		oRoulette.className = "itemChamber";
-		oReserve.appendChild(oRoulette);
+		var oWheel = document.createElement("div");
+		oWheel.id = "wheel2"+i;
+		oWheel.className = "itemChamber";
+		oReserve.appendChild(oWheel);
 		hudScreen.appendChild(oReserve);
 
 		var lakitu = document.createElement("div");
@@ -1712,12 +1738,12 @@ function loadMap() {
 		lakitu.style.height = Math.round(iScreenScale*6.6) +"px";
 		lakitu.style.fontSize = Math.round(iScreenScale*2.3) +"px";
 		hudScreen.appendChild(lakitu);
-		var infoPlace = document.createElement("div");
-		infoPlace.id = "infoPlace"+i;
-		infoPlace.style.right = Math.round(iScreenScale/2) +"px";
-		infoPlace.style.bottom = 0 +"px";
-		infoPlace.style.fontSize = iScreenScale * 8 +"px";
-		hudScreen.appendChild(infoPlace);
+		var rankInfo = document.createElement("div");
+		rankInfo.id = "rankInfo"+i;
+		rankInfo.style.right = Math.round(iScreenScale/2) +"px";
+		rankInfo.style.bottom = 0 +"px";
+		rankInfo.style.fontSize = iScreenScale * 8 +"px";
+		hudScreen.appendChild(rankInfo);
 		var oInfos = document.getElementById("infos"+i);
 		if (!oInfos) {
 			oInfos = document.getElementById("infos0").cloneNode(true);
@@ -1775,7 +1801,7 @@ function loadMap() {
 		hudScreens[i] = hudScreen;
 
 		if (onlineSpectatorId) {
-			oTemps.style.display = "none";
+			oTime.style.display = "none";
 			oScroller.style.display = "none";
 			oScroller2.style.display = "none";
 			oObjet.style.display = "none";
@@ -1870,28 +1896,28 @@ function initMap() {
 			return lMaps[l] || oMap;
 		}
 		var _getCurrentLapId = function(oKart) {
-			var tours = oKart.tours-1, cp = oKart.demitours;
+			var laps = oKart.laps-1, cp = oKart.checkpoints;
 			if (oMap.sections) {
 				if (cp >= oMap.checkpoint.length - 1)
 					cp = -1;
 			}
 			for (var i=0;i<lapOverrides.length;i++) {
 				var lapOverride = lapOverrides[i];
-				if (lapOverride.lap > tours) return i;
-				if (lapOverride.lap === tours) {
+				if (lapOverride.lap > laps) return i;
+				if (lapOverride.lap === laps) {
 					if (lapOverride.cp > cp) return i;
 				}
 			}
 			return lapOverrides.length;
 		}
 		getCurrentLapId = function(oKart) {
-			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours)
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.laps === oKart.laps && oKart._lapOverrideCache.cp === oKart.checkpoints)
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
 			if (oKart.sprite) {
 				oKart._lapOverrideCache = {
-					tours: oKart.tours,
-					cp: oKart.demitours,
+					laps: oKart.laps,
+					cp: oKart.checkpoints,
 					lapId: lapId
 				};
 			}
@@ -2078,7 +2104,7 @@ function initMap() {
 			}
 		}
 		if (lMap.sauts) {
-			var sauts = {rectangle:[],polygon:[]};
+			var jumps = {rectangle:[],polygon:[]};
 			for (var i=0;i<lMap.sauts.length;i++) {
 				var oBox = lMap.sauts[i];
 				var shapeType;
@@ -2112,9 +2138,9 @@ function initMap() {
 					}
 					oBox[1] = (shapeW+shapeH)/45+1;
 				}
-				sauts[shapeType].push(oBox);
+				jumps[shapeType].push(oBox);
 			}
-			lMap.sauts = sauts;
+			lMap.sauts = jumps;
 		}
 		if (lMap.cannons) {
 			var cannons = {rectangle:[],polygon:[]};
@@ -2317,10 +2343,10 @@ function loadNewItem(kart,item) {
 }
 function dropNewItem(oKart, item) {
 	switch (item.type) {
-	case "carapace":
+	case "shell":
 		item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
 		break;
-	case "carapace-rouge":
+	case "red-shell":
 		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.ailap = 0; item.target = -1;
 		break;
 	}
@@ -2347,24 +2373,24 @@ function addNewItem(kart,item) {
 	if (item.team != -1) {
 		var hallowSize;
 		switch (collection) {
-		case "champi":
-		case "etoile":
+		case "mushroom":
+		case "star":
 			break;
-		case "banane":
+		case "banana":
 			hallowSize = 50;
 			break;
 		case "poison":
 			hallowSize = 60;
 			break;
-		case "carapace":
-		case "carapace-rouge":
+		case "shell":
+		case "red-shell":
 			hallowSize = 60;
 			break;
-		case "fauxobjet":
+		case "fakeItem":
 			hallowSize = 65;
 			break;
-		case "carapace-bleue":
-		case "carapace-noire":
+		case "blue-shell":
+		case "black-shell":
 			hallowSize = 60;
 			break;
 		case "bobomb":
@@ -2376,7 +2402,7 @@ function addNewItem(kart,item) {
 		if (hallowSize) {
 			var hallowLeft = 50-hallowSize, hallowTop = 50-hallowSize;
 			switch (collection) {
-			case "banane":
+			case "banana":
 				hallowTop += 5;
 				break;
 			case "poison":
@@ -2385,7 +2411,7 @@ function addNewItem(kart,item) {
 			case "bobomb":
 				hallowTop += 5;
 				break;
-			case "fauxobjet":
+			case "fakeItem":
 				hallowTop -= 5;
 			}
 			for (var i=0;i<oPlayers.length;i++) {
@@ -2414,7 +2440,7 @@ function addNewItem(kart,item) {
 function setStarState(oKart, duration) {
 	for (var i=0;i<strPlayer.length;i++)
 		oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
-	if (!oKart.cpu && !oKart.etoile) {
+	if (!oKart.cpu && !oKart.star) {
 		if (!isOnline) {
 			oKart.sprite[0].img.onload = function() {
 				bCounting = false;
@@ -2431,58 +2457,58 @@ function setStarState(oKart, duration) {
 		oKart.speedinc *= 5;
 	delete oKart.shift;
 	oKart.protect = true;
-	oKart.etoile = duration;
+	oKart.star = duration;
 }
 
-var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
-function arme(ID, backwards, forwards) {
+var MUSHROOM_TYPE_ITEM = 1, MUSHROOM_TYPE_BOOST = 2;
+function useWeapon(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
-		if (oKart.roulette != 25) return;
+		if (oKart.wheel != 25) return;
 		if (oKart == oPlayers[0])
 			clLocalVars.itemsUsed = true;
-		var tpsUse, itemKey = oKart.arme;
-		switch(oKart.arme) {
-			case "champi" :
-			case "champiX2" :
-			case "champiX3" :
-			itemKey = "champi";
+		var tpsUse, itemKey = oKart.weapon;
+		switch(oKart.weapon) {
+			case "mushroom" :
+			case "mushroomX2" :
+			case "mushroomX3" :
+			itemKey = "mushroom";
 			tpsUse = 20;
-			oKart.champiType = CHAMPI_TYPE_ITEM;
+			oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 			oKart.maxspeed = 11;
 			oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
 			break;
 
-			case "champior" :
-			itemKey = "champi";
-			if (oKart.champi < 12) {
+			case "goldMushroom" :
+			itemKey = "mushroom";
+			if (oKart.mushroom < 12) {
 				tpsUse = 20;
-				oKart.champiType = CHAMPI_TYPE_ITEM;
+				oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
-				if (!oKart.champior) {
-					oKart.champior = 70;
-					oKart.champior0 = oKart.champior;
+				if (!oKart.goldMushroom) {
+					oKart.goldMushroom = 70;
+					oKart.goldMushroom0 = oKart.goldMushroom;
 				}
 			}
 			break;
 
-			case "etoile" :
+			case "star" :
 			tpsUse = 80;
 			setStarState(oKart, tpsUse);
 			break;
 
-			case "billball" :
-			if (oKart.billball)
+			case "bulletbill" :
+			if (oKart.bulletbill)
 				break;
 			if (oKart.jumped) {
 				oKart.ctrled = false;
 				oKart.jumped = false;
 			}
 			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(9*cappedRelSpeed())), 120), 40);
-			oKart.billball0 = tpsUse;
+			oKart.bulletbill0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
 				resetSpriteHeight(oKart.sprite[i]);
@@ -2502,37 +2528,37 @@ function arme(ID, backwards, forwards) {
 			oKart.z = 2;
 			oKart.heightinc = 0;
 			oKart.protect = true;
-			oKart.champi = 0;
-			delete oKart.champiType;
+			oKart.mushroom = 0;
+			delete oKart.mushroomType;
 			delete oKart.shift;
 			resetPowerup(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
 			stopDrifting(ID);
 			break;
 
-			case "megachampi" :
+			case "megamushroom" :
 			tpsUse = 80;
 			oKart.size = 1;
 			oKart.mini = 0;
 			oKart.protect = true;
-			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
+			if (!oKart.megamushroom && shouldPlaySound(oKart) && !oPlayers[1])
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
 
-			case "banane" :
-			loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			case "banana" :
+			loadNewItem(oKart, {type: "banana", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "bananeX3" :
+			case "bananaX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+				loadNewItem(oKart, {type: "banana", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "fauxobjet" :
-			loadNewItem(oKart, {type: "fauxobjet", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
+			case "fakeItem" :
+			loadNewItem(oKart, {type: "fakeItem", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2541,38 +2567,38 @@ function arme(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapace" :
-			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+			case "shell" :
+			loadNewItem(oKart, {type: "shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapaceX3" :
+			case "shellX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+				loadNewItem(oKart, {type: "shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapacerouge" :
-			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+			case "redshell" :
+			loadNewItem(oKart, {type: "red-shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapacerougeX3" :
+			case "redshellX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+				loadNewItem(oKart, {type: "red-shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapacebleue" :
+			case "blueshell" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0, lapId = 0, lMap;
-			if (course != "BB") {
+			if (!isBallonBattle()) {
 				lapId = getCurrentLapId(oKart);
 				lMap = getCurrentLMap(lapId);
-				var demitour = oKart.demitours+1;
-				if (demitour >= lMap.checkpoint.length)
-					demitour = 0;
+				var checkpoint = oKart.checkpoints+1;
+				if (checkpoint >= lMap.checkpoint.length)
+					checkpoint = 0;
 				for (var i=0;i<lMap.airoutesmeta.cpu;i++) {
 					var aipoints = lMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
@@ -2582,7 +2608,7 @@ function arme(ID, backwards, forwards) {
 						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 						if (!isFront)
 							dist += lMap.w+lMap.h;
-						var nextCp = lMap.checkpointCoords[demitour];
+						var nextCp = lMap.checkpointCoords[checkpoint];
 						if (nextCp) {
 							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
@@ -2597,14 +2623,14 @@ function arme(ID, backwards, forwards) {
 					}
 				}
 			}
-			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, ailapc:1, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
+			var item = {type: "blue-shell", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.laps, ailapc:1, cooldown:itemBehaviors["blue-shell"].cooldown0};
 			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
-			case "carapacenoire" :
+			case "blackShell" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
-			if (course != "BB") {
+			if (!isBallonBattle()) {
 				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
 					var aipoints = oMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
@@ -2614,10 +2640,10 @@ function arme(ID, backwards, forwards) {
 						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 						if (!isFront)
 							dist += oMap.w+oMap.h;
-						var demitour = oKart.demitours+1;
-						if (demitour >= oMap.checkpoint.length)
-							demitour = 0;
-						var nextCp = oMap.checkpointCoords[demitour];
+						var checkpoint = oKart.checkpoints+1;
+						if (checkpoint >= oMap.checkpoint.length)
+							checkpoint = 0;
+						var nextCp = oMap.checkpointCoords[checkpoint];
 						if (nextCp) {
 							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
@@ -2632,7 +2658,7 @@ function arme(ID, backwards, forwards) {
 					}
 				}
 			}
-			addNewItem(oKart, {type: "carapace-noire", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, cooldown:itemBehaviors["carapace-noire"].cooldown0});
+			addNewItem(oKart, {type: "black-shell", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, cooldown:itemBehaviors["black-shell"].cooldown0});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -2641,12 +2667,12 @@ function arme(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "eclair" :
-			addNewItem(oKart, {type:"eclair", owner:oKart.id});
+			case "lightning" :
+			addNewItem(oKart, {type:"lightning", owner:oKart.id});
 			break;
 
-			case "bloops" :
-			addNewItem(oKart, {type:"bloops", owner:oKart.id});
+			case "bloopers" :
+			addNewItem(oKart, {type:"bloopers", owner:oKart.id});
 			break;
 
 			case "pow" :
@@ -2658,30 +2684,30 @@ function arme(ID, backwards, forwards) {
 			oKart[itemKey] = tpsUse;
 
 		var newItem;
-		switch(oKart.arme) {
-		case "champiX2":
-			newItem = "champi";
+		switch(oKart.weapon) {
+		case "mushroomX2":
+			newItem = "mushroom";
 			break;
-		case "champiX3":
-			newItem = "champiX2";
+		case "mushroomX3":
+			newItem = "mushroomX2";
 			break;
-		case "champior":
-			newItem = "champior";
+		case "goldMushroom":
+			newItem = "goldMushroom";
 			break;
-		case "billball":
-			newItem = "billball";
+		case "bulletbill":
+			newItem = "bulletbill";
 		}
 		if (newItem) {
-			if (oKart.arme !== newItem) {
-				oKart.arme = newItem;
+			if (oKart.weapon !== newItem) {
+				oKart.weapon = newItem;
 				if (kartIsPlayer(oKart))
 					updateObjHud(ID);
 			}
 			else {
 				if (kartIsPlayer(oKart)) {
 					switch (newItem) {
-					case "champior":
-						var $img = document.getElementById("roulette"+ID).getElementsByTagName("img")[0];
+					case "goldMushroom":
+						var $img = document.getElementById("wheel"+ID).getElementsByTagName("img")[0];
 						var t = 0;
 						function rescale() {
 							t++;
@@ -2695,10 +2721,10 @@ function arme(ID, backwards, forwards) {
 							setTimeout(rescale, SPF);
 						}
 						rescale();
-						updateItemCountdownHud(ID,oKart.champior/oKart.champior0);
+						updateItemCountdownHud(ID,oKart.goldMushroom/oKart.goldMushroom0);
 						break;
-					case "billball":
-						updateItemCountdownHud(ID,oKart.billball/oKart.billball0);
+					case "bulletbill":
+						updateItemCountdownHud(ID,oKart.bulletbill/oKart.bulletbill0);
 					}
 				}
 			}
@@ -2712,8 +2738,8 @@ function arme(ID, backwards, forwards) {
 		collisionLap = getCurrentLapId(oKart);
 
 		switch(oKart.using[0].type) {
-			case "banane" :
-			case "fauxobjet" :
+			case "banana" :
+			case "fakeItem" :
 			case "poison" :
 			if (forwards) {
 				throwItem(oKart, {x:posX,y:posY,z:0.01,theta:oKart.rotation,countdown:15});
@@ -2723,12 +2749,12 @@ function arme(ID, backwards, forwards) {
 				var decalage = 30/(oKart.speed+5);
 				var item = throwItem(oKart, {x:posX-decalage*direction(0,oKart.rotation), y:posY-decalage*direction(1,oKart.rotation), z:0});
 				playIfShould(oKart,"musics/events/put.mp3");
-				if (tombe(item.x,item.y))
-					detruit(item);
+				if (isFalling(item.x,item.y))
+					destroy(item);
 			}
 			break;
 
-			case "carapace" :
+			case "shell" :
 			var uDir = dirShoot(oKart, backwards, 3.2);
 			var oAngleView = angleShoot(oKart, backwards);
 			var uX = uDir[0], uY = uDir[1], uL = Math.hypot(uX,uY);
@@ -2741,7 +2767,7 @@ function arme(ID, backwards, forwards) {
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
-			case "carapace-rouge" :
+			case "red-shell" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = 7.5;
 			if (backwards) {
@@ -2757,9 +2783,9 @@ function arme(ID, backwards, forwards) {
 			var lapId = getCurrentLapId(oKart);
 			var itemPayload;
 			if (backwards)
-				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.laps,target:-1};
 			else
-				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.laps,ailapc:1,target:-1};
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			throwItem(oKart, itemPayload);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -3052,12 +3078,12 @@ function stopMegaMusic(oKart) {
 		postResumeMusic(mapMusic, 0.92);
 }
 function resetPowerup(oKart) {
-	if (oKart.etoile) {
-		oKart.etoile = 0;
+	if (oKart.star) {
+		oKart.star = 0;
 		stopStarMusic(oKart);
 	}
-	if (oKart.megachampi) {
-		oKart.megachampi = 0;
+	if (oKart.megamushroom) {
+		oKart.megamushroom = 0;
 		stopMegaMusic(oKart);
 	}
 }
@@ -3243,7 +3269,7 @@ function startEndMusic() {
 			}
 		}, 200);
 	}
-	if (iSfx && course != "BB") {
+	if (iSfx && !isBallonBattle()) {
 		var goalSound = playSoundEffect("musics/events/goal.mp3");
 		goalSound.className = "";
 	}
@@ -3260,14 +3286,14 @@ function handleEndRace() {
 
 function startGame() {
 	resetScreen();
-	
+
 	var nbKarts = strPlayer.length+aPlayers.length;
 	if (!isOnline) {
-		if (course == "BB") {
+		if (isBallonBattle()) {
 			for (var i=0;i<nbKarts;i++)
 				aPlaces[i] = i+1;
 		}
-		else if (course == "CM")
+		else if (isTimeTrial())
 			aPlaces = [1];
 	}
 	if (isTeamPlay())
@@ -3301,7 +3327,7 @@ function startGame() {
 	var nbPlayers = strPlayer.length;
 	if (onlineSpectatorId) nbPlayers = 0;
 	for (var i=0;i<nbPlayers;i++) {
-		var joueur = strPlayer[i];
+		var player = strPlayer[i];
 		var oPlace = aPlaces[i];
 		var oPlayer = {
 			id : i,
@@ -3310,12 +3336,12 @@ function startGame() {
 			y : oMap.startposition[1],
 			z : 0,
 
-			personnage : joueur,
+			personnage : player,
 
 			speed : 0,
 			speedinc : 0,
 			heightinc : 0,
-			stats : realKartStats(cp[joueur]),
+			stats : realKartStats(cp[player]),
 
 			rotation : rot0,
 			rotincdir : 0,
@@ -3323,17 +3349,17 @@ function startGame() {
 			changeView : 0,
 
 			size : 1,
-			sprite : new Sprite(joueur),
+			sprite : new Sprite(player),
 			cpu : false,
 			aipoints : oMap.aipoints[0],
 
-			tourne : 0,
-			tombe : 0,
+			spinning : 0,
+			fall : 0,
 			protect : false,
 
-			roulette : 0,
-			roulette2 : 0,
-			arme : false,
+			wheel : 0,
+			wheel2 : 0,
+			weapon : false,
 			stash: false,
 			maxspeed : 5.7,
 
@@ -3344,9 +3370,9 @@ function startGame() {
 			driftSprite: new Sprite("drift"),
 			jumped : false,
 
-			champi : 0,
-			etoile : 0,
-			megachampi : 0,
+			mushroom : 0,
+			star : 0,
+			megamushroom : 0,
 			mini : 0,
 			using : []
 		};
@@ -3358,16 +3384,16 @@ function startGame() {
 			oPlayer.team = aTeams[i];
 		else
 			oPlayer.team = -1;
-		if (course != "BB") {
+		if (!isBallonBattle()) {
 			posKart(oPlayer, isTT ? 1:oPlace);
 			oPlayer.time = 0;
-			oPlayer.tours = 1;
-			oPlayer.demitours = cp0;
-			//oPlayer.tours = oMap.tours;
-			//oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
-			//oPlayer.arme = "bloops";
-			//oPlayer.roulette = 24;
-			oPlayer.billball = 0;
+			oPlayer.laps = 1;
+			oPlayer.checkpoints = cp0;
+			//oPlayer.laps = oMap.tours;
+			//oPlayer.checkpoints = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
+			//oPlayer.weapon = "bloopers";
+			//oPlayer.wheel = 24;
+			oPlayer.bulletbill = 0;
 			oPlayer.place = oPlace;
 		}
 		else {
@@ -3392,11 +3418,11 @@ function startGame() {
 	}
 
 	for (i=0;i<aPlayers.length;i++) {
-		var joueur = aPlayers[i];
+		var player = aPlayers[i];
 		var inc = i+nbPlayers;
 		var oPlace = aPlaces[inc];
-		var depart = (iDificulty-4)*2+Math.round(Math.random());
-		if (course == "BB")
+		var depart = (iDifficulty-4)*2+Math.round(Math.random());
+		if (isBallonBattle())
 			depart = 2;
 		var oEnemy = {
 			id : inc,
@@ -3404,7 +3430,7 @@ function startGame() {
 			speed : 0,
 			speedinc : 0.5,
 			heightinc : 0,
-			stats : realKartStats([0.5,0.5,0.5,cp[joueur][3]]),
+			stats : realKartStats([0.5,0.5,0.5,cp[player][3]]),
 
 			rotation : rot0,
 			rotincdir : 0,
@@ -3415,25 +3441,25 @@ function startGame() {
 			z : 0,
 
 			size : 1,
-			personnage : joueur,
-			sprite : new Sprite(joueur),
+			personnage : player,
+			sprite : new Sprite(player),
 
-			tourne : 0,
-			tombe : 0,
+			spinning : 0,
+			fall : 0,
 			protect : false,
 
-			roulette : 0,
-			roulette2 : 0,
-			arme : false,
+			wheel : 0,
+			wheel2 : 0,
+			weapon : false,
 
 			drift : 0,
 			driftinc: 0,
 			driftcpt: 0,
 			driftSprite: new Sprite("drift"),
 
-			champi : 0,
-			etoile : 0,
-			megachampi : 0,
+			mushroom : 0,
+			star : 0,
+			megamushroom : 0,
 			mini : 0,
 			using : [],
 
@@ -3462,16 +3488,16 @@ function startGame() {
 			oEnemy.team = -1;
 		if ((oEnemy.team != -1) || oEnemy.nick)
 			oEnemy.marker = createMarker(oEnemy);
-		if (course != "BB") {
+		if (!isBallonBattle()) {
 			posKart(oEnemy, isTT ? 1:oPlace);
-			oEnemy.tours = 1;
-			oEnemy.demitours = cp0;
-			//oEnemy.tours = oMap.tours;
-			//oEnemy.demitours = oMap.checkpoint.length-1;
-			oEnemy.billball = 0;
+			oEnemy.laps = 1;
+			oEnemy.checkpoints = cp0;
+			//oEnemy.laps = oMap.tours;
+			//oEnemy.checkpoints = oMap.checkpoint.length-1;
+			oEnemy.bulletbill = 0;
 			if (!isOnline) {
 				oEnemy.speed = (depart<2) ? 0 : 5.7;
-				oEnemy.tourne = depart ? 0 : 42;
+				oEnemy.spinning = depart ? 0 : 42;
 			}
 			oEnemy.place = oPlace;
 		}
@@ -3566,14 +3592,14 @@ function startGame() {
 	}
 	function accelerateKart() {
 		this.speedinc = this.stats.acceleration*this.size;
-		if (this.etoile) this.speedinc *= 5;
+		if (this.star) this.speedinc *= 5;
 	}
 	function turnKart(dir) {
 		dir *= getMirrorFactor();
 		if (clLocalVars.invertDirs)
 			dir = -dir;
 		this.rotincdir = this.stats.handling*dir;
-		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
+		if (!this.driftinc && !this.spinning && !this.fell && this.ctrl && !this.cannon) {
 			if (this.jumped)
 				this.driftinc = dir;
 			if (this.driftinc)
@@ -3581,14 +3607,14 @@ function startGame() {
 		}
 	}
 	function spinKart(nb) {
-		if (!this.tourne) {
+		if (!this.spinning) {
 			if (isOnline)
 				playIfShould(this,"musics/events/spin.mp3");
 			else
-				playDistSound(this,"musics/events/spin.mp3",(course=="BB")?80:50);
+				playDistSound(this,"musics/events/spin.mp3",(isBallonBattle())?80:50);
 		}
 		this.frminv = 10;
-		this.tourne = nb;
+		this.spinning = nb;
 		resetWrongWay(this);
 	}
 	function actualKartSpeed() {
@@ -3620,11 +3646,11 @@ function startGame() {
 			lMap.arme = [];
 		});
 		for (var i=0;i<aKarts.length;i++) {
-			aKarts[i].arme = "champiX3";
+			aKarts[i].weapon = "mushroomX3";
 			aKarts[i].maxspeed0 = aKarts[i].maxspeed;
 		}
-		aKarts[0].roulette = 25;
-		if (course == "CM") {
+		aKarts[0].wheel = 25;
+		if (isTimeTrial()) {
 			for (var i=0;i<gPersos.length;i++) {
 				var gPerso = gPersos[i];
 				aKarts.push({
@@ -3645,26 +3671,26 @@ function startGame() {
 					personnage : gPerso,
 					sprite : new Sprite(gPerso),
 
-					tourne : 0,
-					tombe : 0,
+					spinning : 0,
+					fall : 0,
 					protect : false,
 
-					roulette : 0,
-					roulette2 : 0,
-					arme : false,
+					wheel : 0,
+					wheel2 : 0,
+					weapon : false,
 
 					drift : 0,
 					driftinc: 0,
 					driftcpt: 0,
 					driftSprite: new Sprite("drift"),
 
-					champi : 0,
-					etoile : 0,
-					megachampi : 0,
+					mushroom : 0,
+					star : 0,
+					megamushroom : 0,
 					using : [],
 
-					tours : 1,
-					demitours: 0,
+					laps : 1,
+					checkpoints: 0,
 
 					cpu : false,
 					aipoint : 0,
@@ -3689,7 +3715,7 @@ function startGame() {
 			(function(getId) {
 				var oKart = aKarts[getId];
 				oKart.stopDrifting = function() {
-					oKart.tourne = 0;
+					oKart.spinning = 0;
 					oKart.driftcpt = 0;
 					oKart.driftinc = 0;
 					resetDriftSprite(oKart);
@@ -3697,7 +3723,7 @@ function startGame() {
 				oKart.stopStunt = function() {
 					if (aStunted) {
 						aStunted = false;
-						oKart.tourne = 0;
+						oKart.spinning = 0;
 					}
 					var oSprite = oKart.sprite[0];
 					if (oSprite.div.ahallowed) {
@@ -3711,14 +3737,14 @@ function startGame() {
 				}
 				oKart.moveGhost = function(getInfos) {
 					var oKart = aKarts[getId];
-					if (oKart.tombe) {
-						oKart.tombe--;
-						if (!oKart.tombe)
+					if (oKart.fall) {
+						oKart.fall--;
+						if (!oKart.fall)
 							resetFall(oKart);
 						if (!getId) {
-							if (oKart.tombe === 19)
+							if (oKart.fall === 19)
 								oKart.sprite[getId].img.style.opacity = 1;
-							oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
+							oContainers[0].style.opacity = Math.abs(oKart.fall-10)/10;
 						}
 					}
 					var aX = oKart.x;
@@ -3737,12 +3763,12 @@ function startGame() {
 					else if (getFlags[3])
 						rotincdir = -1;
 					oKart.rotincdir = oKart.stats.handling*rotincdir;
-					var aTours = oKart.tours, aDemitours = oKart.demitours;
+					var aLaps = oKart.laps, aCheckpoints = oKart.checkpoints;
 					if (checkpoint(oKart, oKart.x-aX,oKart.y-aY)) {
-						oKart.tours++;
-						oKart.demitours = getNextCp(oKart);
+						oKart.laps++;
+						oKart.checkpoints = getNextCp(oKart);
 					}
-					handleCpChange(aTours,aDemitours, getId);
+					handleCpChange(aLaps,aCheckpoints, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -3759,8 +3785,8 @@ function startGame() {
 						}
 						else {
 							if (aStunted) {
-								oKart.tourne -= 1 + Math.round((11-Math.abs(11-oKart.tourne))*0.5);
-								if (oKart.tourne < 8) {
+								oKart.spinning -= 1 + Math.round((11-Math.abs(11-oKart.spinning))*0.5);
+								if (oKart.spinning < 8) {
 									var oSprite = oKart.sprite[0];
 									if (!oSprite.div.ahallowed) {
 										oSprite.div.ahallowed = true;
@@ -3769,18 +3795,18 @@ function startGame() {
 										oSprite.div.style.backgroundSize = "contain";
 										oSprite.img.style.opacity = 0.7;
 									}
-									if (oKart.tourne < 0)
-										oKart.tourne = 0;
+									if (oKart.spinning < 0)
+										oKart.spinning = 0;
 								}
 							}
-							else if (getFlags[1] && !oKart.driftinc && !oKart.tombe) {
+							else if (getFlags[1] && !oKart.driftinc && !oKart.fall) {
 								aStunted = true;
 								oKart.stopDrifting();
-								oKart.tourne = 19;
+								oKart.spinning = 19;
 							}
 						}
 						if (getFlags[0]) {
-							oKart.tombe = 20;
+							oKart.fall = 20;
 							oKart.aX = aX;
 							oKart.aY = aY;
 							oKart.aRotation = aRotation;
@@ -3826,13 +3852,13 @@ function startGame() {
 			})(oKart.sprite[j], oKart.driftSprite[j]);
 		}
 	}
-	if (course != "CM") {
+	if (!isTimeTrial()) {
 		for (var i=0;i<oPlayers.length;i++) {
-			document.getElementById("infoPlace"+i).innerHTML = oPlayers[i].place;
-			document.getElementById("infoPlace"+i).style.display = "block";
+			document.getElementById("rankInfo"+i).innerHTML = oPlayers[i].place;
+			document.getElementById("rankInfo"+i).style.display = "block";
 			var oColor = (oPlayers[i].team != -1) ? cTeamColors.light[oPlayers[i].team]:"";
-			document.getElementById("infoPlace"+i).style.color = oColor;
-			if ((course != "BB") && !onlineSpectatorId)
+			document.getElementById("rankInfo"+i).style.color = oColor;
+			if ((!isBallonBattle()) && !onlineSpectatorId)
 				document.getElementById("compteur"+i).style.color = oColor;
 		}
 	}
@@ -3935,19 +3961,19 @@ function startGame() {
 								decorBehavior.transparent = true;
 							else if (res.options.hitbox === 1)
 								delete decorBehavior.transparent;
-							
+
 							if (res.options.spin === 1 && !decorBehavior.spin)
 								decorBehavior.spin = 20;
 							else if (res.options.spin === 0)
 								delete decorBehavior.spin;
-							
+
 							if (res.options.unbreaking === 1) {
 								decorBehavior.unbreaking = true;
 								delete decorBehavior.breaking;
 							}
 							else if (res.options.unbreaking === 0)
 								delete decorBehavior.unbreaking;
-							
+
 							if (res.options.breaking === 1) {
 								decorBehavior.breaking = true;
 								delete decorBehavior.unbreaking;
@@ -3985,7 +4011,7 @@ function startGame() {
 				inc = decorIncs[actualType];
 			else
 				decorIncs[actualType] = 0;
-			
+
 			var decorsData = lMap.decor[type];
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
@@ -4069,7 +4095,7 @@ function startGame() {
 					}
 					else {
 						asset0.src = "assets/"+assetKey;
-						img.src = "images/map_icons/"+asset0.src+".png";
+						img.src = "images/map_icons/" + ((asset0.src in itemToImageName) ? itemToImageName[asset0.src] : asset0.src) + ".png";
 					}
 					img.onload = function() {
 						asset0.redraw(asset);
@@ -4107,7 +4133,7 @@ function startGame() {
 	}, 300);
 
 	if (bMusic && !onlineSpectatorState) {
-		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
+		var startingMusic = playSoundEffect("musics/events/"+ (!isBallonBattle()?"start":"startbb") +".mp3");
 		startingMusic.volume = vMusic;
 		startingMusic.pause();
 		setTimeout(function() {
@@ -4130,7 +4156,7 @@ function startGame() {
 		oCounts[i][0].style.left = (8*iScreenScale)+"px";
 		oCounts[i][0].style.zIndex = 10000;
 
-		oCounts[i][1].src = "images/lakitu_depart.png";
+		oCounts[i][1].src = "images/lakitu_depart.png";  /* ="lakitu_start"*/
 		oCounts[i][1].style.position = "absolute";
 		oCounts[i][1].style.left = "0px";
 		oCounts[i][1].height = 12*iScreenScale;
@@ -4169,7 +4195,7 @@ function startGame() {
 	}
 
 	var oRaceCounts;
-	if ((course != "CM") && (iRaceCount > 1) && isLocalScore()) {
+	if ((!isTimeTrial()) && (iRaceCount > 1) && isLocalScore()) {
 		oRaceCounts = new Array();
 		for (var i=0;i<strPlayer.length;i++) {
 			var oRaceCount = document.createElement("div");
@@ -4182,7 +4208,7 @@ function startGame() {
 			var shadowShift = Math.round(iScreenScale/8) +"px";
 			var shadowShift2 = Math.round(iScreenScale/4) +"px";
 			oRaceCount.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
-			var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
+			var sRaceLabel = (isBallonBattle()) ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
 			oRaceCount.innerHTML = sRaceLabel + " " + iRaceCount;
 			hudScreens[i].appendChild(oRaceCount);
 			oRaceCounts.push(oRaceCount);
@@ -4227,7 +4253,7 @@ function startGame() {
 				oChallengeCpts.style.visibility = "visible";
 				for (var i=0;i<$speedometers.length;i++)
 					$speedometers[i].style.visibility = "visible";
-				if (course == "BB") {
+				if (isBallonBattle()) {
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
 						if (oKart.cpu)
@@ -4268,7 +4294,7 @@ function startGame() {
 						if ($virtualPauseBtn)
 							$virtualPauseBtn.style.display = "block";
 						if (stillRacing) {
-							var limitedOptions = (course != "CM" || isSingle);
+							var limitedOptions = (!isTimeTrial() || isSingle);
 							var btnFontSize = limitedOptions ? (iScreenScale*3):Math.round(iScreenScale*2.5);
 							oInfos.innerHTML =
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
@@ -4279,7 +4305,7 @@ function startGame() {
 									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
 								)+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
-								'<tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
+								'<tr><td><input type="button" id="quit" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
 							oInfos.onkeydown = function(e) {
 								var btnDir;
 								switch (e.keyCode) {
@@ -4339,10 +4365,10 @@ function startGame() {
 									mirror:bSelectedMirror,
 									double_items:oDoubleItemsEnabled,
 									map:oMap.ref,
-									difficulty:iDificulty,
+									difficulty:iDifficulty,
 									cl:clSelected
 								};
-								if (course == "CM") {
+								if (isTimeTrial()) {
 									fInfos.perso = gPersos;
 									fInfos.cpu_route = jTrajets;
 									fInfos.my_record = gRecord;
@@ -4354,9 +4380,9 @@ function startGame() {
 									removePlan();
 								oBgLayers.length = 0;
 								if (resetScores()) {
-									if (course == "GP")
+									if (isGrandPrix())
 										fInfos.map -= (oMap.ref+3)%4;
-									else if (course != "CM")
+									else if (!isTimeTrial())
 										delete fInfos.map;
 								}
 								resetEvents();
@@ -4387,7 +4413,7 @@ function startGame() {
 									resetApp();
 								};
 							}
-							document.getElementById("quitter").onclick = quitter;
+							document.getElementById("quit").onclick = quit;
 							if (onlineSpectatorId) {
 								oInfos.innerHTML =
 									'<tbody style="text-align: left; color: white; font-weight: normal; text-shadow: black -1px -1px, black -1px 1px, black 1px -1px, black 1px 1px">'
@@ -4448,7 +4474,7 @@ function startGame() {
 								if (!isJumpEnabled()) break;
 								oPlayers[0].ctrl = true;
 								if (!oPlayers[0].z && !oPlayers[0].heightinc) {
-									if (!oPlayers[0].driftinc && !oPlayers[0].tourne) {
+									if (!oPlayers[0].driftinc && !oPlayers[0].spinning) {
 										oPlayers[0].z = 1;
 										oPlayers[0].heightinc = 0.5;
 										oPlayers[0].jumped = true;
@@ -4458,7 +4484,7 @@ function startGame() {
 											clLocalVars.drifted = true;
 									}
 								}
-								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].billball && !oPlayers[0].tourne && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
+								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].bulletbill && !oPlayers[0].spinning && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
 									stuntKart(oPlayers[0]);
 								break;
 							case "pause":
@@ -4469,7 +4495,7 @@ function startGame() {
 										interruptGame();
 										pauseSounds();
 										var retryButton = document.getElementById("recommencer");
-										if (retryButton && ((course == "CM") || clSelected))
+										if (retryButton && ((isTimeTrial()) || clSelected))
 											retryButton.focus();
 										else {
 											var resumeButton = document.getElementById("reprendre");
@@ -4483,8 +4509,8 @@ function startGame() {
 								break;
 							case "balloon" :
 								if (pause) return;
-								if (course == "BB") {
-									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
+								if (isBallonBattle()) {
+									if ((oPlayers[0].spinning<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
@@ -4496,10 +4522,10 @@ function startGame() {
 								break;
 							case "quit":
 								if (!bCounting)
-									quitter();
+									quit();
 								break;
 							case "cheat":
-								if (!isOnline && (course != "GP") && (course != "CM"))
+								if (!isOnline && (!isGrandPrix()) && (!isTimeTrial()))
 									openCheats();
 								break;
 							case "up_p2":
@@ -4523,7 +4549,7 @@ function startGame() {
 								if (!oPlayers[1]) return;
 								oPlayers[1].ctrl = true;
 								if (!oPlayers[1].z && !oPlayers[1].heightinc) {
-									if (!oPlayers[1].driftinc && !oPlayers[1].tourne) {
+									if (!oPlayers[1].driftinc && !oPlayers[1].spinning) {
 										oPlayers[1].z = 1;
 										oPlayers[1].heightinc = 0.5;
 										oPlayers[1].jumped = true;
@@ -4531,14 +4557,14 @@ function startGame() {
 											oPlayers[1].driftinc = (oPlayers[1].rotincdir>0) ? 1:-1;
 									}
 								}
-								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].billball && !oPlayers[1].tourne && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
+								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].bulletbill && !oPlayers[1].spinning && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
 									stuntKart(oPlayers[1]);
 								return false;
 							case "balloon_p2":
 								if (pause) return;
 								if (!oPlayers[1]) return;
-								if (course == "BB") {
-									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
+								if (isBallonBattle()) {
+									if ((oPlayers[0].spinning<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
 										oPlayers[1].ballons[oPlayers[1].ballons.length] = createBalloonSprite(oPlayers[1]);
 										oPlayers[1].reserve--;
 										updateBalloonHud(document.getElementById("compteur1"),oPlayers[1]);
@@ -4552,8 +4578,8 @@ function startGame() {
 							case "item":
 							case "item_back":
 							case "item_fwd":
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause)
-									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
+								if (!oPlayers[0].spinning && !oPlayers[0].cannon && !pause)
+									useWeapon(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
 								break;
 							case "up":
 								currentPressedKeys.up = false;
@@ -4614,8 +4640,8 @@ function startGame() {
 							case "item_p2":
 							case "item_back_p2":
 							case "item_fwd_p2":
-								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause)
-									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+								if (!oPlayers[1].spinning && !oPlayers[1].cannon && !pause)
+									useWeapon(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
@@ -4740,7 +4766,7 @@ function startGame() {
 					if (!window.onbeforeunload)
 						window.onbeforeunload = logGameTime;
 					pause = false;
-					if (course == "CM")
+					if (isTimeTrial())
 						iTrajet = new Array();
 					clearInterval(redrawCanvasHandler);
 					clearInterval(refreshGamepadHandler);
@@ -4792,19 +4818,19 @@ function startGame() {
 								if (oKart.aipoint == undefined) {
 									oKart.aipoint = 0;
 									oKart.lastAItime = 0;
-									oKart.arme = false;
+									oKart.weapon = false;
 									oKart.maxspeed = 5.7;
 									if (!i) {
-										oKart.tourne = 0;
+										oKart.spinning = 0;
 										oKart.stopDrifting();
 										oKart.stopStunt();
 									}
 								}
-								if (oKart.demitours === undefined) {
-									var tours = oKart.tours, demitours = oKart.demitours;
-									oKart.tours = oMap.tours+1;
-									oKart.demitours = 0;
-									handleCpChange(tours,demitours, i);
+								if (oKart.checkpoints === undefined) {
+									var laps = oKart.laps, checkpoints = oKart.checkpoints;
+									oKart.laps = oMap.tours+1;
+									oKart.checkpoints = 0;
+									handleCpChange(laps,checkpoints, i);
 								}
 								ai(oKart);
 								var aSfx = iSfx;
@@ -4821,13 +4847,13 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var laps=oKart.laps,checkpoints=oKart.checkpoints;oKart.laps=oMap.tours+1;oKart.checkpoints=0;handleCpChange(laps,checkpoints,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.spinning=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
 						aKarts[i].cpu = true;
-						aKarts[i].tours = 1;
-						aKarts[i].demitours = 0;
+						aKarts[i].laps = 1;
+						aKarts[i].checkpoints = 0;
 					}
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
@@ -4836,8 +4862,8 @@ function startGame() {
 					revoir();
 					pause = false;
 					setTimeout(function() {
-						continuer();
-						document.querySelector("#enregistrer input").style.display = "none";
+						askContinue();
+						document.querySelector("#save input").style.display = "none";
 					});
 					document.onkeyup = function(e) {
 						var gameAction = getGameAction(e);
@@ -4848,7 +4874,7 @@ function startGame() {
 								firstButton.focus();
 						}
 						else if (gameAction == "quit")
-							quitter();
+							quit();
 					}
 				}
 				fInfos = undefined;
@@ -4969,7 +4995,7 @@ function showVirtualKeyboard() {
 			showItemDirBtn();
 			showDirBtn();
 		}
-		
+
 		function showItemBtn() {
 			addButton("I", { key: "item", src: "item" });
 		}
@@ -4981,7 +5007,7 @@ function showVirtualKeyboard() {
 			addButton("\u2193", { key: "item_back", src: "item_back", parent: $div });
 			$virtualKeyboard.appendChild($div);
 		}
-	
+
 		function showDirBtn() {
 			var $div = document.createElement("div");
 			$div.className = "btn-ctn";
@@ -5075,7 +5101,7 @@ function showVirtualKeyboard() {
 		showItemLine();
 		showDirLine();
 	}
-	
+
 	$virtualKeyboard.ontouchstart = function(e) {
 		e.preventDefault();
 		return false;
@@ -5215,18 +5241,18 @@ function setupGestureEvents() {
 			return { x: relX, y: relY, t: new Date().getTime() };
 		}
 
-		var $virtualRoulette = document.createElement("div");
-		$virtualRoulette.style.position = "absolute";
-		$virtualRoulette.style.left = 0;
-		$virtualRoulette.style.top = 0;
-		$virtualRoulette.style.width = (iScreenScale*12) +"px";
-		$virtualRoulette.style.height = (iScreenScale*9) +"px";
-		$virtualRoulette.ontouchstart = function(e) {
+		var $virtualWheel = document.createElement("div");
+		$virtualWheel.style.position = "absolute";
+		$virtualWheel.style.left = 0;
+		$virtualWheel.style.top = 0;
+		$virtualWheel.style.width = (iScreenScale*12) +"px";
+		$virtualWheel.style.height = (iScreenScale*9) +"px";
+		$virtualWheel.ontouchstart = function(e) {
 			e.stopPropagation();
 			doReleaseKey("item");
 			wasSpecialTouch = true;
 		}
-		$virtualScreen.appendChild($virtualRoulette);
+		$virtualScreen.appendChild($virtualWheel);
 
 		hudScreens[i].appendChild($virtualScreen);
 
@@ -5289,7 +5315,7 @@ function setupCommonMobileControls() {
 		hudScreens[0].appendChild($virtualPauseBtn);
 	}
 
-	if (course == "BB") {
+	if (isBallonBattle()) {
 		var $virtualBalloonBtn = document.createElement("div");
 		$virtualBalloonBtn.style.position = "absolute";
 		$virtualBalloonBtn.style.zIndex = 20000;
@@ -5468,7 +5494,7 @@ function resetScreen() {
 		oScreenCanvas.style.top = iScreenScale+"px";
 		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
 	}
-	
+
 	var prevScreenBlur = 0;
 	nbFrames = iFps;
 	frameHandlers = new Array(nbFrames);
@@ -5479,7 +5505,7 @@ function resetScreen() {
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
 	if (nbFrames <= 1) prevScreenDelay = 0;
-	
+
 	oPrevFrameStates = [];
 	resetBgLayers();
 	for (var i=0;i<oContainers.length;i++) {
@@ -5580,7 +5606,7 @@ function reprendre(debug) {
 	}
 }
 
-function quitter() {
+function quit() {
 	if (isOnline) {
 		document.location.href = isCup ? ((isBattle ? (complete ? 'battle':'arena') : (complete ? 'map':'circuit')) + '.php?' + (isMCups ? ('mid=' + nid) : ((isSingle ? (complete?'i':'id'):'cid')+'='+nid))) : 'index.php';
 		return;
@@ -5626,27 +5652,27 @@ function logGameTime() {
 }
 
 function classement() {
-	var nbjoueurs = aKarts.length;
-	for (var i=0;i<nbjoueurs;i++) {
+	var NbPlayers = aKarts.length;
+	for (var i=0;i<NbPlayers;i++) {
 		var kart = aKarts[i];
 		var ptsPlayer = aScores[i];
-		var iPlaces = 1;
-		for (var j=0;j<nbjoueurs;j++) {
+		var irank = 1;
+		for (var j=0;j<NbPlayers;j++) {
 			var ptsKart = aScores[j];
 			if (kart != aKarts[j] && ptsPlayer <= ptsKart) {
 				if (ptsPlayer < ptsKart || i > j)
-				iPlaces++;
+				irank++;
 				}
 			}
-		kart.place = iPlaces;
+		kart.place = irank;
 	}
 	var iPlacement = new Array();
-	for (var i=1;i<=nbjoueurs;i++) {
-		for (var j=0;j<nbjoueurs;j++) {
-			var iPlaces = aKarts[j].place;
-			if (iPlaces == i) {
+	for (var i=1;i<=NbPlayers;i++) {
+		for (var j=0;j<NbPlayers;j++) {
+			var irank = aKarts[j].place;
+			if (irank == i) {
 				iPlacement.push(j);
-				j = nbjoueurs;
+				j = NbPlayers;
 			}
 		}
 	}
@@ -5658,7 +5684,7 @@ function classement() {
 		var tPlayer = aKarts[iPlayer].personnage;
 		document.getElementById("fJ"+i).style.backgroundColor = rankingColor(iPlayer);
 		document.getElementById("fJ"+i).style.opacity = (tPlayer != strPlayer) ? "" : 0.8;
-		document.getElementById("j"+i).innerHTML = toPerso(tPlayer);
+		document.getElementById("j"+i).innerHTML = getPersoName(tPlayer);
 		document.getElementById("pts"+i).innerHTML = aScores[iPlayer];
 	}
 	var oTeamTable;
@@ -5668,7 +5694,7 @@ function classement() {
 			teamsRecap[aTeams[i]] += aScores[i];
 		oTeamTable = createTeamTable(teamsRecap);
 	}
-	document.getElementById("octn").onclick = continuer;
+	document.getElementById("octn").onclick = askContinue;
 	setTimeout(function() {
 		document.getElementById("infos0").style.display = "";
 		if (oTeamTable)
@@ -5745,13 +5771,13 @@ function resetScores() {
 	return res;
 }
 
-function continuer() {
+function askContinue() {
 	document.getElementById("infos0").style.border = 0;
 	document.getElementById("infos0").style.top = iScreenScale * 10 + 10 +"px";
 	document.getElementById("infos0").style.left = Math.round(iScreenScale*20+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 	document.getElementById("infos0").style.background = "transparent";
 	document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"px";
-	document.getElementById("infos0").innerHTML = '<tr><td id="continuer"></td></tr><tr><td'+ ((course != "CM") ? ' style="font-size: '+ iScreenScale * 3 +'px;">&nbsp;</td></tr>' : ' id="enregistrer"></td></tr><tr><td id="revoir"></td></tr><tr><td id="classement"></td></tr><tr><td id="changercircuit">') +'</td></tr><tr><td><input type="button" id="quitter" value="'+ toLanguage('QUIT', 'QUITTER') +'" style="font-size: '+ iScreenScale*3 +'pt; width: 100%;" /></td></tr>';
+	document.getElementById("infos0").innerHTML = '<tr><td id="askContinue"></td></tr><tr><td'+ ((!isTimeTrial()) ? ' style="font-size: '+ iScreenScale * 3 +'px;">&nbsp;</td></tr>' : ' id="save"></td></tr><tr><td id="revoir"></td></tr><tr><td id="classement"></td></tr><tr><td id="changeRace">') +'</td></tr><tr><td><input type="button" id="quit" value="'+ toLanguage('QUIT', 'QUITTER') +'" style="font-size: '+ iScreenScale*3 +'pt; width: 100%;" /></td></tr>';
 
 	var oTeamTable = document.getElementById("team-table");
 	if (oTeamTable)
@@ -5762,12 +5788,12 @@ function continuer() {
 	oContinue.style.fontSize = iScreenScale*3 + "pt";
 	oContinue.style.width = "100%";
 
-	if (course != "CM") {
-		if (oMap.ref % 4 || course != "GP") {
+	if (!isTimeTrial()) {
+		if (oMap.ref % 4 || !isGrandPrix()) {
 			if (isSingle && !isOnline)
 				oContinue.value = "        "+ toLanguage('  REPLAY', 'REJOUER') +"        ";
 			else {
-				if (course == "BB")
+				if (isBallonBattle())
 					oContinue.value = toLanguage("      NEXT BATTLE	   ", "BATAILLE SUIVANTE");
 				else
 					oContinue.value = toLanguage("       NEXT RACE	   ", "COURSE SUIVANTE");
@@ -5836,7 +5862,7 @@ function continuer() {
 									return false;
 								}
 								if (newPerso) {
-									var uwPerso = toPerso(newPerso);
+									var uwPerso = getPersoName(newPerso);
 									uwPerso = uwPerso.charAt(0).toUpperCase() + uwPerso.substring(1);
 									document.body.innerHTML += '<div style="position: absolute; left: '+ iScreenScale * 16 +'px; top: '+ iScreenScale * 30 +'px; text-align: center">' +
 									toLanguage(
@@ -5865,7 +5891,7 @@ function continuer() {
 		}
 	}
 	else {
-		var oQuit = document.getElementById("quitter");
+		var oQuit = document.getElementById("quit");
 		oContinue.style.fontSize = oQuit.style.fontSize = (iScreenScale*3) +"px";
 		var oSave = oContinue.cloneNode(false);
 		var oReplay = oContinue.cloneNode(false);
@@ -5890,7 +5916,7 @@ function continuer() {
 				mirror:bSelectedMirror,
 				double_items:oDoubleItemsEnabled,
 				map:oMap.ref,
-				difficulty:iDificulty,
+				difficulty:iDifficulty,
 				perso:gPersos,
 				cpu_route:jTrajets,
 				my_record:gRecord,
@@ -5941,13 +5967,13 @@ function continuer() {
 			var savedRecord;
 
 			oForm.onsubmit = function() {
-				var nom = this.pseudo.value;
-				
-				if (nom) {
+				var name = this.pseudo.value;
+
+				if (name) {
 					document.body.style.cursor = "progress";
 					oValide.style.visibility = "hidden";
 					aPara2.style.visibility = "hidden";
-					var params = "name="+nom+"&perso="+strPlayer[0]+"&time="+getActualGameTimeMS()+"&cc="+getActualCc();
+					var params = "name="+name+"&perso="+strPlayer[0]+"&time="+getActualGameTimeMS()+"&cc="+getActualCc();
 					switch (page) {
 					case "MK":
 						params += "&circuit="+oMap.map;
@@ -5962,9 +5988,9 @@ function continuer() {
 					function postSaveRecord(reponse) {
 						if (reponse) {
 							document.body.style.cursor = "default";
-							var enregistre;
+							var save;
 							try {
-								enregistre = eval(reponse);
+								save = eval(reponse);
 							}
 							catch (e) {
 								return false;
@@ -5975,22 +6001,22 @@ function continuer() {
 								oValide.parentNode.removeChild(oValide);
 								aPara2.style.fontSize = Math.round(iScreenScale*2.5) + "px";
 								if (success) {
-									aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully ! You placed ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race !", " sur "+ enregistre[1] +" au classement de ce circuit !");
+									aPara2.innerHTML = toLanguage("Congratulations "+ name +", your score has been saved successfully ! You placed ", "F&eacute;licitations "+ name +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(save[0]) + toLanguage(" out of "+ save[1] +" in this race !", " sur "+ save[1] +" au classement de ce circuit !");
 									oSave.style.display = "none";
 								}
 								aPara2.style.visibility = "";
-								oRetour.focus();
+								oBack.focus();
 							}
 							function rollbackUi() {
 								oValide.style.visibility = "";
 								oValide.style.marginRight = (iScreenScale*2) +"px";
-								aPara3.insertBefore(oValide,oRetour);
+								aPara3.insertBefore(oValide,oBack);
 								oCheckbox.disabled = false;
 								oInput.disabled = false;
 								oInput.select();
 							}
-							if (Array.isArray(enregistre)) {
-								savedRecord = enregistre;
+							if (Array.isArray(save)) {
+								savedRecord = save;
 								if (oCheckbox.checked) {
 									oSave.style.display = "none";
 									oValide.style.display = "none";
@@ -6026,7 +6052,7 @@ function continuer() {
 							}
 							else {
 								showBackUi(false);
-								switch (enregistre) {
+								switch (save) {
 								case 0:
 									aPara2.innerHTML = toLanguage("You did a better score on this race before.<br />Your score has not been registered.", "Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;.");
 									break;
@@ -6037,7 +6063,7 @@ function continuer() {
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
 									break;
 								}
-								if (enregistre != 0)
+								if (save != 0)
 									rollbackUi();
 							}
 							return true;
@@ -6053,7 +6079,7 @@ function continuer() {
 							return true;
 						});
 					}
-					recorder = nom;
+					recorder = name;
 				}
 				return false;
 			}
@@ -6097,23 +6123,23 @@ function continuer() {
 			oValide.type = "submit";
 			oValide.value = "     "+ toLanguage("Submit", "Valider") +"     ";
 			oValide.style.fontSize = (iScreenScale*5) +"px";
-			oValide.onmouseover = function() {this.style.fontSize = (iScreenScale*5) +"px"; oRetour.style.fontSize = (iScreenScale*4) +"px";}
+			oValide.onmouseover = function() {this.style.fontSize = (iScreenScale*5) +"px"; oBack.style.fontSize = (iScreenScale*4) +"px";}
 			aPara2.appendChild(oValide);
 			var aPara3 = aPara1.cloneNode(false);
-			var oRetour = document.createElement("input");
-			oRetour.type = "button";
-			oRetour.value = "     "+ toLanguage("Back", "Retour") +"     ";
-			oRetour.style.fontSize = (iScreenScale*4) +"px";
-			oRetour.onmouseover = function() {
+			var oBack = document.createElement("input");
+			oBack.type = "button";
+			oBack.value = "     "+ toLanguage("Back", "Retour") +"     ";
+			oBack.style.fontSize = (iScreenScale*4) +"px";
+			oBack.onmouseover = function() {
 				this.style.fontSize = (iScreenScale*5) +"px";
 				oValide.style.fontSize = (iScreenScale*4) +"px"
 			};
-			oRetour.onclick = function() {
+			oBack.onclick = function() {
 				$mkScreen.removeChild(oForm);
 				document.getElementById("infos0").style.display = ""
 				oContinue.focus();
 			};
-			aPara3.appendChild(oRetour);
+			aPara3.appendChild(oBack);
 
 			oForm.appendChild(aPara1);
 			oForm.appendChild(aPara12);
@@ -6126,7 +6152,7 @@ function continuer() {
 			oInput.select();
 		}
 		if (gSelectedPerso) oSave.style.display = "none";
-		document.getElementById("enregistrer").appendChild(oSave);
+		document.getElementById("save").appendChild(oSave);
 
 		oReplay.value = toLanguage("REPLAY", "REVOIR");
 		oReplay.onclick = function() {
@@ -6197,7 +6223,7 @@ function continuer() {
 			resetEvents();
 			resetApp();
 		}
-		document.getElementById("changercircuit").appendChild(oChangeRace);
+		document.getElementById("changeRace").appendChild(oChangeRace);
 
 		oClassement.value = "RECORDS";
 		oClassement.onclick = function() {
@@ -6214,8 +6240,8 @@ function continuer() {
 		}
 
 	}
-	document.getElementById("continuer").appendChild(oContinue);
-	document.getElementById("quitter").onclick = quitter;
+	document.getElementById("askContinue").appendChild(oContinue);
+	document.getElementById("quit").onclick = quit;
 	if (!isChatting())
 		oContinue.focus();
 }
@@ -6235,10 +6261,10 @@ function nextRace() {
 		cc:fSelectedClass,
 		mirror:bSelectedMirror,
 		double_items:oDoubleItemsEnabled,
-		difficulty:iDificulty,
+		difficulty:iDifficulty,
 		cl:clSelected
 	};
-	if (course == "GP")
+	if (isGrandPrix())
 		fInfos.map = oMap.ref+1;
 	if (strPlayer.length == 1)
 		removePlan();
@@ -6277,7 +6303,7 @@ function Sprite(strSprite) {
 		oImg.alt = ".";
 		oImg.className = "pixelated";
 
-		oImg.src = getSpriteSrc(strSprite);
+		oImg.src = getSpriteImg(strSprite);
 
 		var oSpriteCtr = document.createElement("div");
 		oSpriteCtr.style.width = "32px";
@@ -6300,7 +6326,7 @@ function Sprite(strSprite) {
 		this[i].draw = function(iX, iY, fScale, iZ) {
 			if (!iZ)
 				iZ = 0;
-			
+
 			var i = this.i;
 
 			var fSpriteSize = (this.w * fSpriteScale * fScale);
@@ -6332,7 +6358,7 @@ function Sprite(strSprite) {
 
 		this[i].render = function(fCamera, fSprite) {
 			var fSize = (fSprite.size || 1);
-			
+
 			var fCamX = (fSprite.x - fCamera.x)*getMirrorFactor();
 			var fCamY = fSprite.y - fCamera.y;
 
@@ -6370,10 +6396,10 @@ function Sprite(strSprite) {
 	}
 	var that = this;
 	this[0].unshow = function() {
-		that[0].suppr();
+		that[0].delete();
 		that[0].unshown = true;
 	}
-	this[0].suppr = function() {
+	this[0].delete = function() {
 		if (!that[0].unshown) {
 			for (var i=0;i<strPlayer.length;i++)
 				oContainers[i].removeChild(oCtSprites[i][0]);
@@ -6409,7 +6435,7 @@ function Sprite(strSprite) {
 			function removeProgressively() {
 				x -= dx;
 				if (x <= 0) {
-					that[0].suppr();
+					that[0].delete();
 					return;
 				}
 				for (var i=0;i<strPlayer.length;i++)
@@ -6474,12 +6500,12 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 				drawCurrentState : function() {
 					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
 				},
-				suppr: function() {
+				delete: function() {
 					container.removeChild(oLayer2);
 				}
 			};
 		},
-		suppr : function() {
+		delete : function() {
 			for (var i=0;i<strPlayer.length;i++)
 				oContainers[i].removeChild(oLayers[i]);
 		}
@@ -6504,9 +6530,9 @@ function GIF() {
         IMAGE   : 0x2C,
         EOF     : 59,   // This is entered as decimal
         EXT     : 0x21,
-    };      
-    // simple buffered stream used to read from the file 
-    var Stream = function (data) { 
+    };
+    // simple buffered stream used to read from the file
+    var Stream = function (data) {
         this.data = new Uint8ClampedArray(data);
         this.pos  = 0;
         var len   = this.data.length;
@@ -6575,7 +6601,7 @@ function GIF() {
     }
     function parse (){        // read the header. This is the starting point of the decode and async calls parseBlock
         var bitField;
-        st.pos                += 6;  
+        st.pos                += 6;
         gif.width             = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         gif.height            = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         bitField              = st.data[st.pos++];
@@ -6634,7 +6660,7 @@ function GIF() {
         frame.width   = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         frame.height  = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         bitField      = st.data[st.pos++];
-        frame.localColourTableFlag = bitField & 128 ? true : false; 
+        frame.localColourTableFlag = bitField & 128 ? true : false;
         if (frame.localColourTableFlag) { frame.localColourTable = parseColourTable(1 << ((bitField & 7) + 1)) }
         if (pixelBufSize !== frame.width * frame.height) { // create a pixel buffer if not yet created or if current frame size is different from previous
             pixelBuf     = new Uint8Array(frame.width * frame.height);
@@ -6682,7 +6708,7 @@ function GIF() {
         gif.lastFrame = frame;
         if (!gif.waitTillDone && typeof gif.onload === "function") { doOnloadEvent() }// if !waitTillDone the call onload now after first frame is loaded
     };
-    function finnished() { // called when the load has completed
+    function load_finished() { // called when the load has completed
         gif.loading           = false;
         gif.frameCount        = gif.frames.length;
         gif.lastFrame         = null;
@@ -6711,8 +6737,8 @@ function GIF() {
         }
         if (gif.playOnLoad) { gif.play() }
     }
-    function canceled () { // called if the load has been cancelled
-        finnished();
+    function load_canceled () { // called if the load has been cancelled
+        load_finished();
         if (typeof gif.cancelCallback === "function") { (gif.cancelCallback.bind(gif))({ type : 'canceled', path : [gif] }) }
     }
     function parseExt() {              // parse extended blocks
@@ -6727,13 +6753,13 @@ function GIF() {
 
     }
     function parseBlock() { // parsing the blocks
-        if (gif.cancel !== undefined && gif.cancel === true) { canceled(); return }
+        if (gif.cancel !== undefined && gif.cancel === true) { load_canceled(); return }
 
         var blockId = st.data[st.pos++];
         if(blockId === GIF_FILE.IMAGE ){ // image block
             parseImg();
-            if (gif.firstFrameOnly) { finnished(); return }
-        }else if(blockId === GIF_FILE.EOF) { finnished(); return }
+            if (gif.firstFrameOnly) { load_finished(); return }
+        }else if(blockId === GIF_FILE.EOF) { load_finished(); return }
 		else { parseExt() }
 		if (gif.frames.length) {
 			if (typeof gif.onloadone === "function") {
@@ -6858,7 +6884,7 @@ function GIF() {
         frames         : [],         // array of frames
         comment        : "",         // comments if found in file. Note I remember that some gifs have comments per frame if so this will be all comment concatenated
         length         : 0,          // gif length in ms (1/1000 second)
-        currentFrame   : 0,          // current frame. 
+        currentFrame   : 0,          // current frame.
         frameCount     : 0,          // number of frames
         playSpeed      : 1,          // play speed 1 normal, 2 twice 0.5 half, -1 reverse etc...
         lastFrame      : null,       // temp hold last frame loaded so you can display the gif as it loads
@@ -6923,7 +6949,7 @@ function createMarker(oKart) {
 			oName.innerHTML = oKart.nick;
 		else {
 			oName.style.textTransform = "capitalize";
-			oName.innerHTML = toPerso(oKart.personnage);
+			oName.innerHTML = getPersoName(oKart.personnage);
 		}
 		oName.style.position = "absolute";
 		oName.style.left = Math.round(lineHeight*sinAlpha) +"px";
@@ -6958,7 +6984,7 @@ function createMarker(oKart) {
 	};
 	res.render = function(i, fCamera, fSprite) {
 		var fSize = (fSprite.size || 1);
-		
+
 		var fCamX = (fSprite.x - fCamera.x)*getMirrorFactor();
 		var fCamY = fSprite.y - fCamera.y;
 
@@ -6980,7 +7006,7 @@ function createMarker(oKart) {
 		var iX = ((iWidth/2) + fViewX) * iScreenScale,
 			iY = (iHeight - iViewY) * iScreenScale,
 			fScale = fFocal / (fFocal + fTransY) * fSize;
-		
+
 		this.draw(i, iX,iY, fScale, iZ);
 	}
 	return res;
@@ -7083,7 +7109,7 @@ function intType(key) {
 }
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
-	"banane": {
+	"banana": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
@@ -7093,7 +7119,7 @@ var itemBehaviors = {
 				handleSpriteLaunch(fSprite, 12,0.2);
 		}
 	},
-	"fauxobjet": {
+	"fakeItem": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
@@ -7113,17 +7139,17 @@ var itemBehaviors = {
 				handleSpriteLaunch(fSprite, 12,0.2);
 		}
 	},
-	"champi": {
+	"mushroom": {
 		size: 0.54,
 		sync: [floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
-	"etoile": {
+	"star": {
 		size: 0.54,
 		sync: [floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
-	"eclair": {
+	"lightning": {
 		size: 1,
 		sync: [intType("owner")],
 		fadedelay: 0,
@@ -7147,17 +7173,17 @@ var itemBehaviors = {
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 110-(kart.place-1)*35/(aKarts.length-1)));
 								loseUsingItems(kart);
-								kart.champi = 0;
-								delete kart.champiType;
+								kart.mushroom = 0;
+								delete kart.mushroomType;
 								kart.spin(20);
 								stopDrifting(i);
 								dropCurrentItem(kart);
-								handleItemHit(kart, "eclair");
+								handleItemHit(kart, "lightning");
 							}
 							else {
-								if (kart.megachampi && !kart.etoile) {
-									kart.megachampi = Math.min(kart.megachampi, 8);
-									kart.size = Math.pow(1.05, kart.megachampi);
+								if (kart.megamushroom && !kart.star) {
+									kart.megamushroom = Math.min(kart.megamushroom, 8);
+									kart.size = Math.pow(1.05, kart.megamushroom);
 								}
 							}
 						}
@@ -7169,7 +7195,7 @@ var itemBehaviors = {
 				fSprite.countdown--;
 				if (fSprite.countdown <= 0) {
 					if (fSprite.countdown < itemCooldown)
-						detruit(fSprite);
+						destroy(fSprite);
 					else if (!fSprite.disabled) {
 						fSprite.disabled = true;
 						$mkScreen.style.opacity = 1;
@@ -7212,7 +7238,7 @@ var itemBehaviors = {
 
 			if (!fSprite.sprites) {
 				if (items.pow.length > 1 && itemDistribution.powx2 != 1) {
-					detruit(fSprite);
+					destroy(fSprite);
 					return;
 				}
 				fSprite.countdown = 0;
@@ -7275,7 +7301,7 @@ var itemBehaviors = {
 					var oPow = iSprite.pow;
 					if (!oPow) continue;
 					switch (fSprite.countstate) {
-						
+
 					case 0:
 						oPow.elt.style.opacity = jTime;
 						oPow.elt.style.transform = "scale(" + jTime + ")";
@@ -7327,7 +7353,7 @@ var itemBehaviors = {
 				fSprite.countstate++;
 				fSprite.countdown = 0;
 				if (fSprite.countstate >= itemBehavior.countdowns.length)
-					detruit(fSprite);
+					destroy(fSprite);
 			}
 		},
 		"del": function(fSprite) {
@@ -7336,7 +7362,7 @@ var itemBehaviors = {
 			if (!fSprite.sprites) return;
 			for (var i=0;i<fSprite.sprites.length;i++) {
 				var iSprite = fSprite.sprites[i];
-				if (iSprite) 
+				if (iSprite)
 					if (iSprite.pow)
 						oContainers[i].removeChild(iSprite.pow.elt);
 			}
@@ -7349,7 +7375,7 @@ var itemBehaviors = {
 			}
 		}
 	},
-	"bloops": {
+	"bloopers": {
 		size: 1,
 		sync: [intType("owner")],
 		fadedelay: 0,
@@ -7358,8 +7384,8 @@ var itemBehaviors = {
 		onlineResync: false,
 		move: function(fSprite) {
 			if (!fSprite.sprites) {
-				if (items.bloops.length > 1) {
-					detruit(fSprite);
+				if (items.bloopers.length > 1) {
+					destroy(fSprite);
 					return;
 				}
 				fSprite.countdown = 0;
@@ -7374,20 +7400,20 @@ var itemBehaviors = {
 					if ((kart === oKart) || (!friendlyFire(kart,oKart) && !kart.protect)) {
 						if ((i < oPlayers.length) && !onlineSpectatorId) {
 							var oSprites = {
-								"bloops": {
+								"bloopers": {
 									elt: document.createElement("img"),
 									mine: (kart === oKart)
 								}
 							};
-							var oBloops = oSprites.bloops.elt;
+							var oBloops = oSprites.bloopers.elt;
 							oBloops.src = "images/sprites/sprite_blooper.png";
 							oBloops.className = "pixelated";
 							oBloops.style.position = "absolute";
 							oBloops.style.width = (iScreenScale*7) +"px";
-							oSprites.bloops.x = 36;
-							oSprites.bloops.y = oSprites.bloops.mine ? 18:12;
+							oSprites.bloopers.x = 36;
+							oSprites.bloopers.y = oSprites.bloopers.mine ? 18:12;
 							oBloops.style.zIndex = 19001;
-							oBloops.style.opacity = oSprites.bloops.mine ? 1:0;
+							oBloops.style.opacity = oSprites.bloopers.mine ? 1:0;
 							if (nbFrames > 1) {
 								var transitionS = (SPF/1000);
 								oBloops.style.transition = "left "+ transitionS +"s ease-out, top "+ transitionS +"s ease-out";
@@ -7395,14 +7421,14 @@ var itemBehaviors = {
 							oContainers[i].appendChild(oBloops);
 							fSprite.sprites[i] = oSprites;
 						}
-						kart.bloops = fSprite;
+						kart.bloopers = fSprite;
 					}
 				}
 				fSprite.effective = function(oKart) {
 					return (this.countstate == 13) && !oKart.unbloop && this.owner !== oKart.id;
 				}
 			}
-			var itemBehavior = itemBehaviors["bloops"];
+			var itemBehavior = itemBehaviors["bloopers"];
 			var sTime = itemBehavior.countdowns[fSprite.countstate];
 			var iTime = fSprite.countdown/sTime;
 			fSprite.countdown++;
@@ -7411,7 +7437,7 @@ var itemBehaviors = {
 				var iSprite = fSprite.sprites[i];
 				var oKart = aKarts[i];
 				if (iSprite) {
-					var oBloops = iSprite.bloops;
+					var oBloops = iSprite.bloopers;
 					if (!oBloops) continue;
 					switch (fSprite.countstate) {
 					case 0:
@@ -7427,7 +7453,7 @@ var itemBehaviors = {
 							oBloops.elt.style.opacity = 1-jTime;
 							if (fSprite.countdown == sTime) {
 								oContainers[i].removeChild(oBloops.elt);
-								delete iSprite.bloops;
+								delete iSprite.bloopers;
 							}
 						}
 						break;
@@ -7581,12 +7607,12 @@ var itemBehaviors = {
 			if (fSprite.countstate >= 12) {
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.protect || oKart.champi || oKart.tombe))
+					if (!oKart.unbloop && (oKart.protect || oKart.mushroom || oKart.fall))
 						oKart.unbloop = ((fSprite.countstate == 12) && oKart.protect) ? 5:1;
 					if (oKart.unbloop) {
 						if (oKart.unbloop <= 5) {
 							var uTime = oKart.unbloop/5;
-							if ((oKart.bloops === fSprite) && (fSprite.owner !== oKart.id)) {
+							if ((oKart.bloopers === fSprite) && (fSprite.owner !== oKart.id)) {
 								for (var j=0;j<oPlayers.length;j++)
 									oKart.sprite[j].img.style.filter = "brightness("+ (0.15+0.85*uTime) +")";
 							}
@@ -7607,7 +7633,7 @@ var itemBehaviors = {
 			case 12:
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.bloops === fSprite) && (fSprite.owner !== oKart.id)) {
+					if (!oKart.unbloop && (oKart.bloopers === fSprite) && (fSprite.owner !== oKart.id)) {
 						for (var j=0;j<oPlayers.length;j++)
 							oKart.sprite[j].img.style.filter = "brightness("+ (1-0.85*jTime) +")";
 					}
@@ -7616,7 +7642,7 @@ var itemBehaviors = {
 			case 14:
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.bloops === fSprite) && (fSprite.owner !== oKart.id)) {
+					if (!oKart.unbloop && (oKart.bloopers === fSprite) && (fSprite.owner !== oKart.id)) {
 						for (var j=0;j<oPlayers.length;j++)
 							oKart.sprite[j].img.style.filter = "brightness("+ (0.15+0.85*jTime) +")";
 					}
@@ -7627,7 +7653,7 @@ var itemBehaviors = {
 				fSprite.countstate++;
 				fSprite.countdown = 0;
 				if (fSprite.countstate >= itemBehavior.countdowns.length)
-					detruit(fSprite);
+					destroy(fSprite);
 			}
 		},
 		"del": function(fSprite) {
@@ -7635,8 +7661,8 @@ var itemBehaviors = {
 			for (var i=0;i<fSprite.sprites.length;i++) {
 				var iSprite = fSprite.sprites[i];
 				if (iSprite) {
-					if (iSprite.bloops)
-						oContainers[i].removeChild(iSprite.bloops.elt);
+					if (iSprite.bloopers)
+						oContainers[i].removeChild(iSprite.bloopers.elt);
 					var oInk = iSprite.ink;
 					if (oInk) {
 						for (var j=0;j<oInk.length;j++)
@@ -7645,16 +7671,16 @@ var itemBehaviors = {
 				}
 			}
 			for (var i=0;i<aKarts.length;i++) {
-				if (aKarts[i].bloops === fSprite) {
+				if (aKarts[i].bloopers === fSprite) {
 					for (var j=0;j<oPlayers.length;j++)
 						aKarts[i].sprite[j].img.style.filter = "";
-					delete aKarts[i].bloops;
+					delete aKarts[i].bloopers;
 					delete aKarts[i].unbloop;
 				}
 			}
 		}
 	},
-	"carapace": {
+	"shell": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
 		fadedelay: 300,
@@ -7664,14 +7690,14 @@ var itemBehaviors = {
 			var fNewPosY;
 
 			var relSpeed = cappedRelSpeed();
-			
+
 			for (var i=0;i<2;i++) {
 				var fMoveX = fSprite.vx*relSpeed/2, fMoveY = fSprite.vy*relSpeed/2;
-				
+
 				if (fMoveX || fMoveY) {
 					fNewPosX = fSprite.x + fMoveX;
 					fNewPosY = fSprite.y + fMoveY;
-		
+
 					if (!i) {
 						for (var k=0;k<oPlayers.length;k++)
 							fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
@@ -7681,12 +7707,12 @@ var itemBehaviors = {
 					fNewPosX = fSprite.x;
 					fNewPosY = fSprite.y;
 				}
-		
+
 				var roundX1 = fSprite.x;
 				var roundY1 = fSprite.y;
 				var roundX2 = fNewPosX;
 				var roundY2 = fNewPosY;
-		
+
 				var fSpriteExcept = [fSprite];
 				var oSpriteExcept;
 				if (ctx && ctx.onlineSync) {
@@ -7707,8 +7733,8 @@ var itemBehaviors = {
 					fSprite.vx = cSpeed * Math.sin(theta);
 					fSprite.vy = cSpeed * Math.cos(theta);
 				}
-				else if ((isMoving && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
-					detruit(fSprite,true);
+				else if ((isMoving && isFalling(roundX1, roundY1)) || hit_banana(roundX1, roundY1, oSpriteExcept) || hit_banana(roundX2, roundY2, oSpriteExcept) || hit_redShell(roundX1, roundY1, oSpriteExcept) || hit_redShell(roundX2, roundY2, oSpriteExcept) || hit_greenShell(roundX1, roundY1, fSpriteExcept) || hit_greenShell(roundX2, roundY2, fSpriteExcept) || hit_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || hit_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+					destroy(fSprite,true);
 					break;
 				}
 				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
@@ -7738,14 +7764,14 @@ var itemBehaviors = {
 						fSprite.vy = l*(2*m_u*uy - vy);
 					}
 					else
-						detruit(fSprite);
+						destroy(fSprite);
 					break;
 				}
 			}
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if ((oKart.z < maxItemHitboxZ) && touche_cverte_aux(oKart.x,oKart.y, fSprite)) {
+			if ((oKart.z < maxItemHitboxZ) && hit_greenShell_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team))
 					handleHardHit(getId);
 			}
@@ -7762,20 +7788,20 @@ var itemBehaviors = {
 				else {
 					fSprite.z = 0;
 					collisionLap = getItemCollisionLap(fSprite);
-					if (tombe(fSprite.x, fSprite.y))
-						detruit(fSprite);
+					if (isFalling(fSprite.x, fSprite.y))
+						destroy(fSprite);
 					if (--fSprite.cooldown == 30)
 						fSprite.cooldown -= 12;
 					if (fSprite.cooldown < -10)
-						detruit(fSprite);
+						destroy(fSprite);
 					else if (fSprite.cooldown < 0)
-						handleDecorExplosions(fSprite, touche_bobomb_aux);
+						handleDecorExplosions(fSprite, hit_bobomb_aux);
 				}
 			}
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if (touche_bobomb_aux(oKart.x,oKart.y, fSprite)) {
+			if (hit_bobomb_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					if (fSprite.cooldown <= 0) {
 						var pExplose = fSprite.cooldown < -5 ? 42 : 84;
@@ -7812,13 +7838,13 @@ var itemBehaviors = {
 				fSprite.sprite[i].div.style.opacity = 1+fSprite.cooldown/10;
 			}
 		},
-		drop: function(fSprite, oKart) {
+		fall: function(fSprite, oKart) {
 			fSprite.theta = oKart.rotation+180;
 			fSprite.cooldown = 60;
 			fSprite.countdown = 1;
 		}
 	},
-	"carapace-rouge": {
+	"red-shell": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt"),intType("target")],
 		fadedelay: 300,
@@ -7855,18 +7881,18 @@ var itemBehaviors = {
 					}
 
 					if (fSprite.target >= 0) {
-						var tCible = aKarts.find(function(oKart) {
+						var tTarget = aKarts.find(function(oKart) {
 							return oKart.id == fSprite.target;
 						});
-						var fDist = Math.pow(tCible.x-fSprite.x, 2) + Math.pow(tCible.y-fSprite.y, 2);
+						var fDist = Math.pow(tTarget.x-fSprite.x, 2) + Math.pow(tTarget.y-fSprite.y, 2);
 						if (fDist < 500) {
-							fNewPosX = tCible.x;
-							fNewPosY = tCible.y;
-							fSprite.ailap = getCurrentLapId(tCible);
+							fNewPosX = tTarget.x;
+							fNewPosY = tTarget.y;
+							fSprite.ailap = getCurrentLapId(tTarget);
 							delete fSprite.ailapt;
 							delete fSprite.ailapc;
-							if (tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
-								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
+							if (tTarget.using.length && (tTarget.using[0].type != "fakeItem")) {
+								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tTarget.rotation)*Math.PI/180;
 								var pi2 = Math.PI*2;
 								while (rAngle < 0)
 									rAngle += pi2;
@@ -7875,21 +7901,21 @@ var itemBehaviors = {
 								if (rAngle > Math.PI)
 									rAngle = pi2-rAngle;
 								if (Math.abs(rAngle) > Math.PI/2) {
-									fNewPosX = tCible.using[0].x;
-									fNewPosY = tCible.using[0].y;
+									fNewPosX = tTarget.using[0].x;
+									fNewPosY = tTarget.using[0].y;
 									fSprite.x = fNewPosX;
 									fSprite.y = fNewPosY;
 									collisionLap = fSprite.ailap;
-									if (tCible.using[0].type === "bobomb" && touche_bobomb(fNewPosX, fNewPosY, onlyThisItems([tCible.using[0]])))
+									if (tTarget.using[0].type === "bobomb" && hit_bobomb(fNewPosX, fNewPosY, onlyThisItems([tTarget.using[0]])))
 										return;
-									detruit(fSprite);
-									if (tCible.using[0])
-										detruit(tCible.using[0],true);
+									destroy(fSprite);
+									if (tTarget.using[0])
+										destroy(tTarget.using[0],true);
 									return;
 								}
 								else {
-									tCible.using[0].x -= 2 * direction(0,tCible.rotation);
-									tCible.using[0].y -= 2 * direction(1,tCible.rotation);
+									tTarget.using[0].x -= 2 * direction(0,tTarget.rotation);
+									tTarget.using[0].y -= 2 * direction(1,tTarget.rotation);
 								}
 							}
 							fSprite.x = fNewPosX;
@@ -7898,8 +7924,8 @@ var itemBehaviors = {
 						}
 						else {
 							fDist = Math.sqrt(fDist);
-							var fMoveX = (tCible.x-fSprite.x)*dSpeed/fDist;
-							var fMoveY = (tCible.y-fSprite.y)*dSpeed/fDist;
+							var fMoveX = (tTarget.x-fSprite.x)*dSpeed/fDist;
+							var fMoveY = (tTarget.y-fSprite.y)*dSpeed/fDist;
 							fNewPosX = fSprite.x + fMoveX;
 							fNewPosY = fSprite.y + fMoveY;
 							if (fDist > 75) {
@@ -7928,7 +7954,7 @@ var itemBehaviors = {
 						}
 						else {
 							if (fSprite.aipoint == -1) {
-								if (course != "BB") {
+								if (!isBallonBattle()) {
 									var minDist = 2000;
 									var lMap = getCurrentLMap(fSprite.ailap);
 									for (var j=0;j<lMap.airoutesmeta.cpu;j++) {
@@ -7965,28 +7991,28 @@ var itemBehaviors = {
 
 						if (fSprite.aipoint != -2) {
 							var maxDist = 4000;
-							var tCible = null;
-		
+							var tTarget = null;
+
 							for (var k=0;k<aKarts.length;k++) {
-								var pCible = aKarts[k];
-								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
-									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
+								var pTarget = aKarts[k];
+								if (pTarget.id != fSprite.owner && !friendlyHit(fSprite.team,pTarget.team) && !pTarget.fall && !pTarget.loose) {
+									var fDirX = pTarget.x-fNewPosX, fDirY = pTarget.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
 										var dAngle = fMoveX*fDirX + fMoveY*fDirY;
 										dAngle /= Math.sqrt(fDist*(fMoveX*fMoveX + fMoveY*fMoveY));
 										if (dAngle > 0.4) {
-											var lapId = getCurrentLapId(pCible);
+											var lapId = getCurrentLapId(pTarget);
 											if (lapInteractionsDisabled(fSprite.ailap, lapId)) continue;
 											maxDist = fDist;
-											tCible = pCible;
+											tTarget = pTarget;
 										}
 									}
 								}
 							}
-							if (tCible) {
-								fSprite.target = tCible.id;
-								if (isOnline && ((tCible.id == identifiant) || (tCible.controller == identifiant) || isControlledByPlayer(fSprite.owner)))
+							if (tTarget) {
+								fSprite.target = tTarget.id;
+								if (isOnline && ((tTarget.id == identifiant) || (tTarget.controller == identifiant) || isControlledByPlayer(fSprite.owner)))
 									syncItems.push(fSprite);
 							}
 						}
@@ -8002,8 +8028,8 @@ var itemBehaviors = {
 				var inTarget = (fSprite.target >= 0) && !isMoving;
 				var fSpriteExcept = [fSprite];
 				if (inTarget) {
-					for (var i=0;i<items["carapace-rouge"].length;i++) {
-						var oBox = items["carapace-rouge"][i];
+					for (var i=0;i<items["red-shell"].length;i++) {
+						var oBox = items["red-shell"][i];
 						if (oBox !== fSprite && oBox.x === fSprite.x && oBox.y === fSprite.y)
 							fSpriteExcept.push(oBox);
 					}
@@ -8056,7 +8082,7 @@ var itemBehaviors = {
 							}
 						}
 
-						if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY))) {
+						if (handleJump(fSprite, jumps(fSprite.x,fSprite.y, fMoveX,fMoveY))) {
 							if ((l%2))
 								handleHeightInc(fSprite);
 						}
@@ -8070,7 +8096,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionFloor = null;
 				collisionLap = fSprite.ailap;
-				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !isFalling(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !hit_banana(fNewPosX, fNewPosY, oSpriteExcept) && !hit_banana(fSprite.x, fSprite.y, oSpriteExcept) && !hit_redShell(fNewPosX, fNewPosY, fSpriteExcept) && !hit_redShell(fSprite.x, fSprite.y, fSpriteExcept) && !hit_greenShell(fNewPosX, fNewPosY, oSpriteExcept) && !hit_greenShell(fSprite.x, fSprite.y, oSpriteExcept) && !hit_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !hit_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -8082,31 +8108,31 @@ var itemBehaviors = {
 						delete fSprite.z0;
 				}
 				else {
-					detruit(fSprite);
+					destroy(fSprite);
 					return;
 				}
 			}
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if ((oKart.z < maxItemHitboxZ) && touche_crouge_aux(oKart.x,oKart.y, fSprite)) {
+			if ((oKart.z < maxItemHitboxZ) && hit_redShell_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team))
 					handleHardHit(getId);
 			}
 		}
 	},
-	"carapace-bleue": {
+	"blue-shell": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
 		move: function(fSprite) {
-			var cible = -1;
+			var target = -1;
 			if (fSprite.target != -1) {
 				for (var k=0;k<aKarts.length;k++) {
 					if (aKarts[k].id == fSprite.target) {
-						cible = k;
+						target = k;
 						break;
 					}
 				}
@@ -8131,19 +8157,19 @@ var itemBehaviors = {
 			var aPos = [fSprite.x,fSprite.y];
 			if (fSprite.aipoint == -1) {
 				if (fSprite.cooldown > 0) {
-					var oKart = aKarts[cible];
+					var oKart = aKarts[target];
 					if (oKart) {
 						var fMoveX = fSprite.x - oKart.x;
 						var fMoveY = fSprite.y - oKart.y;
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-						var itemBehavior = itemBehaviors["carapace-bleue"];
+						var itemBehavior = itemBehaviors["blue-shell"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
 							var dSpeed = 10*relSpeed;
 							if (fMove2 > dSpeed*dSpeed) {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
 								fMoveY /= fNewMove;
-				
+
 								for (var k=0;k<oPlayers.length;k++)
 									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
 							}
@@ -8153,8 +8179,8 @@ var itemBehaviors = {
 						else {
 							if (fSprite.cooldown < 5) {
 								var maxSpeed2 = 32;
-								if (oKart.champi > 0) {
-									if ((oKart.champi < (oKart.champior ? 8:16)) || (oKart.champiType !== CHAMPI_TYPE_ITEM))
+								if (oKart.mushroom > 0) {
+									if ((oKart.mushroom < (oKart.goldMushroom ? 8:16)) || (oKart.mushroomType !== MUSHROOM_TYPE_ITEM))
 										maxSpeed2 = 200;
 								}
 								else if (oKart.turbodrift)
@@ -8183,7 +8209,7 @@ var itemBehaviors = {
 									fSprite.sprite[k].setState(0);
 							}
 						}
-			
+
 						fSprite.x -= fMoveX;
 						fSprite.y -= fMoveY;
 						fSprite.ailap = getCurrentLapId(oKart);
@@ -8196,33 +8222,33 @@ var itemBehaviors = {
 					fSprite.cooldown--;
 					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -120:-10;
 					if (fSprite.cooldown < delLimit)
-						detruit(fSprite);
+						destroy(fSprite);
 					else {
 						collisionLap = getItemCollisionLap(fSprite);
-						handleDecorExplosions(fSprite, touche_cbleue_aux);
+						handleDecorExplosions(fSprite, hit_blueShell_aux);
 					}
 				}
 			}
 			else {
-				var isBB = (course == "BB");
+				var isBB = (isBallonBattle());
 				if (!isBB) {
 					var lMap = getCurrentLMap(fSprite.ailap);
 					var aipoints = lMap.aipoints[fSprite.aimap];
 					var dSpeed = 15*relSpeed;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
-						var target = aipoints[fSprite.aipoint];
-						if (!target) break;
-						var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
+						var targetPos = aipoints[fSprite.aipoint];
+						if (!targetPos) break;
+						var dist = Math.hypot(targetPos[0]-fSprite.x, targetPos[1]-fSprite.y);
 						if (dist > dSpeed) {
-							fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
-							fSprite.y += (target[1]-fSprite.y)*dSpeed/dist;
+							fSprite.x += (targetPos[0]-fSprite.x)*dSpeed/dist;
+							fSprite.y += (targetPos[1]-fSprite.y)*dSpeed/dist;
 							dSpeed = 0;
 						}
 						else {
 							dSpeed -= dist;
-							fSprite.x = target[0];
-							fSprite.y = target[1];
+							fSprite.x = targetPos[0];
+							fSprite.y = targetPos[1];
 							fSprite.aipoint++;
 							if (fSprite.aipoint === aipoints.length)
 								fSprite.aipoint = 0;
@@ -8230,13 +8256,13 @@ var itemBehaviors = {
 					}
 				}
 				checkItemLap(fSprite, { aPos: aPos, fast: true });
-				if (cible == -1) {
-					cible = aKarts.length-1;
+				if (target == -1) {
+					target = aKarts.length-1;
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team)) {
-									cible = k;
+								if (((aKarts[k].laps <= oMap.tours) || (isBallonBattle())) && !friendlyHit(fSprite.team,aKarts[k].team)) {
+									target = k;
 									cPlace = aKarts.length;
 								}
 								break;
@@ -8244,7 +8270,7 @@ var itemBehaviors = {
 						}
 					}
 				}
-				var oKart = aKarts[cible];
+				var oKart = aKarts[target];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
 					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
@@ -8264,7 +8290,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
+			if (hit_blueShell_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
 					handleExplosionHit(getId, pExplose);
@@ -8280,10 +8306,10 @@ var itemBehaviors = {
 						if (fSprite.sprite[k].div.style.display == "block")
 							fLoad = k;
 					}
-					var cible = -1;
+					var target = -1;
 					for (var k=0;k<aKarts.length;k++) {
 						if (aKarts[k].id == fSprite.target) {
-							cible = k;
+							target = k;
 							break;
 						}
 					}
@@ -8293,14 +8319,14 @@ var itemBehaviors = {
 							fSprite.sprite[fLoad].img.onload = undefined;
 							fSprite.size = 8;
 							reprendre(false);
-							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+							playDistSound(aKarts[target],"musics/events/boom.mp3",200);
 						}
 						bCounting = true;
 						interruptGame();
 					}
 					else {
 						fSprite.size = 8;
-						playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+						playDistSound(aKarts[target],"musics/events/boom.mp3",200);
 					}
 				}
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
@@ -8310,18 +8336,18 @@ var itemBehaviors = {
 			nextBlueShellCooldown = 300;
 		}
 	},
-	"carapace-noire": {
+	"black-shell": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
 		move: function(fSprite) {
-			var cible = -1;
+			var target = -1;
 			if (fSprite.target != -1) {
 				for (var k=0;k<aKarts.length;k++) {
 					if (aKarts[k].id == fSprite.target) {
-						cible = k;
+						target = k;
 						break;
 					}
 				}
@@ -8330,19 +8356,19 @@ var itemBehaviors = {
 			var relSpeed2 = relSpeed*relSpeed;
 			if (fSprite.aipoint == -1) {
 				if (fSprite.cooldown > 0) {
-					var oKart = aKarts[cible];
+					var oKart = aKarts[target];
 					if (oKart) {
 						var fMoveX = fSprite.x - oKart.x;
 						var fMoveY = fSprite.y - oKart.y;
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-						var itemBehavior = itemBehaviors["carapace-noire"];
+						var itemBehavior = itemBehaviors["black-shell"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
 							var dSpeed = 10*relSpeed;
 							if (fMove2 > dSpeed*dSpeed) {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
 								fMoveY /= fNewMove;
-				
+
 								for (var k=0;k<oPlayers.length;k++)
 									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
 							}
@@ -8352,7 +8378,7 @@ var itemBehaviors = {
 						else {
 							if (fSprite.cooldown < 5) {
 								var maxSpeed2 = 32;
-								if (oKart.champi > 0)
+								if (oKart.mushroom > 0)
 									maxSpeed2 = 200;
 								else if (oKart.turbodrift)
 									maxSpeed2 = 64;
@@ -8380,7 +8406,7 @@ var itemBehaviors = {
 									fSprite.sprite[k].setState(0);
 							}
 						}
-			
+
 						fSprite.x -= fMoveX;
 						fSprite.y -= fMoveY;
 					}
@@ -8392,11 +8418,11 @@ var itemBehaviors = {
 					fSprite.cooldown--;
 					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -70:-10;
 					if (fSprite.cooldown < delLimit)
-						detruit(fSprite);
+						destroy(fSprite);
 				}
 			}
 			else {
-				var isBB = (course == "BB");
+				var isBB = (isBallonBattle());
 				if (!isBB) {
 					var aipoints = oMap.aipoints[fSprite.aimap];
 					var dSpeed = 15*relSpeed;
@@ -8419,13 +8445,13 @@ var itemBehaviors = {
 						}
 					}
 				}
-				if (cible == -1) {
-					cible = 0;
+				if (target == -1) {
+					target = 0;
 					for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace && !aKarts[k].loose) {
 								if (!friendlyHit(fSprite.team,aKarts[k].team)) {
-									cible = k;
+									target = k;
 									cPlace = 0;
 								}
 								break;
@@ -8433,7 +8459,7 @@ var itemBehaviors = {
 						}
 					}
 				}
-				var oKart = aKarts[cible];
+				var oKart = aKarts[target];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
 					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
@@ -8453,7 +8479,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
+			if (hit_blueShell_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
 					handleExplosionHit(getId, pExplose);
@@ -8469,10 +8495,10 @@ var itemBehaviors = {
 						if (fSprite.sprite[k].div.style.display == "block")
 							fLoad = k;
 					}
-					var cible = -1;
+					var target = -1;
 					for (var k=0;k<aKarts.length;k++) {
 						if (aKarts[k].id == fSprite.target) {
-							cible = k;
+							target = k;
 							break;
 						}
 					}
@@ -8482,14 +8508,14 @@ var itemBehaviors = {
 							fSprite.sprite[fLoad].img.onload = undefined;
 							fSprite.size = 8;
 							reprendre(false);
-							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+							playDistSound(aKarts[target],"musics/events/boom.mp3",200);
 						}
 						bCounting = true;
 						interruptGame();
 					}
 					else {
 						fSprite.size = 8;
-						playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+						playDistSound(aKarts[target],"musics/events/boom.mp3",200);
 					}
 				}
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
@@ -8500,12 +8526,12 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile"];
+var itemTypes = ["banana","fakeItem","shell","bobomb","poison","red-shell","blue-shell","black-shell","lightning","bloopers","pow","mushroom","star"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
 var decorBehaviors = {
-	taupe:{
+	mole:{
 		spin: 20,
 		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
@@ -8532,7 +8558,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	poisson:{
+	fish:{
 		spin: 20,
 		movable:true,
 		preinit:function(decorsData,$this) {
@@ -8572,9 +8598,9 @@ var decorBehaviors = {
 		spin: 20,
 		movable:true,
 		preinit:function(decorsData,$this) {
-			this.preinit = decorBehaviors.poisson.preinit.bind(this);
-			this.init = decorBehaviors.poisson.init.bind(this);
-			this.move_ = decorBehaviors.poisson.move.bind(this);
+			this.preinit = decorBehaviors.fish.preinit.bind(this);
+			this.init = decorBehaviors.fish.init.bind(this);
+			this.move_ = decorBehaviors.fish.move.bind(this);
 			this.preinit(decorsData,$this);
 		},
 		move: function(decorData,i,iG,$this) {
@@ -8585,7 +8611,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	plante:{
+	plant:{
 		spin: 20,
 		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
@@ -8636,7 +8662,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	spectre:{
+	ghost:{
 		spin: 20,
 		init:function(decorData,i,iG) {
 			decorBehaviors.thwomp.init(decorData,i,iG);
@@ -8658,12 +8684,12 @@ var decorBehaviors = {
 			}
 		}
 	},
-	crabe:{
+	crab:{
 		spin: 20,
 		movable:true,
 		transparent:true,
 		preinit:function(decorsData) {
-			if (course == "BB")
+			if (isBallonBattle())
 				this.dodgable = true;
 		},
 		init:function(decorData,i,iG) {
@@ -8727,8 +8753,8 @@ var decorBehaviors = {
 		transparent:true,
 		dodgable:true,
 		preinit:function(decorsData) {
-			this.init_ = decorBehaviors.crabe.init.bind(this);
-			this.move = decorBehaviors.crabe.move.bind(this);
+			this.init_ = decorBehaviors.crab.init.bind(this);
+			this.move = decorBehaviors.crab.move.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -8980,8 +9006,8 @@ var decorBehaviors = {
 	piranhaplant: {
 		spin: 20,
 		preinit:function(decorsData) {
-			this.init_ = decorBehaviors.plante.init.bind(this);
-			this.move = decorBehaviors.plante.move.bind(this);
+			this.init_ = decorBehaviors.plant.init.bind(this);
+			this.move = decorBehaviors.plant.move.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -9206,7 +9232,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	billball:{
+	bulletbill:{
 		hitbox:10,
 		unbreaking:true,
 		transparent:true,
@@ -9228,7 +9254,7 @@ var decorBehaviors = {
 				}
 			}
 			for (var i=1;i<4;i++) {
-				var decorsData2 = lMap.decor["billball"+i];
+				var decorsData2 = lMap.decor["bulletbill"+i];
 				if (decorsData2) {
 					for (var j=0;j<decorsData2.length;j++) {
 						var decorData = decorsData2[j];
@@ -9341,11 +9367,11 @@ var decorBehaviors = {
 			}
 		}
 	},
-	tortitaupe:{
+	rockyWrench:{
 		spin: 20,
 		preinit:function(decorsData) {
-			this.init_ = decorBehaviors.taupe.init.bind(this);
-			this.move = decorBehaviors.taupe.move.bind(this);
+			this.init_ = decorBehaviors.mole.init.bind(this);
+			this.move = decorBehaviors.mole.move.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -9356,11 +9382,11 @@ var decorBehaviors = {
 			}
 		}
 	},
-	topitaupe:{
+	montyMole:{
 		spin: 20,
 		preinit:function(decorsData) {
-			this.init = decorBehaviors.taupe.init.bind(this);
-			this.move = decorBehaviors.taupe.move.bind(this);
+			this.init = decorBehaviors.mole.init.bind(this);
+			this.move = decorBehaviors.mole.move.bind(this);
 		}
 	},
 	coconut:{
@@ -9680,7 +9706,7 @@ var decorBehaviors = {
 		boostspeed:11,
 		spritesize: 60,
 		ondie: function() {
-			return "suppr";
+			return "delete";
 		},
 		setdir:function(decorData,ux,uy,pos) {
 			var lMap = this.ctx.lMap;
@@ -9793,8 +9819,8 @@ var decorBehaviors = {
 										decorData[1] = lMap.h*3;
 										decorData[6][1]--;
 										break;
-									case "suppr":
-										lMap.decor[this.type][i][2][0].suppr();
+									case "delete":
+										lMap.decor[this.type][i][2][0].delete();
 										lMap.decor[this.type].splice(i,1);
 										break;
 									case "respawn":
@@ -9823,7 +9849,7 @@ var decorBehaviors = {
 								if (!decorData[3]) {
 									var cannons = lMap.decor[this.type];
 									lMap.decor[this.type] = [];
-									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
+									var pJump = jumps(decorData[0],decorData[1], fMoveX,fMoveY);
 									var pAsset;
 									collisionFloor = null;
 									collisionItem = null;
@@ -9844,7 +9870,7 @@ var decorBehaviors = {
 										fMoveX = 0;
 										fMoveY = 0;
 									}
-									else if (pAsset = touche_asset(decorData[0],decorData[1], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
+									else if (pAsset = hit_asset(decorData[0],decorData[1], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
 										switch (pAsset[0]) {
 										case "bumpers":
 											var ux = fMoveX, uy = fMoveY;
@@ -9887,9 +9913,9 @@ var decorBehaviors = {
 											fMoveY = uy;
 										}
 									}
-									else if (tombe(decorData[0]+fMoveX,decorData[1]+fMoveY))
+									else if (isFalling(decorData[0]+fMoveX,decorData[1]+fMoveY))
 										decorData[6][1] = -1;
-									else if (accelere(decorData[0],decorData[1], fMoveX,fMoveY))
+									else if (accelerate(decorData[0],decorData[1], fMoveX,fMoveY))
 										decorData[6][4] = 20;
 									lMap.decor[this.type] = cannons;
 								}
@@ -10283,14 +10309,14 @@ for (var type in decorBehaviors) {
 	decorBehaviors[type].ctx = {};
 }
 
-function initItemSprite(oArme) {
+function initItemSprite(oWeapon) {
 	var aBoxes = [];
-	var nbBoxes = oArme[2];
+	var nbBoxes = oWeapon[2];
 	if (!nbBoxes || !oDoubleItemsEnabled)
 		nbBoxes = 1;
 	for (var j=0;j<nbBoxes;j++)
 		aBoxes[j] = new Sprite("item");
-	oArme[2] = {active:true,box:aBoxes};
+	oWeapon[2] = {active:true,box:aBoxes};
 }
 function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 	fSprite.countdown--;
@@ -10318,8 +10344,8 @@ function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 	if (!fTeleport)
 		checkItemLap(fSprite, { aPos: aPos });
 
-	if (!fSprite.countdown && tombe(fNewPosX,fNewPosY))
-		detruit(fSprite);
+	if (!fSprite.countdown && isFalling(fNewPosX,fNewPosY))
+		destroy(fSprite);
 }
 function getDecorParams(self,i) {
 	var type = self.type;
@@ -10417,7 +10443,7 @@ function initCustomDecorsSprites(lMap) {
 function getApparentRotation(oPlayer) {
 	var res = oPlayer.rotation;
 	var changeView = oPlayer.changeView;
- 
+
 	if (changeView)
 		res += (res < 360-changeView ? changeView : changeView-360);
 	return res;
@@ -10500,7 +10526,7 @@ function handleLapChange(prevLapId,lapId, getId) {
 function handleCpChange(prevLap,prevCP, getId) {
 	if (!oMap.lapOverrides) return collisionLap;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var prevLapId = getCurrentLapId({ laps: prevLap, checkpoints: prevCP });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
@@ -10537,14 +10563,14 @@ function initAiPoints(lMap, oKart, inc) {
 			aishortcut = aishortcut.slice(1);
 			if (!aishortcut[2]) aishortcut[2] = {};
 			var aiOptions = aishortcut[2];
-			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
+			if (aiOptions.items == null) aiOptions.items = ["mushroom", "mushroomX2", "mushroomX3", "goldMushroom", "megamushroom", "star"];
 			if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 			if (aiOptions.cc == null) aiOptions.cc = 150;
 			if (aiOptions.ccm == null) aiOptions.ccm = 1000;
 			var minDifficulty = 4 + aiOptions.difficulty*0.5;
 			var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
 			var maxSelectedClass = getRelSpeedFromCc(aiOptions.ccm);
-			if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
+			if ((iDifficulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
 				isValidShortcuts = true;
 				if (!aiOptions.itemsDict) {
 					var oItems = {};
@@ -10568,14 +10594,14 @@ function refreshUsingItems(oKart, lapId) {
 }
 function resetBgLayers() {
 	for (var i=0;i<oBgLayers.length;i++)
-		oBgLayers[i].suppr();
+		oBgLayers[i].delete();
 	oBgLayers.length = 0;
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		var nbPrevFrames = oPrevFrameStates[i].length;
 		for (var j=0;j<nbPrevFrames;j++) {
 			var aLayers = oPrevFrameStates[i][j].layer;
 			for (var k=0;k<aLayers.length;k++)
-				aLayers[k].suppr();
+				aLayers[k].delete();
 			aLayers.length = 0;
 		}
 	}
@@ -10620,7 +10646,7 @@ function updateBgLayers(pMap, callback) {
 function setupBgLayer(strImages, fixedScale, isDelay) {
 	for (var i=0;i<strImages.length;i++)
 		oBgLayers[i] = new BGLayer(strImages[i], fixedScale ? 1:i+1, isDelay);
-	
+
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		for (var j=0;j<prevScreenDelay;j++) {
 			for (var k=0;k<oBgLayers.length;k++)
@@ -10638,20 +10664,20 @@ function checkItemLap(fSprite, opts) {
 	var lapId = (fSprite.ailap >= 0) ? fSprite.ailap : fSprite.lapId;
 	var nextOverride = oMap.lapOverrides && oMap.lapOverrides[lapId];
 	if (!nextOverride) return;
-	var tours = fSprite.ailapt;
-	if (!tours) {
+	var laps = fSprite.ailapt;
+	if (!laps) {
 		var currentOverride = oMap.lapOverrides[lapId-1];
-		tours = currentOverride ? currentOverride.tours : 1;
+		laps = currentOverride ? currentOverride.laps : 1;
 	}
 	var lMap = getCurrentLMap(lapId);
-	var nextCp = getNextCp({ tours: tours });
+	var nextCp = getNextCp({ laps: laps });
 	if (!fSprite.ailapc && !(fSprite.aipoint < lMap.checkpoint.length/2))
 		fSprite.ailapc = 1;
 	if (fSprite.ailapc && enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts)) {
-		tours++;
-		if (fSprite.ailapt) fSprite.ailapt = tours;
+		laps++;
+		if (fSprite.ailapt) fSprite.ailapt = laps;
 	}
-	var lapCount = tours-1;
+	var lapCount = laps-1;
 	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
 		incItemLap(lMap, fSprite);
 		return;
@@ -10703,12 +10729,12 @@ function render() {
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
 			size: oKart.size,
-			tourne: oKart.tourne,
+			spinning: oKart.spinning,
 			figstate: oKart.figstate||0,
 			time: oKart.time,
-			roulette: oKart.roulette,
-			roulette2: oKart.roulette2,
-			tombe: oKart.tombe,
+			wheel: oKart.wheel,
+			wheel2: oKart.wheel2,
+			fall: oKart.fall,
 			teleport: oKart.teleport
 		});
 	}
@@ -10801,12 +10827,12 @@ function render() {
 				var lastObj = getLastObj(lastState.karts,i,currentObj);
 				if (!currentObj.ref.progressiveView)
 					lastObj.changeView = currentObj.changeView;
-				if (currentObj.tombe && !lastObj.tombe)
-					lastObj.tombe = currentObj.tombe;
+				if (currentObj.fall && !lastObj.fall)
+					lastObj.fall = currentObj.fall;
 				if (currentObj.figstate && !lastObj.figstate)
 					lastObj.figstate = currentObj.figstate;
-				if (currentObj.tourne && !lastObj.tourne)
-					lastObj.tourne = currentObj.tourne;
+				if (currentObj.spinning && !lastObj.spinning)
+					lastObj.spinning = currentObj.spinning;
 				frameState.karts.push({
 					ref: currentObj.ref,
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
@@ -10816,12 +10842,12 @@ function render() {
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame),
-					tourne: interpolateStateRound(lastObj.tourne,currentObj.tourne,tFrame),
+					spinning: interpolateStateRound(lastObj.spinning,currentObj.spinning,tFrame),
 					figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
 					time: interpolateState(lastObj.time,currentObj.time,tFrame),
-					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
-					roulette2: interpolateState(lastObj.roulette2,currentObj.roulette2,tFrame),
-					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
+					wheel: interpolateState(lastObj.wheel,currentObj.wheel,tFrame),
+					wheel2: interpolateState(lastObj.wheel2,currentObj.wheel2,tFrame),
+					fall: interpolateState(lastObj.fall,currentObj.fall,tFrame),
 					teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
 				});
 			}
@@ -10877,9 +10903,9 @@ function render() {
 				posY = frameState.cam.y;
 				fRotation = frameState.cam.rotation;
 			}
-			if (oPlayer.tombe) {
-				if (oPlayer.tombe > 10) {
-					if (oPlayer.tombe == 20 && !lastFrame) {
+			if (oPlayer.fall) {
+				if (oPlayer.fall > 10) {
+					if (oPlayer.fall == 20 && !lastFrame) {
 						posX = interpolateState(lastState.karts[i].x,oPlayer.ref.aX, tFrame);
 						posY = interpolateState(lastState.karts[i].y,oPlayer.ref.aY, tFrame);
 						oPlayer.x = posX;
@@ -10898,7 +10924,7 @@ function render() {
 						});
 					}
 				}
-				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
+				oContainers[i].style.opacity = Math.abs(oPlayer.fall-10)/10;
 			}
 			else if (oPlayer.teleport) {
 				if (oPlayer.teleport > 3) {
@@ -10934,10 +10960,10 @@ function render() {
 					$lakitu.style.top = Math.round((-(Math.abs(oPlayer.time - 20)) + 18) * (iScreenScale - 2)) +"px";
 				}
 			}
-			for (var j=0;j<oRoulettesPrefixes.length;j++) {
-				var prefix = oRoulettesPrefixes[j];
-				var oRouletteCnt = oPlayer["roulette"+prefix];
-				if (oRouletteCnt && oRouletteCnt < 25) {
+			for (var j=0;j<oWheelsPrefixes.length;j++) {
+				var prefix = oWheelsPrefixes[j];
+				var oWheelCnt = oPlayer["wheel"+prefix];
+				if (oWheelCnt && oWheelCnt < 25) {
 					var rTurner = document.getElementById("scroller"+prefix+i).getElementsByTagName("div")[0];
 					var rHeight = +rTurner.dataset.h;
 					var rSize = +rTurner.dataset.s;
@@ -10966,7 +10992,7 @@ function render() {
 				}
 				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
 
-				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
+				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.spinning % 21;
 				if (iAngleStep > 21) iAngleStep -= 22;
 
 				var isActualPlayer = (fSprite == oPlayer) && !oSpecCam;
@@ -10977,9 +11003,9 @@ function render() {
 					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
 						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.tourne)
+						if (fSpriteRef.rotincdir && !fSprite.spinning)
 							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
-						else if (!fSprite.tourne)
+						else if (!fSprite.spinning)
 							iAngleStep = 0;
 					}
 				}
@@ -10987,7 +11013,7 @@ function render() {
 				fSpriteRef.sprite[i].setState(iAngleStep);
 				fSpriteRef.sprite[i].render(fCamera, fSprite);
 
-				if (course == "BB") {
+				if (isBallonBattle()) {
 					var nbBallons = fSpriteRef.ballons.length;
 					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSpriteRef.sprite[i].h-32)/5));
 					var fShift = 2.5*getMirrorFactor();
@@ -11049,7 +11075,7 @@ function render() {
 				}
 
 				if (!isActualPlayer) {
-					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
+					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.fall)
 						fSpriteRef.marker.render(i, jCamera, fSprite);
 				}
 			}
@@ -11210,7 +11236,7 @@ function direction(fDir, rotation) {
 }
 function getItemDistributionRange(oKart) {
 	var a = (oKart.place-1)/aKarts.length, b = oKart.place/aKarts.length;
-	if (course != "BB") {
+	if (!isBallonBattle()) {
 		var x, d;
 		if (oKart.place == 1) {
 			var distToSecond = -distanceToSecond(oKart);
@@ -11334,7 +11360,7 @@ function addNewBalloon(oKart,team) {
 function popBalloon(oKart) {
 	let lg = oKart.ballons.length - 1;
 	if (lg < 0) return;
-	oKart.ballons[lg][0].suppr();
+	oKart.ballons[lg][0].delete();
 	oKart.ballons.pop();
 }
 function inflateNewBalloons(oKart) {
@@ -11359,15 +11385,15 @@ function updateBalloonHud(oCompteur,oPlayer) {
 }
 
 var syncItems = [];
-function detruit(item, sound) {
+function destroy(item, sound) {
 	if (isOnline) {
 		item = getItemToDestroy(item);
 		item.deleted = 1;
 		syncItems.push(item);
 	}
-	supprime(item, sound);
+	deleteItem(item, sound);
 }
-function supprime(item, sound) {
+function deleteItem(item, sound) {
 	var key = item.type;
 	var id = items[key].indexOf(item);
 	if (id != -1) {
@@ -11375,7 +11401,7 @@ function supprime(item, sound) {
 		if (item.sprite) {
 			for (var i=0;i<oPlayers.length;i++) {
 				var oPlayer = getPlayerAtScreen(i);
-				if (!oPlayer.tombe) {
+				if (!oPlayer.fall) {
 					var fCamera = {
 						x: oPlayer.x,
 						y: oPlayer.y,
@@ -11425,25 +11451,25 @@ function getItemToDestroy(item) {
 }
 
 
-function supprArme(i) {
+function delWeapon(i) {
 	var oKart = aKarts[i];
-	for (var j=0;j<oRoulettesPrefixes.length;j++) {
-		var prefix = oRoulettesPrefixes[j];
-		oKart["roulette"+prefix] = 0;
-		oKart[oArmeKeys[j]] = false;
+	for (var j=0;j<oWheelsPrefixes.length;j++) {
+		var prefix = oWheelsPrefixes[j];
+		oKart["wheel"+prefix] = 0;
+		oKart[oWeaponKeys[j]] = false;
 	}
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
-		removeIfExists(oKart.rouletteSound);
+		removeIfExists(oKart.wheelSound);
 	}
 }
 function consumeItem(i) {
 	var oKart = aKarts[i];
-	oKart.arme = oKart.stash;
+	oKart.weapon = oKart.stash;
 	oKart.stash = false;
-	oKart.roulette = oKart.roulette2;
-	oKart.roulette2 = 0;
+	oKart.wheel = oKart.wheel2;
+	oKart.wheel2 = 0;
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
@@ -11474,34 +11500,34 @@ function loseUsingItem(oKart) {
 		loseUsingItems(oKart);
 }
 function dropCurrentItem(oKart) {
-	var sArme = oKart.arme;
-	if (!sArme) return;
-	var sRoulette = oKart.roulette;
+	var sWeapon = oKart.weapon;
+	if (!sWeapon) return;
+	var sWheel = oKart.wheel;
 	var iKart = aKarts.indexOf(oKart);
 	consumeItem(iKart);
 	consumeItemIfDouble(iKart);
-	delete oKart.champiType;
-	delete oKart.champior;
-	delete oKart.champior0;
-	if (sRoulette < 25) return;
+	delete oKart.mushroomType;
+	delete oKart.goldMushroom;
+	delete oKart.goldMushroom0;
+	if (sWheel < 25) return;
 	if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) return;
 	var itemCount = 1;
-	var sArmeCountRegex = sArme.match(/^(.+)X(\d+)$/);
-	if (sArmeCountRegex) {
-		sArme = sArmeCountRegex[1];
-		itemCount = +sArmeCountRegex[2];
+	var sWeaponCountRegex = sWeapon.match(/^(.+)X(\d+)$/);
+	if (sWeaponCountRegex) {
+		sWeapon = sWeaponCountRegex[1];
+		itemCount = +sWeaponCountRegex[2];
 	}
 	var itemType;
-	switch (sArme) {
-	case "champi":
-	case "etoile":
-	case "banane":
-	case "carapace":
+	switch (sWeapon) {
+	case "mushroom":
+	case "star":
+	case "banana":
+	case "shell":
 	case "poison":
-		itemType = sArme;
+		itemType = sWeapon;
 		break;
-	case "carapacerouge":
-		itemType = "carapace-rouge";
+	case "redshell":
+		itemType = "red-shell";
 		break;
 	}
 	if (itemType) {
@@ -11515,14 +11541,14 @@ function dropCurrentItem(oKart) {
 }
 function deleteUsingItems(oKart) {
 	for (var i=oKart.using.length-1;i>=0;i--)
-		detruit(oKart.using[i]);
+		destroy(oKart.using[i]);
 }
 function moveUsingItems(oKart, triggered) {
 	if (oKart.using.length) {
 		var rotItem = 0;
 		var l = 5;
 		var dtheta = 360/oKart.using.length;
-		var isBanana = (oKart.using[0].type === "banane");
+		var isBanana = (oKart.using[0].type === "banana");
 		if (oKart.rotitem !== undefined) {
 			rotItem = oKart.rotitem;
 			if (isBanana)
@@ -11533,16 +11559,16 @@ function moveUsingItems(oKart, triggered) {
 				oKart.rotitem -= 30;
 		}
 		for (var i=0;i<oKart.using.length;i++) {
-			var oArme = oKart.using[i];
+			var oWeapon = oKart.using[i];
 			if (isBanana) {
-				oArme.x = (oKart.x - l * (0.7+(oKart.using.length-i)*0.35) * direction(0, oKart.rotation));
-				oArme.y = (oKart.y - l * (0.7+(oKart.using.length-i)*0.35) * direction(1, oKart.rotation));
+				oWeapon.x = (oKart.x - l * (0.7+(oKart.using.length-i)*0.35) * direction(0, oKart.rotation));
+				oWeapon.y = (oKart.y - l * (0.7+(oKart.using.length-i)*0.35) * direction(1, oKart.rotation));
 			}
 			else {
-				oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
-				oArme.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
+				oWeapon.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
+				oWeapon.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
 			}
-			oArme.z = oKart.z;
+			oWeapon.z = oKart.z;
 		}
 	}
 	else
@@ -11623,7 +11649,7 @@ function resumeSpriteSize(sprite) {
 }
 
 function updateProtectFlag(oKart) {
-	oKart.protect = (oKart.etoile || oKart.megachampi || oKart.billball || oKart.cannon);
+	oKart.protect = (oKart.star || oKart.megamushroom || oKart.bulletbill || oKart.cannon);
 }
 
 function colKart(getId) {
@@ -11633,12 +11659,12 @@ function colKart(getId) {
 		var kart = aKarts[i];
 		var lap2 = getCurrentLapId(kart);
 		if (lapInteractionsDisabled(lap1,lap2)) continue;
-		var protect1 = oKart.protect ? ((oKart.etoile||oKart.billball)?2:1) : 0;
-		var protect2 = kart.protect ? ((kart.etoile||kart.billball)?2:1) : 0;
-		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
+		var protect1 = oKart.protect ? ((oKart.star||oKart.bulletbill)?2:1) : 0;
+		var protect2 = kart.protect ? ((kart.star||kart.bulletbill)?2:1) : 0;
+		var isChampiCol = (isBallonBattle()) && (!oKart.mushroom != !kart.mushroom);
 		if (oKart.cpu && kart.cpu && (protect1 == protect2) && !isChampiCol)
 			continue;
-		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.billball&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.billball&&!kart.cannon)) && !oKart.tourne && !kart.tourne) {
+		if (!friendlyFire(oKart,kart) && (!isBallonBattle()||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.bulletbill&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.bulletbill&&!kart.cannon)) && !oKart.spinning && !kart.spinning) {
 			var dir1 = kartInstantSpeed(oKart), dir2 = kartInstantSpeed(kart);
 			var relDir = [dir2[0]-dir1[0],dir2[1]-dir1[1]];
 			var nDir1 = [oKart.x-kart.x,oKart.y-kart.y];
@@ -11653,13 +11679,13 @@ function colKart(getId) {
 					if (isOnline && shareLink.options && shareLink.options.noBumps)
 						continue;
 					if (isChampiCol) {
-						var qKart = oKart.champi ? kart:oKart;
+						var qKart = oKart.mushroom ? kart:oKart;
 						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
-							var pKart = oKart.champi ? oKart:kart;
-							if (pKart.champiType === CHAMPI_TYPE_ITEM) {
+							var pKart = oKart.mushroom ? oKart:kart;
+							if (pKart.mushroomType === MUSHROOM_TYPE_ITEM) {
 								var iKart = aKarts.indexOf(qKart);
-								handleHit2(pKart,qKart);
-								loseBall(iKart);
+								handleOtherKartHit(pKart,qKart);
+								loseBallon(iKart);
 								stopDrifting(iKart);
 								if (pKart.ballons.length < 3)
 									addNewBalloon(pKart,qKart.team);
@@ -11712,8 +11738,8 @@ function colKart(getId) {
 						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
 							var pKart = (protect1<protect2) ? kart:oKart;
 							var iKart = aKarts.indexOf(qKart);
-							handleHit2(pKart,qKart);
-							loseBall(iKart);
+							handleOtherKartHit(pKart,qKart);
+							loseBallon(iKart);
 							stopDrifting(iKart);
 							qKart.spin(62);
 							loseUsingItems(qKart);
@@ -11734,12 +11760,12 @@ function pointInPolygon(x,y, vs) {
 	for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
 		var xi = vs[i][0], yi = vs[i][1];
 		var xj = vs[j][0], yj = vs[j][1];
-		
+
 		var intersect = ((yi > y) != (yj > y))
 			&& (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
 		if (intersect) inside = !inside;
 	}
-	
+
 	return inside;
 }
 function pointInZone(x,y, zones) {
@@ -11775,7 +11801,7 @@ function getPointHeight(z) {
 	return z*jumpHeight1;
 }
 
-function pointCrossRectangle(iX,iY,iI,iJ, oBox) {	
+function pointCrossRectangle(iX,iY,iI,iJ, oBox) {
 	var aPos = [iX,iY], aMove = [iI,iJ];
 	var dir = [(iI>0), (iJ>0)];
 	for (var j=0;j<2;j++) {
@@ -11823,9 +11849,9 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 										collisionPlayer.turbodrift = 0;
 									if (decorBehavior.bonus) {
 										if (!isOnline || (collisionPlayer == oPlayers[0] && !onlineSpectatorId)) {
-											var bonusType = "champi";
-											if (course != "CM" && Math.random() < 0.5)
-												bonusType = "banane";
+											var bonusType = "mushroom";
+											if (!isTimeTrial() && Math.random() < 0.5)
+												bonusType = "banana";
 											addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
 										}
 									}
@@ -11854,7 +11880,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	if (!lMap.collision) return true;
 
 	if (!isCup) {
-		if ((course == "BB") || (lMap.map <= 20)) {
+		if ((isBallonBattle()) || (lMap.map <= 20)) {
 			if (iX > (lMap.w-5) || iY > (lMap.h-5) || iX < 4 || iY < 4) return true;
 		}
 		else {
@@ -11895,9 +11921,9 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 			iZ = zH;
 		collisionFloor = { z: zH };
 	}
-	
+
 	if (!isCup && (iZ <= jumpHeight0)) {
-		if ((course == "BB") || (lMap.map <= 20)) {
+		if ((isBallonBattle()) || (lMap.map <= 20)) {
 			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
 		}
 		else {
@@ -11933,10 +11959,10 @@ function getLineHorizontality(iX,iY, nX,nY, lines) {
 }
 function isBreakingItem(decorBehavior) {
 	if (!decorBehavior.damagingItems) return false;
-	if (decorBehavior.damagingItems.megachampi && collisionPlayer.megachampi) return true;
-	if (decorBehavior.damagingItems.billball && collisionPlayer.billball) return true;
-	if (decorBehavior.damagingItems.etoile && collisionPlayer.etoile) return true;
-	if (decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM) return true;
+	if (decorBehavior.damagingItems.megamushroom && collisionPlayer.megamushroom) return true;
+	if (decorBehavior.damagingItems.bulletbill && collisionPlayer.bulletbill) return true;
+	if (decorBehavior.damagingItems.star && collisionPlayer.star) return true;
+	if (decorBehavior.damagingItems.mushroom && collisionPlayer.mushroom && collisionPlayer.mushroomType === MUSHROOM_TYPE_ITEM) return true;
 }
 
 function secants(x11,y11,x21,y21, x12,y12,x22,y22) {
@@ -12045,7 +12071,7 @@ function getHorizontality(iX,iY,iZ, iI,iJ, options) {
 	};
 	var nX = iX+iI, nY = iY+iJ;
 	if (!isCup) {
-		if ((course == "BB") || (lMap.map <= 20)) {
+		if ((isBallonBattle()) || (lMap.map <= 20)) {
 			if (nX > (lMap.w-5) || nX < 4) nearCol.dir = [0,lMap.h];
 			if (nY > (lMap.h-5) || nY < 4) nearCol.dir = [lMap.w,0];
 		}
@@ -12228,23 +12254,7 @@ function objet(iX, iY, iI, iJ) {
 	return res;
 }
 
-function touche_piece(iX, iY, iI, iJ) {
-	var lMap = getCurrentLMap(collisionLap);
-	if (!lMap.coins) return false;
-
-    for (var i=0;i<lMap.coins.length;i++) {
-        var oBox = lMap.coins[i];
-        var coinRect = [oBox.x - 5, oBox.y - 5, 10, 10];
-        if (pointCrossRectangle(iX, iY, iI, iJ, coinRect) || pointInRectangle(iX, iY, coinRect)) {
-            oBox.sprite[0].suppr();
-            lMap.coins.splice(i,1);
-            return true;
-        }
-	}
-	return false;
-}
-
-function sauts(iX, iY, iI, iJ) {
+function jumps(iX, iY, iI, iJ) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (!lMap.sauts)
 		return false;
@@ -12268,11 +12278,11 @@ function sauts(iX, iY, iI, iJ) {
 	return false;
 }
 function sizeSpeedRatio(oKart) {
-	if (!oKart.megachampi) return oKart.size;
+	if (!oKart.megamushroom) return oKart.size;
 	return Math.pow(oKart.size, 0.3);
 }
 function handleJump(oKart, pJump) {
-	if (pJump && !oKart.tourne) {
+	if (pJump && !oKart.spinning) {
 		var height0 = pJump * 1.5;
 		oKart.heightinc = height0 * Math.pow(cappedRelSpeed(oKart), -0.7);
 		if ((fSelectedClass > 1) && (0.7*oKart.heightinc*oKart.heightinc < jumpHeight0))
@@ -12294,11 +12304,11 @@ function handleHeightInc(oKart) {
 function handleCannon(oKart, cannon) {
 	if (cannon && (cannon[0]||cannon[1])) {
 		oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
-		if (oKart.champi) {
+		if (oKart.mushroom) {
 			var cannonL = (cannon[0]*cannon[0] + cannon[1]*cannon[1]);
 			if (cannonL > 50000) {
-				oKart.champi = 0;
-				delete oKart.champiType;
+				oKart.mushroom = 0;
+				delete oKart.mushroomType;
 			}
 		}
 		if (!oKart.z)
@@ -12309,16 +12319,16 @@ function handleCannon(oKart, cannon) {
 	return false;
 }
 
-function ralenti(iX, iY) {
+function slowMotion(iX, iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	for (var type in lMap.horspistes) {
-		var hp = lMap.horspistes[type];
-		var oRectangles = hp.rectangle;
+		var offroad = lMap.horspistes[type];
+		var oRectangles = offroad.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			if (pointInRectangle(iX,iY, oRectangles[i]))
 				return type;
 		}
-		var oPolygons = hp.polygon;
+		var oPolygons = offroad.polygon;
 		for (var i=0;i<oPolygons.length;i++) {
 			if (pointInPolygon(iX,iY, oPolygons[i]))
 				return type;
@@ -12326,20 +12336,20 @@ function ralenti(iX, iY) {
 	}
 	return false;
 }
-function getOffroadProps(oKart,hpType) {
-	switch (hpType) {
-		case "herbe" :
+function getOffroadProps(oKart,offRoadType) {
+	switch (offRoadType) {
+		case "herbe" : /*grass*/
 			return {speed:1.9+oKart.speedinc/2};
-		case "glace" :
+		case "glace" : /*ice*/
 			return {speed:2.8+oKart.speedinc/2,sliding:8};
-		case "eau" :
+		case "eau" :   /*water*/
 			return {speed:2.7,sliding:5};
 		case "choco" :
 			return {speed:2.1,sliding:4};
 	}
 }
 
-function accelere(iX, iY, iI, iJ) {
+function accelerate(iX, iY, iI, iJ) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (!lMap.accelerateurs) return false;
 	var nX = iX+iI, nY = iY+iJ;
@@ -12389,7 +12399,7 @@ function flowShift(iX,iY) {
 	}
 	return [0,0,0];
 }
-function tombe(iX, iY, iC) {
+function isFalling(iX, iY, iC) {
 	var lMap = getCurrentLMap(collisionLap);
 	var outsideMap;
 	if (iX > lMap.w) {
@@ -12409,7 +12419,7 @@ function tombe(iX, iY, iC) {
 		outsideMap = true;
 	}
 
-	var fTrou;
+	var fHole;
 	if (lMap.trous) {
 		for (var j in lMap.trous) {
 			var oRectangles = lMap.trous[j].rectangle;
@@ -12418,9 +12428,9 @@ function tombe(iX, iY, iC) {
 				if (pointInRectangle(iX,iY, oHole[0])) {
 					if (iC == undefined) return true;
 					if (!oHole[1]) return true;
-					fTrou = [oHole[1][0],oHole[1][1],j];
+					fHole = [oHole[1][0],oHole[1][1],j];
 					if (j%2 - iC)
-						return fTrou;
+						return fHole;
 				}
 			}
 			var oPolygons = lMap.trous[j].polygon;
@@ -12429,15 +12439,15 @@ function tombe(iX, iY, iC) {
 				if (pointInPolygon(iX,iY, oHole[0])) {
 					if (iC == undefined) return true;
 					if (!oHole[1]) return true;
-					fTrou = [oHole[1][0],oHole[1][1],j];
+					fHole = [oHole[1][0],oHole[1][1],j];
 					if (j%2 - iC)
-						return fTrou;
+						return fHole;
 				}
 			}
 		}
 	}
-	if (fTrou)
-		return fTrou;
+	if (fHole)
+		return fHole;
 	if (outsideMap) {
 		if (lMap.trous && lMap.trous.cp) return true;
 		var rotation;
@@ -12447,7 +12457,7 @@ function tombe(iX, iY, iC) {
 			rotation = lMap.startrotation/90;
 		else
 			rotation = 2;
-		return (course=="BB") ? true:[lMap.startposition[0],lMap.startposition[1], rotation];
+		return (isBallonBattle()) ? true:[lMap.startposition[0],lMap.startposition[1], rotation];
 	}
 	return false;
 }
@@ -12536,7 +12546,7 @@ var challengeRules = {
 		"is_tt_compatible": true,
 		"reset_on_fail": true,
 		"success": function(scope) {
-			return (course != "CM") && (oPlayers[0].place == 1);
+			return (!isTimeTrial()) && (oPlayers[0].place == 1);
 		}
 	},
 	"finish_circuit_time": {
@@ -12681,7 +12691,7 @@ var challengeRules = {
 	"complete_laps": {
 		"verify": "end_lap",
 		"success": function(scope) {
-			if (oPlayers[0].tours > scope.value)
+			if (oPlayers[0].laps > scope.value)
 				return true;
 		}
 	},
@@ -12939,7 +12949,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
+					title: (isBallonBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -12962,7 +12972,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
+					title: (isBallonBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -12985,7 +12995,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
+					title: (isBallonBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -13013,7 +13023,7 @@ var challengeRules = {
 	},
 	"difficulty": {
 		"success": function(scope) {
-			return (iDificulty == 4+(2-scope.value)*0.5);
+			return (iDifficulty == 4+(2-scope.value)*0.5);
 		}
 	},
 	"no_teams": {
@@ -13037,7 +13047,7 @@ var challengeRules = {
 	},
 	"balloons": {
 		"success": function(scope) {
-			if (oPlayers[0].lost && clLocalVars.gagnant != oPlayers[0])
+			if (oPlayers[0].lost && clLocalVars.winner != oPlayers[0])
 				return false;
 			return (oPlayers[0].ballons.length+oPlayers[0].reserve >= scope.value);
 		}
@@ -13051,7 +13061,7 @@ var challengeRules = {
 			});
 		},
 		"success": function(scope) {
-			if (oPlayers[0].loose && clLocalVars.gagnant != oPlayers[0])
+			if (oPlayers[0].loose && clLocalVars.winner != oPlayers[0])
 				return false;
 			return (clLocalVars.lostBalloons <= scope.value);
 		}
@@ -13195,12 +13205,12 @@ var challengeRules = {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
 			if (scope.value) {
-				oPlayers[0].arme = scope.value;
-				oPlayers[0].roulette = 25;
+				oPlayers[0].weapon = scope.value;
+				oPlayers[0].wheel = 25;
 				updateObjHud(0);
 			}
 			else
-				supprArme(0);
+				delWeapon(0);
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
@@ -13401,7 +13411,7 @@ var challengeRules = {
 			if (scope.no_cpu) {
 				aKarts.length = strPlayer.length;
 				for (var i=0;i<strPlayer.length;i++)
-					document.getElementById("infoPlace"+i).style.display = "none";
+					document.getElementById("rankInfo"+i).style.display = "none";
 			}
 		},
 		"success": function(scope) {
@@ -13440,15 +13450,15 @@ var challengeRules = {
 						var oBoxes = lMap.arme[i][2].box;
 						for (var j=0;j<oBoxes.length;j++) {
 							var oBox = oBoxes[j];
-							oBox[0].suppr();
+							oBox[0].delete();
 						}
 					}
 					lMap.arme.length = 0;
 				}
 				for (var i=0;i<scope.value.length;i++) {
-					var oArme = scope.value[i].slice(0);
-					initItemSprite(oArme);
-					lMap.arme.push(oArme);
+					var oWeapon = scope.value[i].slice(0);
+					initItemSprite(oWeapon);
+					lMap.arme.push(oWeapon);
 				}
 			});
 		},
@@ -13965,7 +13975,7 @@ function showChallengePartialSuccess(challenge, res) {
 	var challengeCongrats = challenge.description.main;
 	var challengeAward = language ? 'Cups completed: '+ res.nb +'/'+ res.total:'Coupes réussies: '+ res.nb +'/'+ res.total;
 	var challengeClose = language ? 'Close':'Fermer';
-	oDiv.innerHTML = 
+	oDiv.innerHTML =
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
 			'<img src="images/cups/cup2.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
@@ -14027,7 +14037,7 @@ function showChallengePopup(challenge, res) {
 	}
 	var challengeAward2 = language ? 'Your challenge points go from <strong>'+res.pts_before+'</strong> to <strong>'+res.pts_after+'</strong>!':'Vos points défis passent de <strong>'+res.pts_before+'</strong> à <strong>'+res.pts_after+'</strong> !';
 	var challengeClose = language ? 'Close':'Fermer';
-	oDiv.innerHTML = 
+	oDiv.innerHTML =
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
 			'<img src="images/cups/cup1.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
@@ -14169,12 +14179,12 @@ function showChallengeRewardPopup(reward) {
 	var challengeTitle = language ? 'New character unlocked!':'Nouveau perso débloqué !';
 	var challengeCongrats = language ? 'You can now play with <strong>'+ reward.name +'</strong>!':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
 	var challengeImg = document.createElement("img");
-	challengeImg.src = getSpriteSrc(reward.sprites);
+	challengeImg.src = getSpriteImg(reward.sprites);
 	challengeImg.alt = reward.name;
 	challengeImg.className = "pixelated";
 	challengeImg.style.visibility = "hidden";
 	var challengeClose = language ? 'Close':'Fermer';
-	oDiv.innerHTML = 
+	oDiv.innerHTML =
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
 			'<img src="images/cups/cup1.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
@@ -14268,7 +14278,7 @@ function showClSelectedPopup() {
 	$popup.className = "clselected-popup";
 	$popup.style.left = (27*iScreenScale) +"px";
 	$popup.style.top = (iHeight*iScreenScale) +"px";
-	$popup.innerHTML = 
+	$popup.innerHTML =
 		'<div class="clselected-close">'+
 			'<a href="#null">&times;</a>'+
 		'</div>'+
@@ -14368,7 +14378,7 @@ function initSessionStorage() {
 				return false;
 			var updatingKeys = sessionStorage.getItem("updatingKeys");
 			if (!updatingKeys) {
-				sessionStorage.setItem("updatingKeys", "{}");	
+				sessionStorage.setItem("updatingKeys", "{}");
 				updatingKeys = {};
 			}
 			for (var key in resJson) {
@@ -14449,81 +14459,109 @@ function showGamePopup(options) {
 }
 
 var metaItemPosition = 0.5, metaItemRange = 1000;
+var itemToImageName = {
+	/* asset weren't renamed, so translate english to french here */
+	"banana": "banane",
+	"bananaX3": "bananeX3",
+	"bloopers": "bloops",
+	"blackshell": "carapacenoire",
+	"black-shell": "carapace-noire",
+	"blueshell": "carapacebleue",
+	"blue-shell": "carapace-bleue",
+	"bobomb": "bobomb",
+	"bulletbill": "billball",
+	"fakeItem":"fauxobjet",
+	"goldMushroom":"champior",
+	"lightning":"eclair",
+	"megamushroom":"megachampi",
+	"mushroom":"champi",
+	"mushroomX2":"champiX2",
+	"mushroomX3":"champiX3",
+	"poison":"poison",
+	"pow":"pow",
+	"redshell": "carapacerouge",
+	"red-shell": "carapace-rouge",
+	"redshellX3": "carapacerougeX3",
+	"shell":"carapace",
+	"shellX3":"carapaceX3",
+	"star":"etoile",
+	"wheel":"wheel",
+}
 var itemDistributions = {
 	"BB": [{
 		name: toLanguage("Standard", "Classique"),
 		value: [{
-			"fauxobjet": 4,
-			"banane": 5,
-			"carapacerouge": 1,
-			"carapace": 4
+			"fakeItem": 4,
+			"banana": 5,
+			"redshell": 1,
+			"shell": 4
 		}, {
-			"carapace": 4,
-			"carapacerouge": 7,
+			"shell": 4,
+			"redshell": 7,
 			"bobomb": 2,
-			"bananeX3": 1
+			"bananaX3": 1
 		}, {
-			"carapace": 1,
+			"shell": 1,
 			"bobomb": 2,
-			"carapace": 4,
-			"carapaceX3": 2,
-			"banane": 1,
-			"fauxobjet": 1,
-			"carapacerouge": 4
+			"shell": 4,
+			"shellX3": 2,
+			"banana": 1,
+			"fakeItem": 1,
+			"redshell": 4
 		}, {
-			"carapacerougeX3": 1,
-			"carapacerouge": 2,
-			"megachampi": 3,
-			"etoile": 3,
-			"champi": 3,
-			"champior": 1,
-			"champiX3": 1,
-			"bloops": 1
+			"redshellX3": 1,
+			"redshell": 2,
+			"megamushroom": 3,
+			"star": 3,
+			"mushroom": 3,
+			"goldMushroom": 1,
+			"mushroomX3": 1,
+			"bloopers": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
 		value: [{
-			"fauxobjet": 1,
-			"banane": 3,
-			"carapacerouge": 3,
-			"carapace": 5
+			"fakeItem": 1,
+			"banana": 3,
+			"redshell": 3,
+			"shell": 5
 		}, {
-			"bananeX3": 1,
-			"carapacerouge": 12,
-			"carapace": 6,
+			"bananaX3": 1,
+			"redshell": 12,
+			"shell": 6,
 			"bobomb": 4
 		}, {
-			"carapacerouge": 8,
-			"carapace": 5,
+			"redshell": 8,
+			"shell": 5,
 			"bobomb": 4,
-			"carapaceX3": 3
+			"shellX3": 3
 		}, {
-			"carapacerouge": 7,
-			"carapacebleue": 4,
-			"carapacerougeX3": 3,
-			"megachampi": 5,
-			"etoile": 5,
-			"champi": 1,
-			"champior": 1,
-			"champiX3": 1,
-			"bloops": 1
+			"redshell": 7,
+			"blueshell": 4,
+			"redshellX3": 3,
+			"megamushroom": 5,
+			"star": 5,
+			"mushroom": 1,
+			"goldMushroom": 1,
+			"mushroomX3": 1,
+			"bloopers": 1
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
 		value: [{
-			"carapacerouge": 1,
-			"carapace": 4,
+			"redshell": 1,
+			"shell": 4,
 		}, {
-			"carapacerouge": 7,
-			"carapace": 4
+			"redshell": 7,
+			"shell": 4
 		}, {
-			"carapacerouge": 4,
-			"carapace": 4,
-			"carapaceX3": 2
+			"redshell": 4,
+			"shell": 4,
+			"shellX3": 2
 		}, {
-			"carapacerouge": 6,
-			"carapacebleue": 1,
-			"carapacerougeX3": 3
+			"redshell": 6,
+			"blueshell": 1,
+			"redshellX3": 3
 		}]
 	}, {
 		name: toLanguage("Bob-ombs", "Bob-ombs"),
@@ -14539,220 +14577,220 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Mushrooms", "Champis"),
 		value: [{
-			"champi": 1,
+			"mushroom": 1,
 			"poison": 1
 		}, {
-			"megachampi": 1,
-			"champi": 3,
-			"champiX3": 1
+			"megamushroom": 1,
+			"mushroom": 3,
+			"mushroomX3": 1
 		}, {
-			"megachampi": 2,
-			"champi": 2,
-			"champior": 1,
-			"champiX3": 2
+			"megamushroom": 2,
+			"mushroom": 2,
+			"goldMushroom": 1,
+			"mushroomX3": 2
 		}, {
-			"megachampi": 1,
-			"champior": 1,
-			"champiX3": 1
+			"megamushroom": 1,
+			"goldMushroom": 1,
+			"mushroomX3": 1
 		}]
 	}],
 	"VS": [{
 		name: toLanguage("Standard", "Classique"),
 		value: [{
-			"fauxobjet": 10,
-			"banane": 6,
-			"carapace": 6,
-			"bananeX3": 2,
-			"carapacerouge": 2
+			"fakeItem": 10,
+			"banana": 6,
+			"shell": 6,
+			"bananaX3": 2,
+			"redshell": 2
 		}, {
-			"carapace": 8,
-			"bananeX3": 4,
-			"carapacerouge": 5,
-			"champi": 3
+			"shell": 8,
+			"bananaX3": 4,
+			"redshell": 5,
+			"mushroom": 3
 		}, {
-			"carapaceX3": 7,
-			"carapacerouge": 7,
+			"shellX3": 7,
+			"redshell": 7,
 			"poison": 5,
-			"champi": 5,
+			"mushroom": 5,
 			"bobomb": 3,
-			"bloops": 3
+			"bloopers": 3
 		}, {
-			"champi": 6,
+			"mushroom": 6,
 			"poison": 4,
-			"carapaceX3": 6,
-			"carapacerouge": 5,
+			"shellX3": 6,
+			"redshell": 5,
 			"bobomb": 3,
-			"bloops": 2
+			"bloopers": 2
 		}, {
-			"champi": 8,
-			"carapacerouge": 6,
+			"mushroom": 8,
+			"redshell": 6,
 			"bobomb": 3,
-			"champiX3": 2
+			"mushroomX3": 2
 		}, {
 			"bobomb": 4,
-			"champi": 5,
-			"carapacerouge": 4,
-			"champiX3": 3,
-			"carapacerougeX3": 3
+			"mushroom": 5,
+			"redshell": 4,
+			"mushroomX3": 3,
+			"redshellX3": 3
 		}, {
-			"champi": 8,
-			"carapacerougeX3": 7,
-			"champiX3": 6,
-			"megachampi": 3
+			"mushroom": 8,
+			"redshellX3": 7,
+			"mushroomX3": 6,
+			"megamushroom": 3
 		}, {
-			"champiX3": 8,
-			"carapacerougeX3": 8,
-			"megachampi": 6,
-			"etoile": 4,
-			"champior": 2,
-			"carapacebleue": 5
+			"mushroomX3": 8,
+			"redshellX3": 8,
+			"megamushroom": 6,
+			"star": 4,
+			"goldMushroom": 2,
+			"blueshell": 5
 		}, {
-			"megachampi": 7,
-			"champiX3": 6,
-			"etoile": 5,
-			"champior": 3,
-			"carapacebleue": 5
+			"megamushroom": 7,
+			"mushroomX3": 6,
+			"star": 5,
+			"goldMushroom": 3,
+			"blueshell": 5
 		}, {
-			"megachampi": 8,
-			"champiX3": 6,
-			"etoile": 6,
-			"billball": 3,
-			"champior": 3,
-			"carapacebleue": 5
+			"megamushroom": 8,
+			"mushroomX3": 6,
+			"star": 6,
+			"bulletbill": 3,
+			"goldMushroom": 3,
+			"blueshell": 5
 		}, {
-			"etoile": 6,
-			"megachampi": 6,
-			"billball": 5,
-			"champior": 4,
-			"eclair": 5
+			"star": 6,
+			"megamushroom": 6,
+			"bulletbill": 5,
+			"goldMushroom": 4,
+			"lightning": 5
 		}, {
-			"billball": 4,
-			"etoile": 3,
-			"eclair": 6,
-			"champior": 5,
+			"bulletbill": 4,
+			"star": 3,
+			"lightning": 6,
+			"goldMushroom": 5,
 		}]
 	}, {
 		name: toLanguage("Aggressive mode", "Mode explosif"),
 		"value": [{
-			"fauxobjet": 5,
-			"banane": 2,
-			"carapace": 10,
-			"bananeX3": 1,
-			"carapacerouge": 3
+			"fakeItem": 5,
+			"banana": 2,
+			"shell": 10,
+			"bananaX3": 1,
+			"redshell": 3
 		}, {
-			"carapace": 10,
-			"bananeX3": 4,
-			"carapacerouge": 15,
-			"carapaceX3": 4,
-			"champi": 1
+			"shell": 10,
+			"bananaX3": 4,
+			"redshell": 15,
+			"shellX3": 4,
+			"mushroom": 1
 		}, {
-			"carapacerouge": 10,
-			"carapaceX3": 10,
-			"champi": 2,
+			"redshell": 10,
+			"shellX3": 10,
+			"mushroom": 2,
 			"poison": 5,
 			"bobomb": 10,
-			"bloops": 3
+			"bloopers": 3
 		}, {
-			"carapacerouge": 10,
-			"carapaceX3": 12,
-			"champi": 3,
+			"redshell": 10,
+			"shellX3": 12,
+			"mushroom": 3,
 			"poison": 4,
 			"bobomb": 8,
-			"bloops": 2
+			"bloopers": 2
 		}, {
-			"carapacerouge": 12,
-			"champi": 4,
+			"redshell": 12,
+			"mushroom": 4,
 			"bobomb": 8
 		}, {
-			"carapacerouge": 8,
-			"champi": 5,
+			"redshell": 8,
+			"mushroom": 5,
 			"bobomb": 6,
-			"champiX3": 1,
-			"carapacerougeX3": 6
+			"mushroomX3": 1,
+			"redshellX3": 6
 		}, {
-			"champi": 4,
-			"champiX3": 3,
-			"carapacerougeX3": 10,
-			"megachampi": 3
+			"mushroom": 4,
+			"mushroomX3": 3,
+			"redshellX3": 10,
+			"megamushroom": 3
 		}, {
-			"champiX3": 4,
-			"carapacerougeX3": 10,
-			"megachampi": 6,
-			"etoile": 4,
-			"carapacebleue": 12
+			"mushroomX3": 4,
+			"redshellX3": 10,
+			"megamushroom": 6,
+			"star": 4,
+			"blueshell": 12
 		}, {
-			"champiX3": 3,
-			"megachampi": 7,
-			"etoile": 5,
-			"champior": 1,
-			"carapacebleue": 10
+			"mushroomX3": 3,
+			"megamushroom": 7,
+			"star": 5,
+			"goldMushroom": 1,
+			"blueshell": 10
 		}, {
-			"champiX3": 3,
-			"megachampi": 8,
-			"etoile": 6,
-			"champior": 1,
-			"carapacebleue": 10,
-			"billball": 5
+			"mushroomX3": 3,
+			"megamushroom": 8,
+			"star": 6,
+			"goldMushroom": 1,
+			"blueshell": 10,
+			"bulletbill": 5
 		}, {
-			"megachampi": 6,
-			"etoile": 6,
-			"champior": 1,
-			"billball": 5,
-			"eclair": 8
+			"megamushroom": 6,
+			"star": 6,
+			"goldMushroom": 1,
+			"bulletbill": 5,
+			"lightning": 8
 		}, {
-			"etoile": 3,
-			"champior": 2,
-			"billball": 6,
-			"eclair": 8
+			"star": 3,
+			"goldMushroom": 2,
+			"bulletbill": 6,
+			"lightning": 8
 		}]
 	}, {
 		name:  toLanguage("Shells", "Carapaces"),
 		value: [{
-			"carapace": 6
+			"shell": 6
 		}, {
-			"carapace": 8,
-			"carapacerouge": 8
+			"shell": 8,
+			"redshell": 8
 		}, {
-			"carapace": 6,
-			"carapacerouge": 5
+			"shell": 6,
+			"redshell": 5
 		}, {
-			"carapace": 6,
-			"carapacerouge": 7
+			"shell": 6,
+			"redshell": 7
 		}, {
-			"carapace": 4,
-			"carapacerouge": 5
+			"shell": 4,
+			"redshell": 5
 		}, {
-			"carapace": 4,
-			"carapacerouge": 6,
-			"carapaceX3": 2,
-			"carapacerougeX3": 2
+			"shell": 4,
+			"redshell": 6,
+			"shellX3": 2,
+			"redshellX3": 2
 		}, {
-			"carapace": 2,
-			"carapacerouge": 4,
-			"carapaceX3": 2,
-			"carapacerougeX3": 2,
-			"carapacebleue": 4
+			"shell": 2,
+			"redshell": 4,
+			"shellX3": 2,
+			"redshellX3": 2,
+			"blueshell": 4
 		}, {
-			"carapace": 2,
-			"carapacerouge": 2,
-			"carapaceX3": 4,
-			"carapacerougeX3": 4,
-			"carapacebleue": 6
+			"shell": 2,
+			"redshell": 2,
+			"shellX3": 4,
+			"redshellX3": 4,
+			"blueshell": 6
 		}, {
-			"carapacerouge": 2,
-			"carapaceX3": 4,
-			"carapacerougeX3": 4,
-			"carapacebleue": 6
+			"redshell": 2,
+			"shellX3": 4,
+			"redshellX3": 4,
+			"blueshell": 6
 		}, {
-			"carapaceX3": 6,
-			"carapacerougeX3": 6,
-			"carapacebleue": 4
+			"shellX3": 6,
+			"redshellX3": 6,
+			"blueshell": 4
 		}, {
-			"carapaceX3": 6,
-			"carapacerougeX3": 6
+			"shellX3": 6,
+			"redshellX3": 6
 		}, {
-			"carapaceX3": 8,
-			"carapacerougeX3": 8
+			"shellX3": 8,
+			"redshellX3": 8
 		}]
 	}, {
 		name: toLanguage("Bob-ombs", "Bob-ombs"),
@@ -14784,47 +14822,47 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Mushrooms", "Champis"),
 		value: [{
-			"champi": 1
+			"mushroom": 1
 		}, {
-			"champi": 1,
+			"mushroom": 1,
 			"poison": 1
 		}, {
-			"champi": 4,
+			"mushroom": 4,
 			"poison": 1,
-			"megachampi": 1
+			"megamushroom": 1
 		}, {
-			"champi": 3,
+			"mushroom": 3,
 			"poison": 1,
-			"megachampi": 1
+			"megamushroom": 1
 		}, {
-			"champi": 3,
+			"mushroom": 3,
 			"poison": 1,
-			"champiX3": 1,
-			"megachampi": 2
+			"mushroomX3": 1,
+			"megamushroom": 2
 		}, {
-			"champi": 2,
-			"champiX3": 1,
-			"megachampi": 2
+			"mushroom": 2,
+			"mushroomX3": 1,
+			"megamushroom": 2
 		}, {
-			"champi": 1,
-			"champiX3": 2,
-			"megachampi": 3
+			"mushroom": 1,
+			"mushroomX3": 2,
+			"megamushroom": 3
 		}, {
-			"champiX3": 2,
-			"megachampi": 2,
-			"champior": 1
+			"mushroomX3": 2,
+			"megamushroom": 2,
+			"goldMushroom": 1
 		}, {
-			"champiX3": 1,
-			"megachampi": 1,
-			"champior": 1
+			"mushroomX3": 1,
+			"megamushroom": 1,
+			"goldMushroom": 1
 		}, {
-			"champiX3": 1,
-			"champior": 1
+			"mushroomX3": 1,
+			"goldMushroom": 1
 		}, {
-			"champiX3": 1,
-			"champior": 2
+			"mushroomX3": 1,
+			"goldMushroom": 2
 		}, {
-			"champior": 1
+			"goldMushroom": 1
 		}]
 	}, {
 		name: toLanguage("None", "Aucun"),
@@ -14849,7 +14887,7 @@ if (customPtDistrib)
 else
 	customPtDistrib = [];
 function getItemMode() {
-	return (course=="BB") ? "BB":"VS";
+	return (isBallonBattle()) ? "BB":"VS";
 }
 
 function getPointDistribution() {
@@ -14885,24 +14923,24 @@ function isHitSound(oBox) {
 }
 function handleHit(oBox) {
 	if (!clLocalVars.currentKart) return;
-	if (clLocalVars.currentKart.tourne || clLocalVars.currentKart.protect) return;
+	if (clLocalVars.currentKart.rankInfo || clLocalVars.currentKart.protect) return;
 	if (clLocalVars.currentKart.frminv && itemBehaviors[oBox.type] && itemBehaviors[oBox.type].frminv) return;
 	if (clLocalVars.hitItems && (clLocalVars.currentKart == oPlayers[0]))
 		incItemHits(oBox.type);
 	if (clLocalVars.myItems && clLocalVars.currentKart && (clLocalVars.currentKart != oPlayers[0]) && (clLocalVars.myItems.indexOf(oBox) != -1))
 		incChallengeHits(clLocalVars.currentKart);
 }
-function handleHit2(oKart,kart) {
+function handleOtherKartHit(oKart,kart) {
 	if (kart == oPlayers[0]) {
 		if (clLocalVars.hitItems) {
-			if (oKart.billball)
-				incItemHits("billball");
-			if (oKart.etoile)
-				incItemHits("etoile");
-			if (oKart.megachampi)
-				incItemHits("megachampi");
-			if (oKart.champiType === CHAMPI_TYPE_ITEM)
-				incItemHits("champi");
+			if (oKart.bulletbill)
+				incItemHits("bulletbill");
+			if (oKart.star)
+				incItemHits("star");
+			if (oKart.megamushroom)
+				incItemHits("megamushroom");
+			if (oKart.mushroomType === MUSHROOM_TYPE_ITEM)
+				incItemHits("mushroom");
 		}
 	}
 	else if (oKart == oPlayers[0])
@@ -14915,11 +14953,11 @@ function handleItemHit(oKart, itemKey) {
 function incItemHits(type) {
 	var itemKey;
 	switch (type) {
-	case "carapace-rouge":
-		itemKey = "carapacerouge";
+	case "red-shell":
+		itemKey = "redshell";
 		break;
-	case "carapace-bleue":
-		itemKey = "carapacebleue";
+	case "blue-shell":
+		itemKey = "blueshell";
 		break;
 	default:
 		itemKey = type;
@@ -14929,7 +14967,7 @@ function incItemHits(type) {
 function incChallengeHits(kart) {
 	clLocalVars.nbHits++;
 	updateChallengeHud("hits", clLocalVars.nbHits);
-	if ((course == "BB") && (kart.ballons.length == 1)) {
+	if ((isBallonBattle()) && (kart.ballons.length == 1)) {
 		if (clLocalVars.killed && clLocalVars.killed.indexOf(kart) == -1) {
 			clLocalVars.killed.push(kart);
 			clLocalVars.nbKills++;
@@ -14940,7 +14978,7 @@ function incChallengeHits(kart) {
 }
 function handleDecorHit(i,type, lMap) {
 	collisionDecorHit = true;
-	lMap.decor[type][i][2][0].suppr();
+	lMap.decor[type][i][2][0].delete();
 	lMap.decor[type].splice(i,1);
 
 	//if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
@@ -14951,22 +14989,37 @@ function handleDecorHit(i,type, lMap) {
 		challengeCheck("each_decor_hit");
 	}
 }
-function touche_banane(iX, iY, iP) {
+function hit_coin(iX, iY, iI, iJ) {
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.coins) return false;
+
+    for (var i=0;i<lMap.coins.length;i++) {
+        var oBox = lMap.coins[i];
+        var coinRect = [oBox.x - 5, oBox.y - 5, 10, 10];
+        if (pointCrossRectangle(iX, iY, iI, iJ, coinRect) || pointInRectangle(iX, iY, coinRect)) {
+            oBox.sprite[0].delete();
+            lMap.coins.splice(i,1);
+            return true;
+        }
+	}
+	return false;
+}
+function hit_banana(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["banane"].length;i++) {
-		var oBox = items["banane"][i];
+	for (var i=0;i<items["banana"].length;i++) {
+		var oBox = items["banana"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
+				destroy(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
 	}
 	return false;
 }
-function touche_poison(iX, iY, iP) {
+function hit_poison(iX, iY, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["poison"].length;i++) {
 		var oBox = items["poison"][i];
@@ -14974,46 +15027,46 @@ function touche_poison(iX, iY, iP) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
+				destroy(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
 	}
 	return false;
 }
-function touche_champi(iX, iY) {
-	for (var i=0;i<items["champi"].length;i++) {
-		var oBox = items["champi"][i];
+function hit_mushroom(iX, iY) {
+	for (var i=0;i<items["mushroom"].length;i++) {
+		var oBox = items["mushroom"][i];
 		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 			if (itemInteractionsDisabled(oBox)) continue;
-			detruit(oBox);
+			destroy(oBox);
 			return true;
 		}
 	}
 	return false;
 }
 
-function touche_etoile(iX, iY) {
-	for (var i=0;i<items["etoile"].length;i++) {
-		var oBox = items["etoile"][i];
+function hit_star(iX, iY) {
+	for (var i=0;i<items["star"].length;i++) {
+		var oBox = items["star"][i];
 		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
 			if (itemInteractionsDisabled(oBox)) continue;
-			detruit(oBox);
+			destroy(oBox);
 			return true;
 		}
 	}
 	return false;
 }
 
-function touche_fauxobjet(iX, iY, iP) {
+function hit_fakeItem(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["fauxobjet"].length;i++) {
-		var oBox = items["fauxobjet"][i];
+	for (var i=0;i<items["fakeItem"].length;i++) {
+		var oBox = items["fakeItem"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
+				destroy(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
@@ -15021,39 +15074,39 @@ function touche_fauxobjet(iX, iY, iP) {
 	return false;
 }
 
-function touche_cverte(iX, iY, iP) {
+function hit_greenShell(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["carapace"].length;i++) {
-		var oBox = items["carapace"][i];
+	for (var i=0;i<items["shell"].length;i++) {
+		var oBox = items["shell"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (touche_cverte_aux(iX,iY, oBox))
+			if (hit_greenShell_aux(iX,iY, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_cverte_aux(iX,iY, oBox) {
+function hit_greenShell_aux(iX,iY, oBox) {
 	if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
 		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
-		detruit(oBox,isHitSound(oBox));
+		destroy(oBox,isHitSound(oBox));
 		return true;
 	}
 	return false;
 }
 
-function touche_cverte_future(iX, iY, iP) {
+function hit_greenShell_future(iX, iY, iP) {
 	if (!iP) iP = [];
 	var relSpeed = cappedRelSpeed()/2;
-	for (var i=0;i<items["carapace"].length;i++) {
-		var oBox = items["carapace"][i];
+	for (var i=0;i<items["shell"].length;i++) {
+		var oBox = items["shell"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			var fMoveX = oBox.vx*relSpeed, fMoveY = oBox.vy*relSpeed;
 			var fNewPosX = oBox.x + fMoveX, fNewPosY = oBox.y + fMoveY;
 			if (iX > fNewPosX-5 && iX < fNewPosX+5 && iY > fNewPosY-5 && iY < fNewPosY+5) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
+				destroy(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
@@ -15061,36 +15114,36 @@ function touche_cverte_future(iX, iY, iP) {
 	return false;
 }
 
-function touche_crouge(iX, iY, iP) {
+function hit_redShell(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["carapace-rouge"].length;i++) {
-		var oBox = items["carapace-rouge"][i];
+	for (var i=0;i<items["red-shell"].length;i++) {
+		var oBox = items["red-shell"][i];
 		if ((iP.indexOf(oBox) == -1)) {
-			if (touche_crouge_aux(iX,iY, oBox))
+			if (hit_redShell_aux(iX,iY, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_crouge_aux(iX,iY, oBox) {
+function hit_redShell_aux(iX,iY, oBox) {
 	if (!oBox.z) {
 		var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
 		if (isHitbox ? (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) : (iX == oBox.x && iY == oBox.y)) {
 			if (itemInteractionsDisabled(oBox)) return false;
 			handleHit(oBox);
-			detruit(oBox,isHitSound(oBox));
+			destroy(oBox,isHitSound(oBox));
 			return true;
 		}
 	}
 	return false;
 }
-function touche_bobomb(iX, iY, iP, opts) {
+function hit_bobomb(iX, iY, iP, opts) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["bobomb"].length;i++) {
 		var oBox = items["bobomb"][i];
 		if (!oBox.z && (iP.indexOf(oBox) == -1)) {
 			if (oBox.theta != -1) {
-				if (touche_bobomb_aux(iX,iY, oBox, opts)) {
+				if (hit_bobomb_aux(iX,iY, oBox, opts)) {
 					if (oBox.cooldown <= 0) {
 						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 						if (res) handleHit(oBox);
@@ -15121,7 +15174,7 @@ function touche_bobomb(iX, iY, iP, opts) {
 	}
 	return false;
 }
-function touche_bobomb_aux(iX,iY, oBox, opts) {
+function hit_bobomb_aux(iX,iY, oBox, opts) {
 	var hitboxW = 18;
 	if (oBox.cooldown >= 38)
 		hitboxW = 0;
@@ -15136,18 +15189,18 @@ function touche_bobomb_aux(iX,iY, oBox, opts) {
 	return false;
 }
 
-function touche_cbleue(iX, iY) {
-	for (var i=0;i<items["carapace-bleue"].length;i++) {
-		var oBox = items["carapace-bleue"][i];
-		if (touche_cbleue_aux(iX,iY, oBox)) {
+function hit_blueShell(iX, iY) {
+	for (var i=0;i<items["blue-shell"].length;i++) {
+		var oBox = items["blue-shell"][i];
+		if (hit_blueShell_aux(iX,iY, oBox)) {
 			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 			if (res) handleHit(oBox);
 			return res;
 		}
 	}
-	for (var i=0;i<items["carapace-noire"].length;i++) {
-		var oBox = items["carapace-noire"][i];
-		if (touche_cbleue_aux(iX,iY, oBox)) {
+	for (var i=0;i<items["black-shell"].length;i++) {
+		var oBox = items["black-shell"][i];
+		if (hit_blueShell_aux(iX,iY, oBox)) {
 			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 			if (res) handleHit(oBox);
 			return res;
@@ -15155,7 +15208,7 @@ function touche_cbleue(iX, iY) {
 	}
 	return false;
 }
-function touche_cbleue_aux(iX,iY, oBox) {
+function hit_blueShell_aux(iX,iY, oBox) {
 	if (oBox.cooldown <= 0 && oBox.cooldown >= -10) {
 		var hitboxW = 24;
 		if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY) < (hitboxW*hitboxW))) {
@@ -15170,12 +15223,12 @@ function powCpuDodge(oKart) {
 	let dodgeZ = oKart.z;
 
 	if (!oKart.jumped) {
-		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
+		let n = Math.pow(2, -(iDifficulty - 4)) * 0.5;
 		if (Math.random() < n) {
 			return;
 		}
 		else {
-			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
+			dodgeZ = 1 - n + Math.random() * (iDifficulty / 12);
 			if (dodgeZ < 0) dodgeZ = 0.1;
 			else if (dodgeZ > 1) dodgeZ = 1;
 		}
@@ -15194,8 +15247,8 @@ function powEffect(i, oKart, fSprite) {
 	loseUsingItems(oKart);
 	dropCurrentItem(oKart);
 	oKart.spin(spinPower);
-	oKart.champi = 0;
-	delete oKart.champiType;
+	oKart.mushroom = 0;
+	delete oKart.mushroomType;
 	stopDrifting(i);
 
 	if (fullHit) {
@@ -15204,7 +15257,7 @@ function powEffect(i, oKart, fSprite) {
 		oKart.jumped = true;
 		handleItemHit(oKart, "pow");
 
-		if (course === "BB") {
+		if (isBallonBattle()) {
 			if (clLocalVars.myItems && (clLocalVars.myItems.indexOf(fSprite) != -1))
 				incChallengeHits(oKart);
 			popBalloon(oKart);
@@ -15214,15 +15267,15 @@ function powEffect(i, oKart, fSprite) {
 
 function playPow(i, oKart, oKartOwner, fSprite) {
 	if (fSprite.countstate === 5 && fSprite.countdown === 10)
-		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
+		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.rankInfo && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
-	
+
 	if (fSprite.countstate === 6 && fSprite.countdown === 1)
 		if (oKart != oKartOwner && !oKart.protect && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant))
 			powEffect(i, oKart, fSprite);
 }
 
-function touche_asset(aPosX,aPosY, iX,iY) {
+function hit_asset(aPosX,aPosY, iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	var turningAssets = ["pointers", "flippers"];
 	for (var i=0;i<turningAssets.length;i++) {
@@ -15356,10 +15409,10 @@ function stuntKart(oKart) {
 }
 
 function getRankScore(oKart) {
-	if (course != "BB") {
+	if (!isBallonBattle()) {
 		var lapId = getCurrentLapId(oKart);
 		var lMap = getCurrentLMap(lapId);
-		var dest = oKart.demitours+1;
+		var dest = oKart.checkpoints+1;
 		if (dest >= lMap.checkpoint.length) dest = 0;
 
 		var iLine = lMap.checkpointCoords[dest];
@@ -15369,7 +15422,7 @@ function getRankScore(oKart) {
 		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
 		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
 
-		return oKart.tours*oMap.maxCheckpoints + getCpScore(oKart) - dLine / 10000;
+		return oKart.laps*oMap.maxCheckpoints + getCpScore(oKart) - dLine / 10000;
 	}
 	else
 		return oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
@@ -15381,18 +15434,18 @@ function getRankScores() {
 }
 function places(j,aRankScores,force) {
 	var oKart = aKarts[j];
-	var retour = !force;
+	var back = !force;
 	for (var i=0;i<strPlayer.length;i++) {
 		var oPlayer = getPlayerAtScreen(i);
-		if (!(oPlayer.tours > oMap.tours) && !oPlayer.loose)
-			retour = false;
+		if (!(oPlayer.laps > oMap.tours) && !oPlayer.loose)
+			back = false;
 		else if (onlineSpectatorId && !finishing)
-			document.getElementById("infoPlace"+i).style.visibility = "hidden";
+			document.getElementById("rankInfo"+i).style.visibility = "hidden";
 	}
-	if (retour) return;
+	if (back) return;
 	var place = 1;
-	if (course != "BB") {
-		if (oKart.tours > oMap.tours || !oMap.minCheckpoints)
+	if (!isBallonBattle()) {
+		if (oKart.laps > oMap.tours || !oMap.minCheckpoints)
 			return;
 	}
 	var score1 = aRankScores[j];
@@ -15406,21 +15459,21 @@ function places(j,aRankScores,force) {
 	if (finishing) return;
 	var sID = getScreenPlayerIndex(j);
 	if (sID < oPlayers.length)
-		document.getElementById("infoPlace"+sID).innerHTML = place;
+		document.getElementById("rankInfo"+sID).innerHTML = place;
 }
 
 function getLastCp(kart) {
 	if (oMap.sections) {
-		if ((kart.tours > 1) && (kart.tours <= oMap.tours))
-			return oMap.sections[kart.tours-2];
+		if ((kart.laps > 1) && (kart.laps <= oMap.tours))
+			return oMap.sections[kart.laps-2];
 		return oMap.checkpoint.length-1;
 	}
 	return 0;
 }
 function getNextCp(kart) {
 	if (oMap.sections) {
-		if (kart.tours <= oMap.sections.length)
-			return oMap.sections[kart.tours-1];
+		if (kart.laps <= oMap.sections.length)
+			return oMap.sections[kart.laps-1];
 		return oMap.checkpoint.length-1;
 	}
 	return 0;
@@ -15435,7 +15488,7 @@ function getCpDiff(kart) {
 	return res;
 }
 function getCpScore(kart) {
-	var lastCp = getLastCp(kart), currentCp = kart.demitours;
+	var lastCp = getLastCp(kart), currentCp = kart.checkpoints;
 	var res = currentCp-lastCp;
 	if (res < 0)
 		res += oMap.checkpoint.length;
@@ -15464,26 +15517,26 @@ function distanceToSecond(kart) {
 	if (!oKart) return 0;
 	return distanceToKart(oKart,kart);
 }
-function distanceToKart(kart,oKart) {
+function distanceToKart(kart,otherKart) {
 	var res = 0;
 	var posX = kart.x, posY = kart.y;
-	var tours = kart.tours;
-	var checkpoint = kart.demitours;
-	var tours2 = oKart.tours;
-	var checkpoint2 = oKart.demitours;
+	var laps = kart.laps;
+	var checkpoint = kart.checkpoints;
+	var lapsOtherKart = otherKart.laps;
+	var checkpointOtherKart = otherKart.checkpoints;
 	if (oMap.sections) {
-		tours = tours2;
+		laps = lapsOtherKart;
 		if (checkpoint >= oMap.checkpoint.length - 1)
 			checkpoint = -1;
-		if (checkpoint2 >= oMap.checkpoint.length - 1)
-			checkpoint2 = -1;
+		if (checkpointOtherKart >= oMap.checkpoint.length - 1)
+			checkpointOtherKart = -1;
 	}
-	while ((tours < tours2) || ((tours == tours2) && (checkpoint < checkpoint2))) {
-		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours, demitours: checkpoint }));
+	while ((laps < lapsOtherKart) || ((laps == lapsOtherKart) && (checkpoint < checkpointOtherKart))) {
+		var lMap = getCurrentLMap(getCurrentLapId({ laps: laps, checkpoints: checkpoint }));
 		checkpoint++;
 		if (checkpoint >= lMap.checkpoint.length) {
 			checkpoint = 0;
-			tours++;
+			laps++;
 		}
 		var oBox = lMap.checkpointCoords[checkpoint];
 		var nPosX = oBox.O[0], nPosY = oBox.O[1];
@@ -15492,13 +15545,13 @@ function distanceToKart(kart,oKart) {
 		posX = nPosX;
 		posY = nPosY;
 	}
-	res += Math.hypot(oKart.x-posX, oKart.y-posY);
+	res += Math.hypot(otherKart.x-posX, otherKart.y-posY);
 	return res;
 }
 function checkpoint(kart, fMoveX,fMoveY) {
 	var aPos = [kart.x-fMoveX,kart.y-fMoveY];
 	var fast = (fMoveX*fMoveX + fMoveY*fMoveY > 200);
-	var demitour = kart.demitours;
+	var checkpoint = kart.checkpoints;
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
@@ -15506,16 +15559,16 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	for (var i=0;i<lMap.checkpointCoords.length;i++) {
 		if (inCheckpoint(lMap.checkpointCoords[i], kart, { aPos, fast })) {
 			if (simplified) {
-				if (i==0 && (lMap.checkpoint.length-demitour) < 5)
+				if (i==0 && (lMap.checkpoint.length-checkpoint) < 5)
 					return true;
-				else if (demitour == i-1 || (demitour && Math.abs(demitour-i) < 5)) {
-					kart.demitours = i;
+				else if (checkpoint == i-1 || (checkpoint && Math.abs(checkpoint-i) < 5)) {
+					kart.checkpoints = i;
 					return false;
 				}
 			}
 			else {
 				var isNextCp = true;
-				for (var j=demitour+1;true;j++) {
+				for (var j=checkpoint+1;true;j++) {
 					if (j >= lMap.checkpoint.length)
 						j -= lMap.checkpoint.length;
 					if (j == i) break;
@@ -15527,7 +15580,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 				if (isNextCp) {
 					if (i == iCP)
 						return true;
-					kart.demitours = i;
+					kart.checkpoints = i;
 					return false;
 				}
 			}
@@ -15611,7 +15664,7 @@ function getCpRespawn(lastCp, lMap) {
 					if (inter) {
 						var x = x0 + inter[0]*(x1-x0), y = y0 + inter[0]*(y1-y0);
 						var theta = Math.atan2(aipoint2[0]-aipoint1[0], aipoint2[1]-aipoint1[1]);
-						if (!isNaN(theta) && !tombe(x,y))
+						if (!isNaN(theta) && !isFalling(x,y))
 							return [x,y,theta*2/Math.PI];
 					}
 				}
@@ -15672,10 +15725,10 @@ function itemDataLength(type) {
 
 function resetDatas() {
 	var oPlayer = oPlayers[0];
-	var playerMapping = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
-	var playerMappingExtra = (course != "BB") ? ["finaltime"]:[];
+	var playerMapping = !isBallonBattle()
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","laps","checkpoints","mushroom","star","megamushroom","bulletbill","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","ballons","reserve","mushroom","star","megamushroom"];
+	var playerMappingExtra = (!isBallonBattle()) ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
 		player: [],
@@ -15712,12 +15765,12 @@ function resetDatas() {
 				var param = params[i];
 				var value;
 				switch (param) {
-				case "demitours":
-					if (course != "BB")
+				case "checkpoints":
+					if (!isBallonBattle())
 						value = getCpScore(oKart);
 					break;
 				case "ballons":
-					if (course == "BB")
+					if (isBallonBattle())
 						value = oKart.ballons.length;
 					break;
 				default:
@@ -15772,7 +15825,7 @@ function resetDatas() {
 		}
 	}
 	syncItems.length = 0;
-	if (course == "BB")
+	if (isBallonBattle())
 		payload.battle = 1;
 	else {
 		if (oMap.tours != 3)
@@ -15811,18 +15864,18 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve;
-						var nDemitours;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.star, aBillBall = oKart.bulletbill, aFall = oKart.fall, aDriftCpt = oKart.driftcpt, aChampi = oKart.mushroom, aItem = oKart.weapon, aLaps = oKart.laps, aCheckpoints = oKart.checkpoints, aReserve = oKart.reserve;
+						var nCheckpoint;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
 							switch (param) {
-							case "demitours":
-								nDemitours = value;
+							case "checkpoints":
+								nCheckpoint = value;
 								break;
 							case "ballons":
-								if (course == "BB") {
+								if (isBallonBattle()) {
 									while (oKart.ballons.length < value) {
 										if (!oKart.ballons.length) {
 											oKart.sprite[0].div.style.opacity = 1;
@@ -15842,30 +15895,30 @@ function resetDatas() {
 								oKart[params[k]] = value;
 							}
 						}
-						if (nDemitours >= 0) {
+						if (nCheckpoint >= 0) {
 							var lMap = getCurrentLMap(getCurrentLapId(oKart));
-							oKart.demitours = (getLastCp(oKart)+nDemitours)%lMap.checkpoint.length;
+							oKart.checkpoints = (getLastCp(oKart)+nCheckpoint)%lMap.checkpoint.length;
 						}
-						if ((oKart.billball >= 25) && !aBillBall) {
+						if ((oKart.bulletbill >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
 							resetSpriteHeight(oKart.sprite[0]);
 							oKart.aipoint = undefined;
 						}
-						else if ((oKart.etoile >= 50) && !aEtoile)
+						else if ((oKart.star >= 50) && !aEtoile)
 							oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
-						else if ((aEtoile && !oKart.etoile) || (aBillBall && !oKart.billball)) {
-							oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
+						else if ((aEtoile && !oKart.star) || (aBillBall && !oKart.bulletbill)) {
+							oKart.sprite[0].img.src = getSpriteImg(oKart.personnage);
 							resumeSpriteSize(oKart.sprite[0]);
 						}
-						if (aItem && aItem.startsWith("champi") && ((aItem !== oKart.arme) || (aItem === "champior")) && oKart.champi > aChampi)
-							oKart.champiType = CHAMPI_TYPE_ITEM;
-						else if (!oKart.champi)
-							delete oKart.champiType;
-						if ((aTours !== oKart.tours) || (aDemitours !== oKart.demitours)) {
+						if (aItem && aItem.startsWith("mushroom") && ((aItem !== oKart.weapon) || (aItem === "goldMushroom")) && oKart.mushroom > aChampi)
+							oKart.mushroomType = MUSHROOM_TYPE_ITEM;
+						else if (!oKart.mushroom)
+							delete oKart.mushroomType;
+						if ((aLaps !== oKart.laps) || (aCheckpoints !== oKart.checkpoints)) {
 							var sID = getScreenPlayerIndex(j);
 							if (sID < oPlayers.length)
 								updateLapHud(sID);
-							handleCpChange(aTours,aDemitours, j);
+							handleCpChange(aLaps,aCheckpoints, j);
 						}
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
@@ -15875,9 +15928,9 @@ function resetDatas() {
 								updateBalloonHud(document.getElementById("compteur0"),oKart);
 						}
 						updateProtectFlag(oKart);
-						if (aTombe && !oKart.tombe) {
+						if (aFall && !oKart.fall) {
 							oKart.sprite[0].img.style.display = "block";
-							if (course == "BB") {
+							if (isBallonBattle()) {
 								for (var k=0;k<oKart.ballons.length;k++)
 									oKart.ballons[k][0].img.style.display = "block";
 							}
@@ -15887,11 +15940,11 @@ function resetDatas() {
 								resetRenderState();
 							}
 						}
-						if (!aTombe && oKart.tombe) {
+						if (!aFall && oKart.fall) {
 							oKart.sprite[0].img.style.display = "none";
 							oKart.frminv = 10;
-							if (oKart.tombe > 2) {
-								if (course == "BB") {
+							if (oKart.fall > 2) {
+								if (isBallonBattle()) {
 									for (var k=0;k<oKart.ballons.length;k++)
 										oKart.ballons[k][0].img.style.display = "none";
 								}
@@ -15916,11 +15969,11 @@ function resetDatas() {
 							if ((aDriftCpt < fTurboDriftCpt2) && (oKart.driftcpt >= fTurboDriftCpt2))
 								oKart.driftSprite[0].setState(2);
 						}
-						if (!oKart.turnSound && oKart.tourne) {
-							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+						if (!oKart.turnSound && oKart.rankInfo) {
+							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(isBallonBattle())?80:50);
 							if (!oKart.frminv) oKart.frminv = 10;
 						}
-						if (oKart.turnSound && !oKart.tourne)
+						if (oKart.turnSound && !oKart.rankInfo)
 							oKart.turnSound = undefined;
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
@@ -15953,7 +16006,7 @@ function resetDatas() {
 					return (item.id == uId);
 				});
 				if (uItem && !uData) {
-					supprime(uItem, false);
+					deleteItem(uItem, false);
 					updatedItem[2] = 0;
 				}
 			}
@@ -16026,7 +16079,7 @@ function resetDatas() {
 								var l = localKarts[j];
 								var lKart = aKarts[l];
 								collisionLap = getCurrentLapId(lKart);
-								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
+								if (!lKart.loose && !lKart.rankInfo && !lKart.protect && !lKart.fell)
 									checkCollisions(fSprite, l);
 							}
 						}
@@ -16048,10 +16101,10 @@ function resetDatas() {
 				refreshDatas = false;
 				function displayRankings() {
 					var oPlayer = getPlayerAtScreen(0);
-					if (course == "BB") {
-						oPlayer.arme = false;
+					if (isBallonBattle()) {
+						oPlayer.weapon = false;
 						oPlayer.speed = 0;
-						supprArme(0);
+						delWeapon(0);
 					}
 					oPlayer.speedinc = 0;
 					oPlayer.rotinc = 0;
@@ -16076,8 +16129,8 @@ function resetDatas() {
 						oTds[i] = new Array();
 						if (pCode[0] == identifiant) {
 							oTr.style.backgroundColor = rankingColor(0);
-							document.getElementById("infoPlace0").innerHTML = i+1;
-							document.getElementById("infoPlace0").style.visibility = "visible";
+							document.getElementById("rankInfo0").innerHTML = i+1;
+							document.getElementById("rankInfo0").style.visibility = "visible";
 						}
 						else if (pCode[4] != -1)
 							oTr.style.backgroundColor = cTeamColors.primary[pCode[4]];
@@ -16136,7 +16189,7 @@ function resetDatas() {
 						}
 						for (i=0;i<oTds.length;i++) {
 							var pCode = rCode[3][i];
-							oTds[i][0].innerHTML = toPerso(pCode[1]);
+							oTds[i][0].innerHTML = getPersoName(pCode[1]);
 							oTds[i][1].innerHTML = pCode[2];
 							if (pCode[0] == identifiant)
 								oTrs[i].style.backgroundColor = rankingColor(0);
@@ -16163,10 +16216,10 @@ function resetDatas() {
 								oContinue.focus()
 						}, 500);
 
-						setTimeout(function(){if(forceClic2)continuer();}, 5000);
+						setTimeout(function(){if(forceClic2)askContinue();}, 5000);
 						oContinue.onclick = function() {
 							forceClic2 = false;
-							continuer();
+							askContinue();
 						};
 					}
 					oContinue.onclick = function() {
@@ -16174,7 +16227,7 @@ function resetDatas() {
 						updateTable();
 					};
 					setTimeout(function(){if(forceClic)updateTable();}, 5000);
-					
+
 					oTd.appendChild(oContinue);
 					oTr.appendChild(oTd);
 					infos0.appendChild(oTr);
@@ -16183,20 +16236,20 @@ function resetDatas() {
 						oContinue.focus();
 					resetEvents();
 					window.onbeforeunload = logGameTime;
-					supprArme(0);
+					delWeapon(0);
 					resetWrongWay(oPlayer);
 					if (bMusic||iSfx)
 						startEndMusic();
 					finishing = true;
-					document.getElementById("racecountdown").innerHTML = rCode[4]-(course=="BB"?6:5);
+					document.getElementById("racecountdown").innerHTML = rCode[4]-(isBallonBattle()?6:5);
 					if (!onlineSpectatorId || (onlineSpectatorState === "queuing")) {
 						document.getElementById("waitrace").style.visibility = "visible";
 						dRest();
 					}
 					document.getElementById("compteur0").innerHTML = "";
-					for (var i=0;i<oRoulettesPrefixes.length;i++) {
-						var prefix = oRoulettesPrefixes[i];
-						document.getElementById("roulette"+prefix+0).innerHTML = "";
+					for (var i=0;i<oWheelsPrefixes.length;i++) {
+						var prefix = oWheelsPrefixes[i];
+						document.getElementById("wheel"+prefix+0).innerHTML = "";
 						document.getElementById("scroller"+prefix+0).style.visibility = "hidden";
 					}
 					updateItemCountdownHud(0, null);
@@ -16223,19 +16276,19 @@ function resetDatas() {
 						});
 					}
 				}
-				if (course == "BB") {
+				if (isBallonBattle()) {
 					var firstID = rCode[3][0][0];
 					var firstTeam = rCode[3][0][4];
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
 						if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
-							if (oKart.ballons.length && !oKart.tourne) {
+							if (oKart.ballons.length && !oKart.spinning) {
 								do {
 									popBalloon(oKart);
 								} while (oKart.ballons.length);
 								oKart.spin(20);
 								if (oKart != oPlayers[0])
-									playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+									playDistSound(oKart,"musics/events/spin.mp3",80);
 							}
 						}
 						else if (oKart != oPlayers[0])
@@ -16273,10 +16326,10 @@ function resetFall(oKart) {
 	}
 }
 
-function loseBall(i) {
-	if (course == "BB") {
+function loseBallon(i) {
+	if (isBallonBattle()) {
 		var lg = aKarts[i].ballons.length-1;
-		if (!aKarts[i].tourne && aKarts[i].ballons[lg]) {
+		if (!aKarts[i].spinning && aKarts[i].ballons[lg]) {
 			popBalloon(aKarts[i]);
 			if (!aKarts[i].cpu) {
 				clLocalVars.lostBalloons++;
@@ -16285,8 +16338,8 @@ function loseBall(i) {
 			if (isOnline) {
 				var sID = getScreenPlayerIndex(i);
 				if ((sID < oPlayers.length) && !aKarts[i].ballons.length) {
-					supprArme(i);
-					document.getElementById("infoPlace"+sID).style.visibility = "hidden";
+					delWeapon(i);
+					document.getElementById("rankInfo"+sID).style.visibility = "hidden";
 				}
 			}
 		}
@@ -16296,7 +16349,7 @@ function loseBall(i) {
 function showTimer(timeMS) {
 	var tps = timeStr(timeMS);
 	for (var i=0;i<strPlayer.length;i++)
-		document.getElementById("temps"+i).innerHTML = tps;
+		document.getElementById("time"+i).innerHTML = tps;
 }
 
 function move(getId, triggered) {
@@ -16315,7 +16368,7 @@ function move(getId, triggered) {
 
 			if (oKart.time) {
 				oKart.time--;
-				
+
 				if (oKart.time && !oPlayers[getId].changeView)
 					document.getElementById("lakitu"+getId).style.display = "block";
 				else
@@ -16336,7 +16389,7 @@ function move(getId, triggered) {
 
 			handleWrongWay(oKart);
 		}
-		else if (oKart.tours == (oMap.tours+1)) {
+		else if (oKart.laps == (oMap.tours+1)) {
 			if (!oKart.changeView)
 				oKart.changeView = 0;
 			if (oKart.changeView < 180)
@@ -16347,16 +16400,16 @@ function move(getId, triggered) {
 			timer++;
 	}
 
-	if (oKart.tombe) {
-		oKart.tombe--;
+	if (oKart.fall) {
+		oKart.fall--;
 		oKart.size = 1;
 		oKart.mini = 0;
-		if (oKart.tombe == 19) {
+		if (oKart.fall == 19) {
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "none";
 				oKart.sprite[i].img.style.opacity = "";
 				oKart.sprite[i].div.style.backgroundImage = "";
-				if (course == "BB") {
+				if (isBallonBattle()) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "none";
 				}
@@ -16365,18 +16418,18 @@ function move(getId, triggered) {
 			}
 			playIfShould(oKart, "musics/events/rescue.mp3");
 		}
-		else if (oKart.tombe == 2) {
-			if (course == "BB") {
+		else if (oKart.fall == 2) {
+			if (isBallonBattle()) {
 				for (var i=0;i<strPlayer.length;i++) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "block";
 				}
 			}
 		}
-		else if (!oKart.tombe) {
+		else if (!oKart.fall) {
 			resetFall(oKart);
-			loseBall(getId);
-			if (course == "BB") {
+			loseBallon(getId);
+			if (isBallonBattle()) {
 				if (oKart.cpu && oKart.ballons.length == 1) {
 					if (!isOnline || oKart.controller == identifiant)
 						inflateNewBalloons(oKart);
@@ -16396,7 +16449,7 @@ function move(getId, triggered) {
 			delete oKart.aY;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "";
-				if (course == "BB") {
+				if (isBallonBattle()) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "";
 				}
@@ -16441,14 +16494,14 @@ function move(getId, triggered) {
 
 	if (oKart.shift)
 		oKart.rotation += oKart.shift[2]*180/Math.PI;
-	if (oKart.tourne) {
+	if (oKart.spinning) {
 		oKart.figuring = false;
 		oKart.figstate = 0;
 		if (!oKart.z)
 			oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
-		oKart.tourne -= 2;
-		if (!oKart.tourne) {
-			if (course == "BB") {
+		oKart.spinning -= 2;
+		if (!oKart.spinning) {
+			if (isBallonBattle()) {
 				if (oKart.cpu && oKart.ballons.length == 1) {
 					if (!isOnline || oKart.controller == identifiant)
 						inflateNewBalloons(oKart);
@@ -16475,7 +16528,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (oKart.speed && !oKart.billball && !oKart.cannon)
+		else if (oKart.speed && !oKart.bulletbill && !oKart.cannon)
 			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv)
 			oKart.frminv--;
@@ -16525,7 +16578,7 @@ function move(getId, triggered) {
 
 	var fNewPosX = oKart.x + fMoveX;
 	var fNewPosY = oKart.y + fMoveY;
-	
+
 	var aPosX = oKart.x, aPosY = oKart.y;
 
 	if (!oKart.z && !oKart.heightinc) {
@@ -16533,9 +16586,9 @@ function move(getId, triggered) {
 			oKart.accelerate();
 		oKart.speed += oKart.speedinc;
 		if ((isCup && oMap.skin != 22 && oMap.skin != 30) || (!isCup && oMap.smartjump)) {
-			var hpType, hpProps;
-			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && !oKart.protect && !oKart.champi))) {
-			//if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)))) {
+			var offRoadType, offRoadProps;
+			if (oKart.cpu && ((isFalling(fNewPosX, fNewPosY) && !jumps(aPosX, aPosY, fMoveX, fMoveY)) || ((offRoadType=slowMotion(fNewPosX, fNewPosY)) && (offRoadProps=getOffroadProps(oKart,offRoadType)) && ((oKart.speed-oKart.speedinc*1.01) > offRoadProps.speed) && !oKart.protect && !oKart.mushroom))) {
+			//if (oKart.cpu && ((isFalling(fNewPosX, fNewPosY) && !jumps(aPosX, aPosY, fMoveX, fMoveY)))) {
 				oKart.z = 1;
 				oKart.heightinc = 0.5;
 				oKart.jumped = true;
@@ -16556,39 +16609,39 @@ function move(getId, triggered) {
 	}
 
 	var localKart = (!isOnline || !getId || oKart.controller == identifiant) && !onlineSpectatorId;
-	
+
 	if (localKart && !oKart.loose) {
 		var oKartItems = oKart.using;
-		if (oKart.tourne) {
+		if (oKart.spinning) {
 			oKartItems = [];
 			for (var i=0;i<aKarts.length;i++)
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
-		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
-		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
+		var pExplose = hit_bobomb(fNewPosX, fNewPosY, oKartItems) + hit_blueShell(fNewPosX, fNewPosY);
+		if (pExplose && !oKart.spinning && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
 			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
 			fMidPosX = fNewPosX; fMidPosY = fNewPosY;
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
+			if ((hit_fakeItem(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && hit_fakeItem(fMidPosX, fMidPosY, oKartItems)) || (hit_greenShell(fNewPosX, fNewPosY, oKartItems) || hit_greenShell(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && hit_greenShell_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && hit_greenShell(fMidPosX, fMidPosY, oKartItems))) || hit_redShell(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && hit_redShell(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
 				handleHardHit(getId);
-			else if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
+			else if ((hit_banana(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && hit_banana(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
 				handleSoftHit(getId);
-			else if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
+			else if ((hit_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && hit_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
 				handlePoisonHit(getId);
-			else if ((touche_champi(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && touche_champi(fMidPosX, fMidPosY))) && !oKart.tourne) {
-				oKart.champi = 20;
-				oKart.champiType = CHAMPI_TYPE_ITEM;
+			else if ((hit_mushroom(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && hit_mushroom(fMidPosX, fMidPosY))) && !oKart.spinning) {
+				oKart.mushroom = 20;
+				oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
 			}
-			else if ((touche_etoile(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && touche_etoile(fMidPosX, fMidPosY))) && !oKart.tourne && !oKart.billball) {
+			else if ((hit_star(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && hit_star(fMidPosX, fMidPosY))) && !oKart.spinning && !oKart.bulletbill) {
 				setStarState(oKart, 80);
 			}
-			else if (!oKart.tourne && (oKart.z < 1.2)) {
+			else if (!oKart.spinning && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
-				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
+				var asset = hit_asset(aPosX,aPosY,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
 				if (asset) {
@@ -16597,9 +16650,9 @@ function move(getId, triggered) {
 					if (isCustom) decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
-						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.spinning && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
 							stopDrifting(getId);
-							loseBall(getId);
+							loseBallon(getId);
 							oKart.spin(20);
 						}
 						stopped = false;
@@ -16608,7 +16661,7 @@ function move(getId, triggered) {
 						if (!isCustom) decorType = 'assets/pivothand';
 						if (hittable) {
 							stopDrifting(getId);
-							loseBall(getId);
+							loseBallon(getId);
 							oKart.spin(42);
 							if (oKart.cpu)
 								oKart.frminv = 16;
@@ -16619,7 +16672,7 @@ function move(getId, triggered) {
 					case "flippers":
 						if (hittable) {
 							stopDrifting(getId);
-							loseBall(getId);
+							loseBallon(getId);
 							oKart.spin(42);
 						}
 						oKart.speed *= -1;
@@ -16695,7 +16748,7 @@ function move(getId, triggered) {
 				}
 			}
 			if (!oKart.cpu) {
-				while (touche_piece(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y)) {
+				while (hit_coin(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y)) {
 					clLocalVars.nbCoins++;
 					updateChallengeHud("coins", clLocalVars.nbCoins);
 					challengeCheck("each_coin");
@@ -16719,68 +16772,68 @@ function move(getId, triggered) {
 		}
 		var nbItems = lMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
+			if ((!oKart.weapon || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.wheel || oKart.wheel > 7))) && (oKart.laps <= oMap.tours || isBallonBattle()) && !finishing) {
 				var iObj;
-				if (course != "BB") {
+				if (!isBallonBattle()) {
 					iObj = randObj(oKart);
 					var forbiddenItems = {};
-					if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
-						forbiddenItems["bloops"] = 1;
-						forbiddenItems["carapaceX3"] = 1;
-						forbiddenItems["carapacerougeX3"] = 1;
+					if ((oKart.laps == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
+						forbiddenItems["bloopers"] = 1;
+						forbiddenItems["shellX3"] = 1;
+						forbiddenItems["redshellX3"] = 1;
 					}
 					if (timer < 375) {
 						if (itemDistribution.powstart != 1)
 							forbiddenItems["pow"] = 1;
 						if (itemDistribution.lightningstart != 1)
-							forbiddenItems["eclair"] = 1;
+							forbiddenItems["lightning"] = 1;
 						if (itemDistribution.blueshellstart != 1) {
-							forbiddenItems["carapacebleue"] = 1;
-							forbiddenItems["carapacenoire"] = 1;
+							forbiddenItems["blueshell"] = 1;
+							forbiddenItems["blackShell"] = 1;
 						}
 					}
 					if (oKart.place == 1)
-						forbiddenItems["carapacebleue"] = 1;
-					
+						forbiddenItems["blueshell"] = 1;
+
 					var preventDuplicateItems = {
-						carapacebleue: 1,
-						carapacenoire: 1,
-						eclair: 1,
-						bloops: 1,
+						blueshell: 1,
+						blackShell: 1,
+						lightning: 1,
+						bloopers: 1,
 						pow: 1,
-						bananeX3: 1
+						bananaX3: 1
 					};
 					if (itemDistribution.powx2 == 1) {
 						delete preventDuplicateItems["pow"];
 					}
 					if (itemDistribution.lightningx2 == 1)
-						delete preventDuplicateItems["eclair"];
+						delete preventDuplicateItems["lightning"];
 					if (itemDistribution.blueshellx2 == 1) {
-						delete preventDuplicateItems["carapacebleue"];
-						delete preventDuplicateItems["carapacenoire"];
+						delete preventDuplicateItems["blueshell"];
+						delete preventDuplicateItems["blackShell"];
 					}
 					for (var i=0;i<aKarts.length;i++) {
 						var iKart = aKarts[i];
-						for (var j=0;j<oArmeKeys.length;j++) {
-							var oArmeKey = oArmeKeys[j];
-							if (preventDuplicateItems[iKart[oArmeKey]])
-								forbiddenItems[iKart[oArmeKey]] = 1;
+						for (var j=0;j<oWeaponKeys.length;j++) {
+							var oWeaponKey = oWeaponKeys[j];
+							if (preventDuplicateItems[iKart[oWeaponKey]])
+								forbiddenItems[iKart[oWeaponKey]] = 1;
 						}
 					}
-					if (items["carapace-bleue"].length)
-						forbiddenItems["carapacebleue"] = 1;
-					if (items["carapace-noire"].length)
-						forbiddenItems["carapacenoire"] = 1;
+					if (items["blue-shell"].length)
+						forbiddenItems["blueshell"] = 1;
+					if (items["black-shell"].length)
+						forbiddenItems["blackShell"] = 1;
 					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
-						forbiddenItems["carapacebleue"] = 1;
-					if ((oKart.place < aKarts.length) || items.eclair.length)
-						forbiddenItems["eclair"] = 1;
-					if (items.bloops.length)
-						forbiddenItems["bloops"] = 1;
+						forbiddenItems["blueshell"] = 1;
+					if ((oKart.place < aKarts.length) || items.lightning.length)
+						forbiddenItems["lightning"] = 1;
+					if (items.bloopers.length)
+						forbiddenItems["bloopers"] = 1;
 					if (items.pow.length || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
-					if (oKart.arme && (itemDistribution.doubleitemx2 != 1))
-						forbiddenItems[oKart.arme] = 1;
+					if (oKart.weapon && (itemDistribution.doubleitemx2 != 1))
+						forbiddenItems[oKart.weapon] = 1;
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
 							iObj = randObj(oKart);
@@ -16791,7 +16844,7 @@ function move(getId, triggered) {
 					if (oKart.ballons.length)
 						iObj = randObj(oKart);
 					else {
-						var ghostItems = ["fauxobjet", "banane", "carapace", "bobomb"];
+						var ghostItems = ["fakeItem", "banana", "shell", "bobomb"];
 						iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 					}
 				}
@@ -16812,14 +16865,14 @@ function move(getId, triggered) {
 					if (window.bbb >= window.aaa.length)
 						window.bbb = 0;
 				}*/
-				var oSlotId = oKart.arme ? 1 : 0;
-				var oArmeKey = oArmeKeys[oSlotId];
-				oKart[oArmeKey] = iObj;
-				// oKart.arme = iObj;
-				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
-					oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
+				var oSlotId = oKart.weapon ? 1 : 0;
+				var oWeaponKey = oWeaponKeys[oSlotId];
+				oKart[oWeaponKey] = iObj;
+				// oKart.weapon = iObj;
+				if (shouldPlaySound(oKart) && !oKart.wheelSound)
+					oKart.wheelSound = playSoundEffect("musics/events/roulette.mp3");
 				if (kartIsPlayer(oKart)) {
-					var prefix = oRoulettesPrefixes[oSlotId];
+					var prefix = oWheelsPrefixes[oSlotId];
 					var rScroller = document.getElementById("scroller"+prefix+getId);
 					var rTurner = rScroller.getElementsByTagName("div")[0];
 					var rHeight = rTurner.offsetHeight;
@@ -16834,11 +16887,11 @@ function move(getId, triggered) {
 					clLocalVars.itemsGot = true;
 
 					switch (iObj) {
-					case "etoile":
+					case "star":
 						var eagerLoadImg = document.createElement("img");
 						eagerLoadImg.src = getStarSrc(oKart.personnage);
 						break;
-					case "billball":
+					case "bulletbill":
 						var eagerLoadImg = document.createElement("img");
 						eagerLoadImg.src = "images/sprites/sprite_billball.png";
 						break;
@@ -16856,21 +16909,21 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	for (var i=0;i<oRoulettesPrefixes.length;i++) {
-		var armeKey = oArmeKeys[i];
-		var prefix = oRoulettesPrefixes[i];
-		var key = "roulette"+prefix;
-		if (oKart[armeKey]) {
+	for (var i=0;i<oWheelsPrefixes.length;i++) {
+		var weaponKey = oWeaponKeys[i];
+		var prefix = oWheelsPrefixes[i];
+		var key = "wheel"+prefix;
+		if (oKart[weaponKey]) {
 			if (oKart[key] < 25) {
 				oKart[key]++;
 				if (oKart[key] >= 25) {
 					oKart[key] = 25;
 					if (kartIsPlayer(oKart)) {
 						updateObjHud(getId);
-						if (oKart.rouletteSound) {
-							removeIfExists(oKart.rouletteSound);
+						if (oKart.wheelSound) {
+							removeIfExists(oKart.wheelSound);
 							playSoundEffect("musics/events/gotitem.mp3");
-							oKart.rouletteSound = undefined;
+							oKart.wheelSound = undefined;
 						}
 					}
 				}
@@ -16883,7 +16936,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.bulletbill) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -16934,10 +16987,10 @@ function move(getId, triggered) {
 		if (clLocalVars.decorsHit && !oKart.cpu)
 			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
-		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv && localKart) {
+		if (collisionSpin && !oKart.spinning && !oKart.protect && !oKart.frminv && localKart) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
-				loseBall(getId);
+				loseBallon(getId);
 				stopDrifting(getId);
 				oKart.spin(collisionSpin);
 				oKart.frminv = 24;
@@ -16957,8 +17010,8 @@ function move(getId, triggered) {
 			stopDrifting(getId);
 			oKart.protect = true;
 			oKart.jumped = true;
-			if (oKart.tourne)
-				oKart.tourne = 2;
+			if (oKart.spinning)
+				oKart.spinning = 2;
 			delete oKart.shift;
 			if (!oKart.cpu) {
 				clLocalVars.cannons++;
@@ -16993,13 +17046,13 @@ function move(getId, triggered) {
 				oKart.speed = 0;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "none";
-				if (course == "BB") {
+				if (isBallonBattle()) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "none";
 				}
 			}
 			if (oKart.aipoint !== undefined) {
-				if (course == "BB")
+				if (isBallonBattle())
 					oKart.aipoint = undefined;
 				else {
 					var aipoint = oKart.aipoints[oKart.aipoint];
@@ -17028,7 +17081,7 @@ function move(getId, triggered) {
 			oKart.driftcpt = 0;
 		}
 		var newShift;
-		if (handleJump(oKart, sauts(aPosX,aPosY, fMoveX,fMoveY))) {
+		if (handleJump(oKart, jumps(aPosX,aPosY, fMoveX,fMoveY))) {
 			oKart.speed = 11*cappedRelSpeed(oKart);
 			oKart.figuring = false;
 			oKart.figstate = 0;
@@ -17049,110 +17102,110 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			var hpType;
-			var fTombe;
+			var offRoadType;
+			var fFalling;
 			if (localKart) {
 				var iC = 0;
-				if (lMap.checkpoint && oKart.demitours)
-					iC = lMap.checkpoint[(oKart.demitours+1) % lMap.checkpoint.length][3];
-				fTombe = tombe(oKart.x, oKart.y, iC);
+				if (lMap.checkpoint && oKart.checkpoints)
+					iC = lMap.checkpoint[(oKart.checkpoints+1) % lMap.checkpoint.length][3];
+				fFalling = isFalling(oKart.x, oKart.y, iC);
 			}
-			if (fTombe) {
+			if (fFalling) {
 				var lastCp;
-				if (fTombe == true) {
+				if (fFalling == true) {
 					if (isBattle && simplified) {
-						fTombe = [oKart.x,oKart.y,oKart.rotation];
+						fFalling = [oKart.x,oKart.y,oKart.rotation];
 						if (oKart.x > oMap.w-1) {
-							fTombe[0] = oMap.w-50;
+							fFalling[0] = oMap.w-50;
 							if (oKart.y > oMap.h-1) {
-								fTombe[1] = oMap.h-50;
-								fTombe[2] = 225;
+								fFalling[1] = oMap.h-50;
+								fFalling[2] = 225;
 							}
 							else if (oKart.y < 0) {
-								fTombe[1] = 50;
-								fTombe[2] = 315;
+								fFalling[1] = 50;
+								fFalling[2] = 315;
 							}
 							else {
-								fTombe[1] = oKart.y-oKart.y%100+50;
-								fTombe[2] = 270;
+								fFalling[1] = oKart.y-oKart.y%100+50;
+								fFalling[2] = 270;
 							}
 						}
 						else if (oKart.y > oMap.h-1) {
-							fTombe[1] = oMap.h-50;
+							fFalling[1] = oMap.h-50;
 							if (oKart.x < 0) {
-								fTombe[0] = 50;
-								fTombe[2] = 135;
+								fFalling[0] = 50;
+								fFalling[2] = 135;
 							}
 							else {
-								fTombe[0] = oKart.x-oKart.x%100+50;
-								fTombe[2] = 180;
+								fFalling[0] = oKart.x-oKart.x%100+50;
+								fFalling[2] = 180;
 							}
 						}
 						else if (oKart.x < 0) {
-							fTombe[0] = 50;
+							fFalling[0] = 50;
 							if (oKart.y < 0) {
-								fTombe[1] = 50;
-								fTombe[2] = 45;
+								fFalling[1] = 50;
+								fFalling[2] = 45;
 							}
 							else {
-								fTombe[1] = oKart.y-oKart.y%100+50;
-								fTombe[2] = 90;
+								fFalling[1] = oKart.y-oKart.y%100+50;
+								fFalling[2] = 90;
 							}
 						}
 						else {
-							fTombe[1] = 50;
-							fTombe[0] = oKart.x-oKart.x%100+50;
-							fTombe[2] = 0;
+							fFalling[1] = 50;
+							fFalling[0] = oKart.x-oKart.x%100+50;
+							fFalling[2] = 0;
 						}
 					}
 					else {
 						lastCp = oKart.lastcp;
-						fTombe = getCpRespawn(lastCp);
+						fFalling = getCpRespawn(lastCp);
 					}
 				}
-				else if (isNaN(fTombe[0]))
-					fTombe = oMap.startposition[(oKart.initialPlace-1)%oMap.startposition.length];
+				else if (isNaN(fFalling[0]))
+					fFalling = oMap.startposition[(oKart.initialPlace-1)%oMap.startposition.length];
 				oKart.aX = oKart.x;
 				oKart.aY = oKart.y;
 				oKart.aRotation = oKart.rotation;
-				oKart.x = fTombe[0];
-				oKart.y = fTombe[1];
-				oKart.rotation = fTombe[2]*90;
+				oKart.x = fFalling[0];
+				oKart.y = fFalling[1];
+				oKart.rotation = fFalling[2]*90;
 				oKart.speed = 0;
 				oKart.protect = false;
 				oKart.figuring = false;
 				oKart.figstate = 0;
 				oKart.fell = true;
-				oKart.champi = 0;
-				delete oKart.champiType;
-				delete oKart.champior;
-				delete oKart.champior0;
+				oKart.mushroom = 0;
+				delete oKart.mushroomType;
+				delete oKart.goldMushroom;
+				delete oKart.goldMushroom0;
 				if (oKart.cpu) {
 					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
 						oKart.aipoint = lastCp.aipoint;
 					else
 						oKart.aipoint = undefined;
 				}
-				oKart.tombe = 20;
+				oKart.fall = 20;
 				oKart.frminv = 10;
 				oKart.ctrled = true;
 				oKart.z = 10;
-				oKart.tourne = 0;
+				oKart.spinning = 0;
 				stopDrifting(getId);
-				supprArme(getId);
+				delWeapon(getId);
 				deleteUsingItems(oKart);
 				var sID = getScreenPlayerIndex(i);
 				for (var i=0;i<oPlayers.length;i++) {
 					if (i != sID) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
-						if (course == "BB") {
+						if (isBallonBattle()) {
 							for (var k=0;k<oKart.ballons.length;k++)
 								oKart.ballons[k][0].img.style.display = "none";
 						}
 					}
-					if (oKart.etoile)
-						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
+					if (oKart.star)
+						oKart.sprite[i].img.src = getSpriteImg(oKart.personnage);
 				}
 				resetPowerup(oKart);
 				resetWrongWay(oKart);
@@ -17165,13 +17218,13 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
-				if (!oKart.protect && !oKart.champi && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && (hpType=ralenti(fNewPosX, fNewPosY))) {
-					var hpProps = getOffroadProps(oKart,hpType);
-					hpProps.speed *= cappedRelSpeed();
-					if (hpProps.sliding)
-						oKart.sliding = hpProps.sliding;
-					if (oKart.speed > hpProps.speed)
-						oKart.speed = hpProps.speed;
+				if (!oKart.protect && !oKart.mushroom && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && (offRoadType=slowMotion(fNewPosX, fNewPosY))) {
+					var offRoadProps = getOffroadProps(oKart,offRoadType);
+					offRoadProps.speed *= cappedRelSpeed();
+					if (offRoadProps.sliding)
+						oKart.sliding = offRoadProps.sliding;
+					if (oKart.speed > offRoadProps.speed)
+						oKart.speed = offRoadProps.speed;
 					stopDrifting(getId);
 				}
 				newShift = flowShift(fNewPosX, fNewPosY);
@@ -17205,13 +17258,13 @@ function move(getId, triggered) {
 		updateSpeedometer(getId, aPosX,aPosY);
 
 	moveUsingItems(oKart, triggered);
-	if (course != "BB") {
-		var prevCP = oKart.demitours;
+	if (!isBallonBattle()) {
+		var prevCP = oKart.checkpoints;
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
-			var nbjoueurs = aKarts.length;
-			oKart.demitours = getNextCp(oKart);
-			var prevLap = oKart.tours;
-			oKart.tours++;
+			var NbPlayers = aKarts.length;
+			oKart.checkpoints = getNextCp(oKart);
+			var prevLap = oKart.laps;
+			oKart.laps++;
 			collisionLap = handleCpChange(prevLap,prevCP, getId);
 
 			var lastCp = lMap.checkpointCoords[0];
@@ -17236,10 +17289,10 @@ function move(getId, triggered) {
 			lMap = getCurrentLMap(collisionLap);
 
 			var sID = getScreenPlayerIndex(getId);
-			if (oKart.tours == (oMap.tours+1)) {
+			if (oKart.laps == (oMap.tours+1)) {
 				oKart.place = 0;
-				for (var i=0;i<nbjoueurs;i++) {
-					if (aKarts[i].tours > oMap.tours)
+				for (var i=0;i<NbPlayers;i++) {
+					if (aKarts[i].laps > oMap.tours)
 						oKart.place++;
 				}
 				if (isOnline && !oKart.finaltime)
@@ -17248,22 +17301,22 @@ function move(getId, triggered) {
 					timerMS = lapTimer;
 					showTimer(timerMS);
 
-					if (course != "CM")
-						document.getElementById("infoPlace"+getId).innerHTML = oKart.place;
+					if (!isTimeTrial())
+						document.getElementById("rankInfo"+getId).innerHTML = oKart.place;
 					while (oKart.using.length) {
 						var aMusic = bMusic, aSfx = iSfx;
 						bMusic = false;
 						iSfx = false;
-						arme(getId);
+						useWeapon(getId);
 						bMusic = aMusic;
 						iSfx = aSfx;
 					}
-					oKart.arme = false;
+					oKart.weapon = false;
 					stopDrifting(getId);
-					supprArme(getId);
+					delWeapon(getId);
 					resetWrongWay(oKart);
-					if (oKart.billball)
-						oKart.billball = 1;
+					if (oKart.bulletbill)
+						oKart.bulletbill = 1;
 					oKart.cpu = true;
 					if ($speedometers[getId])
 						$speedometers[getId].style.display = "none";
@@ -17274,18 +17327,18 @@ function move(getId, triggered) {
 					oKart.maxspeed0 = oKart.maxspeed;
 					if (!oPlayers[1-getId] || oPlayers[1-getId].cpu) {
 						if (!isOnline) {
-							if (course != "CM") {
+							if (!isTimeTrial()) {
 								var aRankScores = getRankScores();
-								for (var i=0;i<nbjoueurs;i++)
+								for (var i=0;i<NbPlayers;i++)
 									places(i,aRankScores,true);
 								var cKarts = aKarts.slice(0);
 								cKarts.sort(function(k1,k2) {
 									return k1.place-k2.place;
 								});
-								for (var i=0;i<nbjoueurs;i++)
+								for (var i=0;i<NbPlayers;i++)
 									cKarts[i].place = i+1;
 								aPlaces = new Array();
-								for (var i=0;i<nbjoueurs;i++)
+								for (var i=0;i<NbPlayers;i++)
 									aPlaces[i] = aKarts[i].place;
 								var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Player','Joueur') +'</td><td>Pts</td></tr>';
 								var maxPts = Math.round(aKarts.length*1.25);
@@ -17296,22 +17349,21 @@ function move(getId, triggered) {
 									styleMore2 = ' style="padding: 0 '+ Math.round(iScreenScale/2) +'px"';
 								}
 								var itemDistrib = getPointDistribution();
-								for (var i=0;i<nbjoueurs;i++) {
-									for (var j=0;j<nbjoueurs;j++) {
-										var joueur = aKarts[j].personnage;
+                                for (var i=0;i<NbPlayers;i++) {
+									for (var j=0;j<NbPlayers;j++) {
+										var player = aKarts[j].personnage;
 										if (aKarts[j].place == i+1) {
 											var oTeam = aKarts[j].team;
 											if (oTeam === -1) oTeam = 0;
 											var ptsInc = itemDistrib[i];
-											positions += '<tr id="fJ'+i+'" style="background-color: '+ rankingColor(j) + styleMore +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'"'+ styleMore2 +'>'+ toPerso(joueur) +'</td><td id="pts'+i+'"'+ styleMore2 +'>'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
+											positions += '<tr id="fJ'+i+'" style="background-color: '+ rankingColor(j) + styleMore +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'"'+ styleMore2 +'>'+ getPersoName(player) +'</td><td id="pts'+i+'"'+ styleMore2 +'>'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
 											aScores[j] += ptsInc;
-											j = nbjoueurs;
+											j = NbPlayers;
 										}
 									}
 								}
 
-
-								positions += '<tr><td colspan="3" id="continuer"></td></tr>';
+								positions += '<tr><td colspan="3" id="askContinue"></td></tr>';
 								document.getElementById("infos0").style.border = "solid 1px black";
 								document.getElementById("infos0").style.opacity = 0.7;
 								document.getElementById("infos0").style.fontSize = Math.round(iScreenScale*1.77-0.5) +"pt";
@@ -17330,7 +17382,7 @@ function move(getId, triggered) {
 								oContinue.style.height = "100%";
 								oContinue.style.fontSize = iScreenScale*3 +"pt";
 								oContinue.onclick = classement;
-								document.getElementById("continuer").appendChild(oContinue);
+								document.getElementById("askContinue").appendChild(oContinue);
 								document.getElementById("infos0").style.display = "";
 								var aScroll = document.body.scrollTop;
 								oContinue.focus();
@@ -17354,7 +17406,7 @@ function move(getId, triggered) {
 									lapTimesHtml += '<div style="color:'+((lapTimers[i]==minTimer) ? '#fffdbe':'#DDD')+';text-shadow:'+lShadow+'">'+(i+1)+'. ' + timeStr(lapTimers[i]) +'</div>';
 								}
 								document.getElementById("infos0").style.top = (iScreenScale*7 + 10) +"px";
-								document.getElementById("infos0").innerHTML = '<tr><td style="text-decoration: blink;font-family:Courier New;font-size:'+Math.round(iScreenScale*4)+'px;text-shadow:'+sShadow+'">'+ document.getElementById("temps0").innerHTML +'</td></tr><tr><td id="continuer"></td></tr><tr><td style="padding-top:'+(iScreenScale)+';font-size:'+Math.round(iScreenScale*2.5)+'px">'+lapTimesHtml+'</td></tr>';
+								document.getElementById("infos0").innerHTML = '<tr><td style="text-decoration: blink;font-family:Courier New;font-size:'+Math.round(iScreenScale*4)+'px;text-shadow:'+sShadow+'">'+ document.getElementById("time0").innerHTML +'</td></tr><tr><td id="askContinue"></td></tr><tr><td style="padding-top:'+(iScreenScale)+';font-size:'+Math.round(iScreenScale*2.5)+'px">'+lapTimesHtml+'</td></tr>';
 								document.getElementById("infos0").style.display = "";
 								var oContinue = document.createElement("input");
 								oContinue.type = "button";
@@ -17365,7 +17417,7 @@ function move(getId, triggered) {
 								oContinue.style.fontSize = iScreenScale*3 +"pt";
 								oContinue.onclick = function() {
 									document.getElementById("infos0").style.display = "none";
-									
+
 									var oForm = document.createElement("div");
 									oForm.style.color = "black";
 									oForm.style.position = "absolute";
@@ -17392,40 +17444,40 @@ function move(getId, triggered) {
 									oSave.style.fontSize = (iScreenScale*4) +"px";
 									oSave.onmouseover = function() {
 										this.style.fontSize = (iScreenScale*5) +"px";
-										oRetour.style.fontSize = (iScreenScale*4) +"px"
+										oBack.style.fontSize = (iScreenScale*4) +"px"
 									};
 									oSave.onclick = function() {
 										$mkScreen.removeChild(oForm);
-										continuer();
-										document.getElementById("enregistrer").getElementsByTagName("input")[0].onclick();
+										askContinue();
+										document.getElementById("save").getElementsByTagName("input")[0].onclick();
 									};
 									aPara2.appendChild(oSave);
-									var oRetour = document.createElement("input");
-									oRetour.type = "button";
-									oRetour.value = "  "+ toLanguage("No", "Non") +"  ";
-									oRetour.style.fontSize = (iScreenScale*4) +"px";
-									oRetour.style.marginLeft = iScreenScale +"px";
-									oRetour.onmouseover = function() {
+									var oBack = document.createElement("input");
+									oBack.type = "button";
+									oBack.value = "  "+ toLanguage("No", "Non") +"  ";
+									oBack.style.fontSize = (iScreenScale*4) +"px";
+									oBack.style.marginLeft = iScreenScale +"px";
+									oBack.onmouseover = function() {
 										this.style.fontSize = (iScreenScale*5) +"px";
 										oSave.style.fontSize = (iScreenScale*4) +"px"
 									};
-									oRetour.onclick = function() {
+									oBack.onclick = function() {
 										$mkScreen.removeChild(oForm);
 										document.getElementById("infos0").style.display = "";
-										continuer();
+										askContinue();
 									};
-									aPara2.appendChild(oRetour);
+									aPara2.appendChild(oBack);
 
 									oForm.appendChild(aPara1);
 									oForm.appendChild(aPara2);
 									$mkScreen.appendChild(oForm);
-									
+
 									if (timerMS >= gRecord)
-										oRetour.focus();
+										oBack.focus();
 									else
 										oSave.focus();
 								};
-								document.getElementById("continuer").appendChild(oContinue);
+								document.getElementById("askContinue").appendChild(oContinue);
 								document.getElementById("infos0").style.display = "";
 								oContinue.focus();
 							}
@@ -17450,7 +17502,7 @@ function move(getId, triggered) {
 							infos0.appendChild(oTr);
 							infos0.appendChild(oTr2);
 							infos0.style.display = "";
-							document.getElementById("infoPlace0").style.visibility = "hidden";
+							document.getElementById("rankInfo0").style.visibility = "hidden";
 							finishing = true;
 						}
 						resetEvents();
@@ -17459,21 +17511,21 @@ function move(getId, triggered) {
 				}
 				else if (onlineSpectatorId && !finishing) {
 					if (sID < oPlayers.length)
-						document.getElementById("infoPlace0").style.visibility = "hidden";
+						document.getElementById("rankInfo0").style.visibility = "hidden";
 				}
 				if (oMap.sections)
-					if (oKart.billball>1) oKart.billball = 1;
+					if (oKart.bulletbill>1) oKart.bulletbill = 1;
 			}
 			else if (!(isOnline ? (sID||finishing):oKart.cpu)) {
 				updateLapHud(sID);
 				if (!onlineSpectatorId) {
-					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
+					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.laps;
 					oKart.time = 40;
 					if (bMusic || iSfx) {
-						if (oKart.tours == oMap.tours) {
+						if (oKart.laps == oMap.tours) {
 							var firstOne = true;
 							for (var i=0;i<oPlayers.length;i++) {
-								if ((oPlayers[i] != oKart) && (oPlayers[i].tours >= 3)) {
+								if ((oPlayers[i] != oKart) && (oPlayers[i].laps >= 3)) {
 									firstOne = false;
 									break;
 								}
@@ -17560,13 +17612,13 @@ function move(getId, triggered) {
 			if (oKart === oPlayers[0])
 				challengeCheck("end_lap");
 		}
-		else if (oKart.demitours !== prevCP) {
-			collisionLap = handleCpChange(oKart.tours,prevCP, getId);
+		else if (oKart.checkpoints !== prevCP) {
+			collisionLap = handleCpChange(oKart.laps,prevCP, getId);
 			lMap = getCurrentLMap(collisionLap);
 		}
-		if ((oKart.demitours !== prevCP) && !tombe(oKart.x,oKart.y)) {
+		if ((oKart.checkpoints !== prevCP) && !isFalling(oKart.x,oKart.y)) {
 			oKart.lastcp = {
-				id: oKart.demitours,
+				id: oKart.checkpoints,
 				lMap: lMap,
 				x: oKart.x,
 				y: oKart.y,
@@ -17578,11 +17630,11 @@ function move(getId, triggered) {
 	}
 	else {
 		if (!isOnline) {
-			var gagnant;
+			var winner;
 			if (oPlayers[0].loose && (!oPlayers[1] || oPlayers[1].loose)) {
 				for (var j=0;j<10000;j++) {
-					gagnant = aKarts[Math.floor(Math.random()*(aKarts.length-strPlayer.length))+strPlayer.length];
-					if (!gagnant.loose)
+					winner = aKarts[Math.floor(Math.random()*(aKarts.length-strPlayer.length))+strPlayer.length];
+					if (!winner.loose)
 						break;
 				}
 				for (i=strPlayer.length;i<aKarts.length;i++)
@@ -17595,7 +17647,7 @@ function move(getId, triggered) {
 					for (i=0;i<aKarts.length;i++) {
 						if (!aKarts[i].loose) {
 							if (!aKarts[i].cpu)
-								gagnant = aKarts[i];
+								winner = aKarts[i];
 							var oTeam = aKarts[i].team;
 							if (!EnVie[oTeam]) {
 								EnVie[oTeam] = true;
@@ -17604,7 +17656,7 @@ function move(getId, triggered) {
 						}
 					}
 					if (nEnVie > 1)
-						gagnant = undefined;
+						winner = undefined;
 				}
 				else {
 					var EnVie = false;
@@ -17612,10 +17664,10 @@ function move(getId, triggered) {
 						if (!aKarts[i].loose) {
 							if (!EnVie) {
 								EnVie = true;
-								gagnant = aKarts[i];
+								winner = aKarts[i];
 							}
 							else {
-								gagnant = undefined;
+								winner = undefined;
 								i = aKarts[i].length;
 							}
 						}
@@ -17623,14 +17675,14 @@ function move(getId, triggered) {
 				}
 			}
 			else if (oPlayers[0].losing) {
-				gagnant = oPlayers[0];
-				delete gagnant.losing;
+				winner = oPlayers[0];
+				delete winner.losing;
 			}
-			if (gagnant) {
-				clLocalVars.gagnant = gagnant;
+			if (winner) {
+				clLocalVars.winner = winner;
 				for (i=0;i<strPlayer.length;i++) {
 					stopDrifting(i);
-					supprArme(i);
+					delWeapon(i);
 				}
 				var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Player','Joueur') +'</td><td>Pts</td></tr>';
 				var positions_ = "";
@@ -17644,10 +17696,10 @@ function move(getId, triggered) {
 				for (var i=0;i<aKarts.length;i++) {
 					var oTeam = aKarts[i].team;
 					if (oTeam === -1) oTeam = 0;
-					var ptsInc = (aKarts[i] == gagnant);
-					var joueur = aKarts[i].personnage;
+					var ptsInc = (aKarts[i] == winner);
+					var player = aKarts[i].personnage;
 					var actualPlace = ptsInc?0:iPlace;
-					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ rankingColor(i) + styleMore +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'"'+styleMore2+'>'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'"'+styleMore2+'>'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
+					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ rankingColor(i) + styleMore +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'"'+styleMore2+'>'+ getPersoName(player) +'</td><td id="pts'+actualPlace+'"'+styleMore2+'>'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
 					if (ptsInc)
 						positions_ = positionsHtml+positions_;
 					else {
@@ -17658,7 +17710,7 @@ function move(getId, triggered) {
 				}
 				positions += positions_;
 
-				positions += '<tr><td colspan="3" id="continuer"></td></tr>';
+				positions += '<tr><td colspan="3" id="askContinue"></td></tr>';
 				document.getElementById("infos0").style.border = "solid 1px black";
 				document.getElementById("infos0").style.opacity = 0.7;
 				document.getElementById("infos0").style.fontSize = Math.round(iScreenScale*1.77-0.5) +"pt";
@@ -17677,7 +17729,7 @@ function move(getId, triggered) {
 				oContinue.style.height = "100%";
 				oContinue.style.fontSize = iScreenScale*3 +"pt";
 				oContinue.onclick = classement;
-				document.getElementById("continuer").appendChild(oContinue);
+				document.getElementById("askContinue").appendChild(oContinue);
 				document.getElementById("infos0").style.display = "";
 				var aScroll = document.body.scrollTop;
 				oContinue.focus();
@@ -17692,7 +17744,7 @@ function move(getId, triggered) {
 	}
 
 	if (oKart.cpu) {
-		if (course == "BB")
+		if (isBallonBattle())
 			oKart.maxspeed = 5.7;
 		else {
 			var oPlayerPlace = oPlayers[0].place, nbPlayers = oPlayers.length;
@@ -17719,7 +17771,7 @@ function move(getId, triggered) {
 					}
 				}
 			}
-			var rSpeed = iDificulty, influence = 1;
+			var rSpeed = iDifficulty, influence = 1;
 			if (nCpus > 0) {
 				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
@@ -17740,9 +17792,9 @@ function move(getId, triggered) {
 					oKart.distToFirstCache = 0;
 				influence = Math.pow(0.96, 6*(apparentId/nCpus-0.5));
 			}
-			rSpeed *= influence*iDificulty/5;
+			rSpeed *= influence*iDifficulty/5;
 			var rRatio = 1.25;
-			if ((iDificulty > 4.75) && (aKarts.length > 8))
+			if ((iDifficulty > 4.75) && (aKarts.length > 8))
 				rRatio *= Math.log(1+100*aKarts.length/8)/5.5;
 			if (oKart.maxspeed0 > rSpeed*rRatio) oKart.maxspeed0 = rSpeed*rRatio;
 			else if (oKart.maxspeed0 < rSpeed) oKart.maxspeed0 = rSpeed;
@@ -17769,13 +17821,13 @@ function move(getId, triggered) {
 		}
 		oKart.turbodrift--;
 	}
-	if (oKart.champi) {
+	if (oKart.mushroom) {
 		oKart.maxspeed = 11;
-		oKart.champi--;
-		if (!oKart.champi)
-			delete oKart.champiType;
+		oKart.mushroom--;
+		if (!oKart.mushroom)
+			delete oKart.mushroomType;
 	}
-	if (oKart.billball) {
+	if (oKart.bulletbill) {
 		oKart.z = 2;
 		oKart.heightinc = 0;
 		oKart.speed = Math.min(30,13*cappedRelSpeed());
@@ -17802,11 +17854,11 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			var demitour = oKart.demitours+1;
-			if (demitour >= lMap.checkpoint.length)
-				demitour = 0;
+			var checkpoint = oKart.checkpoints+1;
+			if (checkpoint >= lMap.checkpoint.length)
+				checkpoint = 0;
 
-			var oBox = lMap.checkpointCoords[demitour];
+			var oBox = lMap.checkpointCoords[checkpoint];
 			if (oBox) {
 				iLocalX = oBox.O[0] - oKart.x;
 				iLocalY = oBox.O[1] - oKart.y;
@@ -17859,23 +17911,23 @@ function move(getId, triggered) {
 
 		oKart.rotation += fAngle;
 		oKart.rotation = oKart.rotation % 360;
-		oKart.billball--;
+		oKart.bulletbill--;
 		var cptJumpCheck = 6, cptJumpRevert = 12;
-		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.billball < cptJumpCheck)) : (oKart.billball < cptJumpRevert)) {
+		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.bulletbill < cptJumpCheck)) : (oKart.bulletbill < cptJumpRevert)) {
 			var fMoveX = oKart.speed*direction(0, oKart.rotation);
 			var fMoveY = oKart.speed*direction(1, oKart.rotation);
 			var customBillRoute = !oKart.cpu && (lMap.airoutesmeta.cpu < lMap.aipoints.length);
-			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && ralenti(oKart.x,oKart.y))))) {
+			if (jumps(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.bulletbill < cptJumpCheck) && (isFalling(oKart.x,oKart.y) || isFalling(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && slowMotion(oKart.x,oKart.y))))) {
 				if (!oKart.cannon) {
-					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
-					oKart.billball = cptJumpRevert;
+					oKart.bulletbill0 = Math.floor(oKart.bulletbill0*cptJumpRevert/oKart.bulletbill);
+					oKart.bulletbill = cptJumpRevert;
 					oKart.billjump = (oKart.billjump || 0) + 1;
 				}
 			}
 		}
-		if (!oKart.billball) {
+		if (!oKart.bulletbill) {
 			for (var i=0;i<strPlayer.length;i++) {
-				oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
+				oKart.sprite[i].img.src = getSpriteImg(oKart.personnage);
 				resumeSpriteSize(oKart.sprite[i]);
 			}
 			oKart.size = 1;
@@ -17884,30 +17936,30 @@ function move(getId, triggered) {
 				oKart.z = 0;
 			oKart.jumped = false;
 			delete oKart.billjump;
-			delete oKart.billball0;
+			delete oKart.bulletbill0;
 			consumeItem(getId);
 			updateProtectFlag(oKart);
 			if (!oKart.cpu)
 				delete oKart.aipoint;
 		}
-		updateItemCountdownHud(getId, oKart.billball/oKart.billball0);
+		updateItemCountdownHud(getId, oKart.bulletbill/oKart.bulletbill0);
 	}
-	if (oKart.champior) {
-		oKart.champior--;
-		if (oKart.champior <= 0) {
-			delete oKart.champior;
-			delete oKart.champior0;
+	if (oKart.goldMushroom) {
+		oKart.goldMushroom--;
+		if (oKart.goldMushroom <= 0) {
+			delete oKart.goldMushroom;
+			delete oKart.goldMushroom0;
 			consumeItem(getId);
 		}
-		updateItemCountdownHud(getId, oKart.champior/oKart.champior0);
+		updateItemCountdownHud(getId, oKart.goldMushroom/oKart.goldMushroom0);
 	}
-	if (oKart.etoile) {
+	if (oKart.star) {
 		oKart.maxspeed += 2;
-		oKart.etoile--;
-		if (oKart.etoile < 15) {
+		oKart.star--;
+		if (oKart.star < 15) {
 			for (var i=0;i<strPlayer.length;i++)
-				oKart.sprite[i].img.src = (oKart.etoile % 2 ? getStarSrc(oKart.personnage) : getSpriteSrc(oKart.personnage));
-			if (!oKart.etoile) {
+				oKart.sprite[i].img.src = (oKart.star % 2 ? getStarSrc(oKart.personnage) : getSpriteImg(oKart.personnage));
+			if (!oKart.star) {
 				updateProtectFlag(oKart);
 				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*oKart.size*fSelectedClass;
 				oKart.speedinc = Math.min(oKart.speedinc, maxSpeedInc);
@@ -17915,13 +17967,13 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	if (oKart.megachampi) {
-		oKart.megachampi--;
-		if (oKart.megachampi > 71)
+	if (oKart.megamushroom) {
+		oKart.megamushroom--;
+		if (oKart.megamushroom > 71)
 			oKart.size *= 1.05;
-		else if (oKart.megachampi < 8) {
+		else if (oKart.megamushroom < 8) {
 			oKart.size /= 1.05;
-			if (!oKart.megachampi) {
+			if (!oKart.megamushroom) {
 				updateProtectFlag(oKart);
 				stopMegaMusic(oKart);
 			}
@@ -17938,7 +17990,7 @@ function move(getId, triggered) {
 	if (oKart.cannon) {
 		var transitionFactor = 3*Math.pow(cappedRelSpeed(oKart),-2);
 		oKart.speed = (oKart.speed*transitionFactor+20)/(transitionFactor+1);
-		if (oKart.billball)
+		if (oKart.bulletbill)
 			oKart.speed = 20;
 		oKart.maxspeed = oKart.speed/(sizeSpeedRatio(oKart)*fSelectedClass);
 		if (!oKart.speedinc)
@@ -17963,10 +18015,10 @@ function move(getId, triggered) {
 		}
 	}
 
-	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
-		if (!oKart.champi)
-			oKart.champiType = CHAMPI_TYPE_BOOST;
-		oKart.champi = 20;
+	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelerate(aPosX, aPosY, fMoveX, fMoveY)) {
+		if (!oKart.mushroom)
+			oKart.mushroomType = MUSHROOM_TYPE_BOOST;
+		oKart.mushroom = 20;
 		oKart.maxspeed = 11;
 		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 		if (!oKart.boostSound) {
@@ -17980,7 +18032,7 @@ function move(getId, triggered) {
 		}
 	}
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
-		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
+		if ((bMusic&&(oKart.star||oKart.megamushroom)) || oKart.fall || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
 			if (oKart.turbodrift == (oKart.turbodrift0-1)) {
 				carEngine3.currentTime = 0;
@@ -18005,7 +18057,7 @@ function move(getId, triggered) {
 		else
 			updateEngineSound(oKart.speed>3 ? carEngine2:carEngine);
 	}
-	if (course == "BB" && !oKart.ballons.length && !oKart.tourne && !oKart.loose) {
+	if (isBallonBattle() && !oKart.ballons.length && !oKart.spinning && !oKart.loose) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
 		for (var i=0;i<strPlayer.length;i++) {
 			oKart.sprite[i].div.style.opacity = setOpac;
@@ -18058,7 +18110,7 @@ function isControlledByPlayer(id) {
 	return oKart && ((oKart.id == identifiant) || (oKart.controller == identifiant));
 }
 function timeTrialMode() {
-	if (course == "CM")
+	if (isTimeTrial())
 		return true;
 	if (isOnline && shareLink.options && shareLink.options.timeTrial)
 		return true;
@@ -18176,35 +18228,35 @@ function kartInstantSpeed(oKart) {
 }
 function handleExplosionHit(getId, pExplose) {
 	var oKart = aKarts[getId];
-	loseBall(getId);
+	loseBallon(getId);
 	oKart.spin(pExplose);
 	loseUsingItems(oKart);
 	stopDrifting(getId);
 	if (pExplose >= 84) {
-		oKart.champi = 0;
-		delete oKart.champiType;
+		oKart.mushroom = 0;
+		delete oKart.mushroomType;
 		oKart.speed = 0;
 		oKart.heightinc = 3;
-		supprArme(aKarts.indexOf(oKart));
+		delWeapon(aKarts.indexOf(oKart));
 	}
 }
 function handleHardHit(getId) {
 	var oKart = aKarts[getId];
-	loseBall(getId);
+	loseBallon(getId);
 	stopDrifting(getId);
 	oKart.spin(42);
 	loseUsingItem(oKart);
 }
 function handleSoftHit(getId) {
 	var oKart = aKarts[getId];
-	loseBall(getId);
+	loseBallon(getId);
 	stopDrifting(getId);
 	oKart.spin(20);
 	loseUsingItem(oKart);
 }
 function handlePoisonHit(getId) {
 	var oKart = aKarts[getId];
-	loseBall(getId);
+	loseBallon(getId);
 	stopDrifting(getId);
 	oKart.spin(20);
 	loseUsingItems(oKart);
@@ -18228,24 +18280,24 @@ function handleDecorExplosions(fSprite, callback) {
 	});
 }
 
-var oRoulettesPrefixes = ["", "2"];
-var oArmeKeys = ["arme", "stash"];
+var oWheelsPrefixes = ["", "2"];
+var oWeaponKeys = ["weapon", "stash"];
 function updateObjHud(ID) {
 	var oKart = aKarts[ID];
-	for (var i=0;i<oRoulettesPrefixes.length;i++) {
-		var prefix = oRoulettesPrefixes[i];
-		var oArmeKey = oArmeKeys[i];
-		var oArme = oKart[oArmeKey];
-		var isArme = false, isRoulette = false;
-		if (oArme) {
-			if (oKart["roulette"+prefix] < 25)
-				isRoulette = true;
+	for (var i=0;i<oWheelsPrefixes.length;i++) {
+		var prefix = oWheelsPrefixes[i];
+		var oWeaponKey = oWeaponKeys[i];
+		var oWeapon = oKart[oWeaponKey];
+		var isWeapon = false, isWheel = false;
+		if (oWeapon) {
+			if (oKart["wheel"+prefix] < 25)
+				isWheel = true;
 			else
-				isArme = true;
+				isWeapon = true;
 		}
 		var oItemHeight = i ? 2.5:4;
-		document.getElementById("scroller"+prefix+ID).style.visibility = isRoulette ? "visible" : "hidden";
-		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
+		document.getElementById("scroller"+prefix+ID).style.visibility = isWheel ? "visible" : "hidden";
+		document.getElementById("wheel"+prefix+ID).innerHTML = isWeapon ? '<img alt="'+oWeapon+'" class="pixelated" src="images/items/'+itemToImageName[oWeapon]+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
 	}
 	var oScroller = document.getElementById("scroller"+ID);
 	var oObjet = document.getElementById("objet"+ID);
@@ -18304,7 +18356,7 @@ function updateLapHud(sID) {
 	var oKart = getPlayerAtScreen(sID);
 	var oCompteurTours = document.querySelectorAll("#compteur"+sID+" .tour");
 	for (var i=0;i<oCompteurTours.length;i++)
-		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
+		oCompteurTours[i].innerHTML = Math.min(oKart.laps, oMap.tours);
 }
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
@@ -18326,7 +18378,7 @@ function updateSpeedometer(getId, aPosX,aPosY) {
 	var speedKmH = Math.hypot(oKart.x - aPosX, oKart.y - aPosY) * 10;
 	if (oKart.speed < 0)
 		speedKmH = -speedKmH;
-	if (oKart.tombe)
+	if (oKart.fall)
 		speedKmH = 0;
 	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
 }
@@ -18340,7 +18392,7 @@ function handleWrongWay(oKart) {
 	var isWrongWay = true;
 	var isRightWay = false;
 	for (var i=1;i<=lMap.checkpointCoords.length;i++) {
-		var dest = (oKart.demitours+i) % lMap.checkpointCoords.length;
+		var dest = (oKart.checkpoints+i) % lMap.checkpointCoords.length;
 		var iLine = lMap.checkpointCoords[dest];
 
 		var hLine = projete(oKart.x,oKart.y, iLine.O[0],iLine.O[1], iLine.O[0]+iLine.u[0],iLine.O[1]+iLine.u[1]);
@@ -18393,7 +18445,7 @@ function handleWrongWay(oKart) {
 		}
 	}
 	else {
-		if (isWrongWay && !oKart.tombe && !oKart.tourne)
+		if (isWrongWay && !oKart.fall && !oKart.spinning)
 			oKart.wrongWaySince = 1;
 	}
 }
@@ -18402,7 +18454,7 @@ function resetWrongWay(oKart) {
 	delete oKart.wrongWaySince;
 	delete oKart.rightWaySince;
 	if (oKart.wrongWaySprite) {
-		oKart.wrongWaySprite[0].suppr();
+		oKart.wrongWaySprite[0].delete();
 		delete oKart.wrongWaySprite;
 	}
 	removeIfExists(oKart.wrongWaySound);
@@ -18443,23 +18495,23 @@ function processCode(cheatCode) {
 			// 1 will always replace the first slot
 			// everything else/nothing will pick one automatically
 			if (![1,2].includes(args.length)) return "give: Invalid argument count";
-	
+
 			const wObject = args[0];
 			let isExistingObj = false;
 			const itemMode = getItemMode();
 			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-	
+
 			// check if the item exists in the current item distrib
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
-	
+
 			if (!isExistingObj) return "give: This item is not present in your item distribution";
-			if (itemSlot === 1 || !oPlayer.arme) {
-				oPlayer.arme = wObject;
-				oPlayer.roulette = 25;
+			if (itemSlot === 1 || !oPlayer.weapon) {
+				oPlayer.weapon = wObject;
+				oPlayer.wheel = 25;
 			} else {
 				oPlayer.stash = wObject;
-				oPlayer.roulette2 = 25;
+				oPlayer.wheel2 = 25;
 			}
 			updateObjHud(0);
 			return true;
@@ -18488,32 +18540,32 @@ function processCode(cheatCode) {
 					const parsed = parseFloat(arg); 	  // sanity
 					result = isNaN(parsed) ? undefined : parsed;
 				}
-			
+
 				let retval;
 				if (typeof onReturn === 'function') {
 					retval = onReturn(result);
 					if (typeof retval !== 'undefined') result = retval;
 				}
-			
+
 				return result;
 			}
-			
+
 			let newPos = {
 				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
 				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
 				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
 			};
-			
+
 			for (let key in newPos) {
 				if (newPos[key] === undefined || isNaN(newPos[key])) {
 					return 'tp: Invalid '+key+' value';
 				}
 			}
-			
+
 			oPlayer.x = newPos.x;
 			oPlayer.y = newPos.y;
 			oPlayer.rotation = newPos.r;
-			
+
 			resetRenderState();
 			return true;
 
@@ -18524,30 +18576,30 @@ function processCode(cheatCode) {
             let doNotTeleport = (command === "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
-            if (args[0] == "cur") t = oPlayer.tours;
+            if (args[0] == "cur") t = oPlayer.laps;
             if (!args[0]) {
                 t = oMap.tours;
-                const lMap = getCurrentLMap({ tours: t, demitours: 0 });
+                const lMap = getCurrentLMap({ laps: t, checkpoints: 0 });
                 c = lMap.checkpoint.length;
             }
 
 			let llMap = getCurrentLMap(getCurrentLapId(oPlayer));
 
             if (c > 0) c--;
-            if (args[1] == "cur") c = oPlayer.demitours;
+            if (args[1] == "cur") c = oPlayer.checkpoints;
             if (!args[1]) c = llMap.checkpoint.length - 1;
-			
+
 			if (isNaN(t)) return "lap: Invalid lap value";
 			if (isNaN(c)) return "lap: Invalid checkpoint value";
 
-            const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
+            const prevLap = oPlayer.laps, prevCP = oPlayer.checkpoints;
 			let curCheckpointCount = llMap.checkpoint.length;
 
 			if (t > oMap.tours) t = oMap.tours;
 			if (c > curCheckpointCount) c = curCheckpointCount - 1;
 
-            oPlayer.tours = t;
-            oPlayer.demitours = c;
+            oPlayer.laps = t;
+            oPlayer.checkpoints = c;
             const lMap = getCurrentLMap(oPlayer);
             const checkpoint = lMap.checkpointCoords[c];
             if (checkpoint) {
@@ -18570,7 +18622,7 @@ function processCode(cheatCode) {
 			if (args.length === 1) {
 				const sizeArg = args[0];
 				let newSize;
-		
+
 				if (sizeArg === "xs") {
 					newSize = 0.6;
 				} else if (sizeArg === "md") {
@@ -18583,7 +18635,7 @@ function processCode(cheatCode) {
 						return "size: Invalid argument";
 					}
 				}
-		
+
 				oPlayer.size = newSize;
 				oPlayer.mini = 0;
 				return true;
@@ -18592,7 +18644,7 @@ function processCode(cheatCode) {
 
 		case "balloon": // /balloon (n)
 			// no n arg will give you 1 balloon
-			if (course != "BB") return "balloon: Not in battle mode";
+			if (!isBallonBattle()) return "balloon: Not in battle mode";
 			if (![0,1].includes(args.length)) return "balloon: Invalid argument count";
 			let toAdd;
 			if (args.length == 0) {
@@ -18639,7 +18691,7 @@ function distToNextShortcut(oKart) {
 			return res;
 		var nextAiId = aiId + 1;
 		if (nextAiId >= oKart.aipoints.length) {
-			if (oMap.sections || oKart.tours >= oMap.tours)
+			if (oMap.sections || oKart.laps >= oMap.tours)
 				return Infinity;
 			nextAiId = 0;
 		}
@@ -18654,26 +18706,26 @@ function distToNextShortcut(oKart) {
 
 function hasShortcutItem(oKart, aishortcut) {
 	if (oKart.using.length) return false;
-	if (oKart.roulette != 25) return false;
-	return isShortcutItem(oKart.arme, aishortcut);
+	if (oKart.wheel != 25) return false;
+	return isShortcutItem(oKart.weapon, aishortcut);
 }
-function isShortcutItem(arme, aishortcut) {
-	var itemKey = arme;
-	/*switch (arme) {
-	case "champi":
-	case "champiX2":
-	case "champiX3":
-	case "champior":
-		itemKey = "champi";
+function isShortcutItem(weapon, aishortcut) {
+	var itemKey = weapon;
+	/*switch (weapon) {
+	case "mushroom":
+	case "mushroomX2":
+	case "mushroomX3":
+	case "goldMushroom":
+		itemKey = "mushroom";
 		break;
-	case "megachampi":
-		itemKey = "megachampi";
+	case "megamushroom":
+		itemKey = "megamushroom";
 		break;
-	case "etoile":
-		itemKey = "etoile";
+	case "star":
+		itemKey = "star";
 		break;
-	case "billball":
-		itemKey = "billball";
+	case "bulletbill":
+		itemKey = "bulletbill";
 		break;
 	}*/
 	return isShortcutItemKey(itemKey, aishortcut);
@@ -18683,17 +18735,17 @@ function isShortcutItemKey(itemKey, aishortcut) {
 	return aishortcut ? aishortcut[2].itemsDict[itemKey] : true;
 }
 function hasExtraShortcutItem(oKart, aishortcut) {
-	if (oKart.roulette2 == 25) {
+	if (oKart.wheel2 == 25) {
 		if (isShortcutItem(oKart.stash, aishortcut))
 			return true;
 	}
-	if (isShortcutItemKey("champi", aishortcut)) {
-		switch (oKart.arme) {
-		case "champiX2":
-		case "champiX3":
+	if (isShortcutItemKey("mushroom", aishortcut)) {
+		switch (oKart.weapon) {
+		case "mushroomX2":
+		case "mushroomX3":
 			return true;
-		case "champior":
-			if (oKart.champior)
+		case "goldMushroom":
+			if (oKart.goldMushroom)
 				return true;
 		}
 	}
@@ -18707,7 +18759,7 @@ function ai(oKart) {
 	var completeCircuit = (!isBattle && complete);
 	if (oKart.aipoint == undefined) {
 		delete oKart.aishortcut;
-		if (course != "BB") {
+		if (!isBallonBattle()) {
 			var minDist = Infinity;
 			for (var i=0;i<oKart.aipoints.length;i++) {
 				var iPt = oKart.aipoints[i];
@@ -18727,17 +18779,17 @@ function ai(oKart) {
 			oKart.lastAI = -1;
 		}
 	}
-	if (oKart.billball)
+	if (oKart.bulletbill)
 		return;
-	if (oKart.tombe)
+	if (oKart.fall)
 		return;
-	if ((oMap.sections && oKart.tours > oMap.tours) || (oKart.ballons && !oKart.ballons.length && !oKart.loose)) {
+	if ((oMap.sections && oKart.laps > oMap.tours) || (oKart.ballons && !oKart.ballons.length && !oKart.loose)) {
 		oKart.speedinc = 0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
 		return;
 	}
-	if (oKart.tourne) {
+	if (oKart.spinning) {
 		oKart.speedinc = (!oKart.z&&(oKart.speed>1)) ? 1:0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
@@ -18751,7 +18803,7 @@ function ai(oKart) {
 	for (var f=0;f<oKart.aipoints.length;f++) {
 		var lastAi, currentAi, nextAi;
 		var aiId = oKart.aipoint;
-		if (course != "BB") {
+		if (!isBallonBattle()) {
 			if (oKart.aishortcut != null && !oKart.aishortcuts[oKart.aipoint])
 				delete oKart.aishortcut;
 			if (oKart.aishortcut != null) {
@@ -18797,7 +18849,7 @@ function ai(oKart) {
 				var nbPos = Math.floor(oKart.x/100)+Math.floor(oKart.y/100)*6;
 				if (nbPos != oKart.lastAI) {
 					var shouldChangeAi = true;
-					if (oKart.speed >= 0 && !oKart.tombe) {
+					if (oKart.speed >= 0 && !oKart.fall) {
 						var distToAi2 = ((currentAi[0]-oKart.x)*(currentAi[0]-oKart.x) + (currentAi[1]-oKart.y)*(currentAi[1]-oKart.y));
 						switch (oMap.skin) {
 						case 27:
@@ -18808,26 +18860,26 @@ function ai(oKart) {
 						}
 					}
 					if (shouldChangeAi) {
-						var chemins = oKart.aipoints[nbPos];
-						if (!chemins || !chemins.length) {
-							chemins = [];
+						var paths = oKart.aipoints[nbPos];
+						if (!paths || !paths.length) {
+							paths = [];
 							if (nbPos%6)
-								chemins.push(nbPos-1);
+								paths.push(nbPos-1);
 							if (nbPos%6 < 5)
-								chemins.push(nbPos+1);
+								paths.push(nbPos+1);
 							if (nbPos >= 6)
-								chemins.push(nbPos-6);
+								paths.push(nbPos-6);
 							if (nbPos < 30)
-								chemins.push(nbPos+6);
-							var lastAiC = chemins.indexOf(oKart.lastAI);
+								paths.push(nbPos+6);
+							var lastAiC = paths.indexOf(oKart.lastAI);
 							if (lastAiC != -1)
-								chemins.splice(lastAiC,1);
+								paths.splice(lastAiC,1);
 						}
 						var origine = oKart.lastAI;
 						oKart.lastAI = nbPos;
 						do {
-							oKart.aipoint = chemins[Math.floor(Math.random()*chemins.length)];
-						} while ((origine == oKart.aipoint) && (chemins.length > 1));
+							oKart.aipoint = paths[Math.floor(Math.random()*paths.length)];
+						} while ((origine == oKart.aipoint) && (paths.length > 1));
 					}
 					oKart.nextAiStop = undefined;
 					oKart.randShift = undefined;
@@ -18863,20 +18915,20 @@ function ai(oKart) {
 					lastAi = oKart.lastAIpt;
 				}
 				if (oKart.nextAI === undefined) {
-					var chemins = new Array();
+					var paths = new Array();
 					for (var i=0;i<oKart.aipoints.length;i++) {
 						var iPt = oKart.aipoints[i];
 						if (iPt[0] == 1) {
 							if (iPt[1] == oKart.aipoint)
-								chemins.push(iPt[2]);
+								paths.push(iPt[2]);
 							else if (!iPt[3] && iPt[2] == oKart.aipoint)
-								chemins.push(iPt[1]);
+								paths.push(iPt[1]);
 						}
 					}
-					if (chemins.length) {
+					if (paths.length) {
 						do {
-							oKart.nextAI = chemins[Math.floor(Math.random()*chemins.length)];
-						} while ((oKart.lastAI == oKart.nextAI) && (chemins.length > 1));
+							oKart.nextAI = paths[Math.floor(Math.random()*paths.length)];
+						} while ((oKart.lastAI == oKart.nextAI) && (paths.length > 1));
 					}
 					else
 						oKart.nextAI = -1;
@@ -18927,7 +18979,7 @@ function ai(oKart) {
 		if (l >= oKart.nextAiStop) {
 			if (h < hMargin) {
 				if (!simpleBattle) {
-					if (course != "BB") {
+					if (!isBallonBattle()) {
 						if (!inTeleport(currentAi[0],currentAi[1])) {
 							if ((oKart.aishortcut!=null) && oKart.aishortcuts[oKart.aipoint]) {
 								var aishortcuts = oKart.aishortcuts[oKart.aipoint];
@@ -19155,7 +19207,7 @@ function ai(oKart) {
 			var dirToAim = Math.atan2(aimX-lastAi[0],aimY-lastAi[1])-oKart.rotation;
 			var rAngle = (Math.abs(Math.sin(dirToAim))+diffThetaAbs*Math.PI/180/2)/maxOmega;
 			var speedToAim = distToAim/rAngle;
-			if (course == "BB") {
+			if (isBallonBattle()) {
 				var rAngle0 = Math.max(5,rAngle/1.57);
 				if (rAngle > rAngle0) {
 					var maxHoleDist = 40, maxHoleDist2 = maxHoleDist*maxHoleDist;
@@ -19172,7 +19224,7 @@ function ai(oKart) {
 					if (marginSpeed < speedToAim) speedToAim = marginSpeed;
 				}
 				var maxSpeed = speedToAim;
-				if (oKart.bloops && oKart.bloops.effective(oKart))
+				if (oKart.bloopers && oKart.bloopers.effective(oKart))
 					maxSpeed = Math.min(maxSpeed,3);
 				maxSpeed /= 0.9;
 				if (!maxSpeed)
@@ -19191,7 +19243,7 @@ function ai(oKart) {
 			oKart.aipoint = undefined;
 		break;
 	}
-	if ((oKart.roulette == 25 || oKart.using[0]) && !oKart.tourne && !oKart.cannon) {
+	if ((oKart.wheel == 25 || oKart.using[0]) && !oKart.spinning && !oKart.cannon) {
 		var useRandomly = false;
 		function isPlayerTargetable(minDist,maxDist,minAngle,maxAngle, reverse) {
 			var minDist2 = minDist*minDist, maxDist2 = maxDist*maxDist;
@@ -19216,20 +19268,20 @@ function ai(oKart) {
 		if (!isOnline || oKart.controller == identifiant) {
 			if (oKart.using.length) {
 				switch(oKart.using[0].type) {
-				case "carapace-rouge":
-					if ((course == "BB") && (oKart.using.length < 2)) {
+				case "red-shell":
+					if ((isBallonBattle()) && (oKart.using.length < 2)) {
 						if (isPlayerTargetable(15,100, 0,30))
-							arme(aKarts.indexOf(oKart));
+							useWeapon(aKarts.indexOf(oKart));
 					}
 					else
 						useRandomly = true;
 					break;
-				case "carapace":
-					if ((course == "BB") && (oKart.using.length < 2)) {
+				case "shell":
+					if ((isBallonBattle()) && (oKart.using.length < 2)) {
 						if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15))
-							arme(aKarts.indexOf(oKart));
+							useWeapon(aKarts.indexOf(oKart));
 						if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true))
-							arme(aKarts.indexOf(oKart), true);
+							useWeapon(aKarts.indexOf(oKart), true);
 					}
 					else
 						useRandomly = true;
@@ -19245,8 +19297,8 @@ function ai(oKart) {
 					if (hasShortcutItem(oKart)) {
 						if (oKart.aishortcut != null) {
 							isCutting = true;
-							if (!oKart.champi && (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10)))
-								arme(aKarts.indexOf(oKart));
+							if (!oKart.mushroom && (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10)))
+								useWeapon(aKarts.indexOf(oKart));
 						}
 						else {
 							shouldWaitItemCache = oKart.shouldWaitItemCache;
@@ -19264,26 +19316,26 @@ function ai(oKart) {
 					oKart.shouldWaitItemCache = shouldWaitItemCache;
 				}
 				if (!shouldWait && !isCutting) {
-					switch (oKart.arme) {
-					case "megachampi":
-					case "etoile":
+					switch (oKart.weapon) {
+					case "megamushroom":
+					case "star":
 						if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-							arme(aKarts.indexOf(oKart));
+							useWeapon(aKarts.indexOf(oKart));
 						break;
-					case "champi":
-					case "champiX2":
-					case "champiX3":
-						if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-							arme(aKarts.indexOf(oKart));
+					case "mushroom":
+					case "mushroomX2":
+					case "mushroomX3":
+						if (!oKart.mushroom && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+							useWeapon(aKarts.indexOf(oKart));
 						break;
-					case "champior":
-						if (oKart.champior) {
+					case "goldMushroom":
+						if (oKart.goldMushroom) {
 							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
-								arme(aKarts.indexOf(oKart));
+								useWeapon(aKarts.indexOf(oKart));
 						}
 						else {
 							if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-								arme(aKarts.indexOf(oKart));
+								useWeapon(aKarts.indexOf(oKart));
 						}
 						break;
 					default:
@@ -19297,21 +19349,21 @@ function ai(oKart) {
 				var behind = true;
 				if (oKart.using.length) {
 					switch(oKart.using[0].type) {
-					case "banane":
-					case "fauxobjet":
+					case "banana":
+					case "fakeItem":
 					case "poison":
 						behind = false;
 						break;
 					}
 				}
-				var reverse = (((behind?oKart.place<oPlayers[0].place:oKart.place>oPlayers[0].place)||(course=="BB")) && (Math.random() > 0.5));
+				var reverse = (((behind?oKart.place<oPlayers[0].place:oKart.place>oPlayers[0].place)||(isBallonBattle())) && (Math.random() > 0.5));
 				var backwards = reverse && behind, forwards = reverse && !behind;
-				arme(aKarts.indexOf(oKart), backwards, forwards);
+				useWeapon(aKarts.indexOf(oKart), backwards, forwards);
 			}
 		}
 	}
-	if (oMap.jumpable && (iDificulty > 4)) {
-		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
+	if (oMap.jumpable && (iDifficulty > 4)) {
+		if (oKart.z && !oKart.jumped && !oKart.bulletbill && !oKart.figstate && !oKart.figuring && !oKart.spinning && (oKart.heightinc > 0)) {
 			if (speedToAim >= 8) {
 				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
 					oKart.figstate = 21;
@@ -19369,10 +19421,10 @@ function moveDecor() {
 						inc = decorIncs[actualType];
 					else
 						decorIncs[actualType] = 0;
-					
+
 					for (var i=0;i<decor.length;i++)
 						decorBehavior.move(decor[i],i,i+inc,decorBehavior.scope);
-					
+
 					decorIncs[actualType] += decor.length;
 				}
 			}
@@ -19675,7 +19727,7 @@ function runOneFrame() {
 		}
 		for (var i=0;i<aKarts.length;i++) {
 			var oKart = aKarts[i];
-			if (i && (course == "CM") && !oKart.cpu) {
+			if (i && (isTimeTrial()) && !oKart.cpu) {
 				var jTrajet = jTrajets[i-1];
 				if (timer <= jTrajet.length) {
 					var getInfos = jTrajet[timer-1];
@@ -19687,10 +19739,10 @@ function runOneFrame() {
 					oKart.aipoint = 0;
 					var lMap = getCurrentLMap(lMaps.length);
 					oKart.aipoints = lMap.aipoints[0];
-					oKart.tours = oMap.tours+1;
-					oKart.demitours = 0;
+					oKart.laps = oMap.tours+1;
+					oKart.checkpoints = 0;
 					oKart.lastAItime = 0;
-					oKart.arme = false;
+					oKart.weapon = false;
 					oKart.stopDrifting();
 					oKart.stopStunt();
 				}
@@ -19699,10 +19751,10 @@ function runOneFrame() {
 				if (oKart.cpu)
 					ai(oKart);
 				move(i);
-				if (course == "CM" && !oKart.cpu) {
+				if (isTimeTrial() && !oKart.cpu) {
 					var trajetplus = [Math.round(oKart.x),Math.round(oKart.y),oKart.z,Math.round(oKart.rotation)];
 					var trajetflags = "0000".split("");
-					if (oKart.tombe == 20)
+					if (oKart.fall == 20)
 						trajetflags[0] = "1";
 					if (oKart.ctrl) {
 						trajetflags[1] = "1";
@@ -19717,7 +19769,7 @@ function runOneFrame() {
 				}
 			}
 		}
-		if (course != "CM") {
+		if (!isTimeTrial()) {
 			var aRankScores = getRankScores();
 			for (var i=0;i<aKarts.length;i++)
 				places(i,aRankScores);
@@ -19767,13 +19819,13 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].checkpoints;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].checkpoints;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
@@ -19786,13 +19838,13 @@ function handleSpectatorInput(e) {
 	}
 	oSpecCam.reset();
 	var oKart = getPlayerAtScreen(0);
-	var stillRacing = isBattle ? !oKart.loose : (oKart.tours <= oMap.tours);
+	var stillRacing = isBattle ? !oKart.loose : (oKart.laps <= oMap.tours);
 	if (stillRacing) {
-		var $infoPlace = document.getElementById("infoPlace0");
-		$infoPlace.style.visibility = "";
-		$infoPlace.innerHTML = oKart.place;
+		var $rankInfo = document.getElementById("rankInfo0");
+		$rankInfo.style.visibility = "";
+		$rankInfo.innerHTML = oKart.place;
 		if (oKart.team != -1)
-			$infoPlace.style.color = cTeamColors.light[oKart.team];
+			$rankInfo.style.color = cTeamColors.light[oKart.team];
 	}
 	if (isBattle)
 		updateBalloonHud(document.getElementById("compteur0"),oKart);
@@ -20135,10 +20187,10 @@ function getStarSrc(playerName) {
 		return PERSOS_DIR + playerName + "-star.png";
 	return "images/star/star_" + playerName +".png";
 }
-function getSpriteSrc(playerName) {
-	if (isCustomPerso(playerName))
-		return PERSOS_DIR + playerName + ".png";
-	return "images/sprites/sprite_" + playerName +".png";
+function getSpriteImg(src) {
+	if (isCustomPerso(src))
+		return PERSOS_DIR + src + ".png";
+	return "images/sprites/sprite_" + ((src in itemToImageName) ? itemToImageName[src] : src) +".png";
 }
 function getCustomDecorData(customData,callback) {
 	var id = customData.id, type = customData.type;
@@ -20181,7 +20233,7 @@ function getCustomDecorData(customData,callback) {
 		return true;
 	});
 }
-function getMapIcSrc(playerName) {
+function getMapIconSrcForChar(playerName) {
 	if (isCustomPerso(playerName))
 		return customPersos[playerName].map;
 	return "images/map_icons/"+ playerName +".png";
@@ -20215,7 +20267,7 @@ function privateGame(options) {
 	oDiv.style.color = "#DFC";
 	oDiv.innerHTML = language ? "The &quot;private game&quot; option allows you to play only with people you want.<br />The principle is simple: a private link is generated, you send this link to the concerned members, and you can start playing.":"L'option &quot;partie privée&quot; vous permet de jouer uniquement avec les personnes de votre choix.<br />Le principe est simple : un lien privé est généré, vous envoyez ce lien aux membres concernés, et vous pouvez commencer à jouer.";
 	oScr.appendChild(oDiv);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Generate private link", "Générer un lien privé");
@@ -20230,7 +20282,7 @@ function privateGame(options) {
 		privateLink(options);
 	}
 	oScr.appendChild(oPInput);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Back", "Retour");
@@ -20667,7 +20719,7 @@ function privateGameOptions(gameOptions, onProceed) {
 				};
 				oSelect.style.fontSize = (iScreenScale*2) +"px";
 				oTeamTable.appendChild(oSelect);
-				
+
 				var oInput = document.createElement("input");
 				oInput.name = "name"+i;
 				oInput.type = "text";
@@ -20680,27 +20732,27 @@ function privateGameOptions(gameOptions, onProceed) {
 		oTeamTableCtn.appendChild(oTeamTable);
 		oScr2.appendChild(oTeamTableCtn);
 
-		var oPInput = document.createElement("input");
-		oPInput.type = "button";
-		oPInput.value = toLanguage("Back", "Retour");
-		oPInput.style.fontSize = (2*iScreenScale)+"px";
-		oPInput.style.position = "absolute";
-		oPInput.style.left = (2*iScreenScale)+"px";
-		oPInput.style.top = (35*iScreenScale)+"px";
-		oPInput.onclick = function() {
+		var oPBack = document.createElement("input");
+		oPBack.type = "button";
+		oPBack.value = toLanguage("Back", "Retour");
+		oPBack.style.fontSize = (2*iScreenScale)+"px";
+		oPBack.style.position = "absolute";
+		oPBack.style.left = (2*iScreenScale)+"px";
+		oPBack.style.top = (35*iScreenScale)+"px";
+		oPBack.onclick = function() {
 			oScr.removeChild(oScr2);
 		}
-		oScr2.appendChild(oPInput);
+		oScr2.appendChild(oPBack);
 
-		var oVInput = document.createElement("input");
-		oVInput.style.position = "absolute";
-		oVInput.style.right = (6*iScreenScale)+"px";
-		oVInput.style.top = (34*iScreenScale+4)+"px";
-		oVInput.type = "submit";
-		oVInput.style.fontSize = (iScreenScale*3) +"px";
-		oVInput.value = toLanguage("Validate","Valider");
-		oVInput.style.marginLeft = iScreenScale +"px";
-		oScr2.appendChild(oVInput);
+		var oValidate = document.createElement("input");
+		oValidate.style.position = "absolute";
+		oValidate.style.right = (6*iScreenScale)+"px";
+		oValidate.style.top = (34*iScreenScale+4)+"px";
+		oValidate.type = "submit";
+		oValidate.style.fontSize = (iScreenScale*3) +"px";
+		oValidate.value = toLanguage("Validate","Valider");
+		oValidate.style.marginLeft = iScreenScale +"px";
+		oScr2.appendChild(oValidate);
 
 		oScr.appendChild(oScr2);
 		return false;
@@ -21049,7 +21101,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
-	
+
 	var oTr = document.createElement("tr");
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
@@ -22000,11 +22052,11 @@ function privateLink(options) {
 		}
 		return false;
 	});
-	
+
 	oContainers[0].appendChild(oScr);
 }
 
-function selectTypeScreen() {	
+function selectTypeScreen() {
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -22081,7 +22133,7 @@ function selectTypeScreen() {
 			course = "VS";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
-			selectNbJoueurs();
+			selectNbPlayers();
 		};
 		oScr.appendChild(oPInput);
 
@@ -22097,7 +22149,7 @@ function selectTypeScreen() {
 			course = "BB";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
-			selectNbJoueurs();
+			selectNbPlayers();
 		};
 		oScr.appendChild(oPInput);
 
@@ -22216,15 +22268,15 @@ function selectTypeScreen() {
 
 			oPInput.onclick = function() {
 				course = this.dataset.course;
-				if (course == "CL")
+				if (isOnlineRace())
 					document.location.href = onlineModeLink();
 				else {
 					oScr.innerHTML = "";
 
 					oContainers[0].removeChild(oScr);
-					if (course == "VS")
-						selectNbJoueurs();
-					else if (course == "CH")
+					if (isVSRace())
+						selectNbPlayers();
+					else if (isChallenges())
 						selectChallengesScreen();
 					else
 						selectPlayerScreen(0);
@@ -22254,16 +22306,16 @@ function selectTypeScreen() {
 	oEnglish.style.top = (35*iScreenScale)+"px";
 	oEnglish.style.width = (4*iScreenScale)+"px";
 	oEnglish.style.height = Math.round(8*iScreenScale/3)+"px";
-	
+
 	var oFrench = document.createElement("img");
 	oFrench.src = "images/french.png";
-	oEnglish.alt = "Fr";
+	oFrench.alt = "Fr";
 	oFrench.style.position = "absolute";
 	oFrench.style.left = (74*iScreenScale)+"px";
 	oFrench.style.top = (35*iScreenScale)+"px";
 	oFrench.style.width = (4*iScreenScale)+"px";
 	oFrench.style.height = Math.round(8*iScreenScale/3)+"px";
-	
+
 	var oSelected = language ? oEnglish:oFrench, oButton = language ? oFrench:oEnglish;
 	oSelected.style.border = "solid 1px "+ primaryColor;
 	oButton.style.border = "solid 1px transparent";
@@ -22285,7 +22337,7 @@ function selectTypeScreen() {
 				return false;
 		});
 	}
-	
+
 	oScr.appendChild(oEnglish);
 	oScr.appendChild(oFrench);
 
@@ -22297,7 +22349,7 @@ function selectMainPage() {
 			if (mId)
 				selectPlayerScreen(0);
 			else
-				connexion();
+				connection();
 			break;
 		case "MK":
 			selectTypeScreen();
@@ -22308,17 +22360,17 @@ function selectMainPage() {
 				selectTypeScreen();
 			else {
 				course = "VS";
-				selectNbJoueurs();
+				selectNbPlayers();
 			}
 			break;
 		case "BA":
 		case "AR":
 			course = "BB";
-			selectNbJoueurs();
+			selectNbPlayers();
 	}
 }
 
-function selectNbJoueurs(force) {
+function selectNbPlayers(force) {
 	if (clSelected && !force) {
 		selectPlayerScreen(0);
 		return;
@@ -22427,19 +22479,19 @@ function selectOnlineScreen(options) {
 
 	oScr.appendChild(toTitle(toLanguage("Online mode", "Mode en ligne"), 2));
 
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Back", "Retour");
-	oPInput.style.fontSize = (2*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (2*iScreenScale)+"px";
-	oPInput.style.top = (35*iScreenScale)+"px";
-	oPInput.onclick = function() {
+	var oPBack = document.createElement("input");
+	oPBack.type = "button";
+	oPBack.value = toLanguage("Back", "Retour");
+	oPBack.style.fontSize = (2*iScreenScale)+"px";
+	oPBack.style.position = "absolute";
+	oPBack.style.left = (2*iScreenScale)+"px";
+	oPBack.style.top = (35*iScreenScale)+"px";
+	oPBack.onclick = function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		selectTypeScreen();
 	}
-	oScr.appendChild(oPInput);
+	oScr.appendChild(oPBack);
 
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
@@ -22569,7 +22621,7 @@ function selectTypeCreate() {
 	for (let i=0;i<oModes.length;i++) {
 		var oMode = oModes[i];
 		var oDiv = document.createElement("div");
-		oDiv.innerHTML = 
+		oDiv.innerHTML =
 			'<img src="images/'+oMode.thumbnail+'" alt="'+oMode.name+'" style="height: '+ (iScreenScale*10) +'px" />' +
 			'<div style="padding: '+ iScreenScale +'px '+ Math.round(iScreenScale*1.5) +'px">' +
 				'<h2 style="font-size: 1.5em; margin: 0">'+ oMode.name +'</h2>' +
@@ -22590,7 +22642,7 @@ function selectTypeCreate() {
 		oModesDiv.appendChild(oDiv);
 	}
 	oScr.appendChild(oModesDiv);
-	
+
 	var oLink = document.createElement("a");
 	oLink.style.color = "#CCF";
 	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
@@ -22689,7 +22741,7 @@ function selectTrackCreate(i) {
 		oDiv.style.color = "#EEE";
 		oDiv.style.textDecoration = "none";
 		oDiv.style.borderRadius = Math.round(iScreenScale/2) +"px";
-		oDiv.innerHTML = 
+		oDiv.innerHTML =
 			'<img src="images/'+ oMode.thumbnail +'" style="width: '+ (iScreenScale*10) +'px; height: '+ (iScreenScale*9) +'px" alt="'+ oMode.name +'" />'+
 			'<div style="margin-top: '+ Math.round(iScreenScale/2) +'px">'+ oMode.name +'</div>';
 		oDiv.onmouseover = function() {
@@ -22702,7 +22754,7 @@ function selectTrackCreate(i) {
 		oModesDiv.appendChild(oDiv);
 	}
 	oScr.appendChild(oModesDiv);
-	
+
 	var oLink = document.createElement("a");
 	oLink.style.color = "#CCF";
 	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
@@ -22715,19 +22767,19 @@ function selectTrackCreate(i) {
 	oScr.appendChild(oLink);
 
 	oContainers[0].appendChild(oScr);
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Back", "Retour");
-	oPInput.style.fontSize = (2*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (2*iScreenScale)+"px";
-	oPInput.style.top = (36*iScreenScale)+"px";
-	oPInput.onclick = function() {
+	var oPBack = document.createElement("input");
+	oPBack.type = "button";
+	oPBack.value = toLanguage("Back", "Retour");
+	oPBack.style.fontSize = (2*iScreenScale)+"px";
+	oPBack.style.position = "absolute";
+	oPBack.style.left = (2*iScreenScale)+"px";
+	oPBack.style.top = (36*iScreenScale)+"px";
+	oPBack.onclick = function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		selectTypeCreate();
 	}
-	oScr.appendChild(oPInput);
+	oScr.appendChild(oPBack);
 
 	oContainers[0].appendChild(oScr);
 
@@ -22742,8 +22794,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	if (!IdJ) {
 		strPlayer = [];
 		aPlayers = [];
-		for (joueurs in cp)
-			aPlayers.push(joueurs);
+		for (players in cp)
+			aPlayers.push(players);
 		updateCommandSheet();
 	}
 	var itemMode = getItemMode();
@@ -22764,7 +22816,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	var shrinkAll = ((course == "VS") || (course == "BB")) && !clSelected;
+	var shrinkAll = ((isVSRace()) || (isBallonBattle())) && !clSelected;
 
 	var oTitle;
 	if (isCustomSel) {
@@ -22788,7 +22840,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 	var baseY = shrinkAll ? 8:10;
 	var customCharsEnabled = (cupOpts.customchars !== 0);
-	
+
 	var cTable = document.createElement("table");
 	cTable.style.display = "none";
 	cTable.style.position = "absolute";
@@ -22803,7 +22855,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	cTable.setAttribute("cellpadding", 2);
 	cTable.setAttribute("cellspacing", 2);
 	document.body.appendChild(cTable);
-	
+
 	var hTr = document.createElement("tr");
 	var hTd1 = document.createElement("td");
 	hTd1.innerHTML = "&nbsp;";
@@ -22813,23 +22865,23 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	hTd2.style.fontWeight = "bold";
 	hTr.appendChild(hTd2);
 	cTable.appendChild(hTr);
-	
-	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
-	var dCaracteristiques = new Array();
-	
-	for (var i=0;i<sCaracteristiques.length;i++) {
+
+	var sSpecifications = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
+	var dSpecifications = new Array();
+
+	for (var i=0;i<sSpecifications.length;i++) {
 		var oTr = document.createElement("tr");
 		var oTd1 = document.createElement("td");
 		oTd1.className = "rgt";
-		oTd1.innerHTML = sCaracteristiques[i] +" :";
+		oTd1.innerHTML = sSpecifications[i] +" :";
 		oTr.appendChild(oTd1);
 		var oTd2 = document.createElement("td");
-		dCaracteristiques[i] = document.createElement("div");
-		dCaracteristiques[i].style.backgroundColor = "#838057";
-		dCaracteristiques[i].style.border = "solid 1px silver";
-		dCaracteristiques[i].style.height = 2*iScreenScale+"px";
-		dCaracteristiques[i].innerHTML = "&nbsp;";
-		oTd2.appendChild(dCaracteristiques[i]);
+		dSpecifications[i] = document.createElement("div");
+		dSpecifications[i].style.backgroundColor = "#838057";
+		dSpecifications[i].style.border = "solid 1px silver";
+		dSpecifications[i].style.height = 2*iScreenScale+"px";
+		dSpecifications[i].innerHTML = "&nbsp;";
+		oTd2.appendChild(dSpecifications[i]);
 		oTr.appendChild(oTd2);
 		cTable.appendChild(oTr);
 	}
@@ -22853,18 +22905,18 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		}, 100);
 	}
 
-	function createPersoSelector(oJoueur) {
+	function createPersoSelector(oPlayer) {
 		var oDiv = document.createElement("div");
 		oDiv.style.backgroundColor = "#78D0F8";
 		oDiv.style.position = "absolute";
 		oDiv.style.width = (5 * jScreenScale) + "px";
 		oDiv.style.height = (5 * jScreenScale) + "px";
-		oDiv.style.borderTop = "double 4px black"; 
-		oDiv.style.borderLeft = "double 4px #F8F8F8"; 
-		oDiv.style.borderRight = "double 4px #F8F8F8"; 
+		oDiv.style.borderTop = "double 4px black";
+		oDiv.style.borderLeft = "double 4px #F8F8F8";
+		oDiv.style.borderRight = "double 4px #F8F8F8";
 		oDiv.style.borderBottom = "solid 5px #00B800";
 		oDiv.style.cursor = "pointer";
-		oDiv.id = "perso-selector-"+oJoueur;
+		oDiv.id = "perso-selector-"+oPlayer;
 
 		var cDiv = document.createElement("div");
 		cDiv.style.position = "absolute";
@@ -22877,16 +22929,16 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oPImg.style.height = (5 * jScreenScale) +"px";
 		oPImg.style.position = "absolute";
 		oPImg.className = "pixelated";
-		if (pUnlockMap[oJoueur]) {
-			var libre = true;
+		if (pUnlockMap[oPlayer]) {
+			var usable = true;
 			for (var j=0;j<strPlayer.length;j++) {
-				if (strPlayer[j] == oJoueur) {
-					libre = false;
+				if (strPlayer[j] == oPlayer) {
+					usable = false;
 					break;
 				}
 			}
-			oPImg.src = (libre ? getSpriteSrc(oJoueur):getStarSrc(oJoueur));
-			oPImg.alt = oJoueur;
+			oPImg.src = (usable ? getSpriteImg(oPlayer):getStarSrc(oPlayer));
+			oPImg.alt = oPlayer;
 			oPImg.style.left = -(30 * jScreenScale) +"px";
 			oPImg.j = IdJ;
 			oPImg.onload = function() {
@@ -22904,9 +22956,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oDiv.onmouseover = function() {
 				cTable.style.display = "block";
 				var cImg = cDiv.firstChild;
-				hTd2.innerHTML = toPerso(cImg.alt);
-				for (var i=0;i<dCaracteristiques.length;i++)
-					dCaracteristiques[i].style.width = (5*iScreenScale)*(cp[cImg.alt][i]*8+1)+"px";
+				hTd2.innerHTML = getPersoName(cImg.alt);
+				for (var i=0;i<dSpecifications.length;i++)
+					dSpecifications[i].style.width = (5*iScreenScale)*(cp[cImg.alt][i]*8+1)+"px";
 				clearTimeout(rotateHandler);
 				tourner(cImg);
 			}
@@ -22927,8 +22979,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				strPlayer[cImg.j] = cImg.alt;
 				var newOptions = ""; // will be used later
 				if (!isOnline) {
-					if (course == "VS") {
-						iDificulty = 4+selectedDifficulty*0.5;
+					if (isVSRace()) {
+						iDifficulty = 4+selectedDifficulty*0.5;
 						newOptions = "difficulty="+ selectedDifficulty +"&players="+ fInfos.nbPlayers +"&team="+ fInfos.teams;
 					}
 					else
@@ -22990,7 +23042,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						aPlayers = [strPlayer[0]];
 						iRaceCount = 0;
 					}
-					else if (course == "CM")
+					else if (isTimeTrial())
 						aPlayers = [];
 					else {
 						aPlayers = [];
@@ -23023,14 +23075,14 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						}
 						else {
 							var i = 0;
-							for (joueurs in cp) {
-								if (pUnlockMap[joueurs]) {
-									aPlayers.push(joueurs);
+							for (players in cp) {
+								if (pUnlockMap[players]) {
+									aPlayers.push(players);
 									i++;
 								}
 							}
 							aPlayers.sort(function(){return 0.5-Math.random()});
-							var nbPlayers = (course!="GP") ? fInfos.nbPlayers : 8;
+							var nbPlayers = (!isGrandPrix()) ? fInfos.nbPlayers : 8;
 							if (aPlayers.length < nbPlayers) {
 								var aLength = aPlayers.length;
 								aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
@@ -23039,9 +23091,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							}
 							else {
 								for (var i=0;i<aPlayers.length;i++) {
-									var joueur = aPlayers[i];
+									var player = aPlayers[i];
 									for (var j=0;j<strPlayer.length;j++) {
-										if (strPlayer[j] == joueur) {
+										if (strPlayer[j] == player) {
 											aPlayers.splice(i,1);
 											i--;
 											break;
@@ -23049,13 +23101,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									}
 								}
 							}
-							var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
-							aPlayers.splice(0,oSuppr);
+							var oDelete = aPlayers.length-nbPlayers+strPlayer.length;
+							aPlayers.splice(0,oDelete);
 						}
 						aPlaces = [];
 						aTeams = [];
 						resetScores();
-						if (course != "GP") {
+						if (!isGrandPrix()) {
 							selectedPlayers = fInfos.nbPlayers;
 							selectedTeams = fInfos.teams;
 							xhr("updateCourseOptions.php", newOptions, function(reponse) {
@@ -23174,10 +23226,10 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		pDiv.style.height = (5 * iScreenScale) + "px";
 		pDiv.style.left = (myPersosOffset * iScreenScale) +"px";
 		pDiv.style.top = ((baseY+14) * iScreenScale - 8)+"px";
-		pDiv.style.borderTop = "double 4px black"; 
-		pDiv.style.borderLeft = "double 4px #F8F8F8"; 
-		pDiv.style.borderRight = "double 4px #F8F8F8"; 
-		pDiv.style.borderBottom = "solid 5px #00B800"; 
+		pDiv.style.borderTop = "double 4px black";
+		pDiv.style.borderLeft = "double 4px #F8F8F8";
+		pDiv.style.borderRight = "double 4px #F8F8F8";
+		pDiv.style.borderBottom = "solid 5px #00B800";
 		pDiv.style.overflow = "hidden";
 
 		var pPImg = new Image();
@@ -23196,51 +23248,51 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	}
 
 	oContainers[0].appendChild(oScr);
-	
+
 	if (isOnline) {
 		if (isCustomSel) {
 		}
 		else {
-			var aDeconnexion = document.createElement("a");
-			aDeconnexion.style.color = "white";
-			aDeconnexion.style.fontSize = (iScreenScale*2) +"px";
-			aDeconnexion.style.position = "absolute";
-			aDeconnexion.style.left = (iScreenScale*24) +"px";
-			aDeconnexion.style.top = (iScreenScale*34) +"px";
-			aDeconnexion.innerHTML = toLanguage("Log out", "Déconnexion");
-			aDeconnexion.href = "#null";
-			aDeconnexion.onclick = function() {
+			var aDisconnect = document.createElement("a");
+			aDisconnect.style.color = "white";
+			aDisconnect.style.fontSize = (iScreenScale*2) +"px";
+			aDisconnect.style.position = "absolute";
+			aDisconnect.style.left = (iScreenScale*24) +"px";
+			aDisconnect.style.top = (iScreenScale*34) +"px";
+			aDisconnect.innerHTML = toLanguage("Log out", "Déconnexion");
+			aDisconnect.href = "#null";
+			aDisconnect.onclick = function() {
 				oScr.innerHTML = "";
 				oContainers[0].removeChild(oScr);
 				document.body.removeChild(cTable);
 				displayCommands();
 				mPseudo = "";
 				mCode = "";
-				connexion();
+				connection();
 				xhr('deco.php', null, function() {
 					return true;
 				});
 				return false;
 			};
-			oScr.appendChild(aDeconnexion);
-			
-			var eClassement = document.createElement("a");
-			eClassement.style.fontSize = (iScreenScale*2) +"px";
-			eClassement.style.position = "absolute";
-			eClassement.style.left = (iScreenScale*41) +"px";
-			eClassement.style.top = (iScreenScale*34) +"px";
-			eClassement.innerHTML = toLanguage("Rankings", "Classement");
+			oScr.appendChild(aDisconnect);
+
+			var eRanking = document.createElement("a");
+			eRanking.style.fontSize = (iScreenScale*2) +"px";
+			eRanking.style.position = "absolute";
+			eRanking.style.left = (iScreenScale*41) +"px";
+			eRanking.style.top = (iScreenScale*34) +"px";
+			eRanking.innerHTML = toLanguage("Rankings", "Classement");
 			if (shareLink.options && shareLink.options.localScore) {
-				eClassement.title = toLanguage("Private game ranking","Classement partie privée");
-				eClassement.style.color = "#CF8";
-				eClassement.setAttribute("href", "localscores.php"+window.location.search);
+				eRanking.title = toLanguage("Private game ranking","Classement partie privée");
+				eRanking.style.color = "#CF8";
+				eRanking.setAttribute("href", "localscores.php"+window.location.search);
 			}
 			else {
-				eClassement.style.color = "white";
-				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
+				eRanking.style.color = "white";
+				eRanking.setAttribute("href", "bestscores.php" + (isBallonBattle()?"?battle":""));
 			}
-			eClassement.onclick = function() {};
-			oScr.appendChild(eClassement);
+			eRanking.onclick = function() {};
+			oScr.appendChild(eRanking);
 
 			if (shareLink.key) {
 				if (shareLink.player == identifiant) {
@@ -23372,7 +23424,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 		oScr.appendChild($spectatorModeCtn);
 	}
-	else if (course == "VS" || course == "BB") {
+	else if (isVSRace() || isBallonBattle()) {
 		var oForm = document.createElement("form");
 		oForm.onsubmit = function(){return false};
 		oForm.style.position = "absolute";
@@ -23381,13 +23433,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oForm.style.fontSize = (2*iScreenScale) +"px";
 		oForm.style.zIndex = 2;
 		if (!IdJ && !newP) {
-			iDificulty = selectedDifficulty;
+			iDifficulty = selectedDifficulty;
 			fInfos.nbPlayers = selectedPlayers;
 			fInfos.teams = selectedTeams;
 			fInfos.nbteams = +selectedNbTeams;
 			fInfos.friendlyFire = !!selectedFriendlyFire;
 		}
-		if (course == "VS") {
+		if (isVSRace()) {
 			var oDiffDiv = document.createElement("label");
 			oDiffDiv.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
 			var iDifficulties = [toLanguage("Easy", "Facile"), toLanguage("Medium", "Moyen"), toLanguage("Difficult", "Difficile"), toLanguage("Extreme", "Extrême"), toLanguage("Impossible", "Impossible")];
@@ -23411,7 +23463,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oForm.appendChild(oDiffDiv);
 		}
 		else
-			iDificulty = 4.5;
+			iDifficulty = 4.5;
 		oTeamsDiv = document.createElement("label");
 		oTeamsDiv.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
 		var oSelect = document.createElement("select");
@@ -23432,7 +23484,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		}
 		oTeamsDiv.appendChild(oSelect);
 		oForm.appendChild(oTeamsDiv);
-		
+
 		oParticipantsDiv = document.createElement("label");
 		oParticipantsDiv.style.display = "block";
 		oParticipantsDiv.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
@@ -23492,7 +23544,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oChoosePerso.style.marginLeft = (iScreenScale*2) +"px";
 		oChoosePerso.style.color = "white";
 		oChoosePerso.onclick = function() {
-			iDificulty = selectedDifficulty;
+			iDifficulty = selectedDifficulty;
 			selectedPlayers = fInfos.nbPlayers;
 			selectedTeams = fInfos.teams;
 			if (oItemSelect)
@@ -23694,7 +23746,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				}
 			}
 			oItemCustomActions.appendChild(oItemCustomDel);
-			
+
 			tDiv.appendChild(oItemCustomActions);
 
 			var selectedItemSetId = localStorage.getItem("itemset."+itemMode);
@@ -23713,7 +23765,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oTable.style.marginRight = "auto";
 			oScroll.appendChild(oTable);
 
-			if (course != "BB") {
+			if (!isBallonBattle()) {
 				var oTr = document.createElement("tr");
 				var oTd = document.createElement("td");
 				oTd.setAttribute("colspan", 2);
@@ -23824,7 +23876,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					}
 				}
 				oPtCustomActions.appendChild(oPtCustomDel);
-				
+
 				tDiv.appendChild(oPtCustomActions);
 
 				var selectedPtSetId = localStorage.getItem("ptset");
@@ -23869,17 +23921,17 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 			oMoreOptionsScreen.appendChild(oScroll);
 
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = toLanguage("Back", "Retour");
-			oPInput.style.fontSize = (2*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (4*iScreenScale)+"px";
-			oPInput.style.top = (32*iScreenScale)+"px";
-			oPInput.onclick = function() {
+			var oPBack = document.createElement("input");
+			oPBack.type = "button";
+			oPBack.value = toLanguage("Back", "Retour");
+			oPBack.style.fontSize = (2*iScreenScale)+"px";
+			oPBack.style.position = "absolute";
+			oPBack.style.left = (4*iScreenScale)+"px";
+			oPBack.style.top = (32*iScreenScale)+"px";
+			oPBack.onclick = function() {
 				oMoreOptionsScreen.style.display = "none";
 			}
-			oMoreOptionsScreen.appendChild(oPInput);
+			oMoreOptionsScreen.appendChild(oPBack);
 		}
 		else {
 			var ccConstraint = getCcConstraint(clSelected);
@@ -23889,13 +23941,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oClassSelect.value = ccConstraint;
 			}
 		}
-		
+
 		oScr.appendChild(oForm);
 
 		if (isCustomSel)
 			oForm.style.display = "none";
 	}
-	else if (course == "CM") {
+	else if (isTimeTrial()) {
 		if (!clSelected) {
 			var oDiv = document.createElement("div");
 			oDiv.style.position = "absolute";
@@ -23990,7 +24042,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oStepBack.style.color = oStepValue.style.color = "#F90";
 		oScr.appendChild(oStepCtn);
 	}
-	
+
 	if (nBasePersos > maxCharsPerPage) {
 		var lastPageButton = document.createElement("input");
 		lastPageButton.type = "button";
@@ -24024,21 +24076,21 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
         nextPageButton.style.fontSize = Math.round(2.5*iScreenScale - 4)+"px";
         nextPageButton.style.textAlign = "center";
 		oScr.appendChild(nextPageButton);
-        
+
 		nextPageButton.onclick = function() {
 			curPage = (curPage+1) % pages;
 			showCharacters(curPage);
 		};
 	}
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Back", "Retour");
-	oPInput.style.fontSize = (2*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (2*iScreenScale)+"px";
-	oPInput.style.top = (35*iScreenScale)+"px";
+	var oPBack = document.createElement("input");
+	oPBack.type = "button";
+	oPBack.value = toLanguage("Back", "Retour");
+	oPBack.style.fontSize = (2*iScreenScale)+"px";
+	oPBack.style.position = "absolute";
+	oPBack.style.left = (2*iScreenScale)+"px";
+	oPBack.style.top = (35*iScreenScale)+"px";
 	if (isOnline)
-		oPInput.style.top = (34*iScreenScale)+"px";
+		oPBack.style.top = (34*iScreenScale)+"px";
 	function goBack() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -24055,20 +24107,20 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		else {
 			displayCommands();
 			if (isOnline)
-				quitter();
-			else if (course == "VS" || course == "BB") {
+				quit();
+			else if (isVSRace() || isBallonBattle()) {
 				for (var i=1;i<oContainers.length;i++)
 					oContainers.splice(i,1);
-				selectNbJoueurs(true);
+				selectNbPlayers(true);
 			}
 			else
 				selectTypeScreen();
 		}
 	}
-	oPInput.onclick = goBack;
+	oPBack.onclick = goBack;
 	if (isCustomSel)
-		oPInput.style.color = "#F90";
-	oScr.appendChild(oPInput);
+		oPBack.style.color = "#F90";
+	oScr.appendChild(oPBack);
 
 	if (clSelected && clSelected.autoset) {
 		if (clSelected.autoset.selectedOpponents) {
@@ -24111,8 +24163,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	function addMyPersos(newPersos) {
 		var lastCp = cp;
 		cp = {};
-		for (var joueurs in baseCp)
-			cp[joueurs] = baseCp[joueurs];
+		for (var players in baseCp)
+			cp[players] = baseCp[players];
 		customPersos = baseCustomPersos();
 		for (var i=0;i<newPersos.length;i++) {
 			var newPerso = newPersos[i];
@@ -24126,11 +24178,11 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			customPersos[persoKey] = newPerso;
 		}
 		aPlayers = [];
-		for (joueurs in cp)
-			aPlayers.push(joueurs);
-		for (var joueurs in lastCp) {
-			if (!cp[joueurs])
-				cp[joueurs] = lastCp[joueurs];
+		for (players in cp)
+			aPlayers.push(players);
+		for (var players in lastCp) {
+			if (!cp[players])
+				cp[players] = lastCp[players];
 		}
 		for (var i=0;i<newPersos.length;i++) {
 			var persoKey = newPersos[i].sprites;
@@ -24250,7 +24302,7 @@ function selectItemScreen(oScr, callback, options) {
 	for (var i=0;i<possibleItems.length;i++) {
 		var oTd = document.createElement("td");
 		var oImg = document.createElement("img");
-		oImg.src = "images/items/"+possibleItems[i]+".png";
+		oImg.src = "images/items/"+itemToImageName[possibleItems[i]]+".png";
 		oImg.alt = possibleItems[i];
 		oImg.style.width = (iScreenScale*2) +"px";
 		oTd.appendChild(oImg);
@@ -24730,7 +24782,7 @@ function selectItemScreen(oScr, callback, options) {
 		}
 		oSetForm.appendChild(oLink);
 
-		if (possibleItems.indexOf("carapacenoire") === -1) {
+		if (possibleItems.indexOf("blackShell") === -1) {
 			oScr2.tabIndex = 0;
 			oScr2.style.outline = "none";
 			var secretCode = "darkshell", typedCode = "";
@@ -24747,7 +24799,7 @@ function selectItemScreen(oScr, callback, options) {
 					}
 					if (typedCode === secretCode) {
 						if (confirm("Enable dark shell item?")) {
-							itemDistribution0[itemDistribution0.length-1].carapacenoire = 0;
+							itemDistribution0[itemDistribution0.length-1].blackShell = 0;
 							oScr.removeChild(oScr2);
 							selectItemScreen(oScr, callback, options);
 							return;
@@ -24760,7 +24812,7 @@ function selectItemScreen(oScr, callback, options) {
 			}, 1);
 		}
 	}
-	
+
 	oScr2.appendChild(oSetForm);
 
 	oScr.appendChild(oScr2);
@@ -25039,11 +25091,8 @@ function hasChallenges() {
 	}
 }
 function isTeamPlay() {
-	switch (course) {
-		case "BB":
-		case "VS":
-			return selectedTeams;
-	}
+	if (isBallonBattle() || isVSRace())
+		return selectedTeams;
 	return 0;
 }
 function setupTeamColors() {
@@ -25265,7 +25314,7 @@ function selectTeamScreen(IdJ) {
 function selectTrackScreen() {
 	selectMapScreen();
 }
-function selectGamersScreen() {	
+function selectGamersScreen() {
 	if (!isOnline && isTeamPlay())
 		selectTeamScreen(0);
 	else
@@ -26052,7 +26101,7 @@ function searchCourse(opts) {
 	oStyle.height = (iHeight*iScreenScale)+"px";
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
-	
+
 	var oDiv = document.createElement("div");
 	oDiv.style.position = "absolute";
 	oDiv.style.left = "0px";
@@ -26061,7 +26110,7 @@ function searchCourse(opts) {
 	oDiv.style.fontSize = (iScreenScale*4) +"";
 	oDiv.style.textAlign = "center";
 	oDiv.innerHTML = toLanguage("Searching for other players<br />Please wait...", "Recherche d'autres joueurs<br />Veuillez patienter...");
-	
+
 	oScr.appendChild(oDiv);
 
 	var oAlertCtn = document.createElement("label");
@@ -26070,14 +26119,14 @@ function searchCourse(opts) {
 	oAlertCtn.style.top = (iScreenScale*15-9) +"px";
 	oAlertCtn.style.width = (iScreenScale*iWidth) +"px";
 	oAlertCtn.style.textAlign = "center";
-	
+
 	var oAlert = document.createElement("input");
 	oAlert.type = "checkbox";
 	oAlert.id = "iAlert";
 	oAlert.style.transform = oAlert.style.WebkitTransform = oAlert.style.MozTransform = "scale("+ (iScreenScale/6) +") translateY(8%)";
 	oAlert.style.transformOrigin = oAlert.style.WebkitTransformOrigin = oAlert.style.MozTransformOrigin = "bottom right";
 	oAlertCtn.appendChild(oAlert);
-	
+
 	var oLabel = document.createElement("span");
 	oLabel.setAttribute("for", "iAlert");
 	oLabel.style.fontSize = (iScreenScale*2) +"pt";
@@ -26086,10 +26135,10 @@ function searchCourse(opts) {
 	oAlertCtn.appendChild(oLabel);
 
 	oScr.appendChild(oAlertCtn);
-	
+
 	var ratio = 41;
 	var mLeft = 0;
-	
+
 	var oLoadBar = document.createElement("div");
 	oLoadBar.style.position = "absolute";
 	oLoadBar.style.left = "0px";
@@ -26108,7 +26157,7 @@ function searchCourse(opts) {
 		oLoadBar.appendChild(oImg);
 	}
 	oScr.appendChild(oLoadBar);
-	
+
 	var oActivePlayers = document.createElement("div");
 	oActivePlayers.style.position = "absolute";
 	oActivePlayers.style.left = "0px";
@@ -26120,9 +26169,9 @@ function searchCourse(opts) {
 	oActivePlayers.style.display = "none";
 	oActivePlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
 	oActivePlayers.innerHTML = toLanguage('<span id="nb-active-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> currently online. You\'ll join them as soon as they finish their '+ (isBattle ? 'battle':'race'), '<span id="nb-active-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> actuellement en ligne. Vous les rejoindrez une fois leur partie terminée');
-	
+
 	oScr.appendChild(oActivePlayers);
-	
+
 	var oRequiredPlayers = document.createElement("div");
 	oRequiredPlayers.style.position = "absolute";
 	oRequiredPlayers.style.left = "0px";
@@ -26134,20 +26183,20 @@ function searchCourse(opts) {
 	oRequiredPlayers.style.display = "none";
 	oRequiredPlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
 	oRequiredPlayers.innerHTML = toLanguage('<span id="nb-pending-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> currently waiting, <span id="nb-missing-players" style="color:#0E0"></span> left before the game begins...', '<span id="nb-pending-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> actuellement en attente. Plus que <span id="nb-missing-players" style="color:#0E0"></span> pour que la partie commence');
-	
+
 	oScr.appendChild(oRequiredPlayers);
-	
+
 	var rCount = 1;
 	var mLoadX = iScreenScale/2;
 
-	var courseParams = getOnlineCourseParams(opts);
-	var courseParamsSpectator = courseParams + (courseParams ? "&":"") + "nojoin";
+	var raceParams = getOnlineCourseParams(opts);
+	var raceParamsSpectator = raceParams + (raceParams ? "&":"") + "nojoin";
 	var enableSpectatorMode = !!opts.enableSpectatorMode;
 	function rSearchCourse() {
 		if (rCount) {
 			rCount--;
 			if (!rCount) {
-				xhr("getCourse.php", enableSpectatorMode ? courseParamsSpectator : courseParams, function(reponse) {
+				xhr("getCourse.php", enableSpectatorMode ? raceParamsSpectator : raceParams, function(reponse) {
 					if (!reponse)
 						return false;
 					try {
@@ -26227,10 +26276,10 @@ function searchCourse(opts) {
 				};
 			},
 			onShow: function($fancyTitle) {
-				var courseDetailsParams = courseParams;
+				var raceTypeDetailsParams = raceTypeParams;
 				if ($elt.dataset.pendingCourse)
-					courseDetailsParams += (courseDetailsParams ? "&":"") + "&course="+ $elt.dataset.pendingCourse;
-				xhr("getCourseDetails.php", courseDetailsParams, function(reponse) {
+					raceTypeDetailsParams += (raceTypeDetailsParams ? "&":"") + "&course="+ $elt.dataset.pendingCourse;
+				xhr("getCourseDetails.php", raceTypeDetailsParams, function(reponse) {
 					if (!$mkScreen.contains($fancyTitle))
 						return true;
 					var reponseJson = JSON.parse(reponse);
@@ -26274,7 +26323,7 @@ function searchCourse(opts) {
 		});
 	}
 	oScr.appendChild(oPInput);
-	
+
 	oContainers[0].appendChild(oScr);
 
 	var $spectatorModeCtn = document.createElement("div");
@@ -26334,24 +26383,24 @@ function searchCourse(opts) {
 	updateMenuMusic(0);
 }
 function getOnlineCourseParams(opts) {
-	var courseParams = "";
+	var raceParams = "";
 	if (isCup) {
 		if (isMCups)
-			courseParams += "mid=" + nid;
+			raceParams += "mid=" + nid;
 		else if (isSingle)
-			courseParams += (complete ? 'i':'id') + '='+ nid + (isBattle ? '&battle':'');
+			raceParams += (complete ? 'i':'id') + '='+ nid + (isBattle ? '&battle':'');
 		else
-			courseParams += (complete ? 'c':'s') + 'id='+ nid;
+			raceParams += (complete ? 'c':'s') + 'id='+ nid;
 	}
 	else if (isBattle)
-		courseParams += 'battle';
+		raceParams += 'battle';
 	if (shareLink.key)
-		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
+		raceParams += (raceParams ? '&':'') + 'key='+ shareLink.key;
 	if (opts.spectator)
-		courseParams += (courseParams ? '&':'') + 'spectator='+ opts.spectator;
+		raceParams += (raceParams ? '&':'') + 'spectator='+ opts.spectator;
 	else if (opts.course)
-		courseParams += (courseParams ? '&':'') + 'course='+ opts.course;
-	return courseParams;
+		raceParams += (raceParams ? '&':'') + 'course='+ opts.course;
+	return raceParams;
 }
 function handleMatchmakingSuccess(reponse) {
 	if (reponse.time < 1)
@@ -26413,7 +26462,7 @@ function addFancyTitle(options) {
 
 function chooseRandMap() {
 	if (page == "MK") {
-		if (course != "BB")
+		if (!isBallonBattle())
 			chooseWithin(0, NBCIRCUITS);
 		else
 			chooseWithin(NBCIRCUITS, 12);
@@ -26485,7 +26534,7 @@ function selectMapScreen(opts) {
 		}
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
-		
+
 		var forceClic4 = true;
 
 		oStyle.width = (iWidth*iScreenScale)+"px";
@@ -26493,7 +26542,7 @@ function selectMapScreen(opts) {
 		oStyle.border = "solid 1px black";
 		oStyle.backgroundColor = "black";
 
-		if (course != "BB")
+		if (!isBallonBattle())
 			oScr.appendChild(toTitle(toLanguage("Choose cup", "Choisissez la coupe"), 0.5));
 		else
 			oScr.appendChild(toTitle(toLanguage("Choose stage", "Choisissez une arène"), 0.5));
@@ -26511,7 +26560,7 @@ function selectMapScreen(opts) {
 		oPInput.onclick = function() {
 			if (pause && !isOnline) {
 				removeMenuMusic(false);
-				quitter();
+				quit();
 			}
 			else {
 				forceClic4 = false;
@@ -26546,7 +26595,7 @@ function selectMapScreen(opts) {
 		oScr.appendChild(oCupName);
 
 		oScr.appendChild(oPInput);
-		if (course != "GP")
+		if (!isGrandPrix())
 			oContainers[0].appendChild(oScr);
 
 		document.getElementById("dMaps").style.top = 40 * iScreenScale +"px";
@@ -26583,18 +26632,18 @@ function selectMapScreen(opts) {
 			oContainers[0].removeChild(oScr);
 		}
 
-		var coupes = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
-		var nbcoupes;
+        var cups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
+		var nb_cups;
 		var cups_per_line = 6;
-		if (course == "BB") {
-			nbcoupes = (aAvailableMaps.length-NBCIRCUITS)/4;
+		if (isBallonBattle()) {
+			nb_cups = (aAvailableMaps.length-NBCIRCUITS)/4;
 			if (!isCup)
-				coupes = ["snes","gba","ds"];
+				cups = ["snes","gba","ds"];
 		}
 		else
-			nbcoupes = NBCIRCUITS/4;
-		var nb_lines = Math.ceil(nbcoupes/cups_per_line);
-		var nbCupInPage = nbcoupes;
+			nb_cups = NBCIRCUITS/4;
+		var nb_lines = Math.ceil(nb_cups/cups_per_line);
+		var nbCupInPage = nb_cups;
 		var beginPage = 0, endPage = nb_lines;
 		var cupLines = cupOpts.lines;
 		if (cupLines) {
@@ -26634,13 +26683,13 @@ function selectMapScreen(opts) {
 		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbCupInPage/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
 		var cup_margin_x = Math.min(4,20/max_cups_per_line), cup_margin_y = (4/nb_lines);
 		var cup_offset_x = 1, cup_offset_y = 38;
-		if (!isCup && (course == "BB")) {
+		if (!isCup && (isBallonBattle())) {
 			cup_width = Math.round(cup_width*1.5);
 			cup_margin_x = Math.round(cup_margin_x*2);
 			cup_offset_y -= 3;
 		}
 		var currentLine = 0, currentRow = 0;
-		for (var i=0;i<nbcoupes;i++) {
+		for (var i=0;i<nb_cups;i++) {
 			var cup_i, cup_j, cups_in_line;
 			if (cupLines) {
 				cups_in_line = cupLines[currentRow];
@@ -26653,7 +26702,7 @@ function selectMapScreen(opts) {
 				}
 			}
 			else {
-				cups_in_line = Math.min(cups_per_line, nbcoupes-(i-i%cups_per_line));
+				cups_in_line = Math.min(cups_per_line, nb_cups-(i-i%cups_per_line));
 				cup_i = i%cups_per_line;
 				cup_j = Math.floor(i/cups_per_line);
 			}
@@ -26675,7 +26724,7 @@ function selectMapScreen(opts) {
 			oPImg.style.top = Math.round(cup_y*iScreenScale)+"px";
 			if (cupOpts.icons) {
 				if (typeof cupOpts.icons[i] === "number")
-					oPImg.src = "images/cups/"+ coupes[cupOpts.icons[i]] +".gif";
+					oPImg.src = "images/cups/"+ cups[cupOpts.icons[i]] +".gif";
 				else {
 					(function(cup_x,cup_y) {
 						oPImg.onload = function() {
@@ -26695,13 +26744,13 @@ function selectMapScreen(opts) {
 				}
 			}
 			else
-				oPImg.src = "images/cups/"+ coupes[i%coupes.length] +".gif";
+				oPImg.src = "images/cups/"+ cups[i%cups.length] +".gif";
 
-			if (course == "BB")
+			if (isBallonBattle())
 				oPImg.alt = i+(NBCIRCUITS/4);
 			else
 				oPImg.alt = i;
-			
+
 			var mScreenScale = iScreenScale;
 
 			oPImg.onmouseover = function() {
@@ -26759,7 +26808,7 @@ function selectMapScreen(opts) {
 				selectRaceScreen(this.alt*4);
 			}
 
-			if (!isCup && (course == "BB")) {
+			if (!isCup && (isBallonBattle())) {
 				var labels = [toLanguage("SNES Stages", "Arènes SNES"), toLanguage("GBA Stages", "Arènes GBA"), toLanguage("DS Stages", "Arènes DS")];
 				var oLabel = document.createElement("div");
 				oLabel.style.position = "absolute"
@@ -26775,7 +26824,7 @@ function selectMapScreen(opts) {
 
 			oScr.appendChild(oPImg);
 
-			if (course == "GP") {
+			if (isGrandPrix()) {
 				var iPtsGP = ptsGP.charAt(i)*1;
 				if (iPtsGP) {
 					var oCup = new Image();
@@ -26813,7 +26862,7 @@ function selectMapScreen(opts) {
 			}
 		}
 
-		if (course == "VS" || course == "BB") {
+		if (isVSRace() || isBallonBattle()) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
 			oPInput.value = toLanguage("Random", "Aléatoire");
@@ -26821,7 +26870,7 @@ function selectMapScreen(opts) {
 			oPInput.style.position = "absolute";
 			oPInput.style.left = (34*iScreenScale-10)+"px";
 			oPInput.style.top = (30*iScreenScale)+"px";
-			
+
 			oPInput.onclick = function() {
 				forceClic4 = false;
 				clearMapScreen();
@@ -26829,9 +26878,9 @@ function selectMapScreen(opts) {
 			};
 			oScr.appendChild(oPInput);
 		}
-		else if (course == "GP")
+		else if (isGrandPrix())
 			oContainers[0].appendChild(oScr);
-		else if (course == "CM") {
+		else if (isTimeTrial()) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
 			oPInput.value = toLanguage("Rankings", "Classement");
@@ -26860,7 +26909,7 @@ function selectMapScreen(opts) {
 				selectMapScreen(opts);
 			};
 			oPrevInput.disabled = (opts.page <= 0);
-			
+
 			oScr.appendChild(oPrevInput);
 
 			var oNextInput = document.createElement("input");
@@ -26877,10 +26926,10 @@ function selectMapScreen(opts) {
 				selectMapScreen(opts);
 			};
 			oNextInput.disabled = (opts.page >= cupOpts.pages.length);
-			
+
 			oScr.appendChild(oNextInput);
 		}
-		
+
 		if (isOnline) {
 			handleSpectatorLink(function() {
 				forceClic4 = false;
@@ -26940,17 +26989,17 @@ function openRankings() {
 }
 function exitCircuit() {
 	var changeRace = document.getElementById("changeRace");
-	var supprRace = document.getElementById("supprRace");
-	if (changeRace && !supprRace)
+	var deleteRace = document.getElementById("deleteRace");
+	if (changeRace && !deleteRace)
 		changeRace.click();
 	else
 		document.location.href = "index.php";
 }
 
 function showRaceCountIfRelevant(oScr) {
-	if ((course != "CM") && iRaceCount && isLocalScore()) {
+	if (!isTimeTrial() && iRaceCount && isLocalScore()) {
 		var oRaceCount = document.createElement("div");
-		var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
+		var sRaceLabel = (isBallonBattle()) ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
 		oRaceCount.innerHTML = sRaceLabel + " " + (iRaceCount+1);
 		oRaceCount.style.fontSize = (2*iScreenScale)+"px";
 		oRaceCount.style.position = "absolute";
@@ -26967,10 +27016,10 @@ function appendContainers() {
 }
 
 function selectRaceScreen(cup) {
-	if (isOnline || (!isSingle && course != "GP")) {
+	if (isOnline || (!isSingle && !isGrandPrix())) {
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
-		
+
 		var forceClic4 = true;
 
 		oStyle.width = (iWidth*iScreenScale)+"px";
@@ -26980,7 +27029,7 @@ function selectRaceScreen(cup) {
 
 		oContainers[0].appendChild(oScr);
 
-		if (course != "BB")
+		if (!isBallonBattle())
 			oScr.appendChild(toTitle(toLanguage("Choose track", "Choisissez un circuit"), (isSingle?2.5:0.5)));
 		else
 			oScr.appendChild(toTitle(toLanguage("Choose stage", "Choisissez une arène"), (isSingle?2.5:0.5)));
@@ -27006,13 +27055,13 @@ function selectRaceScreen(cup) {
 				selectPlayerScreen(0);
 			}
 			else {
-				if (course != "BB") {
+				if (!isBallonBattle()) {
 					if (isCup && !isMCups) {
 						if (!pause)
 							selectGamersScreen();
 						else {
 							removeMenuMusic(false);
-							quitter();
+							quit();
 						}
 					}
 					else
@@ -27021,11 +27070,11 @@ function selectRaceScreen(cup) {
 				else if (!isCup || isMCups)
 					selectMapScreen({force:true,cup:cup});
 				else if (!pause) selectGamersScreen();
-				else {removeMenuMusic(false);quitter();}
+				else {removeMenuMusic(false);quit();}
 			}
 		}
 		oScr.appendChild(oPInput);
-			
+
 		var mScreenScale = iScreenScale;
 
 		var trackSelected = clSelected && (clSelected.trackType === "track") ? clSelected.trackId : null;
@@ -27048,7 +27097,7 @@ function selectRaceScreen(cup) {
 			}
 			mDiv.map = aAvailableMaps[i];
 			mDiv.ref = i+1;
-			
+
 			var oPImg = new Image();
 			setMapSrc(oPImg, cup,i, getMapSelectorSrc(i));
 			oPImg.style.width = "100%";
@@ -27058,7 +27107,7 @@ function selectRaceScreen(cup) {
 			if (bSelectedMirror)
 				oPImg.className += " mirrored";
 			mDiv.appendChild(oPImg);
-			
+
 			mDiv.appendChild(mapNameOf(mScreenScale, i));
 			if (isCup && !isOnline) {
 				var mLink = document.createElement("a");
@@ -27093,7 +27142,7 @@ function selectRaceScreen(cup) {
 				oScr.innerHTML = "";
 				oContainers[0].removeChild(oScr);
 				if (!isOnline) {
-					if (course != "CM") {
+					if (!isTimeTrial()) {
 						appendContainers();
 						resetGame(this.map);
 					}
@@ -27113,7 +27162,7 @@ function selectRaceScreen(cup) {
 		if (isCup && !isSingle && !isMCups) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
-			if (course != "CM")
+			if (!isTimeTrial())
 				oPInput.value = toLanguage("Random", "Aléatoire");
 			else
 				oPInput.value = toLanguage("Rankings", "Classement");
@@ -27129,7 +27178,7 @@ function selectRaceScreen(cup) {
 				oPInput.style.top = (30*iScreenScale)+"px";
 			}
 			oPInput.onclick = function() {
-				if (course != "CM") {
+				if (!isTimeTrial()) {
 					forceClic4 = false;
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
@@ -27165,20 +27214,20 @@ function selectRaceScreen(cup) {
 		}
 	}
 	else {
-		if (course == "GP") {
+		if (isGrandPrix()) {
 			if (page != "MK")
-				iDificulty = 5;
+				iDifficulty = 5;
 			else {
 				var cupNb = Math.floor(cup/4)%5;
 				if (cup < 40)
-					iDificulty = Math.min(4.5+cupNb/7,5);
+					iDifficulty = Math.min(4.5+cupNb/7,5);
 				else
-					iDificulty = Math.min(4.6+cupNb/7,5);
+					iDifficulty = Math.min(4.6+cupNb/7,5);
 			}
 		}
 		cup++;
 		strMap = "map"+ cup;
-		if (course == "CM") {
+		if (isTimeTrial()) {
 			loadGhostScreen(strMap);
 			return;
 		}
@@ -27197,7 +27246,7 @@ function choose(map,rand) {
 		resetGame("map"+map);
 		return;
 	}
-	var choixJoueurs = [];
+	var playersChoice = [];
 	var oTable = document.createElement("table");
 	oTable.className = "online-track-sel";
 	oTable.border = 1;
@@ -27223,19 +27272,19 @@ function choose(map,rand) {
 				catch(e) {
 					return false;
 				}
-				choixJoueurs = rCode[0];
+				playersChoice = rCode[0];
 				var trs = oTBody.getElementsByTagName("tr");
 				while (trs.length)
 					oTBody.removeChild(trs[0]);
 				var nbChoices = 0;
-				for (i=0;i<choixJoueurs.length;i++) {
-					if (!choixJoueurs[i][7]) {
+				for (i=0;i<playersChoice.length;i++) {
+					if (!playersChoice[i][7]) {
 						var oTr = document.createElement("tr");
 						var oTd = document.createElement("td");
-						var isChoix = choixJoueurs[i][2];
-						var isRandom = choixJoueurs[i][3];
+						var isChoix = playersChoice[i][2];
+						var isRandom = playersChoice[i][3];
 						oTd.innerHTML = isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
-						if (onlineSpectatorId && (choixJoueurs[i][0] == identifiant)) {
+						if (onlineSpectatorId && (playersChoice[i][0] == identifiant)) {
 							if (isChoix) {
 								setSpectatorId(undefined);
 								hideSpectatorLink();
@@ -27274,9 +27323,9 @@ function choose(map,rand) {
 						if (shareLink.options && shareLink.options.cpu) {
 							var cpuLevel = shareLink.options.cpuLevel || 0;
 							cpuLevel = 2-cpuLevel;
-							iDificulty = 4+cpuLevel*0.5;
+							iDifficulty = 4+cpuLevel*0.5;
 							if (isBattle)
-								iDificulty = 4.5;
+								iDifficulty = 4.5;
 						}
 						if (gameRules.cc)
 							fSelectedClass = getRelSpeedFromCc(gameRules.cc);
@@ -27289,23 +27338,23 @@ function choose(map,rand) {
 						if (gameRules.raceCount >= 0)
 							iRaceCount = gameRules.raceCount;
 						aTeams = new Array();
-						for (i=0;i<choixJoueurs.length;i++) {
-							var aID = choixJoueurs[i][0];
+						for (i=0;i<playersChoice.length;i++) {
+							var aID = playersChoice[i][0];
 							if (aID != identifiant) {
 								aIDs.push(aID);
-								var sPlayerName = choixJoueurs[i][1];
+								var sPlayerName = playersChoice[i][1];
 								aPlayers.push(sPlayerName);
 								isCustomPerso(sPlayerName);
 								if (!cp[sPlayerName]) cp[sPlayerName] = [0.5,0.5,0.5,0.5];
-								aPlaces.push(choixJoueurs[i][4]);
-								aPseudos.push(choixJoueurs[i][5]);
-								aTeams.push(choixJoueurs[i][6]);
-								aControllers.push(choixJoueurs[i][7]);
+								aPlaces.push(playersChoice[i][4]);
+								aPseudos.push(playersChoice[i][5]);
+								aTeams.push(playersChoice[i][6]);
+								aControllers.push(playersChoice[i][7]);
 							}
 							else {
-								aPlaces.unshift(choixJoueurs[i][4]);
-								aPseudos.unshift(choixJoueurs[i][5]);
-								aTeams.unshift(choixJoueurs[i][6]);
+								aPlaces.unshift(playersChoice[i][4]);
+								aPseudos.unshift(playersChoice[i][5]);
+								aTeams.unshift(playersChoice[i][6]);
 							}
 						}
 						selectedTeams = (aTeams.indexOf(-1) == -1);
@@ -27369,19 +27418,19 @@ function choose(map,rand) {
 								setTimeout(moveCursor, cTime);
 							}
 							else
-								clignote(0);
+								flash(0);
 						}
-						function clignote(cID) {
+						function flash(cID) {
 							trs[cCursor].style.backgroundColor = (cID%2) ? "":"#F80";
 							trs[cCursor].style.color = (cID%2) ? "":"white";
 							if (cID < 4)
-								setTimeout(function(){clignote(cID+1)}, 100);
+								setTimeout(function(){flash(cID+1)}, 100);
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
 							if (cID == 1)
-								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
+								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[playersChoice[cCursor][2]-1];
 						}
-						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
+						oMap = oMaps[aAvailableMaps[playersChoice[rCode[1]][2]-1]];
 						if (onlineSpectatorState) {
 							$mkScreen.removeChild(oTable);
 							setTimeout(function() {
@@ -27407,9 +27456,9 @@ function choose(map,rand) {
 							oDiv.innerHTML = toLanguage("Sorry, there are not enough players to begin the race...", "D&eacute;sol&eacute;, il n'y a pas assez de joueurs pour commencer la course...");
 						else
 							oDiv.innerHTML = toLanguage("Sorry, all your opponents have left the race...", "D&eacute;sol&eacute;, tous vos adversaires ont quitt&eacute; la course...");
-						
+
 						oDiv.appendChild(document.createElement("br"));
-						
+
 						var nSearch = document.createElement("a");
 						nSearch.style.color = "white";
 						nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
@@ -27420,18 +27469,18 @@ function choose(map,rand) {
 							return false;
 						};
 						oDiv.appendChild(nSearch);
-						
+
 						oDiv.appendChild(document.createElement("br"));
-						
+
 						var nSearch = document.createElement("a");
 						nSearch.style.color = "white";
 						nSearch.innerHTML = toLanguage("Back to Mario Kart PC", "Retour \xE0 Mario Kart PC");
 						nSearch.setAttribute("href", "index.php");
 						oDiv.appendChild(nSearch);
-						
+
 						$mkScreen.appendChild(oDiv);
-						
-						if (choixJoueurs.length <= 1) {
+
+						if (playersChoice.length <= 1) {
 							chatting = false;
 							stopVocChat();
 						}
@@ -27450,30 +27499,30 @@ function choose(map,rand) {
 	}
 	function playerIsSelecter() {
 		var poster;
-		for (var i=0;i<choixJoueurs.length;i++) {
-			if (choixJoueurs[i][0] == shareLink.player) {
-				poster = choixJoueurs[i];
+		for (var i=0;i<playersChoice.length;i++) {
+			if (playersChoice[i][0] == shareLink.player) {
+				poster = playersChoice[i];
 				break;
 			}
 		}
 		if (!poster)
-			poster = choixJoueurs[0];
+			poster = playersChoice[0];
 		return (poster[0] == identifiant);
 	}
 	function proceedOnlineRaceSelection(rCode) {
 		var options = rCode[4];
-		var strMap = aAvailableMaps[choixJoueurs[rCode[1]][2]-1];
+		var strMap = aAvailableMaps[playersChoice[rCode[1]][2]-1];
 		selectedNbTeams = options.nbTeams || defaultGameOptions.nbTeams;
 		selectedTeamOpts = options.teamOpts || defaultGameOptions.teamOpts;
 		selectedFriendlyFire = !!options.friendlyFire;
-		if (selectedNbTeams > choixJoueurs.length) {
-			selectedNbTeams = choixJoueurs.length;
+		if (selectedNbTeams > playersChoice.length) {
+			selectedNbTeams = playersChoice.length;
 			if (selectedTeamOpts)
 				selectedTeamOpts.length = selectedNbTeams;
 		}
 		if (options.manualTeams) {
 			setupTeamColors();
-			selectOnlineTeams(strMap,choixJoueurs,playerIsSelecter());
+			selectOnlineTeams(strMap,playersChoice,playerIsSelecter());
 		}
 		else
 			resetGame(strMap);
@@ -27500,7 +27549,7 @@ function choose(map,rand) {
 		}
 	}
 	else {
-		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
+		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(isBallonBattle()?"&battle":"")+(rand?"&rand":""), refreshTab);
 
 		hideSpectatorLink();
 		window.onbeforeunload = function() {
@@ -27512,7 +27561,7 @@ function choose(map,rand) {
 		var xhrParams = [];
 		if (onlineSpectatorId)
 			xhrParams.push("spectator="+onlineSpectatorId);
-		if (course == "BB")
+		if (isBallonBattle())
 			xhrParams.push("battle");
 		xhr("getMap.php", xhrParams.join("&"), refreshTab);
 	}
@@ -27561,7 +27610,7 @@ function setSpectatorId(id) {
 		rtcService.setSpectatorId(onlineSpectatorId);
 }
 
-function selectOnlineTeams(strMap,choixJoueurs,selecter) {
+function selectOnlineTeams(strMap,playersChoice,selecter) {
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -27593,7 +27642,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oTableCtn.style.overflow = "auto";
 	oTableCtn.style.textAlign = "center";
 
-	if (showTeamNames) {	
+	if (showTeamNames) {
 		oTableCtn.style.top = (iScreenScale*7.5) +"px";
 		oTableCtn.style.paddingTop = (iScreenScale*2.5) +"px";
 
@@ -27637,7 +27686,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oMoreOptions.style.position = "absolute";
 	oMoreOptions.style.right = (3*iScreenScale)+"px";
 	oMoreOptions.style.bottom = (5*iScreenScale)+"px";
-	
+
 	var oNoTeams = document.createElement("input");
 	oNoTeams.type = "button";
 	oNoTeams.style.display = "block";
@@ -27990,9 +28039,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oDiv.style.top = (iScreenScale*15+10) +"px";
 		oDiv.style.fontSize = (iScreenScale*2) +"pt";
 		oDiv.innerHTML = toLanguage("The game has been cancelled by the teams selector.", "Partie annulée par le sélectionneur des équipes.");
-		
+
 		oDiv.appendChild(document.createElement("br"));
-		
+
 		var nSearch = document.createElement("a");
 		nSearch.style.color = "white";
 		nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
@@ -28003,15 +28052,15 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			return false;
 		};
 		oDiv.appendChild(nSearch);
-		
+
 		oDiv.appendChild(document.createElement("br"));
-		
+
 		var nSearch = document.createElement("a");
 		nSearch.style.color = "white";
 		nSearch.innerHTML = toLanguage("Back to Mario Kart PC", "Retour \xE0 Mario Kart PC");
 		nSearch.setAttribute("href", "index.php");
 		oDiv.appendChild(nSearch);
-		
+
 		$mkScreen.appendChild(oDiv);
 
 		clearInterval(startMusicHandler);
@@ -28029,8 +28078,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	var teams = new Array(selectedNbTeams);
 	for (var i=0;i<selectedNbTeams;i++)
 		teams[i] = [];
-	for (var i=0;i<choixJoueurs.length;i++)
-		teams[choixJoueurs[i][6]].push(choixJoueurs[i]);
+	for (var i=0;i<playersChoice.length;i++)
+		teams[playersChoice[i][6]].push(playersChoice[i]);
 
 	var oSubmit = document.createElement("input");
 	oSubmit.type = "button";
@@ -28114,7 +28163,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 
 		var ratio = 41;
 		var mLeft = 0;
-		
+
 		var oLoadBar = document.createElement("div");
 		oLoadBar.style.position = "absolute";
 		oLoadBar.style.left = "0px";
@@ -28393,7 +28442,7 @@ function showExitSpectatorFailMessage() {
 	setTimeout(fadeMessageOut, 1500);
 }
 
-function connexion() {
+function connection() {
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -28404,9 +28453,9 @@ function connexion() {
 	oStyle.backgroundColor = "black";
 
 	oScr.appendChild(toTitle(toLanguage("Connection", "Connexion"), -0.5));
-	
+
 	var iPseudo, iCode, oConnect;
-	
+
 	var oForm = document.createElement("form");
 	oForm.style.position = "absolute";
 	oForm.style.left = (iScreenScale*16) +"px";
@@ -28492,7 +28541,7 @@ function connexion() {
 	oTable.appendChild(oTr3);
 	oForm.appendChild(oTable);
 	oScr.appendChild(oForm);
-	
+
 	var aError = document.createElement("div");
 	aError.style.color = "red";
 	aError.style.fontSize = (iScreenScale*2) +"pt";
@@ -28502,37 +28551,37 @@ function connexion() {
 	aError.innerHTML = toLanguage("Incorrect username or password", "Pseudo ou mot de passe incorrect");
 	aError.style.visibility = "hidden";
 	oScr.appendChild(aError);
-	
-	var aInscription = document.createElement("a");
-	aInscription.style.color = "white";
-	aInscription.style.fontSize = (iScreenScale*2) +"pt";
-	aInscription.style.position = "absolute";
-	aInscription.style.left = (iScreenScale*20) +"px";
-	aInscription.style.top = (iScreenScale*35) +"px";
-	aInscription.innerHTML = toLanguage("Register", "Inscription");
-	aInscription.setAttribute("href", "inscription.php" + ((course=="BB")?"?battle":""));
-	oScr.appendChild(aInscription);
-	
-	var eClassement = document.createElement("a");
-	eClassement.style.color = "white";
-	eClassement.style.fontSize = (iScreenScale*2) +"pt";
-	eClassement.style.position = "absolute";
-	eClassement.style.left = (iScreenScale*45) +"px";
-	eClassement.style.top = (iScreenScale*35) +"px";
-	eClassement.innerHTML = toLanguage("Rankings", "Classement");
-	eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
-	oScr.appendChild(eClassement);
-	
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Back", "Retour");
-	oPInput.style.fontSize = (2*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (2*iScreenScale)+"px";
-	oPInput.style.top = (35*iScreenScale)+"px";
-	oPInput.onclick = quitter;
-	oScr.appendChild(oPInput);
-	
+
+	var aRegister = document.createElement("a");
+	aRegister.style.color = "white";
+	aRegister.style.fontSize = (iScreenScale*2) +"pt";
+	aRegister.style.position = "absolute";
+	aRegister.style.left = (iScreenScale*20) +"px";
+	aRegister.style.top = (iScreenScale*35) +"px";
+	aRegister.innerHTML = toLanguage("Register", "Inscription");
+	aRegister.setAttribute("href", "inscription.php" + ((isBallonBattle())?"?battle":""));
+	oScr.appendChild(aRegister);
+
+	var eRanking = document.createElement("a");
+	eRanking.style.color = "white";
+	eRanking.style.fontSize = (iScreenScale*2) +"pt";
+	eRanking.style.position = "absolute";
+	eRanking.style.left = (iScreenScale*45) +"px";
+	eRanking.style.top = (iScreenScale*35) +"px";
+	eRanking.innerHTML = toLanguage("Rankings", "Classement");
+	eRanking.setAttribute("href", "bestscores.php" + ((isBallonBattle())?"?battle":""));
+	oScr.appendChild(eRanking);
+
+	var oPBack = document.createElement("input");
+	oPBack.type = "button";
+	oPBack.value = toLanguage("Back", "Retour");
+	oPBack.style.fontSize = (2*iScreenScale)+"px";
+	oPBack.style.position = "absolute";
+	oPBack.style.left = (2*iScreenScale)+"px";
+	oPBack.style.top = (35*iScreenScale)+"px";
+	oPBack.onclick = quit;
+	oScr.appendChild(oPBack);
+
 	oContainers[0].appendChild(oScr);
 
 	updateMenuMusic(0);
@@ -28577,7 +28626,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oTitle.style.overflow = "hidden";
 	oTitle.style.textOverflow = "ellipsis";
 	oScr.appendChild(oTitle);
-	
+
 	var oTable = document.createElement("table");
 	oTable.setAttribute("border", "4px");
 	oTable.style.borderStyle = "double";
@@ -28587,12 +28636,12 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oTable.style.left = (iScreenScale*22) +"px";
 	oTable.style.top = (iScreenScale*10) +"px";
 	oTable.style.width = (iScreenScale*35) +"px";
-	
+
 	var oGhost = document.createElement("tr");
 	var oPersoImage = document.createElement("td");
 	oPersoImage.style.width = (5 * iScreenScale) + "px";
 	oPersoImage.style.paddingRight = "6px";
-	
+
 	var cDiv = document.createElement("div");
 	cDiv.style.textAlign = "center";
 	var oDiv = document.createElement("div");
@@ -28607,7 +28656,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oPImg.style.height = (5 * iScreenScale) +"px";
 	oPImg.style.position = "absolute";
 	oPImg.className = "pixelated";
-	
+
 	if (ghostsData)
 		oPImg.alt = ghostsData[1];
 	oPImg.nb = i;
@@ -28620,7 +28669,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oPImg.style.top = "0px";
 	oDiv.appendChild(oPImg);
 	cDiv.appendChild(oDiv);
-	
+
 	var oSpan = document.createElement("span");
 	oSpan.style.display = "inline-block";
 	oSpan.style.color = "white";
@@ -28634,7 +28683,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 
 	oPersoImage.appendChild(cDiv);
 	oGhost.appendChild(oPersoImage);
-	
+
 	var oTimeTd = document.createElement("td");
 	oTimeTd.style.textAlign = "center";
 	oTimeTd.style.whiteSpace = "nowrap";
@@ -28689,7 +28738,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	function writeTime(perso,pseudo,time,times,oImg,oDiv) {
 		if (!oImg) oImg = oPImg;
 		if (!oDiv) oDiv = oPersoTime;
-		oImg.src = getSpriteSrc(perso);
+		oImg.src = getSpriteImg(perso);
 		oDiv.innerHTML = timeStr(time);
 		oSpan.innerText = pseudo;
 		oSpan.title = pseudo;
@@ -28702,7 +28751,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			oPersoLapTimes.dataset.title = iconTitle;
 		}
 	}
-	
+
 	function multiGhosts(gTimes) {
 		oScr.innerHTML = "";
 		var a = gID-3, b = gID+4;
@@ -28736,12 +28785,12 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iTable.style.borderColor = "gray";
 			iTable.style.width = (iScreenScale*24) +"px";
 			iTable.style.height = (iScreenScale*4) +"px";
-			
+
 			var iGhost = document.createElement("tr");
 			var iPersoImage = document.createElement("td");
 			iPersoImage.style.width = (3 * iScreenScale) + "px";
 			iPersoImage.style.paddingRight = "5px";
-			
+
 			var iDiv = document.createElement("div");
 			iDiv.style.position = "relative";
 			iDiv.style.width = (3 * iScreenScale) + "px";
@@ -28758,7 +28807,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			}
 			iPImg.style.position = "absolute";
 			iPImg.className = "pixelated";
-			
+
 			if (ghostsData)
 				iPImg.alt = ghostsData[1];
 			iPImg.nb = i;
@@ -28767,47 +28816,47 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iDiv.appendChild(iPImg);
 			iPersoImage.appendChild(iDiv);
 			iGhost.appendChild(iPersoImage);
-			
+
 			var iPersoTime = document.createElement("td");
 			iPersoTime.style.textAlign = "center";
 			iPersoTime.style.fontSize = Math.round(iScreenScale*3.5) + "px";
 			iPersoTime.style.color = "white";
 			writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],gTimes[gIDs[inc]][4],iPImg,iPersoTime);
 
-			var fGauche = document.createElement("input");
-			fGauche.type = "button";
-			fGauche.value = "\u2190";
-			fGauche.style.fontSize = (4*iScreenScale)+"px";
-			fGauche.style.position = "absolute";
-			fGauche.style.left = Math.round(iScreenScale*2.5 - 8)+"px";
-			fGauche.style.top = Math.round(0.25*iScreenScale)+"px";
+			var fLeft = document.createElement("input");
+			fLeft.type = "button";
+			fLeft.value = "\u2190";
+			fLeft.style.fontSize = (4*iScreenScale)+"px";
+			fLeft.style.position = "absolute";
+			fLeft.style.left = Math.round(iScreenScale*2.5 - 8)+"px";
+			fLeft.style.top = Math.round(0.25*iScreenScale)+"px";
 			(function(inc,iPImg,iPersoTime) {
-				fGauche.onclick = function() {
+				fLeft.onclick = function() {
 					gIDs[inc]--;
 					if (gIDs[inc] < 0)
 						gIDs[inc] = gTimes.length-1;
 					writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],gTimes[gIDs[inc]][4],iPImg,iPersoTime);
 				}
 			})(inc,iPImg,iPersoTime);
-			iScr.appendChild(fGauche);
-			
-			var fDroite = document.createElement("input");
-			fDroite.type = "button";
-			fDroite.value = "\u2192";
-			fDroite.style.fontSize = (4*iScreenScale)+"px";
-			fDroite.style.position = "absolute";
-			fDroite.style.left = (32.5*iScreenScale)+"px";
-			fDroite.style.top = Math.round(0.25*iScreenScale)+"px";
+			iScr.appendChild(fLeft);
+
+			var fRight = document.createElement("input");
+			fRight.type = "button";
+			fRight.value = "\u2192";
+			fRight.style.fontSize = (4*iScreenScale)+"px";
+			fRight.style.position = "absolute";
+			fRight.style.left = (32.5*iScreenScale)+"px";
+			fRight.style.top = Math.round(0.25*iScreenScale)+"px";
 			(function(inc,iPImg,iPersoTime) {
-				fDroite.onclick = function() {
+				fRight.onclick = function() {
 					gIDs[inc]++;
 					if (gIDs[inc] >= gTimes.length)
 						gIDs[inc] = 0;
 					writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],gTimes[gIDs[inc]][4],iPImg,iPersoTime);
 				}
 			})(inc,iPImg,iPersoTime);
-			iScr.appendChild(fDroite);
-	
+			iScr.appendChild(fRight);
+
 			iGhost.appendChild(iPersoTime);
 			iTable.appendChild(iGhost);
 			iScr.appendChild(iTable);
@@ -28867,19 +28916,19 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 
 		oScr.appendChild(oNbGhostsCtn);
 
-		var oPInput = document.createElement("input");
-		oPInput.type = "button";
-		oPInput.value = toLanguage("Back", "Retour");
-		oPInput.style.fontSize = (2*iScreenScale)+"px";
-		oPInput.style.position = "absolute";
-		oPInput.style.left = (2*iScreenScale)+"px";
-		oPInput.style.top = (36*iScreenScale)+"px";
-		oPInput.onclick = function() {
+		var oPBack = document.createElement("input");
+		oPBack.type = "button";
+		oPBack.value = toLanguage("Back", "Retour");
+		oPBack.style.fontSize = (2*iScreenScale)+"px";
+		oPBack.style.position = "absolute";
+		oPBack.style.left = (2*iScreenScale)+"px";
+		oPBack.style.top = (36*iScreenScale)+"px";
+		oPBack.onclick = function() {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectFantomeScreen(ghostsData, map, {"times":gTimes,"id":gID});
 		};
-		oScr.appendChild(oPInput);
+		oScr.appendChild(oPBack);
 
 		var oPSubmit = document.createElement("input");
 		oPSubmit.type = "button";
@@ -28894,7 +28943,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPSubmit.style.position = "absolute";
 		oPSubmit.style.right = (5*iScreenScale-10)+"px";
 		oPSubmit.style.top = (35*iScreenScale)+"px";
-		
+
 		oPSubmit.onclick = function() {
 			gIDs.length = nbGhosts;
 			seeGhost(false);
@@ -28908,7 +28957,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPInput2.style.position = "absolute";
 		oPInput2.style.right = (33*iScreenScale-10)+"px";
 		oPInput2.style.top = (35*iScreenScale)+"px";
-		
+
 		oPInput2.onclick = function() {
 			gIDs.length = nbGhosts;
 			seeGhost(true);
@@ -28940,16 +28989,16 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			}
 			var iArrowTop = Math.round(11.5*iScreenScale);
 			var iArrowHeight = Math.round(5*iScreenScale);
-			var fGauche = document.createElement("input");
-			fGauche.id = "fGauche";
-			fGauche.type = "button";
-			fGauche.value = "\u2190";
-			fGauche.style.fontSize = (4*iScreenScale)+"px";
-			fGauche.style.position = "absolute";
-			fGauche.style.left = (13*iScreenScale)+"px";
-			fGauche.style.top = iArrowTop +"px";
-			fGauche.style.height = iArrowHeight +"px";
-			fGauche.onclick = function() {
+			var fLeft = document.createElement("input");
+			fLeft.id = "fLeft";
+			fLeft.type = "button";
+			fLeft.value = "\u2190";
+			fLeft.style.fontSize = (4*iScreenScale)+"px";
+			fLeft.style.position = "absolute";
+			fLeft.style.left = (13*iScreenScale)+"px";
+			fLeft.style.top = iArrowTop +"px";
+			fLeft.style.height = iArrowHeight +"px";
+			fLeft.onclick = function() {
 				for (var i=0;i<2;i++) {
 					gID--;
 					if (gID < 0)
@@ -28961,33 +29010,33 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				}
 				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
-			oScr.appendChild(fGauche);
-			
-			var ffGauche = document.createElement("input");
-			ffGauche.id = "ffGauche";
-			ffGauche.type = "button";
-			ffGauche.value = "\u23EE";
-			ffGauche.style.fontSize = (4*iScreenScale)+"px";
-			ffGauche.style.position = "absolute";
-			ffGauche.style.left = (5*iScreenScale)+"px";
-			ffGauche.style.top = iArrowTop +"px";
-			ffGauche.style.height = iArrowHeight +"px";
-			ffGauche.onclick = function() {
+			oScr.appendChild(fLeft);
+
+			var ffLeft = document.createElement("input");
+			ffLeft.id = "ffLeft";
+			ffLeft.type = "button";
+			ffLeft.value = "\u23EE";
+			ffLeft.style.fontSize = (4*iScreenScale)+"px";
+			ffLeft.style.position = "absolute";
+			ffLeft.style.left = (5*iScreenScale)+"px";
+			ffLeft.style.top = iArrowTop +"px";
+			ffLeft.style.height = iArrowHeight +"px";
+			ffLeft.onclick = function() {
 				gID = 0;
 				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
-			oScr.appendChild(ffGauche);
-			
-			var fDroite = document.createElement("input");
-			fDroite.id = "fDroite";
-			fDroite.type = "button";
-			fDroite.value = "\u2192";
-			fDroite.style.fontSize = (4*iScreenScale)+"px";
-			fDroite.style.position = "absolute";
-			fDroite.style.left = (64*iScreenScale)+"px";
-			fDroite.style.top = iArrowTop +"px";
-			fDroite.style.height = iArrowHeight +"px";
-			fDroite.onclick = function() {
+			oScr.appendChild(ffLeft);
+
+			var fRight = document.createElement("input");
+			fRight.id = "fRight";
+			fRight.type = "button";
+			fRight.value = "\u2192";
+			fRight.style.fontSize = (4*iScreenScale)+"px";
+			fRight.style.position = "absolute";
+			fRight.style.left = (64*iScreenScale)+"px";
+			fRight.style.top = iArrowTop +"px";
+			fRight.style.height = iArrowHeight +"px";
+			fRight.onclick = function() {
 				for (var i=0;i<2;i++) {
 					gID++;
 					if (gID >= gTimes.length)
@@ -28999,22 +29048,22 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 						break;
 				}
 			}
-			oScr.appendChild(fDroite);
-			
-			var ffDroite = document.createElement("input");
-			ffDroite.id = "ffDroite";
-			ffDroite.type = "button";
-			ffDroite.value = "\u23ED";
-			ffDroite.style.fontSize = (4*iScreenScale)+"px";
-			ffDroite.style.position = "absolute";
-			ffDroite.style.left = (72*iScreenScale)+"px";
-			ffDroite.style.top = iArrowTop +"px";
-			ffDroite.style.height = iArrowHeight +"px";
-			ffDroite.onclick = function() {
+			oScr.appendChild(fRight);
+
+			var ffRight = document.createElement("input");
+			ffRight.id = "ffRight";
+			ffRight.type = "button";
+			ffRight.value = "\u23ED";
+			ffRight.style.fontSize = (4*iScreenScale)+"px";
+			ffRight.style.position = "absolute";
+			ffRight.style.left = (72*iScreenScale)+"px";
+			ffRight.style.top = iArrowTop +"px";
+			ffRight.style.height = iArrowHeight +"px";
+			ffRight.onclick = function() {
 				gID = gTimes.length-1;
 				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
-			oScr.appendChild(ffDroite);
+			oScr.appendChild(ffRight);
 
 			if (ghostsData)
 				oScr.style.visibility = "visible";
@@ -29179,16 +29228,16 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			});
 		}
 	}
-	
+
 	var gTimes;
 	var gID = -1;
 	var gIDs;
-	
+
 	oGhost.appendChild(oTimeTd);
 	oTable.appendChild(oGhost);
-	
+
 	oScr.appendChild(oTable);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Face with this ghost", "Affronter ce fantôme");
@@ -29214,7 +29263,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		seeGhost(true);
 	};
 	oScr.appendChild(oPInput);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Play alone", "Jouer seul");
@@ -29249,10 +29298,10 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		}
 		else {
 			writeTime(ghostsData[1],ghostsData[2],ghostsData[3],ghostsData[4]);
-			oScr.removeChild(document.getElementById("fGauche"));
-			oScr.removeChild(document.getElementById("ffGauche"));
-			oScr.removeChild(document.getElementById("fDroite"));
-			oScr.removeChild(document.getElementById("ffDroite"));
+			oScr.removeChild(document.getElementById("fLeft"));
+			oScr.removeChild(document.getElementById("ffLeft"));
+			oScr.removeChild(document.getElementById("fRight"));
+			oScr.removeChild(document.getElementById("ffRight"));
 			oScr.removeChild(OPFace7);
 			OPFace.style.display = "";
 			gID = -1;
@@ -29359,7 +29408,7 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((isBallonBattle()) ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((isBallonBattle()) ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
 var pollingGamepadsHandler;
 function editCommands(options) {
@@ -29561,7 +29610,7 @@ function editCommands(options) {
 		$controlMiscTitle.className = "control-main-title";
 		$controlMiscTitle.innerHTML = toLanguage("Other options", "Autres options");
 		$controlCommands.appendChild($controlMiscTitle);
-		
+
 		var $controlMiscValues = document.createElement("div");
 		$controlMiscValues.className = "control-misc-values";
 		var allMiscSettings = [{
@@ -29606,7 +29655,7 @@ function editCommands(options) {
 			}
 			$controlMiscValues.appendChild($controlSetting);
 		});
-		
+
 		$controlCommands.appendChild($controlMiscValues);
 
 		var $controlReset = document.createElement("div");
@@ -29776,7 +29825,7 @@ function editCommands(options) {
 				$gamepadReset.appendChild($gamepadResetBtn);
 				$controlCommands.appendChild($gamepadReset);
 			}
-			
+
 			var $controlEditorGrid = document.createElement("div");
 			$controlEditorGrid.className = "control-editor-grid";
 			for (var i=0;i<commands.length;i++) {
@@ -30142,7 +30191,7 @@ function editCommands(options) {
 	$controlResetBtn.href = "#null";
 	$controlResetBtn.innerHTML = toLanguage("Reset settings", "Rétablir les paramètres par défaut");
 	$controlResetBtn.onclick = function() {
-		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
+		if (confirm(toLanguage("Reset settings to default?", "Réinitialiser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("settings.vol");
 			localStorage.removeItem("iQuality");
@@ -30490,7 +30539,7 @@ function toLanguage(english, french) {
 }
 function toPlace(place) {
 	var term;
-	if (language) {
+	if (language) { /*if english*/
 		var dec = place%100;
 		if ((dec >= 10) && (dec < 20))
 			term = 'th';
@@ -30533,7 +30582,7 @@ function ucwords(str) {
 		return s.toUpperCase();
 	});
 }
-function toPerso(sPerso) {
+function getPersoName(sPerso) {
 	if (isCustomPerso(sPerso))
 		return customPersos[sPerso].name;
 	var res = sPerso;
@@ -30620,7 +30669,7 @@ else {
 	], iFps);
 	addFpsOption(iFps);
 	selectMainPage();
-	
+
 	formulaire.screenscale.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setScreenScale(iValue);
@@ -30663,7 +30712,7 @@ else {
 		if ($commandes.dataset.hasCommands)
 			displayCommands();
 	}
-	
+
 	if (isFirstLoad) {
 		isFirstLoad = false;
 		if (hasChallenges()) {
@@ -30743,10 +30792,10 @@ function setChat() {
 	var oChats = document.getElementsByClassName("online-chat");
 	while (oChats.length)
 		document.body.removeChild(oChats[0]);
-	
+
 	var oChat = document.createElement("div");
 	oChat.className = "online-chat";
-	
+
 	var oConnectes = document.createElement("p");
 	oConnectes.className = "online-chat-connecteds";
 	var oPlayersListCtn = document.createElement("div");
@@ -30808,7 +30857,7 @@ function setChat() {
 	var vChatActions = document.createElement("div");
 	vChatActions.className = "vocal-chat-actions";
 	vChatActions.style.display = "none";
-	
+
 	var vcaMute = document.createElement("button");
 	vcaMute.title = language ? "Mute" : "Muet";
 	var vcaiMute = document.createElement("img");
@@ -31029,10 +31078,10 @@ function setChat() {
 	};
 	oCloseChatCtn.appendChild(oOpenChat);
 	oChat.appendChild(oCloseChatCtn);
-	
+
 	var oMessages = document.createElement("div");
 	oMessages.className = "online-chat-messages";
-	
+
 	var oRepondre = document.createElement("form");
 	oRepondre.className = "online-chat-answer";
 	var rMessage = document.createElement("input");
@@ -31084,7 +31133,7 @@ function setChat() {
 		}
 		return false;
 	}
-	
+
 	oChat.appendChild(oConnectes);
 	oChat.appendChild(oMessages);
 	oChat.appendChild(oRepondre);
@@ -31139,13 +31188,13 @@ function setChat() {
 								}
 								continue;
 							}
-							var sNom = jConnectes.querySelector("[data-player='"+cPlayer.id+"']");
-							if (!sNom) {
-								sNom = document.createElement("div");
-								if (!sNom.dataset) sNom.dataset = {};
-								sNom.dataset.player = cPlayer.id;
-								sNom.className = "online-chat-playerlistelt";
-								sNom.innerHTML = '<span class="online-chat-playerlistname"></span>' +
+							var sName = jConnectes.querySelector("[data-player='"+cPlayer.id+"']");
+							if (!sName) {
+								sName = document.createElement("div");
+								if (!sName.dataset) sName.dataset = {};
+								sName.dataset.player = cPlayer.id;
+								sName.className = "online-chat-playerlistelt";
+								sName.innerHTML = '<span class="online-chat-playerlistname"></span>' +
 									'<div class="online-chat-playerlisticon">'+
 										'<img class="online-chat-spectator" alt="Spectator" title="'+ toLanguage("Spectator mode", "Mode spectateur") +'" src="images/ic_spectator.png" />'+
 										'<div class="online-chat-playerlisticonwrapper">'+
@@ -31153,20 +31202,20 @@ function setChat() {
 											'<img alt="Voc" />'+
 										'</div>'+
 									'</div>';
-								jConnectes.appendChild(sNom);
+								jConnectes.appendChild(sName);
 							}
 							var isIcon = false;
-							sNom.querySelector(".online-chat-playerlistname").innerText = cPlayer.name;
+							sName.querySelector(".online-chat-playerlistname").innerText = cPlayer.name;
 							if (cPlayer.spectator) {
-								sNom.querySelector(".online-chat-spectator").style.display = "";
+								sName.querySelector(".online-chat-spectator").style.display = "";
 								isIcon = true;
 							}
 							else
-								sNom.querySelector(".online-chat-spectator").style.display = "none";
+								sName.querySelector(".online-chat-spectator").style.display = "none";
 							if (cPlayer.peer) {
 								isIcon = true;
-								sNom.querySelector(".online-chat-playerlisticonwrapper").style.display = "";
-								sNom.querySelector(".online-chat-playerlisticonwrapper img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
+								sName.querySelector(".online-chat-playerlisticonwrapper").style.display = "";
+								sName.querySelector(".online-chat-playerlisticonwrapper img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
 								var cPeer = rtcService.getPeer(cPlayer.peer);
 								if (cPeer && cPeer.audio) {
 									if (!cPeer.recorderHandler) {
@@ -31182,7 +31231,7 @@ function setChat() {
 													clearInterval(cPeer.recorderHandler);
 													delete cPeer.recorderHandler;
 													analyser.disconnect();
-													
+
 													oPlayerVolume.style.width = "";
 													oPlayerVolume.style.height = "";
 													oPlayerVolume.style.left = "";
@@ -31206,7 +31255,7 @@ function setChat() {
 												oPlayerVolume.style.top = Math.round(x+1) +"px";
 
 											}, 300);
-										})(cPeer, sNom.querySelector(".online-chat-playerlistvolume"));
+										})(cPeer, sName.querySelector(".online-chat-playerlistvolume"));
 									}
 								}
 
@@ -31232,12 +31281,12 @@ function setChat() {
 								}
 							}
 							else {
-								sNom.querySelector(".online-chat-playerlisticonwrapper").style.display = "none";
+								sName.querySelector(".online-chat-playerlisticonwrapper").style.display = "none";
 
 								rtcService.removePeer(cPlayerPeers[cPlayer.id]);
 								delete cPlayerPeers[cPlayer.id];
 							}
-							sNom.querySelector(".online-chat-playerlisticon").style.display = isIcon ? "" : "none";
+							sName.querySelector(".online-chat-playerlisticon").style.display = isIcon ? "" : "none";
 						}
 						for (var cPlayerId in cPlayerPeers) {
 							if (!currentConnectedPlayers[cPlayerId]) {
@@ -31247,11 +31296,11 @@ function setChat() {
 								delete cPlayerPeers[cPlayerId];
 							}
 						}
-						var sNoms = jConnectes.querySelectorAll("[data-player]");
-						for (var i=0;i<sNoms.length;i++) {
-							var sNom = sNoms[i];
-							if (!currentConnectedPlayers[sNom.dataset.player])
-								jConnectes.removeChild(sNom);
+						var sNames = jConnectes.querySelectorAll("[data-player]");
+						for (var i=0;i<sNames.length;i++) {
+							var sName = sNames[i];
+							if (!currentConnectedPlayers[sName.dataset.player])
+								jConnectes.removeChild(sName);
 						}
 						var messages = rCode[1];
 						if (messages.length) {
@@ -31321,7 +31370,7 @@ function setChat() {
 			vConnectes.disabled = false;
 		}
 	});
-	
+
 	document.body.insertBefore(oChat, $mkScreen);
 
 	try {

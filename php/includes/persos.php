@@ -64,10 +64,10 @@ function update_sprite_src($oldHash,$newHash) {
 function handle_upload($file,$perso=null) {
 	global $language, $identifiants;
 	if (!$file['error']) {
-		$poids = $file['size'];
-		if ($poids < 1000000) {
-			$poids += file_total_size($perso ? array('perso'=>$perso['id'],'identifiants'=>array($perso['identifiant'],$perso['identifiant2'],$perso['identifiant3'],$perso['identifiant4'])):null);
-			if ($poids < file_total_quota($perso)) {
+		$file_size = $file['size'];
+		if ($file_size < 1000000) {
+			$file_size += file_total_size($perso ? array('perso'=>$perso['id'],'identifiants'=>array($perso['identifiant'],$perso['identifiant2'],$perso['identifiant3'],$perso['identifiant4'])):null);
+			if ($file_size < file_total_quota($perso)) {
 				$ext = get_img_ext($file['tmp_name']);
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
@@ -118,8 +118,8 @@ function handle_upload($file,$perso=null) {
 function handle_advanced($file,$perso,$type) {
 	global $language, $identifiants;
 	if (!$file['error']) {
-		$poids = $file['size'];
-		if ($poids < 1000000) {
+		$file_size = $file['size'];
+		if ($file_size < 1000000) {
 			$ext = get_img_ext($file['tmp_name']);
 			$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 			if (in_array($ext, $extensions)) {

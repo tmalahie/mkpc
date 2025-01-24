@@ -1528,12 +1528,13 @@ function getItemOptions() {
 		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","pow","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
 }
 function getItemHitOptions() {
+	/*           fakeItem,   banana,    shell ,     red-shell , bobomb , pow ,  blue shell   , megamushroom, star */
 	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","pow","carapacebleue","megachampi","etoile"];
 	if (clCourse === "battle")
-		res.push("champi");
+		res.push("champi"); // mushroom
 	else {
-		res.push("billball");
-		res.push("eclair");
+		res.push("billball"); //bulletball
+		res.push("eclair"); // lightning
 		res.push("poison");
 	}
 	return res;

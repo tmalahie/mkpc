@@ -425,7 +425,7 @@ button.control-close:active {
 .itemChamber img {
 	align-self: center;
 }
-#temps0,#temps1 {
+#time0,#time1 {
 	position: absolute;
 	z-index: 19999;
 	top: 12px;
@@ -487,7 +487,7 @@ button.control-close:active {
 .driftimg {
 	position: relative;
 }
-#infoPlace0,#infoPlace1 {
+#rankInfo0,#rankInfo1 {
 	display: none;
 	position: absolute;
 	text-align: right;

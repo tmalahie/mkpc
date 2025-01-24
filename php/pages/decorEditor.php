@@ -148,8 +148,8 @@ if (isset($error))
             }
             ?></div>
         <?php
-        $poids = file_total_size();
-        echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
+        $total_size = file_total_size();
+        echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
         ?>
         </div>
         <?php

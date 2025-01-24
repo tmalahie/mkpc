@@ -47,8 +47,8 @@ if (isset($profileId)) {
 			mysql_query('DELETE FROM `mknotifs` WHERE type="award" AND user="'. $profileId .'"');
 			if (isset($_FILES['avatar'])) {
 				if (!$_FILES['avatar']['error']) {
-					$poids = $_FILES['avatar']['size'];
-					if ($poids < 2000000) {
+					$avatar_size = $_FILES['avatar']['size'];
+					if ($avatar_size < 2000000) {
 						$uploadSrc = $_FILES['avatar']['tmp_name'];
 						list($w,$h) = getimagesize($uploadSrc);
 						if ($w*$h < 4000000) {
