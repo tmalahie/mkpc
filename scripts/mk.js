@@ -1896,7 +1896,7 @@ function initMap() {
 			return lMaps[l] || oMap;
 		}
 		var _getCurrentLapId = function(oKart) {
-			var laps = oKart.laps-1, cp = oKart.uturns;
+			var laps = oKart.laps-1, cp = oKart.checkpoints;
 			if (oMap.sections) {
 				if (cp >= oMap.checkpoint.length - 1)
 					cp = -1;
@@ -1911,13 +1911,13 @@ function initMap() {
 			return lapOverrides.length;
 		}
 		getCurrentLapId = function(oKart) {
-			if (oKart._lapOverrideCache && oKart._lapOverrideCache.laps === oKart.laps && oKart._lapOverrideCache.cp === oKart.uturns)
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.laps === oKart.laps && oKart._lapOverrideCache.cp === oKart.checkpoints)
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
 			if (oKart.sprite) {
 				oKart._lapOverrideCache = {
 					laps: oKart.laps,
-					cp: oKart.uturns,
+					cp: oKart.checkpoints,
 					lapId: lapId
 				};
 			}
@@ -2596,9 +2596,9 @@ function useWeapon(ID, backwards, forwards) {
 			if (!isBallonBattle()) {
 				lapId = getCurrentLapId(oKart);
 				lMap = getCurrentLMap(lapId);
-				var uturn = oKart.uturns+1;
-				if (uturn >= lMap.checkpoint.length)
-					uturn = 0;
+				var checkpoint = oKart.checkpoints+1;
+				if (checkpoint >= lMap.checkpoint.length)
+					checkpoint = 0;
 				for (var i=0;i<lMap.airoutesmeta.cpu;i++) {
 					var aipoints = lMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
@@ -2608,7 +2608,7 @@ function useWeapon(ID, backwards, forwards) {
 						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 						if (!isFront)
 							dist += lMap.w+lMap.h;
-						var nextCp = lMap.checkpointCoords[uturn];
+						var nextCp = lMap.checkpointCoords[checkpoint];
 						if (nextCp) {
 							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
@@ -2640,10 +2640,10 @@ function useWeapon(ID, backwards, forwards) {
 						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 						if (!isFront)
 							dist += oMap.w+oMap.h;
-						var uturn = oKart.uturns+1;
-						if (uturn >= oMap.checkpoint.length)
-							uturn = 0;
-						var nextCp = oMap.checkpointCoords[uturn];
+						var checkpoint = oKart.checkpoints+1;
+						if (checkpoint >= oMap.checkpoint.length)
+							checkpoint = 0;
+						var nextCp = oMap.checkpointCoords[checkpoint];
 						if (nextCp) {
 							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
@@ -3388,9 +3388,9 @@ function startGame() {
 			posKart(oPlayer, isTT ? 1:oPlace);
 			oPlayer.time = 0;
 			oPlayer.laps = 1;
-			oPlayer.uturns = cp0;
+			oPlayer.checkpoints = cp0;
 			//oPlayer.laps = oMap.tours;
-			//oPlayer.uturns = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
+			//oPlayer.checkpoints = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
 			//oPlayer.weapon = "bloopers";
 			//oPlayer.wheel = 24;
 			oPlayer.bulletbill = 0;
@@ -3491,9 +3491,9 @@ function startGame() {
 		if (!isBallonBattle()) {
 			posKart(oEnemy, isTT ? 1:oPlace);
 			oEnemy.laps = 1;
-			oEnemy.uturns = cp0;
+			oEnemy.checkpoints = cp0;
 			//oEnemy.laps = oMap.tours;
-			//oEnemy.uturns = oMap.checkpoint.length-1;
+			//oEnemy.checkpoints = oMap.checkpoint.length-1;
 			oEnemy.bulletbill = 0;
 			if (!isOnline) {
 				oEnemy.speed = (depart<2) ? 0 : 5.7;
@@ -3690,7 +3690,7 @@ function startGame() {
 					using : [],
 
 					laps : 1,
-					uturns: 0,
+					checkpoints: 0,
 
 					cpu : false,
 					aipoint : 0,
@@ -3763,12 +3763,12 @@ function startGame() {
 					else if (getFlags[3])
 						rotincdir = -1;
 					oKart.rotincdir = oKart.stats.handling*rotincdir;
-					var aLaps = oKart.laps, aUturns = oKart.uturns;
+					var aLaps = oKart.laps, aCheckpoints = oKart.checkpoints;
 					if (checkpoint(oKart, oKart.x-aX,oKart.y-aY)) {
 						oKart.laps++;
-						oKart.uturns = getNextCp(oKart);
+						oKart.checkpoints = getNextCp(oKart);
 					}
-					handleCpChange(aLaps,aUturns, getId);
+					handleCpChange(aLaps,aCheckpoints, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -4826,11 +4826,11 @@ function startGame() {
 										oKart.stopStunt();
 									}
 								}
-								if (oKart.uturns === undefined) {
-									var laps = oKart.laps, uturns = oKart.uturns;
+								if (oKart.checkpoints === undefined) {
+									var laps = oKart.laps, checkpoints = oKart.checkpoints;
 									oKart.laps = oMap.tours+1;
-									oKart.uturns = 0;
-									handleCpChange(laps,uturns, i);
+									oKart.checkpoints = 0;
+									handleCpChange(laps,checkpoints, i);
 								}
 								ai(oKart);
 								var aSfx = iSfx;
@@ -4847,13 +4847,13 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var laps=oKart.laps,uturns=oKart.uturns;oKart.laps=oMap.tours+1;oKart.uturns=0;handleCpChange(laps,uturns,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.spinning=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var laps=oKart.laps,checkpoints=oKart.checkpoints;oKart.laps=oMap.tours+1;oKart.checkpoints=0;handleCpChange(laps,checkpoints,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.spinning=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
 						aKarts[i].cpu = true;
 						aKarts[i].laps = 1;
-						aKarts[i].uturns = 0;
+						aKarts[i].checkpoints = 0;
 					}
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
@@ -10526,7 +10526,7 @@ function handleLapChange(prevLapId,lapId, getId) {
 function handleCpChange(prevLap,prevCP, getId) {
 	if (!oMap.lapOverrides) return collisionLap;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ laps: prevLap, uturns: prevCP });
+	var prevLapId = getCurrentLapId({ laps: prevLap, checkpoints: prevCP });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
@@ -15412,7 +15412,7 @@ function getRankScore(oKart) {
 	if (!isBallonBattle()) {
 		var lapId = getCurrentLapId(oKart);
 		var lMap = getCurrentLMap(lapId);
-		var dest = oKart.uturns+1;
+		var dest = oKart.checkpoints+1;
 		if (dest >= lMap.checkpoint.length) dest = 0;
 
 		var iLine = lMap.checkpointCoords[dest];
@@ -15488,7 +15488,7 @@ function getCpDiff(kart) {
 	return res;
 }
 function getCpScore(kart) {
-	var lastCp = getLastCp(kart), currentCp = kart.uturns;
+	var lastCp = getLastCp(kart), currentCp = kart.checkpoints;
 	var res = currentCp-lastCp;
 	if (res < 0)
 		res += oMap.checkpoint.length;
@@ -15521,9 +15521,9 @@ function distanceToKart(kart,otherKart) {
 	var res = 0;
 	var posX = kart.x, posY = kart.y;
 	var laps = kart.laps;
-	var checkpoint = kart.uturns;
+	var checkpoint = kart.checkpoints;
 	var lapsOtherKart = otherKart.laps;
-	var checkpointOtherKart = otherKart.uturns;
+	var checkpointOtherKart = otherKart.checkpoints;
 	if (oMap.sections) {
 		laps = lapsOtherKart;
 		if (checkpoint >= oMap.checkpoint.length - 1)
@@ -15532,7 +15532,7 @@ function distanceToKart(kart,otherKart) {
 			checkpointOtherKart = -1;
 	}
 	while ((laps < lapsOtherKart) || ((laps == lapsOtherKart) && (checkpoint < checkpointOtherKart))) {
-		var lMap = getCurrentLMap(getCurrentLapId({ laps: laps, uturns: checkpoint }));
+		var lMap = getCurrentLMap(getCurrentLapId({ laps: laps, checkpoints: checkpoint }));
 		checkpoint++;
 		if (checkpoint >= lMap.checkpoint.length) {
 			checkpoint = 0;
@@ -15551,7 +15551,7 @@ function distanceToKart(kart,otherKart) {
 function checkpoint(kart, fMoveX,fMoveY) {
 	var aPos = [kart.x-fMoveX,kart.y-fMoveY];
 	var fast = (fMoveX*fMoveX + fMoveY*fMoveY > 200);
-	var uturn = kart.uturns;
+	var checkpoint = kart.checkpoints;
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
@@ -15559,16 +15559,16 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	for (var i=0;i<lMap.checkpointCoords.length;i++) {
 		if (inCheckpoint(lMap.checkpointCoords[i], kart, { aPos, fast })) {
 			if (simplified) {
-				if (i==0 && (lMap.checkpoint.length-uturn) < 5)
+				if (i==0 && (lMap.checkpoint.length-checkpoint) < 5)
 					return true;
-				else if (uturn == i-1 || (uturn && Math.abs(uturn-i) < 5)) {
-					kart.uturns = i;
+				else if (checkpoint == i-1 || (checkpoint && Math.abs(checkpoint-i) < 5)) {
+					kart.checkpoints = i;
 					return false;
 				}
 			}
 			else {
 				var isNextCp = true;
-				for (var j=uturn+1;true;j++) {
+				for (var j=checkpoint+1;true;j++) {
 					if (j >= lMap.checkpoint.length)
 						j -= lMap.checkpoint.length;
 					if (j == i) break;
@@ -15580,7 +15580,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 				if (isNextCp) {
 					if (i == iCP)
 						return true;
-					kart.uturns = i;
+					kart.checkpoints = i;
 					return false;
 				}
 			}
@@ -15726,7 +15726,7 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var playerMapping = !isBallonBattle()
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","laps","uturns","mushroom","star","megamushroom","bulletbill","place"]
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","laps","checkpoints","mushroom","star","megamushroom","bulletbill","place"]
 	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","ballons","reserve","mushroom","star","megamushroom"];
 	var playerMappingExtra = (!isBallonBattle()) ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
@@ -15765,7 +15765,7 @@ function resetDatas() {
 				var param = params[i];
 				var value;
 				switch (param) {
-				case "uturns":
+				case "checkpoints":
 					if (!isBallonBattle())
 						value = getCpScore(oKart);
 					break;
@@ -15864,15 +15864,15 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.star, aBillBall = oKart.bulletbill, aFall = oKart.fall, aDriftCpt = oKart.driftcpt, aChampi = oKart.mushroom, aItem = oKart.weapon, aLaps = oKart.laps, aUturns = oKart.uturns, aReserve = oKart.reserve;
-						var nUturn;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.star, aBillBall = oKart.bulletbill, aFall = oKart.fall, aDriftCpt = oKart.driftcpt, aChampi = oKart.mushroom, aItem = oKart.weapon, aLaps = oKart.laps, aCheckpoints = oKart.checkpoints, aReserve = oKart.reserve;
+						var nCheckpoint;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
 							switch (param) {
-							case "uturns":
-								nUturn = value;
+							case "checkpoints":
+								nCheckpoint = value;
 								break;
 							case "ballons":
 								if (isBallonBattle()) {
@@ -15895,9 +15895,9 @@ function resetDatas() {
 								oKart[params[k]] = value;
 							}
 						}
-						if (nUturn >= 0) {
+						if (nCheckpoint >= 0) {
 							var lMap = getCurrentLMap(getCurrentLapId(oKart));
-							oKart.uturns = (getLastCp(oKart)+nUturn)%lMap.checkpoint.length;
+							oKart.checkpoints = (getLastCp(oKart)+nCheckpoint)%lMap.checkpoint.length;
 						}
 						if ((oKart.bulletbill >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
@@ -15914,11 +15914,11 @@ function resetDatas() {
 							oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 						else if (!oKart.mushroom)
 							delete oKart.mushroomType;
-						if ((aLaps !== oKart.laps) || (aUturns !== oKart.uturns)) {
+						if ((aLaps !== oKart.laps) || (aCheckpoints !== oKart.checkpoints)) {
 							var sID = getScreenPlayerIndex(j);
 							if (sID < oPlayers.length)
 								updateLapHud(sID);
-							handleCpChange(aLaps,aUturns, j);
+							handleCpChange(aLaps,aCheckpoints, j);
 						}
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
@@ -17106,8 +17106,8 @@ function move(getId, triggered) {
 			var fFalling;
 			if (localKart) {
 				var iC = 0;
-				if (lMap.checkpoint && oKart.uturns)
-					iC = lMap.checkpoint[(oKart.uturns+1) % lMap.checkpoint.length][3];
+				if (lMap.checkpoint && oKart.checkpoints)
+					iC = lMap.checkpoint[(oKart.checkpoints+1) % lMap.checkpoint.length][3];
 				fFalling = isFalling(oKart.x, oKart.y, iC);
 			}
 			if (fFalling) {
@@ -17259,10 +17259,10 @@ function move(getId, triggered) {
 
 	moveUsingItems(oKart, triggered);
 	if (!isBallonBattle()) {
-		var prevCP = oKart.uturns;
+		var prevCP = oKart.checkpoints;
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var NbPlayers = aKarts.length;
-			oKart.uturns = getNextCp(oKart);
+			oKart.checkpoints = getNextCp(oKart);
 			var prevLap = oKart.laps;
 			oKart.laps++;
 			collisionLap = handleCpChange(prevLap,prevCP, getId);
@@ -17612,13 +17612,13 @@ function move(getId, triggered) {
 			if (oKart === oPlayers[0])
 				challengeCheck("end_lap");
 		}
-		else if (oKart.uturns !== prevCP) {
+		else if (oKart.checkpoints !== prevCP) {
 			collisionLap = handleCpChange(oKart.laps,prevCP, getId);
 			lMap = getCurrentLMap(collisionLap);
 		}
-		if ((oKart.uturns !== prevCP) && !isFalling(oKart.x,oKart.y)) {
+		if ((oKart.checkpoints !== prevCP) && !isFalling(oKart.x,oKart.y)) {
 			oKart.lastcp = {
-				id: oKart.uturns,
+				id: oKart.checkpoints,
 				lMap: lMap,
 				x: oKart.x,
 				y: oKart.y,
@@ -17854,11 +17854,11 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			var uturn = oKart.uturns+1;
-			if (uturn >= lMap.checkpoint.length)
-				uturn = 0;
+			var checkpoint = oKart.checkpoints+1;
+			if (checkpoint >= lMap.checkpoint.length)
+				checkpoint = 0;
 
-			var oBox = lMap.checkpointCoords[uturn];
+			var oBox = lMap.checkpointCoords[checkpoint];
 			if (oBox) {
 				iLocalX = oBox.O[0] - oKart.x;
 				iLocalY = oBox.O[1] - oKart.y;
@@ -18392,7 +18392,7 @@ function handleWrongWay(oKart) {
 	var isWrongWay = true;
 	var isRightWay = false;
 	for (var i=1;i<=lMap.checkpointCoords.length;i++) {
-		var dest = (oKart.uturns+i) % lMap.checkpointCoords.length;
+		var dest = (oKart.checkpoints+i) % lMap.checkpointCoords.length;
 		var iLine = lMap.checkpointCoords[dest];
 
 		var hLine = projete(oKart.x,oKart.y, iLine.O[0],iLine.O[1], iLine.O[0]+iLine.u[0],iLine.O[1]+iLine.u[1]);
@@ -18579,27 +18579,27 @@ function processCode(cheatCode) {
             if (args[0] == "cur") t = oPlayer.laps;
             if (!args[0]) {
                 t = oMap.tours;
-                const lMap = getCurrentLMap({ laps: t, uturns: 0 });
+                const lMap = getCurrentLMap({ laps: t, checkpoints: 0 });
                 c = lMap.checkpoint.length;
             }
 
 			let llMap = getCurrentLMap(getCurrentLapId(oPlayer));
 
             if (c > 0) c--;
-            if (args[1] == "cur") c = oPlayer.uturns;
+            if (args[1] == "cur") c = oPlayer.checkpoints;
             if (!args[1]) c = llMap.checkpoint.length - 1;
 
 			if (isNaN(t)) return "lap: Invalid lap value";
 			if (isNaN(c)) return "lap: Invalid checkpoint value";
 
-            const prevLap = oPlayer.laps, prevCP = oPlayer.uturns;
+            const prevLap = oPlayer.laps, prevCP = oPlayer.checkpoints;
 			let curCheckpointCount = llMap.checkpoint.length;
 
 			if (t > oMap.tours) t = oMap.tours;
 			if (c > curCheckpointCount) c = curCheckpointCount - 1;
 
             oPlayer.laps = t;
-            oPlayer.uturns = c;
+            oPlayer.checkpoints = c;
             const lMap = getCurrentLMap(oPlayer);
             const checkpoint = lMap.checkpointCoords[c];
             if (checkpoint) {
@@ -19740,7 +19740,7 @@ function runOneFrame() {
 					var lMap = getCurrentLMap(lMaps.length);
 					oKart.aipoints = lMap.aipoints[0];
 					oKart.laps = oMap.tours+1;
-					oKart.uturns = 0;
+					oKart.checkpoints = 0;
 					oKart.lastAItime = 0;
 					oKart.weapon = false;
 					oKart.stopDrifting();
@@ -19819,13 +19819,13 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].uturns;
+		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].checkpoints;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].uturns;
+		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].checkpoints;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
