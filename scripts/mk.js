@@ -14519,7 +14519,8 @@ var itemDistributions = {
 			"champi": 1,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"pow": 0
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -14642,7 +14643,7 @@ var itemDistributions = {
 			"billball": 4,
 			"etoile": 3,
 			"eclair": 6,
-			"champior": 5,
+			"champior": 5
 		}]
 	}, {
 		name: toLanguage("Aggressive mode", "Mode explosif"),
@@ -14705,7 +14706,8 @@ var itemDistributions = {
 			"etoile": 6,
 			"champior": 1,
 			"carapacebleue": 10,
-			"billball": 5
+			"billball": 5,
+			"pow": 0
 		}, {
 			"megachampi": 6,
 			"etoile": 6,
