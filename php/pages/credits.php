@@ -153,13 +153,7 @@ include('../includes/menu.php');
                 'author' => 'Red5Pizza',
                 'base_url' => 'profil.php?id=8113',
                 'for' => $language ? 'for the':'pour les',
-                'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
-            ),
-            array(
-                'author' => 'VulpixTails',
-                'base_url' => 'profil.php?id=48454',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_harmonie.png">sprite of Rosalina</a>':'<a href="images/sprites/sprite_harmonie.png">sprite de Harmonie</a>'
+                'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Rosalina</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Harmonie</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
             ),
             array(
                 'author' => '<strong>LISARTINO2009</strong>',
