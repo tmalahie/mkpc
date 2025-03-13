@@ -15046,11 +15046,11 @@ function touche_poison(iX, iY, iP) {
 	}
 	return false;
 }
-function touche_champi(iX, iY) {
+function touche_champi(iX, iY, iI, iJ) {
 	for (var i=0;i<items["champi"].length;i++) {
 		var oBox = items["champi"][i];
-		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
-			if (itemInteractionsDisabled(oBox)) continue;
+		const hitbox = [oBox.x-4, oBox.y-4, 8, 8];
+		if (pointCrossRectangle(iX, iY, iI, iJ, hitbox) || pointInRectangle(iX, iY, hitbox)) {
 			detruit(oBox);
 			return true;
 		}
@@ -15058,11 +15058,11 @@ function touche_champi(iX, iY) {
 	return false;
 }
 
-function touche_etoile(iX, iY) {
+function touche_etoile(iX, iY, iI, iJ) {
 	for (var i=0;i<items["etoile"].length;i++) {
 		var oBox = items["etoile"][i];
-		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
-			if (itemInteractionsDisabled(oBox)) continue;
+		const hitbox = [oBox.x-4, oBox.y-4, 8, 8];
+		if (pointCrossRectangle(iX, iY, iI, iJ, hitbox) || pointInRectangle(iX, iY, hitbox)) {
 			detruit(oBox);
 			return true;
 		}
@@ -16636,25 +16636,32 @@ function move(getId, triggered) {
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
-			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
-			fMidPosX = fNewPosX; fMidPosY = fNewPosY;
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
-				handleHardHit(getId);
-			else if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
-				handleSoftHit(getId);
-			else if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
-				handlePoisonHit(getId);
-			else if ((touche_champi(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && touche_champi(fMidPosX, fMidPosY))) && !oKart.tourne) {
-				oKart.champi = 20;
-				oKart.champiType = CHAMPI_TYPE_ITEM;
-				oKart.maxspeed = 11;
-				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
-				playIfShould(oKart,"musics/events/boost.mp3");
+			if (!oKart.cannon) {
+				while (touche_champi(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne) {
+					oKart.champi = 20;
+					oKart.champiType = CHAMPI_TYPE_ITEM;
+					oKart.maxspeed = 11;
+					oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
+					playIfShould(oKart,"musics/events/boost.mp3");
+				}
+				while (touche_etoile(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne && !oKart.billball) {
+					setStarState(oKart, 80);
+				}
+
+				var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
+				fMidPosX = fNewPosX; fMidPosY = fNewPosY;
+				while ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))))
+					if (!oKart.protect && !oKart.frminv)
+						handleHardHit(getId);
+				while ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
+					if (!oKart.protect && !oKart.frminv)
+						handleSoftHit(getId);
+				while ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))))
+					if (!oKart.protect && !oKart.frminv)
+						handlePoisonHit(getId);
 			}
-			else if ((touche_etoile(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && touche_etoile(fMidPosX, fMidPosY))) && !oKart.tourne && !oKart.billball) {
-				setStarState(oKart, 80);
-			}
-			else if (!oKart.tourne && (oKart.z < 1.2)) {
+
+			if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
