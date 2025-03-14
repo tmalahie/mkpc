@@ -13173,6 +13173,21 @@ var challengeRules = {
 		}
 	},
 	"avoid_decors": {
+		"preinitSelected": function(scope) {
+			const fireballsDecors = ["fire3star", "firering"];
+			const fireballDecors = ["fireplant"];
+
+			for (let decorType in scope.value) {
+				if (decorType.startsWith("custom-"))
+					decorType = getDecorCustomData(decorType, oMap).type;
+
+				if (fireballsDecors.includes(decorType) && !scope.value.fireballs)
+					scope.value.fireballs = {};
+
+				if (fireballDecors.includes(decorType) && !scope.value.fireball)
+					scope.value.fireball = {};
+			}
+		},
 		"initLocalVars": function(scope) {
 			if (!clLocalVars.decorsHit)
 				clLocalVars.decorsHit = {};
