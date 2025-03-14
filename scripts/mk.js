@@ -27240,7 +27240,7 @@ function choose(map,rand) {
 	oTable.style.textAlign = "center";
 	oTable.style.left = (iScreenScale*25) +"px";
 	oTable.style.top = (iScreenScale*2) +"px";
-	oTable.style.width = (iScreenScale*30) +"px";
+	//oTable.style.width = (iScreenScale*50) +"px";
 	if (onlineSpectatorState)
 		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
@@ -27263,10 +27263,16 @@ function choose(map,rand) {
 				for (i=0;i<choixJoueurs.length;i++) {
 					if (!choixJoueurs[i][7]) {
 						var oTr = document.createElement("tr");
+
+						let nameCell = document.createElement("td");
+						nameCell.innerHTML = choixJoueurs[i][5];
+						nameCell.style.width = (iScreenScale*20) + "px";
+
 						var oTd = document.createElement("td");
 						var isChoix = choixJoueurs[i][2];
 						var isRandom = choixJoueurs[i][3];
-						oTd.innerHTML = isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						oTd.innerHTML += isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						oTd.style.width = (iScreenScale*35) + "px";
 						if (onlineSpectatorId && (choixJoueurs[i][0] == identifiant)) {
 							if (isChoix) {
 								setSpectatorId(undefined);
@@ -27275,6 +27281,7 @@ function choose(map,rand) {
 							else
 								oTd.style.display = "none";
 						}
+						oTr.appendChild(nameCell);
 						oTr.appendChild(oTd);
 						oTBody.appendChild(oTr);
 						nbChoices++;
@@ -27411,7 +27418,7 @@ function choose(map,rand) {
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
 							if (cID == 1)
-								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
+								trs[cCursor].getElementsByTagName("td")[1].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
 						}
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
 						if (onlineSpectatorState) {
