@@ -15215,8 +15215,6 @@ function powEffect(i, oKart, fSprite) {
 	let spinPower = fullHit ? 62 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
 	if (spinPower % 2 === 1) spinPower++;
 
-	loseUsingItems(oKart);
-	dropCurrentItem(oKart);
 	oKart.spin(spinPower);
 	oKart.champi = 0;
 	delete oKart.champiType;
@@ -15241,9 +15239,14 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
 	
-	if (fSprite.countstate === 6 && fSprite.countdown === 1)
-		if (oKart != oKartOwner && !oKart.protect && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant))
-			powEffect(i, oKart, fSprite);
+	if (fSprite.countstate === 6 && fSprite.countdown === 1) {
+		if (oKart != oKartOwner && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant)) {
+			loseUsingItems(oKart);
+			dropCurrentItem(oKart);
+			if (!oKart.protect && !oKart.frminv)
+				powEffect(i, oKart, fSprite);
+		}
+	}
 }
 
 function touche_asset(aPosX,aPosY, iX,iY) {
