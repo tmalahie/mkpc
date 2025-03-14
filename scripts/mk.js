@@ -9858,7 +9858,7 @@ var decorBehaviors = {
 										fMoveX = 0;
 										fMoveY = 0;
 									}
-									else if (pAsset = touche_asset(decorData[0],decorData[1], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
+									else if (pAsset = touche_asset(decorData[0],decorData[1],decorData[3], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
 										switch (pAsset[0]) {
 										case "bumpers":
 											var ux = fMoveX, uy = fMoveY;
@@ -15249,7 +15249,7 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 	}
 }
 
-function touche_asset(aPosX,aPosY, iX,iY) {
+function touche_asset(aPosX,aPosY,aPosZ, iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	var turningAssets = ["pointers", "flippers"];
 	for (var i=0;i<turningAssets.length;i++) {
@@ -15311,7 +15311,7 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 			for (var i=0;i<lMap[key].length;i++) {
 				var asset = lMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cW = Math.max(4,asset[1][2]/2), cH = Math.max(4,asset[1][3]/2);
-				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH))
+				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH) && aPosZ == 0)
 					return [key,asset];
 			}
 		}
@@ -15326,7 +15326,7 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 				var flower = asset[1];
 				var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
 				var oRect = [x-w,y-w,2*w,2*h];
-				if (pointInRectangle(iX,iY, oRect))
+				if (pointInRectangle(iX,iY, oRect) && aPosZ == 0)
 					return [key,asset];
 			}
 		}
@@ -16553,7 +16553,7 @@ function move(getId, triggered) {
 	var fNewPosX = oKart.x + fMoveX;
 	var fNewPosY = oKart.y + fMoveY;
 	
-	var aPosX = oKart.x, aPosY = oKart.y;
+	var aPosX = oKart.x, aPosY = oKart.y, aPosZ = oKart.z;
 
 	if (!oKart.z && !oKart.heightinc) {
 		if (clLocalVars.autoAccelerate && !oKart.cpu)
@@ -16615,7 +16615,7 @@ function move(getId, triggered) {
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
-				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
+				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
 				if (asset) {
