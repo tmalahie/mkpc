@@ -14340,6 +14340,8 @@ function showClFailedPopup() {
 	$popup.style.display = "flex";
 	$popup.style.alignItems = "center";
 	$popup.style.fontFamily = "Courier New";
+	$popup.style.zIndex = 1000000;
+	$popup.style.textShadow = "1px 1px 0 black, -1px 1px 0 black, 1px -1px 0 black, -1px -1px 0 black";
 	$popup.innerHTML = '<strong style="color:#800;font-size:1.8em">&times;</strong>&nbsp;' + (language ? 'Challenge failed...':'Défi échoué...');
 	var hudScreen = oChallengeCpts.parentNode;
 	hudScreen.appendChild($popup);
