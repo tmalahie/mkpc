@@ -2750,7 +2750,7 @@ function arme(ID, backwards, forwards) {
 			var shiftDist = backwards?7.5:(6+uL);
 			if (oKart.using.length > 1)
 				shiftDist += 5;
-			var itemPayload = throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:0,vx:uX,vy:uY,owner:oKart.id,lives:10});
+			var itemPayload = throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:oKart.z,vx:uX,vy:uY,owner:oKart.id,lives:10});
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
@@ -2771,9 +2771,9 @@ function arme(ID, backwards, forwards) {
 			var lapId = getCurrentLapId(oKart);
 			var itemPayload;
 			if (backwards)
-				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:oKart.z,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
 			else
-				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:oKart.z,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			throwItem(oKart, itemPayload);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -7721,11 +7721,11 @@ var itemBehaviors = {
 					fSprite.vx = cSpeed * Math.sin(theta);
 					fSprite.vy = cSpeed * Math.cos(theta);
 				}
-				else if ((isMoving && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
+				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY)) {
 					if (ctx && ctx.checkCollisions) {
 						ctx.checkCollisions(fSprite);
 						if (fSprite.deleted)
@@ -7743,7 +7743,7 @@ var itemBehaviors = {
 					if (collisionDecorHit)
 						fSprite.lives = 0;
 					if (fSprite.lives > 0) {
-						var horizontality = getHorizontality(fSprite.x,fSprite.y,collisionFloor?collisionFloor.z:0, fMoveX,fMoveY);
+						var horizontality = getHorizontality(fSprite.x,fSprite.y,collisionFloor?collisionFloor.z:fSprite.z, fMoveX,fMoveY);
 						var ux = horizontality[0], uy = horizontality[1];
 						var vx = fSprite.vx, vy = fSprite.vy;
 						var m_u = vx*ux + vy*uy;
@@ -7754,6 +7754,15 @@ var itemBehaviors = {
 					else
 						detruit(fSprite);
 					break;
+				}
+
+				if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)) && isMoving && (i%2) && !fSprite.z)
+					handleHeightInc(fSprite);
+
+				if ((fSprite.z || fSprite.heightinc) && !(i%2) && isMoving) {
+					if (!fSprite.heightinc)
+						fSprite.heightinc = 0;
+					handleHeightInc(fSprite);
 				}
 			}
 		},
@@ -7908,6 +7917,7 @@ var itemBehaviors = {
 							}
 							fSprite.x = fNewPosX;
 							fSprite.y = fNewPosY;
+							fSprite.z = tCible.z;
 							l = steps-1;
 						}
 						else {
@@ -8046,7 +8056,7 @@ var itemBehaviors = {
 						}
 					}
 					else if (!fSprite.z) {
-						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
+						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 5)) {
 							for (var k=0;k<4;k++) {
 								var h = getHorizontality(fSprite.x,fSprite.y,fSprite.z0||0, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
 								if (h) {
@@ -8070,12 +8080,10 @@ var itemBehaviors = {
 							}
 						}
 
-						if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY))) {
-							if ((l%2))
-								handleHeightInc(fSprite);
-						}
+						if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)) && (l%5))
+							handleHeightInc(fSprite);
 					}
-					if ((fSprite.z || fSprite.heightinc) && !(l%2)) {
+					if ((fSprite.z || fSprite.heightinc) && !(l%5)) {
 						if (!fSprite.heightinc)
 							fSprite.heightinc = 0;
 						handleHeightInc(fSprite);
@@ -11472,7 +11480,7 @@ function loseUsingItems(oKart) {
 		for (var i=0;i<oKart.using.length;i++) {
 			var oItem = oKart.using[i];
 			// space rotating shells to prevent instant breaking
-			if (oItem.type == "carapace" || oItem.type == "carapace-rouge") {
+			if (oKart.rotitem && (oItem.type == "carapace" || oItem.type == "carapace-rouge")) {
 				oItem.x += (oKart.x - oItem.x) * 3.5;
 				oItem.y += (oKart.y - oItem.y) * 3.5;
 			}
