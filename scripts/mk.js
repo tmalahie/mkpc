@@ -784,6 +784,7 @@ function baseCustomPersos() {
 }
 
 var itemDistribution;
+let possibleItems = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
 var ptsDistribution;
 
 var oBgLayers = new Array();
@@ -24230,6 +24231,9 @@ function handleCcSelectChange(oSelect,oScr, onSubmit) {
 	else
 		oSelect.currentValue = oSelect.value;
 }
+let secretCodes = {
+	"darkshell": ["carapacenoire", ["the dark shell", "la carapace noire"], false]
+};
 function selectItemScreen(oScr, callback, options) {
 	options = options || {};
 	var oScr2 = document.createElement("div");
@@ -24248,19 +24252,18 @@ function selectItemScreen(oScr, callback, options) {
 	oTableItems.style.left = (iScreenScale*5) +"px";
 	oTableItems.setAttribute("cellpadding", 0);
 	oTableItems.setAttribute("cellspacing", 0);
+
 	var itemMode = getItemMode();
-	var possibleItems = {};
 	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	for (var i=0;i<oItemDistributions.length;i++) {
 		var oItemDistribution = oItemDistributions[i];
 		for (var j=0;j<oItemDistribution.value.length;j++) {
-			for (var item in oItemDistribution.value[j])
-				possibleItems[item] = 1;
+			for (var item in oItemDistribution.value[j] && !(item in possibleItems))
+				possibleItems.push(item);
 		}
 	}
-	possibleItems = Object.keys(possibleItems);
 
 	var itemDistribution0 = oItemDistributions[0].value;
 	var currentDistribution = selectedItemDistrib;
@@ -24758,36 +24761,46 @@ function selectItemScreen(oScr, callback, options) {
 			oScr2.appendChild(oExportScreen);
 		}
 		oSetForm.appendChild(oLink);
+		oScr2.tabIndex = 0;
+		oScr2.style.outline = "none";
 
-		if (possibleItems.indexOf("carapacenoire") === -1) {
-			oScr2.tabIndex = 0;
-			oScr2.style.outline = "none";
-			var secretCode = "darkshell", typedCode = "";
-			oScr2.onkeydown = function(e) {
-				var key = e.key;
-				if (key.length === 1) {
-					key = key.toLowerCase();
-					typedCode += key;
-					if (!secretCode.startsWith(typedCode)) {
-						typedCode = "";
-						if (secretCode.startsWith(key))
-							typedCode = key;
-						return;
+		let typedCode = "";
+
+		oScr2.onkeydown = function(e) {
+			var key = e.key;
+			if (key.length === 1) {
+				key = key.toLowerCase();
+				typedCode += key;
+				
+				let validCode = false;
+				for (const code in secretCodes) {
+					if (code.startsWith(typedCode)) {
+						validCode = true;
+						break;
 					}
-					if (typedCode === secretCode) {
-						if (confirm("Enable dark shell item?")) {
-							itemDistribution0[itemDistribution0.length-1].carapacenoire = 0;
-							oScr.removeChild(oScr2);
+				}
+
+				if (!validCode) {
+					typedCode = "";
+					return;
+				}
+
+				for (const code in secretCodes) {
+					if (typedCode === code && !secretCodes[code][2]) {
+						if (confirm(toLanguage("Enable "+ secretCodes[code][1][0] +" item?", "Ajouter "+ secretCodes[code][1][1] +"?"))) {
+							possibleItems.push(secretCodes[code][0]);
+							secretCodes[code][2] = true;
+							//oScr.removeChild(oScr2);
 							selectItemScreen(oScr, callback, options);
 							return;
 						}
 					}
 				}
-			};
-			setTimeout(function() {
-				oScr2.focus();
-			}, 1);
-		}
+			}
+		};
+		setTimeout(function() {
+			oScr2.focus();
+		}, 1);
 	}
 	
 	oScr2.appendChild(oSetForm);
