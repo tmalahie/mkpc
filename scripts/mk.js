@@ -24299,7 +24299,13 @@ function selectItemScreen(oScr, callback, options) {
 			var oInput = document.createElement("input");
 			oInput.type = "number";
 			oInput.value = jDistribution[itemName] || "";
-			oInput.style.width = Math.round(iScreenScale*3.4) +"px";
+
+			// reduce row width if too many items in distribution
+			let mult = 3.4;
+			if (possibleItems.length > 19)
+				mult = 3.4 - (possibleItems.length - 19) * 0.14;
+			oInput.style.width = Math.round(iScreenScale*mult) +"px";
+
 			oInput.className = "noarrow";
 			oInput.style.backgroundColor = "black";
 			oInput.style.color = "white";
