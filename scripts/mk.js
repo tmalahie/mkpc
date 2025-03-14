@@ -26734,6 +26734,8 @@ function selectMapScreen(opts) {
 			var mScreenScale = iScreenScale;
 
 			oPImg.onmouseover = function() {
+				this.style.filter = 'brightness(0.5)';
+
 				var oDefMap = new Image();
 				oDefMap.src = getMapSelectorSrc(i);
 				oDefMap.alt = this.alt*4+4;
@@ -26780,6 +26782,7 @@ function selectMapScreen(opts) {
 				document.getElementById("dMaps").style.display = "none";
 				document.getElementById("dMaps").innerHTML = "";
 				oCupName.style.display = "none";
+				this.style.filter = 'brightness(1)';
 			}
 
 			oPImg.onclick = function() {
