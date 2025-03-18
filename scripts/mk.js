@@ -3057,12 +3057,23 @@ function postResumeMusic(elt, ratio) {
 		}, 500);
 	}
 }
+function shouldStopMegaStarMusic(oKart) {
+	let check;
+
+	if (bMusic && iSfx)
+		check = shouldPlaySound(oKart);
+
+	else if (!bMusic && iSfx)
+		check = true;
+
+	return check;
+}
 function stopStarMusic(oKart) {
-	if (shouldPlaySound(oKart) && !oPlayers[1])
+	if (shouldStopMegaStarMusic(oKart))
 		postResumeMusic(mapMusic, 0.9);
 }
 function stopMegaMusic(oKart) {
-	if (shouldPlaySound(oKart) && !oPlayers[1])
+	if (shouldStopMegaStarMusic(oKart))
 		postResumeMusic(mapMusic, 0.92);
 }
 function resetPowerup(oKart) {
@@ -7336,7 +7347,7 @@ var itemBehaviors = {
 				if (fSprite.affect[i])
 					playPow(i, aKarts[i], oKartOwner, fSprite);
 			}
-			
+
 			if (fSprite.countdown >= sTime) {
 				fSprite.countstate++;
 				fSprite.countdown = 0;
