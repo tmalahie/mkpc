@@ -2529,6 +2529,7 @@ function arme(ID, backwards, forwards) {
 			oKart.size = 1;
 			oKart.mini = 0;
 			oKart.protect = true;
+			playIfShould(oKart, "musics/events/megamushroom_start.mp3");
 			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
@@ -7183,6 +7184,7 @@ var itemBehaviors = {
 								if (kart.megachampi && !kart.etoile) {
 									kart.megachampi = Math.min(kart.megachampi, 8);
 									kart.size = Math.pow(1.05, kart.megachampi);
+									playIfShould(kart, "musics/events/megamushroom_end.mp3");
 								}
 							}
 						}
@@ -17986,6 +17988,8 @@ function move(getId, triggered) {
 		oKart.megachampi--;
 		if (oKart.megachampi > 71)
 			oKart.size *= 1.05;
+		else if (oKart.megachampi == 8)
+			playIfShould(oKart, "musics/events/megamushroom_end.mp3");
 		else if (oKart.megachampi < 8) {
 			oKart.size /= 1.05;
 			if (!oKart.megachampi) {
