@@ -1582,6 +1582,8 @@ function loadMap() {
 			ctrlSettings.autoacc = 1;
 		if (ctrlSettings.vitem === undefined)
 			ctrlSettings.vitem = 1;
+		if (ctrlSettings.vibration === undefined)
+			ctrlSettings.vibration = 1;
 	}
 
 	if (gameSettings.rtime) {
@@ -3183,27 +3185,25 @@ function loopAfterIntro(embed, introTime, loopTime) {
 	embed.addEventListener('timeupdate', embed.looper, false);
 }
 function startEngineSound() {
-	if (!iSfx) return;
-	carEngine = loadMusic("musics/events/engine.mp3", true);
-	carEngine2 = loadMusic("musics/events/engine2.mp3", false);
-	carEngine3 = loadMusic("musics/events/engine3.mp3", false);
-	carDrift = loadMusic("musics/events/drift.mp3", false);
-	carSpark = loadMusic("musics/events/spark.mp3", false);
-	playingCarEngine = carEngine;
-	carEngine.addEventListener('timeupdate', loopWithoutGap, false);
-	carEngine2.addEventListener('timeupdate', loopWithoutGap, false);
-	carEngine.permanent = 1;
-	carEngine2.permanent = 1;
-	carEngine3.permanent = 1;
-	carDrift.permanent = 1;
-	carSpark.permanent = 1;
-	document.body.appendChild(carEngine);
-	document.body.appendChild(carEngine2);
-	document.body.appendChild(carEngine3);
-	document.body.appendChild(carDrift);
-	document.body.appendChild(carSpark);
+    if (!iSfx) return;
+    
+    function configEngineSFX(src, loop=false, listen=false) {
+        const music = loadMusic(src, loop);
+        music.permanent = 1;
+        document.body.appendChild(music);
+        if (listen)
+            music.addEventListener('timeupdate', loopWithoutGap, false);
+        return music;
+    }
+
+    carEngine = configEngineSFX("musics/events/engine.mp3", true);
+    carEngine2 = configEngineSFX("musics/events/engine2.mp3", false, true);
+    carEngine3 = configEngineSFX("musics/events/engine3.mp3", false, true);
+    carDrift = configEngineSFX("musics/events/drift.mp3");
+    carSpark = configEngineSFX("musics/events/spark.mp3");
+    
+    playingCarEngine = carEngine;
 }
-var playingCarEngine;
 function updateEngineSound(elt) {
 	if (iSfx && (elt != playingCarEngine)) {
 		if (playingCarEngine)
@@ -4917,6 +4917,7 @@ function startGame() {
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
 	if (isMobile()) {
+		setupCommonMobileControls();
 		if (onlineSpectatorId)
 			showSpectatorKeyboard();
 		else {
@@ -4930,7 +4931,6 @@ function startGame() {
 				showVirtualKeyboard();
 			}
 
-			setupCommonMobileControls();
 		}
 	}
 	if (gameControls.gamepad) {
@@ -4956,7 +4956,6 @@ function startGame() {
 function showVirtualKeyboard() {
 	setupVibrate();
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
-	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
 
 	function showItemLine(inverted) {
 		if (inverted) {
@@ -5234,7 +5233,7 @@ function setupGestureEvents() {
 	}
 }
 function setupCommonMobileControls() {
-	if (ctrlSettings.vitem) {
+	if (ctrlSettings.vitem || onlineSpectatorId) {
 		var $virtualItemScreen = document.createElement("div");
 		$virtualItemScreen.style.position = "absolute";
 		$virtualItemScreen.style.left = "0px";
@@ -5259,18 +5258,31 @@ function setupCommonMobileControls() {
 			var diffX = endPos.x - originPos.x;
 			var diffY = endPos.y - originPos.y;
 
-			if (Math.abs(diffY) > Math.max(50, 3*Math.abs(diffX))) {
-				if (diffY > 0)
-					doReleaseKey("item_back");
-				else
-					doReleaseKey("item_fwd");
+			if (onlineSpectatorId) { // spectator controls
+				if (originPos.x < $virtualItemScreen.offsetWidth / 2) {
+					handleSpectatorInput({ keyAction: "left" }); // touched left side
+				} else {
+					handleSpectatorInput({ keyAction: "right" }); // touched right side
+				}
+				return;
 			}
-			else
-				doReleaseKey("item");
+
+			if (ctrlSettings.vitem) { // player controls
+				if (Math.abs(diffY) > Math.max(50, 3*Math.abs(diffX))) {
+					if (diffY > 0) { // swiped down
+						doReleaseKey("item_back");
+					} else { // swiped up
+						doReleaseKey("item_fwd");
+					}
+				} else { // press/swipe left or right
+					doReleaseKey("item");
+				}
+			}
+
 		}
 		hudScreens[0].appendChild($virtualItemScreen);
 	}
-
+	
 	if (!isOnline) {
 		var $virtualPauseBtn = document.createElement("button");
 		$virtualPauseBtn.innerHTML = "\u275A\u275A";
@@ -5335,9 +5347,19 @@ function setupCommonMobileControls() {
 		window.addEventListener("deviceorientation", window.turnOnRotate);
 	}
 }
+
 function setupVibrate() {
-	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
+	if (ctrlSettings.vibration) {
+		navigator.vibrate = navigator.vibrate
+		|| navigator.webkitVibrate /* old versions of Chrome/Opera */
+		|| navigator.mozVibrate    /* old versions of Firefox */
+		|| navigator.msVibrate	   /* IE */
+		|| function(){};           /* fallback, no vibration */
+	} else {
+		navigator.vibrate = function(){};
+	}
 }
+
 function showSpectatorKeyboard() {
 	setupVibrate();
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
@@ -5652,7 +5674,6 @@ function classement() {
 	}
 
 	document.getElementById("infos0").style.display="none";
-	var nPlayer = strPlayer.length-1;
 	for (var i=0;i<iPlacement.length;i++) {
 		var iPlayer = iPlacement[i];
 		var tPlayer = aKarts[iPlayer].personnage;
@@ -5760,17 +5781,18 @@ function continuer() {
 	var oContinue = document.createElement("input");
 	oContinue.type = "button";
 	oContinue.style.fontSize = iScreenScale*3 + "pt";
-	oContinue.style.width = "100%";
+	oContinue.style.width = iScreenScale*32 + "px";
+	oContinue.style.textAlign = "center";
 
 	if (course != "CM") {
 		if (oMap.ref % 4 || course != "GP") {
 			if (isSingle && !isOnline)
-				oContinue.value = "        "+ toLanguage('  REPLAY', 'REJOUER') +"        ";
+                oContinue.value = toLanguage('  REPLAY', 'REJOUER');
 			else {
 				if (course == "BB")
-					oContinue.value = toLanguage("      NEXT BATTLE	   ", "BATAILLE SUIVANTE");
+                    oContinue.value = toLanguage('NEXT BATTLE', 'BATAILLE SUIVANTE');
 				else
-					oContinue.value = toLanguage("       NEXT RACE	   ", "COURSE SUIVANTE");
+                    oContinue.value = toLanguage('NEXT RACE', 'COURSE SUIVANTE');
 			}
 			var forceClic3 = true;
 			oContinue.onclick = function() {
@@ -5781,7 +5803,7 @@ function continuer() {
 				setTimeout(function(){if(forceClic3)nextRace();},5000);
 		}
 		else {
-			oContinue.value = toLanguage("           NEXT           ", "         SUIVANT          ");
+            oContinue.value = toLanguage('NEXT', 'SUIVANT');
 			oContinue.onclick = function () {
 				$mkScreen = document.body;
 				interruptGame();
@@ -5873,9 +5895,9 @@ function continuer() {
 		var oClassement = oContinue.cloneNode(false);
 
 		if (gSelectedPerso)
-			oContinue.value = toLanguage('        FACE WITH        ', '     AFFRONTER     ');
+            oContinue.value = toLanguage('FACE WITH', 'AFFRONTER');
 		else
-			oContinue.value = toLanguage('          RETRY          ', '     RÉESSAYER     ');
+            oContinue.value = toLanguage('RETRY', 'RÉESSAYER');
 		oContinue.onclick = function() {
 			interruptGame();
 			removeGameMusics();
@@ -5922,7 +5944,7 @@ function continuer() {
 			resetApp();
 		}
 
-		oSave.value = "   "+ toLanguage('SAVE', 'ENREGISTRER') +"   ";
+        oSave.value = toLanguage('SAVE', 'ENREGISTRER');
 		oSave.onclick = function() {
 			document.getElementById("infos0").style.display = "none";
 			var oForm = document.createElement("form");
@@ -6095,14 +6117,14 @@ function continuer() {
 			var aPara2 = aPara1.cloneNode(false);
 			var oValide = document.createElement("input");
 			oValide.type = "submit";
-			oValide.value = "     "+ toLanguage("Submit", "Valider") +"     ";
+            oValide.value = toLanguage('SUBMIT', 'VALIDER');
 			oValide.style.fontSize = (iScreenScale*5) +"px";
 			oValide.onmouseover = function() {this.style.fontSize = (iScreenScale*5) +"px"; oRetour.style.fontSize = (iScreenScale*4) +"px";}
 			aPara2.appendChild(oValide);
 			var aPara3 = aPara1.cloneNode(false);
 			var oRetour = document.createElement("input");
 			oRetour.type = "button";
-			oRetour.value = "     "+ toLanguage("Back", "Retour") +"     ";
+            oRetour.value = toLanguage('BACK', 'RETOUR');
 			oRetour.style.fontSize = (iScreenScale*4) +"px";
 			oRetour.onmouseover = function() {
 				this.style.fontSize = (iScreenScale*5) +"px";
@@ -6169,7 +6191,7 @@ function continuer() {
 		}
 		document.getElementById("revoir").appendChild(oReplay);
 
-		oChangeRace.value = toLanguage("     CHANGE RACE     ", "   CHANGER CIRCUIT   ");
+        oChangeRace.value = toLanguage('CHANGE RACE', 'CHANGER CIRCUIT');
 		oChangeRace.onclick = function() {
 			interruptGame();
 			removeGameMusics();
@@ -16589,7 +16611,7 @@ function move(getId, triggered) {
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
-				var stopped = true;
+			var stopped = true;
 				var decorHit = false;
 				if (asset) {
 					var decorType = asset[1][0].src;
@@ -16601,7 +16623,7 @@ function move(getId, triggered) {
 							stopDrifting(getId);
 							loseBall(getId);
 							oKart.spin(20);
-						}
+							}
 						stopped = false;
 						break;
 					case "pointers":
@@ -18436,7 +18458,7 @@ function processCode(cheatCode) {
 
     const command = rawArgs[0];
     const args = rawArgs.slice(1);
-    const oPlayer = oPlayers[0];
+    const oKart = oPlayers[0];
 
     switch (command) {
 		case "give": // /give item (1)
@@ -18454,12 +18476,12 @@ function processCode(cheatCode) {
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
 	
 			if (!isExistingObj) return "give: This item is not present in your item distribution";
-			if (itemSlot === 1 || !oPlayer.arme) {
-				oPlayer.arme = wObject;
-				oPlayer.roulette = 25;
+			if (itemSlot === 1 || !oKart.arme) {
+				oKart.arme = wObject;
+				oKart.roulette = 25;
 			} else {
-				oPlayer.stash = wObject;
-				oPlayer.roulette2 = 25;
+				oKart.stash = wObject;
+				oKart.roulette2 = 25;
 			}
 			updateObjHud(0);
 			return true;
@@ -18472,47 +18494,91 @@ function processCode(cheatCode) {
 			// 'cur' - current player position
 			// 'n' - position specified
 			// 'n+' | 'n-' - add or decrease the current position
-			// examples: /tp 100 200 90 | /tp cur 50+
-			if (![2, 3].includes(args.length)) return "tp: Invalid argument count";
+			// 'nf(+ or nothing(forward) or -) - go forward or backward from the current position
+			// ^ when used only 2 args are accepted, the 2nd is the rotation
+			// examples: /tp 100 200 90 | /tp cur 50+ | /tp 20f- | /tp 30f 270
 
-			function correctTPType(current, arg, onReturn) {
-				let result;
-				if (typeof arg === 'undefined') return current;
-				if (arg === 'cur') {                	  // current pos
-					result = current;
-				} else if (arg.endsWith('+')) {     	  // add to current pos
-					result = current + parseFloat(arg.slice(0, -1));
-				} else if (arg.endsWith('-')) {    	      // decrease current pos
-					result = current - parseFloat(arg.slice(0, -1));
-				} else {                            	  // exact position specified
-					const parsed = parseFloat(arg); 	  // sanity
-					result = isNaN(parsed) ? undefined : parsed;
+			if (![1, 2, 3].includes(args.length)) return "tp: Invalid argument count";
+
+			function correctTPType(pos, args) {
+				if (!args) return;
+			
+				let argTypes;
+			
+				if (args.length == 2) {
+					if (args[0][args[0].length - 2] === 'f' || args[0][args[0].length - 1] === 'f') {
+						argTypes = ['f', 'r']
+					} else {
+						argTypes = ['x', 'y']
+					}
+				} else if (args.length == 3) {
+					argTypes = ['x', 'y', 'r']
+				} else if (args.length == 1) {
+					argTypes = ['f']
+				} else {
+					return 'tp: Invalid arguments';
 				}
 			
-				let retval;
-				if (typeof onReturn === 'function') {
-					retval = onReturn(result);
-					if (typeof retval !== 'undefined') result = retval;
+				function forwardMult(farg) {
+					return farg.endsWith('-') && -1 || 1;
 				}
 			
-				return result;
+				function stripFwdtoInt(farg) { // e.g 20f -> 20 or 20f- -> 20
+					if (['+', '-'].includes(farg[farg.length - 2])) {
+						return parseInt(farg.slice(0, -2));
+					} else {
+						return parseInt(farg.slice(0, -1));
+					}
+				}
+			
+				// 4 types of expected input
+				// 3 args - x y r
+				// 2 args - x y
+				// 2 args - f r
+				// 1 args - f
+				let i = 0;
+				for (let type of argTypes) {
+					let arg = args[i];
+					i++; // cant enumerate so i have to use this, pretty cursed
+				
+					if (typeof arg === 'undefined') continue;
+				
+					if (type != 'f' && arg !== 'cur') {
+						if (arg.endsWith('+')) {     	  // add to current pos
+							pos[type] = pos[type] + parseInt(arg.slice(0, -1));
+						} else if (arg.endsWith('-')) {    	      // decrease current pos
+							pos[type] = pos[type] - parseInt(arg.slice(0, -1));
+						} else {                            	  // exact position specified
+							const parsed = parseInt(arg); 	  // sanity
+							pos[type] = isNaN(parsed) ? undefined : parsed;
+						}
+				
+						if (type === 'r') {
+							pos[type] = pos[type] % 360;
+						} else {
+							pos[type] = Math.max(0, pos[type]);
+						}
+					} else {
+						const dir = forwardMult(arg); // 1 if forward, -1 if backward
+						const moveBy = stripFwdtoInt(arg) * dir;
+						pos.x += Math.floor(moveBy * Math.cos(((pos.r + 90) % 360) * Math.PI / 180));
+						pos.y += Math.floor(moveBy * Math.sin(((pos.r + 90) % 360) * Math.PI / 180));
+					}
+				}
+				return pos;
 			}
-			
-			let newPos = {
-				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
-				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
-				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
-			};
+
+			let newPos = correctTPType({x: oKart.x, y: oKart.y, r: oKart.rotation}, args)
 			
 			for (let key in newPos) {
-				if (newPos[key] === undefined || isNaN(newPos[key])) {
+				if (!newPos[key] && newPos[Key] !== 0) {
 					return 'tp: Invalid '+key+' value';
 				}
 			}
 			
-			oPlayer.x = newPos.x;
-			oPlayer.y = newPos.y;
-			oPlayer.rotation = newPos.r;
+			oKart.x = newPos.x;
+			oKart.y = newPos.y;
+			oKart.rotation = newPos.r;
 			
 			resetRenderState();
 			return true;
@@ -18524,38 +18590,38 @@ function processCode(cheatCode) {
             let doNotTeleport = (command === "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
-            if (args[0] == "cur") t = oPlayer.tours;
+            if (args[0] == "cur") t = oKart.tours;
             if (!args[0]) {
                 t = oMap.tours;
                 const lMap = getCurrentLMap({ tours: t, demitours: 0 });
                 c = lMap.checkpoint.length;
             }
 
-			let llMap = getCurrentLMap(getCurrentLapId(oPlayer));
+			let llMap = getCurrentLMap(getCurrentLapId(oKart));
 
             if (c > 0) c--;
-            if (args[1] == "cur") c = oPlayer.demitours;
+            if (args[1] == "cur") c = oKart.demitours;
             if (!args[1]) c = llMap.checkpoint.length - 1;
 			
 			if (isNaN(t)) return "lap: Invalid lap value";
 			if (isNaN(c)) return "lap: Invalid checkpoint value";
 
-            const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
+            const prevLap = oKart.tours, prevCP = oKart.demitours;
 			let curCheckpointCount = llMap.checkpoint.length;
 
 			if (t > oMap.tours) t = oMap.tours;
 			if (c > curCheckpointCount) c = curCheckpointCount - 1;
 
-            oPlayer.tours = t;
-            oPlayer.demitours = c;
-            const lMap = getCurrentLMap(oPlayer);
+            oKart.tours = t;
+            oKart.demitours = c;
+            const lMap = getCurrentLMap(oKart);
             const checkpoint = lMap.checkpointCoords[c];
             if (checkpoint) {
                 const nextCp = lMap.checkpointCoords[(c + 1) % lMap.checkpointCoords.length];
                 if (!doNotTeleport) {
-                    oPlayer.x = checkpoint.O[0];
-                    oPlayer.y = checkpoint.O[1];
-                    oPlayer.rotation = Math.atan2(nextCp.O[0] - checkpoint.O[0], nextCp.O[1] - checkpoint.O[1]) * 180 / Math.PI;
+                    oKart.x = checkpoint.O[0];
+                    oKart.y = checkpoint.O[1];
+                    oKart.rotation = Math.atan2(nextCp.O[0] - checkpoint.O[0], nextCp.O[1] - checkpoint.O[1]) * 180 / Math.PI;
                 }
             }
             updateLapHud(0);
@@ -18563,7 +18629,7 @@ function processCode(cheatCode) {
             return true;
 
         case "pos": // /pos
-            alert("x: " + Math.round(oPlayer.x) + "\ny: " + Math.round(oPlayer.y) + "\nrot: " + Math.round(oPlayer.rotation));
+            alert("x: " + Math.round(oKart.x) + "\ny: " + Math.round(oKart.y) + "\nrot: " + Math.round(oKart.rotation));
             return true;
 
 		case "size": // /size (float | xs | md | xl)
@@ -18584,8 +18650,8 @@ function processCode(cheatCode) {
 					}
 				}
 		
-				oPlayer.size = newSize;
-				oPlayer.mini = 0;
+				oKart.size = newSize;
+				oKart.mini = 0;
 				return true;
 			}
 			return "size: Invalid argument count";
@@ -18601,11 +18667,11 @@ function processCode(cheatCode) {
 				toAdd = parseInt(args[0]);
 			}
 			if (toAdd || !isNaN(toAdd)) {
-				oPlayer.reserve += toAdd;
-				if (oPlayer.reserve > 10) {
-					oPlayer.reserve = 10;
+				oKart.reserve += toAdd;
+				if (oKart.reserve > 10) {
+					oKart.reserve = 10;
 				}
-				updateBalloonHud(document.getElementById("compteur0"), oPlayer);
+				updateBalloonHud(document.getElementById("compteur0"), oKart);
 				return true;
 			}
 			return "balloon: Unknown error";
@@ -29568,7 +29634,11 @@ function editCommands(options) {
 			key: "autoacc",
 			label: toLanguage("Auto-accelerate", "Accélérer automatiquement"),
 			defaultVal: 1
-		}, {
+		},  {
+			key: "vibration",
+			label: "Vibration",
+			defaultVal: 1
+		},  {
 			key: "vitem",
 			label: toLanguage("Touch game screen to send an item", "Toucher l'écran de jeu pour lancer un objet"),
 			defaultVal: 1
