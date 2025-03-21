@@ -180,8 +180,19 @@ function getLatestCreations($limit = 14, $offset = 0) {
     
     $tracksList = listCreations($page, $nbByType, null, $aCircuits);
     $tracksList = home_sortCreationLines($tracksList);
-    
-    return array_slice($tracksList, 0, $limit);
+    $tracksList = array_slice($tracksList, 0, $limit);
+
+    if ($offset === 0) {
+        $aParams = array(
+            'type' => 4,
+            'id' => 206404,
+            'max_circuits' => 1
+        );
+        $topCircuits = listCreations(1, array(1), array(1), array($aCircuits[$aParams['type']]), $aParams);
+        array_unshift($tracksList, ...$topCircuits);
+    }
+
+    return $tracksList;
 }
 
 function home_sortCreationLines($lines) {
