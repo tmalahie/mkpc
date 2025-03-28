@@ -153,15 +153,15 @@ resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 1;
-var vSfx = 1, vMusic = 1;
+var fSfxVolume = 1, fMusicVolume = 1;
 {
 	var vSettings = localStorage.getItem("settings.vol");
 	if (vSettings) {
 		vSettings = JSON.parse(vSettings);
 		if (vSettings.sfx != null)
-			vSfx = vSettings.sfx;
+			fSfxVolume = vSettings.sfx;
 		if (vSettings.music != null)
-			vMusic = vSettings.music;
+			fMusicVolume = vSettings.music;
 	}
 }
 var gameMenu;
@@ -554,7 +554,7 @@ function removeMenuMusic(forceRemove) {
 		if (forceRemove)
 			document.body.removeChild(oMusicEmbed);
 		else
-			fadeOutMusic(oMusicEmbed, 1, 0.8, null,vMusic);
+			fadeOutMusic(oMusicEmbed, 1, 0.8, null,fMusicVolume);
 		oMusicEmbed = undefined;
 	}
 	if (muteOnBlur) {
@@ -668,10 +668,10 @@ function unpauseSounds() {
 
 function setMusicVolume(embed, volume) {
 	if (isOriginalEmbed(embed))
-		embed.volume = volume*vMusic;
+		embed.volume = volume*fMusicVolume;
 	else {
 		onPlayerReady(embed, function(player) {
-			player.setVolume(Math.round(volume*vMusic*100));
+			player.setVolume(Math.round(volume*fMusicVolume*100));
 		});
 	}
 }
@@ -700,20 +700,20 @@ function fadeInMusic(embed, volume, ratio) {
 	else
 		setMusicVolume(embed,1);
 }
-function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
+function fadeOutMusic(embed, volume, ratio, remove, volume) {
 	if (embed.fadingIn)
 		return;
 	embed.fadingOut = true;
 	volume *= ratio;
 	if (volume > 0.2) {
-		setMusicVolume(embed,volume*vSnd);
-		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,vSnd)},100);
+		setMusicVolume(embed,volume*volume);
+		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,volume)},100);
 	}
 	else {
 		embed.fadingOut = false;
 		if (remove === false) {
 			pauseMusic(embed);
-			setMusicVolume(embed,vSnd);
+			setMusicVolume(embed,volume);
 		}
 		else if (remove !== -1)
 			stopMusic(embed);
@@ -727,7 +727,17 @@ function updateMenuMusic(menu, forceUpdate) {
 		gameMenu = menu;
 		removeMenuMusic(!bMusic);
 		if (bMusic) {
-			playMusicSmoothly("musics/menu/"+ (gameMenu ? "selection-remix":"main-remix") +".mp3", forceUpdate?0:undefined);
+
+			// easter egg. plays the original theme instead of the remix
+			let shouldPlayOGTheme = (new Date().getMonth() == 3 && new Date().getDate() == 1) // 100% chance on april fools
+			|| (Math.random() * 10000 < 1); // 0.01% chance outside of it
+
+			let path = "musics/menu/" 
+			+ (gameMenu ? "selection" : "main")
+			+ (shouldPlayOGTheme ? "" : "-remix")
+			+ ".mp3";
+
+			playMusicSmoothly(path, forceUpdate && 0);
 			if (!gameMenu)
 				loopAfterIntro(oMusicEmbed, 60.15,54.9);
 			var cMusicEmbed = oMusicEmbed;
@@ -751,7 +761,7 @@ function playMusicSmoothly(src,delay) {
 	if (undefined === delay)
 		delay = 1000;
 	oMusicEmbed = document.createElement("audio");
-	oMusicEmbed.volume = vMusic;
+	oMusicEmbed.volume = fMusicVolume;
 	oMusicEmbed.setAttribute("loop", true);
 	oMusicEmbed.style.position = "absolute";
 	oMusicEmbed.style.left = "-1000px";
@@ -760,7 +770,7 @@ function playMusicSmoothly(src,delay) {
 	oMusicSource.type = "audio/mpeg";
 	oMusicSource.src = src;
 	oMusicEmbed.appendChild(oMusicSource);
-	clearTimeout(oMusicHandler);
+    clearTimeout(oMusicHandler);
 	if (delay) {
 		oMusicHandler = setTimeout(function() {
 			oMusicEmbed.play();
@@ -793,7 +803,7 @@ if (!pause) {
 		baseCp0 = {};
 		pUnlockMap = {};
 		var i = 0;
-		for (joueurs in cp) {
+		for (let joueurs in cp) {
 			baseCp0[joueurs] = cp[joueurs];
 			pUnlockMap[joueurs] = pUnlocked[i];
 			i++;
@@ -816,13 +826,14 @@ if (!pause) {
 	baseCp = {};
 	customPersos = baseCustomPersos();
 	nBasePersos = 0;
-	for (joueurs in cp) {
+	for (let joueurs in cp) {
 		aPlayers.push(joueurs);
 		baseCp[joueurs] = cp[joueurs];
 		nBasePersos++;
 	}
 }
 
+// init globals
 var strPlayer = new Array();
 var oMap;
 var lMaps, pMaps;
@@ -868,7 +879,6 @@ function resetGame(strMap) {
 }
 
 var oPlanDiv,oPlanDiv2, oPlanCtn,oPlanCtn2, oPlanImg,oPlanImg2;
-
 var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oExpWidth, oExpBWidth;
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
@@ -1478,7 +1488,7 @@ function initPlan(lMap) {
 	}
 
 	for (var i=0;i<lMap.arme.length;i++) {
-		fSprite = lMap.arme[i];
+		const fSprite = lMap.arme[i];
 		var oObject = document.createElement("img");
 		oObject.src = "images/map_icons/objet.png";
 		oObject.style.position = "absolute";
@@ -1573,10 +1583,8 @@ var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
-	gameSettings = localStorage.getItem("settings");
-	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
-	ctrlSettings = localStorage.getItem("settings.ctrl");
-	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	gameSettings = JSON.parse(localStorage.getItem("settings") ?? "{}");
+	ctrlSettings = JSON.parse(localStorage.getItem("settings.ctrl") ?? "{}");
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -1584,27 +1592,6 @@ function loadMap() {
 			ctrlSettings.vitem = 1;
 		if (ctrlSettings.vibration === undefined)
 			ctrlSettings.vibration = 1;
-	}
-
-	if (gameSettings.rtime) {
-		var lastFrameTime;
-		var frameTimeDelay;
-		function regularCycle() {
-			var currentFrameTime = new Date().getTime();
-			frameTimeDelay += currentFrameTime-lastFrameTime - SPF;
-			if (frameTimeDelay < 0)
-				frameTimeDelay = 0;
-			else if (frameTimeDelay > SPF)
-				frameTimeDelay = SPF;
-			lastFrameTime = currentFrameTime;
-			cycleHandler = setTimeout(regularCycle, SPF-frameTimeDelay);
-			runOneFrame();
-		}
-		cycle = function() {
-			frameTimeDelay = SPF;
-			lastFrameTime = new Date().getTime();
-			regularCycle();
-		};
 	}
 	
 	if (strPlayer.length > 1)
@@ -1627,15 +1614,15 @@ function loadMap() {
 		hudScreen.style.width = iWidth*iScreenScale +"px";
 		hudScreen.style.height = iHeight*iScreenScale +"px";
 
-		var oTemps = document.createElement("div");
-		oTemps.id = "temps"+i;
-		oTemps.style.right = Math.round(iScreenScale*0.6+1) +"px";
-		oTemps.style.top = Math.round(iScreenScale*0.4+3) +"px";
-		oTemps.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+		var oTime = document.createElement("div");
+		oTime.id = "temps"+i;
+		oTime.style.right = Math.round(iScreenScale*0.6+1) +"px";
+		oTime.style.top = Math.round(iScreenScale*0.4+3) +"px";
+		oTime.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 		var shadowShift = Math.round(iScreenScale/8) +"px";
 		var shadowShift2 = Math.round(iScreenScale/4) +"px";
-		oTemps.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
-		hudScreen.appendChild(oTemps);
+		oTime.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
+		hudScreen.appendChild(oTime);
 
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
@@ -1664,21 +1651,22 @@ function loadMap() {
 		}
 		hudScreen.appendChild(oCompteur);
 
-		var oObjet = document.createElement("div");
-		oObjet.id = "objet"+i;
-		oObjet.className = "itemWheel";
+		var oItemSlot1 = document.createElement("div");
+		oItemSlot1.id = "objet"+i;
+		oItemSlot1.className = "itemWheel";
 		if (!pause || !fInfos.replay) {
-			oObjet.style.left = Math.round(iScreenScale) +"px";
-			oObjet.style.top = Math.round(iScreenScale) +"px";
-			oObjet.style.width = Math.round(iScreenScale * 26/3) +"px";
-			oObjet.style.height = Math.round(iScreenScale * 18/3) +"px";
-			oObjet.style.visibility = "visible";
+			oItemSlot1.style.left = Math.round(iScreenScale) +"px";
+			oItemSlot1.style.top = Math.round(iScreenScale) +"px";
+			oItemSlot1.style.width = Math.round(iScreenScale * 26/3) +"px";
+			oItemSlot1.style.height = Math.round(iScreenScale * 18/3) +"px";
+			oItemSlot1.style.visibility = "visible";
 		}
-		var oRoulette = document.createElement("div");
-		oRoulette.id = "roulette"+i;
-		oRoulette.className = "itemChamber";
-		oObjet.appendChild(oRoulette);
-		var oCountdown = document.createElement("div");
+
+		var oItemDiv1 = document.createElement("div");
+		oItemDiv1.id = "roulette"+i;
+		oItemDiv1.className = "itemChamber";
+		oItemSlot1.appendChild(oItemDiv1);
+		var oCountdown = document.createElement("div"); // slot 1 only
 		oCountdown.id = "countdown"+i;
 		oCountdown.style.position = "absolute";
 		oCountdown.style.opacity = 0.8;
@@ -1687,24 +1675,25 @@ function loadMap() {
 		oCountdown.style.border = "solid "+ Math.round(iScreenScale*0.75) +"px "+ primaryColor;
 		oCountdown.style.borderRadius = Math.round(iScreenScale*1.75) +"px";
 		oCountdown.style.display = "none";
-		oObjet.appendChild(oCountdown);
-		hudScreen.appendChild(oObjet);
+		oItemSlot1.appendChild(oCountdown);
+		hudScreen.appendChild(oItemSlot1);
 
-		var oReserve = document.createElement("div");
-		oReserve.id = "reserve"+i;
-		oReserve.className = "itemWheel";
+		var oItemSlot2 = document.createElement("div");
+		oItemSlot2.id = "reserve"+i;
+		oItemSlot2.className = "itemWheel";
 		if (!pause || !fInfos.replay) {
-			oReserve.style.left = Math.round(iScreenScale*0.75) +"px";
-			oReserve.style.top = Math.round(iScreenScale) +"px";
-			oReserve.style.width = Math.round(iScreenScale * 26/5) +"px";
-			oReserve.style.height = Math.round(iScreenScale * 18/5) +"px";
-			oReserve.style.visibility = "hidden";
+			oItemSlot2.style.left = Math.round(iScreenScale*0.75) +"px";
+			oItemSlot2.style.top = Math.round(iScreenScale) +"px";
+			oItemSlot2.style.width = Math.round(iScreenScale * 26/5) +"px";
+			oItemSlot2.style.height = Math.round(iScreenScale * 18/5) +"px";
+			oItemSlot2.style.visibility = "hidden";
 		}
-		var oRoulette = document.createElement("div");
-		oRoulette.id = "roulette2"+i;
-		oRoulette.className = "itemChamber";
-		oReserve.appendChild(oRoulette);
-		hudScreen.appendChild(oReserve);
+
+		var oItemDiv2 = document.createElement("div");
+		oItemDiv2.id = "roulette2"+i;
+		oItemDiv2.className = "itemChamber";
+		oItemSlot2.appendChild(oItemDiv2);
+		hudScreen.appendChild(oItemSlot2);
 
 		var lakitu = document.createElement("div");
 		lakitu.id = "lakitu"+i;
@@ -1777,11 +1766,11 @@ function loadMap() {
 		hudScreens[i] = hudScreen;
 
 		if (onlineSpectatorId) {
-			oTemps.style.display = "none";
+			oTime.style.display = "none";
 			oScroller.style.display = "none";
 			oScroller2.style.display = "none";
-			oObjet.style.display = "none";
-			oReserve.style.display = "none";
+			oItemSlot1.style.display = "none";
+			oItemSlot2.style.display = "none";
 		}
 		else if (gameSettings.spd) {
 			var $speedometer = document.createElement("div");
@@ -2483,7 +2472,17 @@ function arme(ID, backwards, forwards) {
 				oKart.ctrled = false;
 				oKart.jumped = false;
 			}
-			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(9*cappedRelSpeed())), 120), 40);
+
+			tpsUse = 
+			Math.max(
+				Math.min(
+					Math.round(
+						distanceToPlace(oKart, 1) / (9 * cappedRelSpeed())
+					)
+				, 120)
+			, 40);
+			/* tpsUse */
+
 			oKart.billball0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
@@ -2788,39 +2787,53 @@ var aKarts = new Array();
 var bRunning = false;
 var bCounting = false;
 
-var musicIdInc = 0;
+var currentIframeID = 0;
 function loadMusic(src, autoplay, opts) {
-	var res;
-	var isOriginal = isOriginalMusic(src);
-	if (isOriginal) {
-		res = document.createElement("audio");
-		res.setAttribute("loop", true);
-	}
-	else {
-		opts = opts || {};
-		var ytId = youtube_parser(src);
-		res = document.createElement("iframe");
-		res.id = "youtube-video-"+(musicIdInc++);
-		res.src = "https://www.youtube.com/embed/"+ ytId +"?"+ (autoplay ? "autoplay=1&amp;":"") + (opts.start ? "":"loop=1&amp;") +"enablejsapi=1&amp;allow=autoplay";
-		res.opts = opts;
-		res.setAttribute("enablejsapi", 1);
-		res.setAttribute("allow", "autoplay");
-	}
-	res.className = "gamemusic";
-	if (isOriginal) {
-		var oMusicSource = document.createElement("source");
-		oMusicSource.type = "audio/mpeg";
-		res.src = src;
-		if (opts && opts.vSnd != null)
-			res.volume = opts.vSnd;
-		else
-			res.volume = vSfx;
-		res.appendChild(oMusicSource);
-		if (autoplay)
-			res.setAttribute("autoplay", true);
-	}
-	return res;
+    var res;
+    var isOriginal = isOriginalMusic(src);
+
+    if (isOriginal) {
+        if (!loadMusic.cache) {
+            loadMusic.cache = {};
+        }
+
+        if (!loadMusic.cache[src]) {
+            loadMusic.cache[src] = new Audio();
+            loadMusic.cache[src].src = src;
+            loadMusic.cache[src].loop = true;
+        } else {
+            loadMusic.cache[src].currentTime = 0;
+        }
+        res = loadMusic.cache[src];
+
+        var oMusicSource = document.createElement("source");
+        oMusicSource.type = "audio/mpeg";
+        res.appendChild(oMusicSource);
+
+        if (opts && opts.volume != null) {
+            res.volume = opts.volume;
+        } else {
+            res.volume = fSfxVolume;
+        }
+
+        if (autoplay) {
+            res.play();
+        }
+    } else {
+        opts = opts || {};
+        var ytId = youtube_parser(src);
+        res = document.createElement("iframe");
+        res.id = "youtube-video-" + (currentIframeID++);
+        res.src = "https://www.youtube.com/embed/" + ytId + "?" + (autoplay ? "autoplay=1&amp;" : "") + (opts.start ? "" : "loop=1&amp;") + "enablejsapi=1&amp;allow=autoplay";
+        res.opts = opts;
+        res.setAttribute("enablejsapi", 1);
+        res.setAttribute("allow", "autoplay");
+    }
+
+    res.className = "gamemusic";
+    return res;
 }
+
 function pauseMusic(elt) {
 	var isOriginal = isOriginalEmbed(elt);
 	if (isOriginal)
@@ -2853,7 +2866,7 @@ function bufferMusic(elt, callback) {
 			if (speed)
 				player.setPlaybackRate(speed);
 			player.seekTo(startTime,true);
-			player.setVolume(100*vMusic);
+			player.setVolume(100*fMusicVolume);
 			if (callback)
 				callback();
 		}, 1000);
@@ -2939,7 +2952,7 @@ function updateMusic(elt,fast) {
 		if (isOriginal) {
 			if (fast)
 				elt.playbackRate = 1.2;
-			elt.volume = vMusic;
+			elt.volume = fMusicVolume;
 			elt.currentTime = 0;
 			elt.play();
 		}
@@ -2952,7 +2965,7 @@ function updateMusic(elt,fast) {
 					player.setPlaybackRate(1.25);
 				var start = opts.start || 0;
 				player.seekTo(start,true);
-				player.setVolume(100*vMusic);
+				player.setVolume(100*fMusicVolume);
 				player.playVideo();
 			});
 		}
@@ -2993,7 +3006,7 @@ function playDistSound(obj, src, maxDist) {
 		var pow0 = maxDist/distKart(obj);
 		if (pow0 >= 1) {
 			var res = playSoundEffect(src);
-			res.volume = Math.min(0.05*pow0*pow0, 1)*vSfx;
+			res.volume = Math.min(0.05*pow0*pow0, 1)*fSfxVolume;
 			return res;
 		}
 	}
@@ -3001,10 +3014,10 @@ function playDistSound(obj, src, maxDist) {
 function startMusic(src, autoplay, delay, opts) {
 	var res = loadMusic(src, autoplay, opts);
 	if (res.volume != null) {
-		if (opts && opts.vSnd != null)
-			res.volume = opts.vSnd;
+		if (opts && opts.volume != null)
+			res.volume = opts.volume;
 		else
-			res.volume = vMusic;
+			res.volume = fMusicVolume;
 	}
 	document.body.appendChild(res);
 	if (delay) {
@@ -3025,17 +3038,17 @@ function startMusic(src, autoplay, delay, opts) {
 	return res;
 }
 function postStartMusic(src) {
-	var vSnd = bMusic ? vMusic : vSfx;
+	var volume = bMusic ? fMusicVolume : fSfxVolume;
 	if (oMusicEmbed)
-		fadeOutMusic(oMusicEmbed,1,0.6,false,vSnd);
-	return startMusic(src,true,200, { vSnd: vSnd });
+		fadeOutMusic(oMusicEmbed,1,0.6,false,volume);
+	return startMusic(src,true,200, { volume: volume });
 }
 function postResumeMusic(elt, ratio) {
 	if (oMusicEmbed == elt)
 		return;
 	var cMusicEmbed = oMusicEmbed;
-	var vSnd = bMusic ? vMusic : vSfx;
-	fadeOutMusic(cMusicEmbed,1,ratio,true,vSnd);
+	var volume = bMusic ? fMusicVolume : fSfxVolume;
+	fadeOutMusic(cMusicEmbed,1,ratio,true,volume);
 	if (elt) {
 		setTimeout(function() {
 			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
@@ -3074,38 +3087,40 @@ var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
 updateVolumeSettings = function(volumeSettings) {
-	var avSfx = vSfx, avMusic = vMusic;
-	if (volumeSettings.sfx != null)
-		vSfx = volumeSettings.sfx;
-	if (volumeSettings.music != null)
-		vMusic = volumeSettings.music;
-	var gameMusics = document.getElementsByClassName("gamemusic");
-	var oMusics = [];
-	for (var i=0;i<gameMusics.length;i++)
-		oMusics.push(gameMusics[i]);
-	if (oMusicEmbed && !oMusics.includes(oMusicEmbed))
-		oMusics.push(oMusicEmbed);
-	var oMusicEmbeds = [oMusicEmbed].concat(listMapMusics()).concat([endingMusic]);
-	for (var i=0;i<oMusics.length;i++) {
-		var oMusic = oMusics[i];
-		if (oMusicEmbeds.includes(oMusic))
-			updateMusicVolume(oMusic, vMusic,avMusic);
-		else
-			updateMusicVolume(oMusic, vSfx,avSfx);
-	}
-}
+    const lastSfxVolume = fSfxVolume, lastMusicVolume = fMusicVolume;
+    if (volumeSettings.sfx != null)
+        fSfxVolume = volumeSettings.sfx;
+    if (volumeSettings.music != null)
+        fMusicVolume = volumeSettings.music;
+
+    const gameMusics = document.getElementsByClassName("gamemusic");
+    const oMusics = [];
+    for (const gameMusic of gameMusics) {
+        oMusics.push(gameMusic);
+    }
+    if (oMusicEmbed && !oMusics.includes(oMusicEmbed))
+        oMusics.push(oMusicEmbed);
+
+    const allMusics = [oMusicEmbed].concat(listMapMusics()).concat([endingMusic]);
+    for (const oMusic of oMusics) {
+        if (allMusics.includes(oMusic))
+            updateMusicVolume(oMusic, fMusicVolume, lastMusicVolume);
+        else
+            updateMusicVolume(oMusic, fSfxVolume, lastSfxVolume);
+    }
+};
 function loadMapMusic() {
 	startMapMusic(false);
 	loadEndingMusic();
 	mapMusic.blur();
 	endingMusic.blur();
-	if (!isMobile() && !isChatting()) {
-		var oDebug = document.createElement("input");
-		document.body.appendChild(oDebug);
-		oDebug.focus();
-		oDebug.blur();
-		document.body.removeChild(oDebug);
-	}
+	// if (!isMobile() && !isChatting()) {
+	// 	var oDebug = document.createElement("input");
+	// 	document.body.appendChild(oDebug);
+	// 	oDebug.focus();
+	// 	oDebug.blur();
+	// 	document.body.removeChild(oDebug);
+	// }
 }
 function startMapMusic(lastlap) {
 	if (lastlap) {
@@ -3143,13 +3158,11 @@ function loadEndingMusic() {
 	endingMusic.permanent = 1;
 }
 function updateMapMusic(pMap) {
-	if (!pMap) return;
-	if (!pMap.mapMusic) return;
-	if (pMap.mapMusic === mapMusic) return;
-	var lastMapMusic = mapMusic;
+	if (!pMap || !pMap.mapMusic ||pMap.mapMusic === mapMusic) return;
+	const lastMapMusic = mapMusic;
 	mapMusic = pMap.mapMusic;
 	bufferMusic(mapMusic);
-	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
+	fadeOutMusic(lastMapMusic, 1, 0.8, null,fMusicVolume);
 	var isLastLap = (pMap.lap === oMap.tours-1);
 	if (isLastLap && !pMap.cp) {
 		removeIfExists(lastMapMusic);
@@ -3187,8 +3200,8 @@ function loopAfterIntro(embed, introTime, loopTime) {
 function startEngineSound() {
     if (!iSfx) return;
     
-    function configEngineSFX(src, loop=false, listen=false) {
-        const music = loadMusic(src, loop);
+    function loadEngineSFX(src, autoplay=false, listen=false) {
+        const music = loadMusic(src, autoplay);
         music.permanent = 1;
         document.body.appendChild(music);
         if (listen)
@@ -3196,11 +3209,11 @@ function startEngineSound() {
         return music;
     }
 
-    carEngine = configEngineSFX("musics/events/engine.mp3", true);
-    carEngine2 = configEngineSFX("musics/events/engine2.mp3", false, true);
-    carEngine3 = configEngineSFX("musics/events/engine3.mp3", false, true);
-    carDrift = configEngineSFX("musics/events/drift.mp3");
-    carSpark = configEngineSFX("musics/events/spark.mp3");
+    carEngine = loadEngineSFX("musics/events/engine.mp3", true);
+    carEngine2 = loadEngineSFX("musics/events/engine2.mp3", false, true);
+    carEngine3 = loadEngineSFX("musics/events/engine3.mp3", false, true);
+    carDrift = loadEngineSFX("musics/events/drift.mp3");
+    carSpark = loadEngineSFX("musics/events/spark.mp3");
     
     playingCarEngine = carEngine;
 }
@@ -3237,7 +3250,7 @@ function startEndMusic() {
 				unpauseMusic(endingMusic);
 				if (endingMusic.yt) {
 					onPlayerReady(endingMusic, function(player) {
-						player.setVolume(100*vMusic);
+						player.setVolume(100*fMusicVolume);
 					});
 				}
 			}
@@ -3728,9 +3741,7 @@ function startGame() {
 					oKart.y = getInfos[1];
 					oKart.z = getInfos[2];
 					oKart.rotation = getInfos[3];
-					var getFlags = (getInfos[4]||"0000").split("");
-					for (var j=0;j<4;j++)
-						getFlags[j] = +getFlags[j];
+					var getFlags = (getInfos[4]||"0000").split("").map(Number);
 					var rotincdir = 0;
 					if (getFlags[2])
 						rotincdir = 1;
@@ -3804,26 +3815,26 @@ function startGame() {
 		}
 		updateObjHud(0);
 	}
-	for (var i=0;i<aKarts.length;i++) {
+	for (var i = 0; i < aKarts.length; i++) {
 		var oKart = aKarts[i];
 		oKart.accelerate = accelerateKart;
 		oKart.turn = turnKart;
 		oKart.spin = spinKart;
 		oKart.actualSpeed = actualKartSpeed;
-		for (var j=0;j<strPlayer.length;j++) {
-			(function(sprite, driftSprite) {
-				sprite.nbSprites = 24;
-				driftSprite.nbSprites = 3;
-				driftSprite.w = 63;
-				driftSprite.h = 22;
-				driftSprite.z = -0.544;
-				sprite.img.onload = function() {
-					sprite.w = this.naturalWidth/sprite.nbSprites;
-					sprite.h = this.naturalHeight;
-					driftSprite.z = -0.017 * sprite.h;
-					delete this.onload;
-				}
-			})(oKart.sprite[j], oKart.driftSprite[j]);
+		for (let j = 0; j < strPlayer.length; j++) { // Use let here
+			let sprite = oKart.sprite[j];
+			let driftSprite = oKart.driftSprite[j];
+			sprite.nbSprites = 24;
+			driftSprite.nbSprites = 3;
+			driftSprite.w = 63;
+			driftSprite.h = 22;
+			driftSprite.z = -0.544;
+			sprite.img.onload = function() {
+				sprite.w = this.naturalWidth / sprite.nbSprites;
+				sprite.h = this.naturalHeight;
+				driftSprite.z = -0.017 * sprite.h;
+				delete this.onload;
+			};
 		}
 	}
 	if (course != "CM") {
@@ -3898,7 +3909,7 @@ function startGame() {
 		}
 		for (var type in lMap.decor) {
 			if (!decorBehaviors[type])
-				decorBehaviors[type] = {type:type,ctx:{}};
+				decorBehaviors[type] = {type: type, ctx: {}};
 		}
 		for (var type in decorBehaviors)
 			decorBehaviors[type].ctx.lMap = lMap;
@@ -4044,7 +4055,16 @@ function startGame() {
 					var img = new Image();
 					var assetKey = asset[0];
 					var customData = getDecorCustomData(assetKey, lMap);
-					var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
+					var asset0 = {
+						img: img,
+						canvas: canvas,
+						custom: customData,
+						redraw: redrawAsset,
+						x: asset[1][0],
+						y: asset[1][1],
+						w: asset[1][2],
+						h: asset[1][3]
+					};
 					if (customData) {
 						asset0.src = customData.type;
 						img.src = "images/map_icons/empty.png";
@@ -4068,8 +4088,8 @@ function startGame() {
 						});
 					}
 					else {
-						asset0.src = "assets/"+assetKey;
-						img.src = "images/map_icons/"+asset0.src+".png";
+						asset0.src = "assets/" + assetKey;
+						img.src = "images/map_icons/" + asset0.src + ".png";
 					}
 					img.onload = function() {
 						asset0.redraw(asset);
@@ -4081,8 +4101,7 @@ function startGame() {
 					}
 					lMap.assets.push(asset0);
 				}
-				for (var j=0;j<lMap[key].length;j++)
-					setupAsset(key,lMap[key][j]);
+				lMap[key].forEach(asset => setupAsset(key, asset));
 			}
 			else {
 				delete lMap[key];
@@ -4108,7 +4127,7 @@ function startGame() {
 
 	if (bMusic && !onlineSpectatorState) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
-		startingMusic.volume = vMusic;
+		startingMusic.volume = fMusicVolume;
 		startingMusic.pause();
 		setTimeout(function() {
 			startingMusic.play();
@@ -4151,7 +4170,7 @@ function startGame() {
 
 	var countDownMusic, goMusic;
 	if ((bMusic || iSfx) && !onlineSpectatorState) {
-		var vOpts = { vSnd: bMusic ? vMusic : vSfx };
+		var vOpts = { volume: bMusic ? fMusicVolume : fSfxVolume };
 		countDownMusic = loadMusic("musics/events/countdown.mp3", false, vOpts);
 		countDownMusic.removeAttribute("loop");
 		document.body.appendChild(countDownMusic);
@@ -4159,13 +4178,13 @@ function startGame() {
 		goMusic.removeAttribute("loop");
 		document.body.appendChild(goMusic);
 		goMusic.blur();
-		if (!isMobile() && !isChatting()) {
-			var oDebug = document.createElement("input");
-			document.body.appendChild(oDebug);
-			oDebug.focus();
-			oDebug.blur();
-			document.body.removeChild(oDebug);
-		}
+		// if (!isMobile() && !isChatting()) {
+		// 	var oDebug = document.createElement("input");
+		// 	document.body.appendChild(oDebug);
+		// 	oDebug.focus();
+		// 	oDebug.blur();
+		// 	document.body.removeChild(oDebug);
+		// }
 	}
 
 	var oRaceCounts;
@@ -4684,7 +4703,7 @@ function startGame() {
 									endingMusic.yt.playVideo();
 									setTimeout(function() {
 										endingMusic.yt.seekTo(0,true);
-										endingMusic.yt.setVolume(100*vMusic);
+										endingMusic.yt.setVolume(100*fMusicVolume);
 										endingMusic.yt.pauseVideo();
 									}, 1000);
 								}
@@ -5747,23 +5766,32 @@ function createTeamTable(teamsRecap) {
 }
 
 function resetScores() {
-	for (var i=0;i<strPlayer.length;i++)
-		aPlaces[i] = aPlayers.length+i+1;
-	for (var i=0;i<aPlayers.length;i++)
-		aPlaces[i+strPlayer.length] = i+1;
-	clRuleVars = {};
-	clGlobalVars = undefined;
-	var res = false;
-	aScores.length = aPlaces.length;
-	for (var i=0;i<aScores.length;i++) {
-		if (aScores[i] !== 0) {
-			res = true;
-			aScores[i] = 0;
-		}
-	}
-	aTracksHist = new Array();
-	iRaceCount = 0;
-	return res;
+    // reset player and AI placements
+    const totalPlayers = strPlayer.length + aPlayers.length;
+    aPlaces = Array.from({ length: totalPlayers }, (_, index) =>
+        index < strPlayer.length // weird, but kills two birds with one stone
+            ? aPlayers.length + index + 1 // player placements
+            : index - strPlayer.length + 1 // ai placements
+    );
+
+    // reset challenge vars
+    clRuleVars = {};
+    clGlobalVars = undefined;
+
+    // reset scores and check if any score was non-zero
+    let hasNonZeroScores = false;
+    aScores = Array(totalPlayers).fill(0).map((_, index) => {
+        if (aScores[index] !== 0) {
+            hasNonZeroScores = true;
+        }
+        return 0; // reset score to 0
+    });
+
+    // reset track history and race count
+    aTracksHist = [];
+    iRaceCount = 0;
+
+    return hasNonZeroScores;
 }
 
 function continuer() {
@@ -5787,14 +5815,14 @@ function continuer() {
 	if (course != "CM") {
 		if (oMap.ref % 4 || course != "GP") {
 			if (isSingle && !isOnline)
-                oContinue.value = toLanguage('  REPLAY', 'REJOUER');
+                oContinue.value = toLanguage('REPLAY', 'REJOUER');
 			else {
 				if (course == "BB")
                     oContinue.value = toLanguage('NEXT BATTLE', 'BATAILLE SUIVANTE');
 				else
                     oContinue.value = toLanguage('NEXT RACE', 'COURSE SUIVANTE');
 			}
-			var forceClic3 = true;
+			let forceClic3 = true;
 			oContinue.onclick = function() {
 				forceClic3 = false;
 				nextRace();
@@ -5802,7 +5830,7 @@ function continuer() {
 			if (isOnline)
 				setTimeout(function(){if(forceClic3)nextRace();},5000);
 		}
-		else {
+		else { // end of GP
             oContinue.value = toLanguage('NEXT', 'SUIVANT');
 			oContinue.onclick = function () {
 				$mkScreen = document.body;
@@ -5858,12 +5886,12 @@ function continuer() {
 									return false;
 								}
 								if (newPerso) {
-									var uwPerso = toPerso(newPerso);
-									uwPerso = uwPerso.charAt(0).toUpperCase() + uwPerso.substring(1);
+									var unlockedPerso = toPerso(newPerso);
+									unlockedPerso = unlockedPerso.charAt(0).toUpperCase() + unlockedPerso.substring(1);
 									document.body.innerHTML += '<div style="position: absolute; left: '+ iScreenScale * 16 +'px; top: '+ iScreenScale * 30 +'px; text-align: center">' +
 									toLanguage(
-										'You can now play<br />with '+ uwPerso +' !',
-										'Vous pouvez d&eacute;sormais<br />jouer avec '+ uwPerso +' !'
+										'You can now play<br />with '+ unlockedPerso +' !',
+										'Vous pouvez d&eacute;sormais<br />jouer avec '+ unlockedPerso +' !'
 									) +
 									'<br /><img src="'+ getWinnerSrc(newPerso) +'" style="width: '+ iScreenScale*4 +'px" /></div>';
 								}
@@ -5886,9 +5914,10 @@ function continuer() {
 			}
 		}
 	}
-	else {
+	else { // TT
 		var oQuit = document.getElementById("quitter");
 		oContinue.style.fontSize = oQuit.style.fontSize = (iScreenScale*3) +"px";
+
 		var oSave = oContinue.cloneNode(false);
 		var oReplay = oContinue.cloneNode(false);
 		var oChangeRace = oContinue.cloneNode(false);
@@ -5969,17 +5998,23 @@ function continuer() {
 					document.body.style.cursor = "progress";
 					oValide.style.visibility = "hidden";
 					aPara2.style.visibility = "hidden";
-					var params = "name="+nom+"&perso="+strPlayer[0]+"&time="+getActualGameTimeMS()+"&cc="+getActualCc();
+					const params = new URLSearchParams({
+						name: nom,
+						perso: strPlayer[0],
+						time: getActualGameTimeMS(),
+						cc: getActualCc()
+					});
+					
 					switch (page) {
-					case "MK":
-						params += "&circuit="+oMap.map;
-						break;
-					case "CI":
-						params += "&creation="+ oMap.id;
-						break;
-					case "MA":
-						params += "&map="+ oMap.map;
-						break;
+						case "MK":
+							params.append("circuit", oMap.map);
+							break;
+						case "CI":
+							params.append("creation", oMap.id);
+							break;
+						case "MA":
+							params.append("map", oMap.map);
+							break;
 					}
 					function postSaveRecord(reponse) {
 						if (reponse) {
@@ -6017,34 +6052,46 @@ function continuer() {
 									oSave.style.display = "none";
 									oValide.style.display = "none";
 									var aSmall = document.createElement("span");
-									aSmall.style.fontSize = Math.round(iScreenScale*2.5) + "px";
-									aSmall.innerHTML = toLanguage("Saving ghost...","Enregistrement du fantôme...");
+									aSmall.style.fontSize = Math.round(iScreenScale * 2.5) + "px";
+									aSmall.innerHTML = toLanguage("Saving ghost...", "Enregistrement du fantôme...");
 									aPara2.appendChild(aSmall);
 									aPara2.style.visibility = "";
-									var oRequest = "map="+ getCreationId(oMap) +"&type="+ getCreationTable() +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers)+"&cc="+getActualCc();
-									for (i=0;i<iTrajet.length;i++)
-										oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
-									xhr("saveghost.php", oRequest, function(reponse) {
+							
+									const params = new URLSearchParams({
+										map: getCreationId(oMap),
+										type: getCreationTable(),
+										perso: strPlayer[0],
+										time: getActualGameTimeMS(),
+										times: JSON.stringify(lapTimers),
+										cc: getActualCc()
+									});
+							
+									for (let i = 0; i < iTrajet.length; i++) {
+										params.append(`p${i}`, iTrajet[i].toString().replace(/,/g, "_"));
+									}
+							
+									xhr("saveghost.php", params.toString(), function (reponse) {
 										if (reponse == 1) {
 											gRecord = getActualGameTimeMS();
-											if (gOverwriteRecord)
-												gOverwriteRecord = 2;
+											if (gOverwriteRecord) gOverwriteRecord = 2;
 											showBackUi(true);
 											return true;
-										}
-										else if (reponse == -1) {
+										} else if (reponse == -1) {
 											showBackUi(false);
 											oValide.style.display = "";
-											aPara2.innerHTML = toLanguage("You have exceeded your saved ghosts quota. You can <a href=\"manageGhosts.php\" target=\"_blank\" style=\"color: orange\">delete ghosts</a> to save space", "Vous avez dépassé votre quota de fantômes enregistrés. Vous pouvez <a href=\"manageGhosts.php\" target=\"_blank\" style=\"color: orange\">supprimer des fantômes</a> pour gagner de l'espace");
+											aPara2.innerHTML = toLanguage(
+												`You have exceeded your saved ghosts quota. You can <a href="manageGhosts.php" target="_blank" style="color: orange">delete ghosts</a> to save space`,
+												`Vous avez dépassé votre quota de fantômes enregistrés. Vous pouvez <a href="manageGhosts.php" target="_blank" style="color: orange">supprimer des fantômes</a> pour gagner de l'espace`
+											);
 											rollbackUi();
 											return true;
-										}
-										else
+										} else {
 											return false;
+										}
 									});
-								}
-								else
+								} else {
 									showBackUi(true);
+								}
 							}
 							else {
 								showBackUi(false);
@@ -11235,12 +11282,12 @@ function getItemDistributionRange(oKart) {
 	if (course != "BB") {
 		var x, d;
 		if (oKart.place == 1) {
-			var distToSecond = -distanceToSecond(oKart);
+			var distToSecond = -distanceToPlace(oKart, 2);
 			x = 0;
 			d = 0.18*Math.exp(distToSecond/150);
 		}
 		else {
-			var distToFirst = distanceToFirst(oKart);
+			var distToFirst = distanceToPlace(oKart, 1);
 			x = Math.pow(distToFirst/metaItemRange,0.75);
 			d = 0.07;
 		}
@@ -13845,56 +13892,60 @@ function reinitLocalVars() {
 		}
 	}
 }
+
 function challengeCheck(verifType, events) {
-	if (clLocalVars.cheated)
-		return;
-	if (strPlayer.length > 1)
-		return;
-	var challengesForType = challengesForCircuit[verifType];
-	for (var i=0;i<challengesForType.length;i++) {
-		var challenge = challengesForType[i];
-		if (clLocalVars.isSetup && (challenge !== clSelected))
-			continue;
-		var chRules = listChallengeRules(challenge.data);
-		var status = challengeRulesSatisfied(challenge,chRules);
-		if (status) {
-			var challengeGoal = challenge.data.goal;
-			var postSuccess = challengeRules[challengeGoal.type].post_success;
-			if (postSuccess) {
-				var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][challengeGoal.type] : undefined;
-				if (!postSuccess(challengeGoal,ruleVars,challenge))
-					return false;
-			}
-		}
-		if (true === status) {
-			challengeSucceeded(challenge);
-			challengesForType.splice(i,1);
-			i--;
-		}
-		else if ((false === status) || challengeRules[chRules[0].type].reset_on_fail) {
-			delete clRuleVars[challenge.id];
-			challengesForType.splice(i,1);
-			i--;
-		}
-		else
-			challengeHandleEvents(challenge, events);
-	}
+    // skip if cheated or 2p mode
+    if (clLocalVars.cheated || strPlayer.length > 1) return;
+
+    const challengesForType = challengesForCircuit[verifType];
+
+    for (let i = 0; i < challengesForType.length; i++) {
+        const challenge = challengesForType[i];
+
+        if (clLocalVars.isSetup && challenge !== clSelected) continue;
+
+        const challengeRulesList = listChallengeRules(challenge.data);
+        const status = challengeRulesSatisfied(challenge, challengeRulesList);
+
+        if (status) {
+            const challengeGoal = challenge.data.goal;
+            const postSuccess = challengeRules[challengeGoal.type]?.post_success;
+
+            if (postSuccess) {
+                const ruleVars = clRuleVars[challenge.id]?.[challengeGoal.type];
+                if (!postSuccess(challengeGoal, ruleVars, challenge)) return false;
+            }
+        }
+
+        if (status === true) {
+            challengeSucceeded(challenge);
+            challengesForType.splice(i, 1);
+            i--;
+        } else if (status === false || challengeRules[challengeRulesList[0].type]?.reset_on_fail) {
+            delete clRuleVars[challenge.id];
+            challengesForType.splice(i, 1);
+            i--;
+        } else {
+            challengeHandleEvents(challenge, events);
+        }
+    }
 }
 function challengeHandleEvents(challenge, events) {
-	if (events) {
-		var ruleVars = clRuleVars[challenge.id];
-		if (ruleVars) {
-			var chRules = listChallengeRules(challenge.data);
-			for (var i=0;i<events.length;i++) {
-				var event = events[i];
-				for (var j=0;j<chRules.length;j++) {
-					var rule = chRules[j];
-					if (challengeRules[rule.type][event])
-						challengeRules[rule.type][event](ruleVars[rule.type]);
-				}
-			}
-		}
-	}
+    if (!events) return;
+
+    var ruleVars = clRuleVars[challenge.id];
+    if (!ruleVars) return;
+
+    var chRules = listChallengeRules(challenge.data);
+
+    events.forEach(event => {
+        chRules.forEach(rule => {
+            var ruleHandler = challengeRules[rule.type][event];
+            if (ruleHandler) {
+                ruleHandler(ruleVars[rule.type]);
+            }
+        });
+    });
 }
 var clSelectionFail = false;
 function challengeHandleFail() {
@@ -15244,89 +15295,92 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 			powEffect(i, oKart, fSprite);
 }
 
-function touche_asset(aPosX,aPosY, iX,iY) {
-	var lMap = getCurrentLMap(collisionLap);
-	var turningAssets = ["pointers", "flippers"];
-	for (var i=0;i<turningAssets.length;i++) {
-		var key = turningAssets[i];
-		if (lMap[key]) {
-			var tau = 2*Math.PI;
-			for (var j=0;j<lMap[key].length;j++) {
-				var asset = lMap[key][j];
-				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]*(1-asset[2][0]);
-				var r2 = (aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY);
-				if (r2 < (cR*cR)) {
-					var theta0 = asset[2][2], theta1 = Math.atan2(aPosY-cY,aPosX-cX);
-					var omega = asset[2][3];
-					if (((iX-cX)*(iX-cX) + (iY-cY)*(iY-cY)) < (cR*cR)) {
-						var theta2 = Math.atan2(iY-cY,iX-cX);
-						theta2 -= tau*Math.round((theta2-theta1)/tau);
-						omega -= (theta2-theta1);
-					}
-					var r = Math.sqrt(r2), cL = r/cR, cH = asset[1][3]*(asset[1][4]*(1-cL) + asset[1][5]*cL);
-					var cA = cH/r;
-					var collides;
-					if (omega > 0) {
-						theta1 -= tau*Math.floor((theta1-theta0)/tau);
-						collides = (theta1 < theta0+omega+cA);
-					}
-					else {
-						theta1 -= tau*Math.ceil((theta1-theta0)/tau);
-						collides = (theta1 > theta0+omega-cA);
-					}
-					if (collides)
-						return [key,asset];
-				}
-			}
-		}
-	}
+function touche_asset(aPosX, aPosY, iX, iY) {
+    let lMap = getCurrentLMap(collisionLap);
+    let turningAssets = ["pointers", "flippers"];
+    let tau = 2 * Math.PI;
 
-	{
-		var key = "bumpers";
-		if (lMap[key]) {
-			for (var i=0;i<lMap[key].length;i++) {
-				var asset = lMap[key][i];
-				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]/2;
-				if ((iX-cX)*(iX-cX) + (iY-cY)*(iY-cY) < (cR*cR)) {
-					if (!asset[2][5]) {
-						var aR = (aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY);
-						var iR = (iX-cX)*(iX-cX) + (iY-cY)*(iY-cY);
-						if (aR <= iR)
-							continue;
-					}
-					return [key,asset];
-				}
-			}
-		}
-	}
+    for (let key of turningAssets) {
+        if (lMap[key]) {
+            for (let asset of lMap[key]) {
+                let [cX, cY, cR] = asset[1];
+                cR *= (1 - asset[2][0]);
+                let r2 = (aPosX - cX) ** 2 + (aPosY - cY) ** 2;
 
-	{
-		var key = "oils";
-		if (lMap[key]) {
-			for (var i=0;i<lMap[key].length;i++) {
-				var asset = lMap[key][i];
-				var cX = asset[1][0], cY = asset[1][1], cW = Math.max(4,asset[1][2]/2), cH = Math.max(4,asset[1][3]/2);
-				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH))
-					return [key,asset];
-			}
-		}
-	}
+                if (r2 < cR ** 2) {
+                    let theta0 = asset[2][2];
+                    let theta1 = Math.atan2(aPosY - cY, aPosX - cX);
+                    let omega = asset[2][3];
 
+                    if ((iX - cX) ** 2 + (iY - cY) ** 2 < cR ** 2) {
+                        let theta2 = Math.atan2(iY - cY, iX - cX);
+                        theta2 -= tau * Math.round((theta2 - theta1) / tau);
+                        omega -= (theta2 - theta1);
+                    }
 
-	{
-		var key = "flowers";
-		if (lMap[key]) {
-			for (var i=0;i<lMap[key].length;i++) {
-				var asset = lMap[key][i];
-				var flower = asset[1];
-				var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
-				var oRect = [x-w,y-w,2*w,2*h];
-				if (pointInRectangle(iX,iY, oRect))
-					return [key,asset];
-			}
-		}
-	}
-	return false;
+                    let r = Math.sqrt(r2);
+                    let cL = r / cR;
+                    let cH = asset[1][3] * (asset[1][4] * (1 - cL) + asset[1][5] * cL);
+                    let cA = cH / r;
+                    let collides;
+
+                    if (omega > 0) {
+                        theta1 -= tau * Math.floor((theta1 - theta0) / tau);
+                        collides = theta1 < theta0 + omega + cA;
+                    } else {
+                        theta1 -= tau * Math.ceil((theta1 - theta0) / tau);
+                        collides = theta1 > theta0 + omega - cA;
+                    }
+
+                    if (collides) return [key, asset];
+                }
+            }
+        }
+    }
+
+    if (lMap.bumpers) {
+        for (let asset of lMap.bumpers) {
+            let [cX, cY, cR] = asset[1];
+            cR /= 2;
+
+            if ((iX - cX) ** 2 + (iY - cY) ** 2 < cR ** 2) {
+                if (!asset[2][5]) {
+                    let aR = (aPosX - cX) ** 2 + (aPosY - cY) ** 2;
+                    let iR = (iX - cX) ** 2 + (iY - cY) ** 2;
+                    if (aR <= iR) continue;
+                }
+                return ["bumpers", asset];
+            }
+        }
+    }
+
+    if (lMap.oils) {
+        for (let asset of lMap.oils) {
+            let [cX, cY, cW, cH] = asset[1];
+            cW = Math.max(4, cW / 2);
+            cH = Math.max(4, cH / 2);
+
+            if (Math.abs(iX - cX) < cW && Math.abs(iY - cY) < cH) {
+                return ["oils", asset];
+            }
+        }
+    }
+
+    if (lMap.flowers) {
+        for (let asset of lMap.flowers) {
+            let flower = asset[1];
+            let [x, y, w, h] = flower;
+            w = Math.round(w / 2);
+            h = Math.round(h / 2);
+            let oRect = [x - w, y - w, 2 * w, 2 * h];
+
+            if (pointInRectangle(iX, iY, oRect)) {
+                return ["flowers", asset];
+            }
+        }
+    }
+
+    return false;
 }
 
 function otherPlayerItems(includingItems) {
@@ -15401,35 +15455,63 @@ function getRankScores() {
 		return getRankScore(oKart);
 	});
 }
-function places(j,aRankScores,force) {
-	var oKart = aKarts[j];
-	var retour = !force;
-	for (var i=0;i<strPlayer.length;i++) {
-		var oPlayer = getPlayerAtScreen(i);
-		if (!(oPlayer.tours > oMap.tours) && !oPlayer.loose)
-			retour = false;
-		else if (onlineSpectatorId && !finishing)
-			document.getElementById("infoPlace"+i).style.visibility = "hidden";
-	}
-	if (retour) return;
-	var place = 1;
-	if (course != "BB") {
-		if (oKart.tours > oMap.tours || !oMap.minCheckpoints)
-			return;
-	}
-	var score1 = aRankScores[j];
-	for (i=0;i<aKarts.length;i++) {
-		var score2 = aRankScores[i];
-		if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
-			place++;
-	}
-	if (!oKart.loose)
-		oKart.place = place;
-	if (finishing) return;
-	var sID = getScreenPlayerIndex(j);
-	if (sID < oPlayers.length)
-		document.getElementById("infoPlace"+sID).innerHTML = place;
+function places(kartIndex, rankScores, forceUpdate) {
+    const currentKart = aKarts[kartIndex];
+    let shouldReturn = !forceUpdate;
+
+    // check if any player is still racing/battling
+    // if everyone finishes, we return unless we force an update
+    for (let playerIndex = 0; playerIndex < strPlayer.length; playerIndex++) {
+        const player = getPlayerAtScreen(playerIndex);
+        if (!(player.tours > oMap.tours) && !player.loose) {
+            shouldReturn = false;
+        } else if (onlineSpectatorId && !finishing) {
+            document.getElementById(`infoPlace${playerIndex}`).style.visibility = "hidden";
+        }
+    }
+
+    if (shouldReturn) return;
+
+    let placement = 1;
+
+    // skip lap calculations if finished
+    if (course !== "BB") {
+        if (currentKart.tours > oMap.tours || !oMap.minCheckpoints) {
+            return;
+        }
+    }
+
+    const currentKartScore = rankScores[kartIndex];
+
+    // compare scores to determine placement
+    for (let otherKartIndex = 0; otherKartIndex < aKarts.length; otherKartIndex++) {
+        const otherKartScore = rankScores[otherKartIndex];
+        const otherKart = aKarts[otherKartIndex];
+
+        if (
+            otherKart !== currentKart &&
+            (currentKartScore < otherKartScore ||
+                (currentKartScore === otherKartScore && currentKart.initialPlace > otherKart.initialPlace))
+        ) {
+            placement++;
+        }
+    }
+
+    // update placement if still alive (battle mode)
+    if (!currentKart.loose) {
+        currentKart.place = placement;
+    }
+
+    // skip further updates if race/battle is finished
+    if (finishing) return;
+
+    // update the placement display
+    const screenPlayerIndex = getScreenPlayerIndex(kartIndex);
+    if (screenPlayerIndex < oPlayers.length) {
+        document.getElementById(`infoPlace${screenPlayerIndex}`).innerHTML = placement;
+    }
 }
+
 
 function getLastCp(kart) {
 	if (oMap.sections) {
@@ -15463,60 +15545,70 @@ function getCpScore(kart) {
 		res += oMap.checkpoint.length;
 	return res;
 }
-function distanceToFirst(kart) {
-	var cPlace = Infinity;
-	var oKart;
-	for (var k=0;k<aKarts.length;k++) {
-		if (aKarts[k].place < cPlace) {
-			oKart = aKarts[k];
-			cPlace = oKart.place;
-		}
-	}
-	return distanceToKart(kart,oKart);
-}
-function distanceToSecond(kart) {
-	var cPlace = Infinity;
-	var oKart;
-	for (var k=0;k<aKarts.length;k++) {
-		if ((aKarts[k] != kart) && (aKarts[k].place < cPlace)) {
-			oKart = aKarts[k];
-			cPlace = oKart.place;
-		}
-	}
-	if (!oKart) return 0;
-	return distanceToKart(oKart,kart);
-}
-function distanceToKart(kart,oKart) {
-	var res = 0;
-	var posX = kart.x, posY = kart.y;
-	var tours = kart.tours;
-	var checkpoint = kart.demitours;
-	var tours2 = oKart.tours;
-	var checkpoint2 = oKart.demitours;
-	if (oMap.sections) {
-		tours = tours2;
-		if (checkpoint >= oMap.checkpoint.length - 1)
-			checkpoint = -1;
-		if (checkpoint2 >= oMap.checkpoint.length - 1)
-			checkpoint2 = -1;
-	}
-	while ((tours < tours2) || ((tours == tours2) && (checkpoint < checkpoint2))) {
-		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours, demitours: checkpoint }));
-		checkpoint++;
-		if (checkpoint >= lMap.checkpoint.length) {
-			checkpoint = 0;
-			tours++;
-		}
-		var oBox = lMap.checkpointCoords[checkpoint];
-		var nPosX = oBox.O[0], nPosY = oBox.O[1];
 
-		res += Math.hypot(nPosX-posX, nPosY-posY);
-		posX = nPosX;
-		posY = nPosY;
-	}
-	res += Math.hypot(oKart.x-posX, oKart.y-posY);
-	return res;
+function distanceToPlace(kart, place) {
+    let targetKart = null;
+
+    // find the kart in the specified place (excluding the current kart)
+    for (const otherKart of aKarts) {
+        if (otherKart !== kart && otherKart.place === place) { // not us and the place we want
+            targetKart = otherKart;
+            break;
+        }
+    }
+
+    // if no kart is found in the specified place, return 0
+    if (!targetKart) return 0;
+
+    // calculate the distance to the kart in the specified place
+    return distanceToKart(kart, targetKart);
 }
+
+function distanceToKart(kart1, kart2) {
+    let distance = 0;
+    let posX = kart1.x, posY = kart1.y;
+    let laps1 = kart1.tours;
+    let checkpoint1 = kart1.demitours;
+    let laps2 = kart2.tours;
+    let checkpoint2 = kart2.demitours;
+
+	// section tracks only!
+	// checkpointX is set to -1 when we finished the track
+	// because sections are just checkpoints with special flags
+	// laps dont matter so we set them to the same value
+    if (oMap.sections) {
+        laps1 = laps2;
+        if (checkpoint1 >= oMap.checkpoint.length - 1) {
+            checkpoint1 = -1;
+        }
+        if (checkpoint2 >= oMap.checkpoint.length - 1) {
+            checkpoint2 = -1;
+        }
+    }
+
+	// if kart1 is behind kart2, we go thru checkpoints until we reach kart2
+	// because simply calculating the straight line distance between two karts
+	// would not account for the track layout or the progress each kart has made.
+    while ((laps1 < laps2) || ((laps1 === laps2) && (checkpoint1 < checkpoint2))) {
+        let currentMap = getCurrentLMap(getCurrentLapId({ tours: laps1, demitours: checkpoint1 }));
+        checkpoint1++;
+        if (checkpoint1 >= currentMap.checkpoint.length) {
+            checkpoint1 = 0;
+            laps1++;
+        }
+        let checkpointCoords = currentMap.checkpointCoords[checkpoint1];
+        let nextPosX = checkpointCoords.O[0], nextPosY = checkpointCoords.O[1];
+
+        distance += Math.hypot(nextPosX - posX, nextPosY - posY);
+        posX = nextPosX;
+        posY = nextPosY;
+    }
+
+	// we are in the same cp, so we just get the distance directly.
+    distance += Math.hypot(kart2.x - posX, kart2.y - posY);
+    return distance;
+}
+
 function checkpoint(kart, fMoveX,fMoveY) {
 	var aPos = [kart.x-fMoveX,kart.y-fMoveY];
 	var fast = (fMoveX*fMoveX + fMoveY*fMoveY > 200);
@@ -15558,49 +15650,56 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	return false;
 }
 function getCheckpointCoords(oBox) {
-	var x = oBox[0], y = oBox[1];
-	var w = oBox[2], h = 15;
-	var mainCoords;
-	switch (oBox[3]) {
-	case 0:
-	case 1:
-		var l = oBox[3];
-		mainCoords = {
-			A: [x,y],
-			u: [l ? w:0, l ? 0:w],
-			v: [l ? 0:h, l ? h:0],
-			O: [x + (l ? w/2:8), y + (l ? 8:w/2)]
-		};
-		break;
-	default:
-		var actualTheta = oBox[3]*Math.PI/2;
-		var u0 = 7.5, v0 = 7.5;
-		var cosTheta = Math.cos(actualTheta), sinTheta = Math.sin(actualTheta);
-		var xR = x + u0, yR = y + v0;
-		var yCR = oBox[2]/2 - u0;
-		var xC = xR + yCR*sinTheta, yC = yR + yCR*cosTheta;
+    const x = oBox[0], y = oBox[1], w = oBox[2],
+    h = 15; // default height
+    let mainCoords;
 
-		var xU = w*sinTheta, xV = h*cosTheta, yU = -w*cosTheta, yV = h*sinTheta;
-		mainCoords = {
-			A: [xC - (xU+xV)/2, yC - (yU+yV)/2],
-			u: [xU,yU],
-			v: [xV,yV],
-			O: [xC,yC]
-		};
-	}
-	mainCoords.B = [
-		mainCoords.A[0]+mainCoords.u[0],
-		mainCoords.A[1]+mainCoords.u[1]
-	];
-	mainCoords.C = [
-		mainCoords.A[0]+mainCoords.v[0],
-		mainCoords.A[1]+mainCoords.v[1]
-	];
-	mainCoords.D = [
-		mainCoords.B[0]+mainCoords.v[0],
-		mainCoords.B[1]+mainCoords.v[1]
-	];
-	return mainCoords;
+    if ([0, 1].includes(oBox[3])) { // horizontal / vertical
+        const isVertical = oBox[3];
+        mainCoords = {
+            A: [x, y], // top left corner
+            u: [isVertical ? w : 0, isVertical ? 0 : w], // w vector
+            v: [isVertical ? 0 : h, isVertical ? h : 0], // h vector
+            O: [x + (isVertical ? w / 2 : 8), y + (isVertical ? 8 : w / 2)] // Center
+        };
+    } else { // rotated
+        const theta = oBox[3] * Math.PI / 2; // convert to radians
+        const halfWidth = 7.5, halfHeight = 7.5; // half dimensions for rotation
+        const cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
+
+        // calculate rotated center
+        const rotatedCenterX = x + halfWidth, rotatedCenterY = y + halfHeight;
+        const centerOffset = oBox[2] / 2 - halfWidth;
+        const centerX = rotatedCenterX + centerOffset * sinTheta;
+        const centerY = rotatedCenterY + centerOffset * cosTheta;
+
+        // calculate rotated vectors
+        const uX = w * sinTheta, vX = h * cosTheta;
+        const uY = -w * cosTheta, vY = h * sinTheta;
+
+        mainCoords = {
+            A: [centerX - (uX + vX) / 2, centerY - (uY + vY) / 2], // top left corner
+            u: [uX, uY], // w vector
+            v: [vX, vY], // h vector
+            O: [centerX, centerY] // center
+        };
+    }
+
+    // calculate other corners
+    mainCoords.B = [
+        mainCoords.A[0] + mainCoords.u[0],
+        mainCoords.A[1] + mainCoords.u[1]
+    ];
+    mainCoords.C = [
+        mainCoords.A[0] + mainCoords.v[0],
+        mainCoords.A[1] + mainCoords.v[1]
+    ];
+    mainCoords.D = [
+        mainCoords.B[0] + mainCoords.v[0],
+        mainCoords.B[1] + mainCoords.v[1]
+    ];
+
+    return mainCoords;
 }
 function inCheckpoint(oBox, kart, opts) {
 	var x = kart.x, y = kart.y;
@@ -17503,8 +17602,8 @@ function move(getId, triggered) {
 							if (firstOne) {
 								var cMusicEmbed = postStartMusic("musics/events/lastlap.mp3");
 								if (iSfx) {
-									fadeOutMusic(carEngine,1,0.6,-1,vSfx);
-									fadeOutMusic(carEngine2,1,0.6,-1,vSfx);
+									fadeOutMusic(carEngine,1,0.6,-1,fSfxVolume);
+									fadeOutMusic(carEngine2,1,0.6,-1,fSfxVolume);
 								}
 								cMusicEmbed.removeAttribute("loop");
 								setTimeout(function() {
@@ -17523,8 +17622,8 @@ function move(getId, triggered) {
 											fastenMusic(mapMusic);
 									}
 									if (iSfx) {
-										carEngine.volume = vSfx;
-										carEngine2.volume = vSfx;
+										carEngine.volume = fSfxVolume;
+										carEngine2.volume = fSfxVolume;
 									}
 								}, 2700);
 								if (lastMapMusic) {
@@ -18006,7 +18105,7 @@ function move(getId, triggered) {
 			updateEngineSound();
 			if (oKart.turbodrift == (oKart.turbodrift0-1)) {
 				carEngine3.currentTime = 0;
-				carEngine3.volume = vSfx;
+				carEngine3.volume = fSfxVolume;
 				carEngine3.play();
 				oKart.turboSound = carEngine3;
 				clearTimeout(oKart.turboHandler);
@@ -18017,7 +18116,7 @@ function move(getId, triggered) {
 					}
 				}, 2000);
 				if (oKart.sparkSound) {
-					fadeOutMusic(oKart.sparkSound, 1,0.8, false, vSfx);
+					fadeOutMusic(oKart.sparkSound, 1,0.8, false, fSfxVolume);
 					oKart.sparkSound = undefined;
 				}
 			}
@@ -18132,7 +18231,7 @@ function handleDriftCpt(getId) {
 					oKart.driftSprite[i].setState(2);
 				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
-					carSpark.volume = vSfx;
+					carSpark.volume = fSfxVolume;
 					carSpark.play();
 					oKart.sparkSound = carSpark;
 				}
@@ -18142,7 +18241,7 @@ function handleDriftCpt(getId) {
 					oKart.driftSprite[i].setState(1);
 				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
-					carSpark.volume = 0.7*vSfx;
+					carSpark.volume = 0.7*fSfxVolume;
 					carSpark.play();
 					oKart.sparkSound = carSpark;
 				}
@@ -18328,20 +18427,14 @@ function updateLapHud(sID) {
 	for (var i=0;i<oCompteurTours.length;i++)
 		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
 }
-function timeStr(timeMS) {
-	var timeMins = Math.floor(timeMS/60000);
-	timeMS -= timeMins*60000;
-	timeMins += "";
-	var timeSecs = Math.floor(timeMS/1000);
-	timeMS -= timeSecs*1000;
-	timeSecs += "";
-	if (timeSecs.length < 2)
-		timeSecs = "0"+ timeSecs;
-	timeMS += "";
-	while (timeMS.length < 3)
-		timeMS = "0"+ timeMS;
-	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+function timeStr(ms) {
+    let sbase = Math.floor(ms / 1000);
+    let s = String(sbase % 60).padStart(2, '0');
+    let m = String(Math.floor(sbase / 60));
+    let _ms = String(ms % 1000).padStart(3, '0');
+    return m + '\'' + s + '"' + _ms;
 }
+
 function updateSpeedometer(getId, aPosX,aPosY) {
 	if (!$speedometerVals[getId]) return;
 	var oKart = aKarts[getId];
@@ -18515,8 +18608,6 @@ function processCode(cheatCode) {
 					argTypes = ['x', 'y', 'r']
 				} else if (args.length == 1) {
 					argTypes = ['f']
-				} else {
-					return 'tp: Invalid arguments';
 				}
 			
 				function forwardMult(farg) {
@@ -18569,7 +18660,7 @@ function processCode(cheatCode) {
 			}
 
 			let newPos = correctTPType({x: oKart.x, y: oKart.y, r: oKart.rotation}, args)
-			
+
 			for (let key in newPos) {
 				if (!newPos[key] && newPos[Key] !== 0) {
 					return 'tp: Invalid '+key+' value';
@@ -19888,6 +19979,7 @@ document.onkeydown = function(e) {
 				var isBack = selectedOscrElt.value === toLanguage("Back","Retour");
 				releaseOverEvents();
 				selectedOscrElt.click();
+				selectedOscrElt = undefined;
 				if (iSfx)
 					playSoundEffect("musics/events/"+ (isBack ? "back" : "select") +".mp3");
 			}
@@ -22359,17 +22451,17 @@ function selectTypeScreen() {
 }
 function selectMainPage() {
 	switch (page) {
-		case "OL":
+		case "OL": // online mode
 			if (mId)
 				selectPlayerScreen(0);
 			else
 				connexion();
 			break;
-		case "MK":
+		case "MK": // vanilla
 			selectTypeScreen();
 			break;
-		case "CI":
-		case "MA":
+		case "CI": // QM race
+		case "MA": // CM race
 			if (nid)
 				selectTypeScreen();
 			else {
@@ -22377,8 +22469,8 @@ function selectMainPage() {
 				selectNbJoueurs();
 			}
 			break;
-		case "BA":
-		case "AR":
+		case "BA": // CM battle
+		case "AR": // QM battle
 			course = "BB";
 			selectNbJoueurs();
 	}
@@ -25339,318 +25431,175 @@ function selectGamersScreen() {
 }
 
 function acceptRulesScreen() {
-	var oScr = document.createElement("div");
+    function createRuleRow(whenTrue, title, description, id) {
+        if (!whenTrue) return "";
+        return `
+            <tr>
+                <td>
+                    <label>
+                        <h1 style="font-size: ${3 * iScreenScale}px; margin-bottom: 0px;">
+                            ${title}
+                        </h1>
+                        <div style="font-size: ${2 * iScreenScale}px; color: white;">
+                            ${description}
+                        </div>
+                    </label>
+                </td>
+            </tr>`;
+    }
 
-	var oStyle = oScr.style;
+    function acceptAndPlay() {
+        oContainers[0].innerHTML = "";
+        shareLink.accepted = true;
+        searchCourse();
+    }
+    
+    function goBack() {
+        oContainers[0].innerHTML = "";
+        selectPlayerScreen(0);
+    }
 
-	oStyle.width = (iWidth*iScreenScale)+"px";
-	oStyle.height = (iHeight*iScreenScale)+"px";
-	oStyle.border = "solid 1px black";
-	oStyle.backgroundColor = "black";
+    const rulesHTML = `
+        <div id="rules-container" style="width: ${iWidth * iScreenScale}px; height: ${iHeight * iScreenScale}px; border: solid 1px black; background-color: black;">
+            ${shareLink.options["public"] 
+                ? toTitle(toLanguage("Game rules", "Règles parties"), 0).outerHTML 
+                : toTitle(toLanguage("Private game rules", "Règles partie privée"), 0).outerHTML}
+            <div style="position: absolute; left: 0px; top: ${9 * iScreenScale}px; width: ${iWidth * iScreenScale}px;">
+                <div style="max-height: ${24 * iScreenScale}px; overflow: auto;">
+                    <div style="text-align: center; color: #F90; font-size: ${iScreenScale * 2}px; line-height: ${iScreenScale * 3}px;">
+                        ${shareLink.options["public"] 
+                            ? `\u26A0 ${toLanguage("Games from this mode have special rules", "Les parties de ce mode utilisent des règles spécifiques")}` 
+                            : `\u26A0 ${toLanguage("Games from this private link have special rules", "Les parties de ce lien privé utilisent des règles spécifiques")}`}
+                    </div>
+                    <table style="margin-left: auto; margin-right: auto;">
+                        ${createRuleRow(
+                            shareLink.options.team,
+                            toLanguage("Team games", "Parties par équipe"),
+                            toLanguage(
+                                `${shareLink.options.nbTeams || defaultGameOptions.nbTeams} teams are selected in each game. You object: defeat the opposing team${(shareLink.options.nbTeams || defaultGameOptions.nbTeams) > 2 ? "s" : ""}.`,
+                                `${shareLink.options.nbTeams || defaultGameOptions.nbTeams} équipes sont sélectionnées à chaque partie. Votre objectif : vaincre ${(shareLink.options.nbTeams || defaultGameOptions.nbTeams) > 2 ? "les équipes adverses" : "l'équipe adverse"}.`
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.manualTeams,
+                            toLanguage("Manual selection", "Sélection manuelle"),
+                            toLanguage(
+                                "Teams are selected manually by one of the players.",
+                                "Les équipes sont sélectionnées manuellement par l'un des joueurs."
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.friendlyFire,
+                            toLanguage("Friendly fire", "Friendly fire"),
+                            toLanguage(
+                                "Your items can hit your teammates",
+                                "Vos objets peuvent toucher les joueurs de votre équipe"
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.cc || shareLink.options.mirror,
+                            toLanguage("Class", "Cylindrée"),
+                            (
+                                shareLink.options.cc||150) + "cc" + (
+                                    shareLink.options.mirror 
+                                    ? toLanguage(" mirror"," miroir")
+                                    : ""
+                            )
+                        )}
+                        ${shareLink.options.itemDistrib ? createRuleRow(
+                            true,
+                            toLanguage("Item distribution", "Distribution des objets"),
+                            (function() {
+                                var oDiv = document.createElement("div"); // dummy div to get innerHTML
+                                if (isNaN(shareLink.options.itemDistrib)) {
+                                    var itemDistrib = shareLink.options.itemDistrib;
+                                    if (!itemDistrib.value)
+                                        itemDistrib = { value: itemDistrib };
+                                    oDiv.innerHTML = toLanguage('Custom distribution <a href="#null">[Show]</a>', 'Distribution personnalisée <a href="#null">[Voir]</a>');
+                                    var oLink = oDiv.querySelector("a");
+                                    oLink.id = "item-distrib-show";
+                                    oLink.style.color = "#CCF";
+                                }
+                                else {
+                                    var itemMode = getItemMode();
+                                    var itemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib];
+                                    if (itemDistrib.value.length)
+                                        oDiv.innerHTML = itemDistrib.name;
+                                    else
+                                        oDiv.innerHTML = toLanguage("No item", "Aucun objet");
+                                }
+                                return oDiv.innerHTML;
+                            })(),
+                            "item-distrib"
+                        ) : ""}
+                        ${createRuleRow(
+                            shareLink.options.cpuCount,
+                            toLanguage("Possible addition of bots", "Ajout possible de bots"),
+                            toLanguage(
+                                "If there are not enough players, some bots will be added to the game so that there are at least <strong>"+ shareLink.options.cpuCount +"</strong> participants.",
+                                "S'il n'y a pas assez de joueurs, des bots seront ajoutés à la partie pour qu'il y ait au minimum <strong>"+ shareLink.options.cpuCount +"</strong> participants"
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.timeTrial,
+                            toLanguage("Time trial mode", "Mode Contre-le-montre"),
+                            toLanguage(
+                                "Games are played like in time trial: no item boxes, no collisions with other players (they are ghosts), and you start with 3 shrooms.",
+                                "Les parties se déroulent comme en CLM : pas de boîtes à objets, pas de collisions avec les autres joueurs (ce sont des fantômes), et vous commencez avec 3 champis."
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.noBumps,
+                            toLanguage("No collisions between karts", "Pas de collisions entre les karts"),
+                            toLanguage(
+                                "Karts are not impacted when they hit each other",
+                                "Les karts ne sont pas impactés lorsqu'ils se rentrent dedans"
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.noJump,
+                            toLanguage("No kart jumps", "Sauts désactivés"),
+                            toLanguage(
+                                "It's impossible to perform a jump, drift or trick",
+                                "Il est impossible de faire des sauts, dérapages ou figures"
+                            )
+                        )}
+                        ${createRuleRow(
+                            shareLink.options.noRd,
+                            toLanguage("No Reverse Drift", "Pas de Reverse Drift"),
+                            toLanguage(
+                                "The famous MKPC drifting technique is blocked",
+                                "La fameuse technique de dérapage de MKPC est bloquée"
+                            )
+                        )}
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: ${2 * iScreenScale}px;">
+                    <input id="accept-button" type="button" value="${toLanguage("Accept and play", "Accepter et jouer")}" style="font-size: ${3 * iScreenScale}px;">
+                </div>
+            </div>
+            <input id="back-button" type="button" value="${toLanguage("Back", "Retour")}" style="font-size: ${2 * iScreenScale}px; position: absolute; left: ${2 * iScreenScale}px; top: ${35 * iScreenScale}px;">
+        </div>
+    `;
 
-	var oTitle;
-	if (shareLink.options["public"])
-		oTitle = toTitle(toLanguage("Game rules", "Règles parties"), 0);
-	else
-		oTitle = toTitle(toLanguage("Private game rules", "Règles partie privée"), 0);
-	oTitle.style.fontSize = (7*iScreenScale)+"px";
-	oScr.appendChild(oTitle);
+    const oScr = document.createElement("div");
+    oScr.innerHTML = rulesHTML;
 
-	var oForm = document.createElement("div");
-	oForm.style.position = "absolute";
-	oForm.style.left = "0px";
-	oForm.style.top = (9*iScreenScale) +"px";
-	oForm.style.width = (iWidth*iScreenScale) +"px";
+    oScr.querySelector("#accept-button").onclick = acceptAndPlay;
+    oScr.querySelector("#back-button").onclick = goBack;
 
-	var oScroll = document.createElement("div");
-	oScroll.style.maxHeight = (24*iScreenScale) +"px";
-	oScroll.style.overflow = "auto";
-
-	var oDiv = document.createElement("div");
-	oDiv.style.textAlign = "center";
-	oDiv.style.color = "#F90";
-	oDiv.style.fontSize = (iScreenScale*2) +"px";
-	oDiv.style.lineHeight = (iScreenScale*3) +"px";
-	if (shareLink.options["public"])
-		oDiv.innerHTML = "\u26A0 " + toLanguage("Games from this mode have special rules", "Les parties de ce mode utilisent des règles spécifiques");
-	else
-		oDiv.innerHTML = "\u26A0 " + toLanguage("Games from this private link have special rules", "Les parties de ce lien privé utilisent des règles spécifiques");
-	oScroll.appendChild(oDiv);
-
-	var oTable = document.createElement("table");
-	oTable.style.marginLeft = "auto";
-	oTable.style.marginRight = "auto";
-
-	if (shareLink.options.team) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oLabel.setAttribute("for", "option-teams");
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.style.marginTop = "0px";
-		oH1.style.marginBottom = "0px";
-		oH1.innerHTML = toLanguage("Team games","Parties par équipe");
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		var nbTeams = shareLink.options.nbTeams || defaultGameOptions.nbTeams;
-		oDiv.innerHTML = toLanguage(nbTeams + " teams are selected in each game. You object: defeat the opposing team"+ (nbTeams>2 ? "s":"") +".", nbTeams + " équipes sont sélectionnées à chaque partie. Votre objectif : vaincre "+ (nbTeams>2 ? "les équipes adverses":"l'équipe adverse") + ".");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.manualTeams) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Manual selection", "Sélection manuelle");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("Teams are selected manually by one of the players.", "Les équipes sont sélectionnées manuellement par l'un des joueurs.");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.friendlyFire) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Friendly fire", "Friendly fire");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("Your items can hit your teammates", "Vos objets peuvent toucher les joueurs de votre équipe");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.cc || shareLink.options.mirror) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Class", "Cylindrée");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = (shareLink.options.cc||150) +"cc"+ (shareLink.options.mirror ? toLanguage(" mirror"," miroir"):"");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.itemDistrib) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Item distribution", "Distribution des objets");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		if (isNaN(shareLink.options.itemDistrib)) {
-			var itemDistrib = shareLink.options.itemDistrib;
-			if (!itemDistrib.value)
-				itemDistrib = { value: itemDistrib };
-			oDiv.innerHTML = toLanguage('Custom distribution <a href="#null">[Show]</a>', 'Distribution personnalisée <a href="#null">[Voir]</a>');
-			var oLink = oDiv.querySelector("a");
-			oLink.style.color = "#CCF";
-			oLink.onclick = function() {
-				selectedItemDistrib = itemDistrib;
-				selectItemScreen(oScr, function() {}, Object.assign({}, itemDistrib, {
-					readOnly: true
-				}));
-				return false;
-			}
-		}
-		else {
-			var itemMode = getItemMode();
-			var itemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib];
-			if (itemDistrib.value.length)
-				oDiv.innerHTML = itemDistrib.name;
-			else
-				oDiv.innerHTML = toLanguage("No item", "Aucun objet");
-		}
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.cpuCount) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Possible addition of bots", "Ajout possible de bots");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("If there are not enough players, some bots will be added to the game so that there are at least <strong>"+ shareLink.options.cpuCount +"</strong> participants.", "S'il n'y a pas assez de joueurs, des bots seront ajoutés à la partie pour qu'il y ait au minimum <strong>"+ shareLink.options.cpuCount +"</strong> participants");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.timeTrial) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Time trial mode", "Mode Contre-le-montre");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("Games are played like in time trial: no item boxes, no collisions with other players (they are ghosts), and you start with 3 shrooms.", "Les parties se déroulent comme en CLM : pas de boîtes à objets, pas de collisions avec les autres joueurs (ce sont des fantômes), et vous commencez avec 3 champis.");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.noBumps) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("No collisions between karts", "Pas de collisions entre les karts");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("Karts are not impacted when they hit each other", "Les karts ne sont pas impactés lorsqu'ils se rentrent dedans");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.noJump) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("No kart jumps", "Sauts désactivés");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("It's impossible to perform a jump, drift or trick", "Il est impossible de faire des sauts, dérapages ou figures");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.noRd) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("No Reverse Drift", "Pas de Reverse Drift");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("The famous MKPC drifting technique is blocked", "La fameuse technique de dérapage de MKPC est bloquée");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	oScroll.appendChild(oTable);
-
-	oForm.appendChild(oScroll);
-
-	var oDiv = document.createElement("div");
-	oDiv.style.textAlign = "center";
-	oDiv.style.marginTop = (2*iScreenScale)+"px";
-	var oSubmit = document.createElement("input");
-	oSubmit.type = "button";
-	oSubmit.value = toLanguage("Accept and play", "Accepter et jouer");
-	oSubmit.style.fontSize = (3*iScreenScale)+"px";
-	oSubmit.onclick = function() {
-		oScr.innerHTML = "";
-		oContainers[0].removeChild(oScr);
-		shareLink.accepted = true;
-		searchCourse();
-	}
-	oDiv.appendChild(oSubmit);
-	oForm.appendChild(oDiv);
-
-	oScr.appendChild(oForm);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Back", "Retour");
-	oPInput.style.fontSize = (2*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (2*iScreenScale)+"px";
-	oPInput.style.top = (35*iScreenScale)+"px";
-	oPInput.onclick = function() {
-		oScr.innerHTML = "";
-		oContainers[0].removeChild(oScr);
-		selectPlayerScreen(0);
-	}
-	oScr.appendChild(oPInput);
-
-	oContainers[0].appendChild(oScr);
+    // code for the item distribution [Show] link
+    const itemDistribShow = oScr.querySelector("#item-distrib-show");
+    if (itemDistribShow) {
+        itemDistribShow.onclick = function() {
+            selectedItemDistrib = shareLink.options.itemDistrib;
+            selectItemScreen(oScr, function() {}, Object.assign({}, shareLink.options.itemDistrib, {
+                readOnly: true
+            }));
+            return false;
+        };
+    }
+    oContainers[0].appendChild(oScr);
 }
 
 function selectChallengesScreen() {
@@ -29397,15 +29346,15 @@ function optionOf(vName) {
 	return formulaire ? formulaire.elements[vName].value*1 : baseOptions[vName];
 }
 function displayCommands(html) {
-	var $commandes = document.getElementById("commandes");
-	if ($commandes) {
+	var $commands = document.getElementById("commandes");
+	if ($commands) {
 		if (isMobile()) {
 			if (document.getElementById("commandes-edit"))
 				return;
 			html = "";
 		}
 		var emptyCommands = !html;
-		$commandes.innerHTML = (emptyCommands ? "" : ('<div class="commandes-list">'+html+'</div>'))+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
+		$commands.innerHTML = (emptyCommands ? "" : ('<div class="commandes-list">'+html+'</div>'))+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
 		document.getElementById("commandes-edit").onclick = function() {
 			editCommands();
 		};
@@ -29413,7 +29362,6 @@ function displayCommands(html) {
 }
 function updateCommandSheet() {
 	var gameCommands = getCommands(null, 2);
-	var isMac = navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0;
 	function aTouches(T1, T2) {
 		var P = language ? "P":"J";
 		return (oContainers.length == 1) ? T1 : P+"1 : "+ T1 +"; "+P+"2 : "+ T2 +"";
@@ -29421,11 +29369,41 @@ function updateCommandSheet() {
 	function aKeyName(keyKey) {
 		var keyCodes = gameCommands[keyKey];
 		var keyCode = keyCodes[0];
-		if (keyCodes[1] && isMac)
+		if (keyCodes[1] && isMac())
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands(
+		'<strong>' + toLanguage('Move', 'Se diriger') + '</strong> : ' +
+		aTouches(
+			aKeyName("up") + aKeyName("left") + aKeyName("down") + aKeyName("right"),
+			aKeyName("up_p2") + aKeyName("left_p2") + aKeyName("down_p2") + aKeyName("right_p2")
+		) +
+		'<br /><span style="line-height:13px"><strong>' +
+		toLanguage('Use item', 'Utiliser un objet') + '</strong> : ' +
+		aTouches(aKeyName("item"), aKeyName("item_p2")) +
+		'<br /><strong>' +
+		toLanguage("Item backwards", "Objet en arrière") + '</strong> : ' +
+		aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +
+		'<br />' +
+		((course == "BB") ? '' : (
+			'<strong>' + toLanguage("Item forwards", "Objet en avant") + '</strong> : ' +
+			aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +
+			'</span><br />'
+		)) +
+		'<strong>' + toLanguage('Jump/drift', 'Sauter/déraper') + '</strong> : ' +
+		aTouches(aKeyName("jump"), aKeyName("jump_p2")) +
+		((course == "BB") ? (
+			'<br /><strong>' + toLanguage('Inflate a balloon', 'Gonfler un ballon') + '</strong> : ' +
+			aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))
+		) : '') +
+		'<br /><strong>' + toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') + '</strong> : ' +
+		aTouches(aKeyName("rear"), aKeyName("rear_p2")) +
+		'<br /><strong>' + toLanguage('Pause', 'Mettre en pause') + '</strong> : ' +
+		aKeyName("pause") +
+		'<br /><strong>' + toLanguage('Quit', 'Quitter') + '</strong> : ' +
+		aKeyName("quit")
+	);
 }
 var pollingGamepadsHandler;
 function editCommands(options) {
@@ -29793,7 +29771,6 @@ function editCommands(options) {
 			}
 		}
 		var localControls = JSON.parse(localStorage.getItem(getLocalControlKey(selectedDevice))||"{}");
-		var isMac = (navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0);
 		var isKeyboard = (selectedDevice === "keyboard");
 		var isGamepad = (selectedDevice === "gamepad");
 		if (isGamepad && (localControls["_id"+plSuffix] === undefined)) {
@@ -29855,7 +29832,7 @@ function editCommands(options) {
 					var keyCode = localControl;
 					if (isKeyboard) {
 						keyCode = localControl[0];
-						if (localControl[1] && isMac)
+						if (localControl[1] && isMac())
 							keyCode = localControl[1];
 					}
 					var $controlKey = document.createElement("div");
@@ -30369,16 +30346,19 @@ function getCommands(inputDevice, nbPlayers) {
 			cheat:[120,33,57,105]
 		};
 		if (nbPlayers > 1) {
-			defaultControls["up_p2"] = [69];
-			defaultControls["down_p2"] = [68];
-			defaultControls["left_p2"] = [83];
-			defaultControls["right_p2"] = [70];
-			defaultControls["item_p2"] = [toLanguage(65,81)];
-			defaultControls["item_back_p2"] = [toLanguage(87,65)];
-			defaultControls["item_fwd_p2"] = [82];
-			defaultControls["jump_p2"] = [71];
-			defaultControls["balloon_p2"] = [84];
-			defaultControls["rear_p2"] = [toLanguage(87,90)];
+			// different keybinds if french (azerty is the most popular keyboard here)
+			Object.assign(defaultControls, {
+				up_p2: [69],
+				down_p2: [68],
+				left_p2: [83],
+				right_p2: [70],
+				item_p2: [toLanguage(65, 81)],
+				item_back_p2: [toLanguage(87, 65)],
+				item_fwd_p2: [82],
+				jump_p2: [71],
+				balloon_p2: [84],
+				rear_p2: [toLanguage(87, 90)]
+			});
 		}
 	}
 	var res = defaultControls;
@@ -30559,49 +30539,52 @@ function toLanguage(english, french) {
 	return language ? english:french;
 }
 function toPlace(place) {
-	var term;
+	var suffix;
 	if (language) {
-		var dec = place%100;
+		var dec = place % 100;
 		if ((dec >= 10) && (dec < 20))
-			term = 'th';
+			suffix = 'th';
 		else {
 			switch (place%10) {
 			case 1 :
-				term = "st";
+				suffix = "st";
 				break;
 			case 2 :
-				term = "nd";
+				suffix = "nd";
 				break;
 			case 3 :
-				term = "rd";
+				suffix = "rd";
 				break;
 			default :
-				term = "th";
+				suffix = "th";
 			}
 		}
 	}
 	else
-		term = (place!=1) ? "e":"er";
-	return place +"<sup>"+ term +"</sup>";
+		suffix = (place != 1) ? "e" : "er";
+	return place + "<sup> "+ suffix + "</sup>";
 }
 function toTitle(text, top) {
-	var oTitle = document.createElement("div");
-	oTitle.style.width = (iWidth*iScreenScale)+"px";
-	oTitle.style.fontSize = Math.round(8*iScreenScale)+"px";
-	oTitle.style.fontWeight = "normal";
-	oTitle.style.position = "absolute";
-	oTitle.style.left = "0px";
-	oTitle.style.top = Math.round(top*iScreenScale)+"px";
-	oTitle.style.textAlign = "center";
-	oTitle.style.color = primaryColor;
-	oTitle.innerHTML = text;
-	oTitle.style.fontFamily = "Tahoma";
-	return oTitle;
+    var oTitle = document.createElement("div");
+    Object.assign(oTitle.style, {
+        width: (iWidth * iScreenScale) + "px",
+        fontSize: Math.round(8 * iScreenScale) + "px",
+        fontWeight: "normal",
+        position: "absolute",
+        left: "0px",
+        top: Math.round(top * iScreenScale) + "px",
+        textAlign: "center",
+        color: primaryColor,
+        fontFamily: "Tahoma"
+    });
+    oTitle.innerHTML = text;
+    return oTitle;
 }
 function ucwords(str) {
-	return str.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g, function(s){
-		return s.toUpperCase();
-	});
+    return str
+        .split(' ') // split the string into an array of words
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // capitalize the first letter of each word
+        .join(' '); // join the words back into a single string
 }
 function toPerso(sPerso) {
 	if (isCustomPerso(sPerso))
@@ -30632,7 +30615,18 @@ function toPerso(sPerso) {
 	return res;
 }
 
-var isMobileCache = !!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
+const isMobileCache = (function() {
+	let check = false;
+	(function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+	return check;
+})();
+
+const isMacCache = (navigator.userAgent.toUpperCase().includes('MAC')) || navigator.userAgent.toUpperCase().includes('MAC');
+
+function isMac() {
+	return isMacCache;
+}
+
 function isMobile() {
 	return isMobileCache;
 }
