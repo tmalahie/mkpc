@@ -155,7 +155,7 @@ function apercu() {
 		content = content.replace(/\[url\](http[^\[]*?)\[\/url\]/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 		content = content.replace(/\[img\](http[^\[]*?)\[\/img\]/g, '<img src="$1" alt="$1" />');
 		content = content.replace(/\[url=(http[^\]]+)\]([\s\S]*?)\[\/url\]/g, '<a href="$1" class="type1" target="_blank" rel="noopener noreferrer">$2</a>');
-		content = content.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: $1">$2</span>');
+		content = content.replace(/\[color=([^;\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: $1">$2</span>');
 		content = content.replace(/\[font=([a-zA-Z ]+)\]([\s\S]*?)\[\/font\]/g, '<span style="font-family: $1">$2</span>');
 		content = content.replace(/\[size=([0-9]{1,2})\]([\s\S]*?)\[\/size\]/g, '<span style="font-size: $1pt;">$2</span>');
 		content = content.replace(/\[yt\].*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?\[]*).*\[\/yt\]/g, '<iframe src="https://www.youtube.com/embed/$1" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>');

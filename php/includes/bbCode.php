@@ -24,7 +24,7 @@ function bbcode($msg) {
 	$msg = preg_replace('#\[url\](http[^\[]*)\[/url\]#isU', '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>', $msg);
 	$msg = preg_replace('#\[img\](http[^\[]*)\[/img\]#isU', '<img src="$1" alt="$1" />', $msg);
 	$msg = preg_replace('#\[url=(http[^\]]+)\](.*)\[/url\]#isU', '<a href="$1" class="type1" target="_blank" rel="noopener noreferrer">$2</a>', $msg);
-	$msg = preg_replace('#\[color=([^\]]+)\](.*)\[/color\]#isU', '<span style="color: $1">$2</span>', $msg);
+	$msg = preg_replace('#\[color=([^;\]]+)\](.*)\[/color\]#isU', '<span style="color: $1">$2</span>', $msg);
 	$msg = preg_replace('#\[font=([a-zA-Z ]+)\](.*)\[/font\]#isU', '<span style="font-family: $1">$2</span>', $msg);
 	$msg = preg_replace('#\[size=([0-9]{1,2})\](.*)\[/size\]#isU', '<span style="font-size: $1pt;">$2</span>', $msg);
 	$msg = preg_replace('#\[yt\].*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^\#\&\?\[]*).*\[\/yt\]#', '<iframe src="https://www.youtube.com/embed/$1" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>', $msg);
