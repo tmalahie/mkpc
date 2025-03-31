@@ -700,26 +700,26 @@ function fadeInMusic(embed, volume, ratio) {
 	else
 		setMusicVolume(embed,1);
 }
-function fadeOutMusic(embed, volume, ratio, remove, volume) {
-	if (embed.fadingIn)
-		return;
-	embed.fadingOut = true;
-	volume *= ratio;
-	if (volume > 0.2) {
-		setMusicVolume(embed,volume*volume);
-		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,volume)},100);
-	}
-	else {
-		embed.fadingOut = false;
-		if (remove === false) {
-			pauseMusic(embed);
-			setMusicVolume(embed,volume);
-		}
-		else if (remove !== -1)
-			stopMusic(embed);
-	}
-}
+function fadeOutMusic(embed, volume, ratio, remove, baseVolume) {
+    if (embed.fadingIn) return;
 
+    embed.fadingOut = true;
+    volume *= ratio;
+
+    if (volume > 0.2) {
+        setMusicVolume(embed, volume * baseVolume);
+        setTimeout(() => fadeOutMusic(embed, volume, ratio, remove, baseVolume), 100);
+    } else {
+        embed.fadingOut = false;
+
+        if (remove === false) {
+            pauseMusic(embed);
+            setMusicVolume(embed, baseVolume);
+        } else if (remove !== -1) {
+            stopMusic(embed);
+        }
+    }
+}
 var oMusicHandler;
 var muteOnBlur, unmuteOnResume;
 function updateMenuMusic(menu, forceUpdate) {
@@ -757,9 +757,7 @@ function updateMenuMusic(menu, forceUpdate) {
 	}
 }
 
-function playMusicSmoothly(src,delay) {
-	if (undefined === delay)
-		delay = 1000;
+function playMusicSmoothly(src, delay=1000) {
 	oMusicEmbed = document.createElement("audio");
 	oMusicEmbed.volume = fMusicVolume;
 	oMusicEmbed.setAttribute("loop", true);
@@ -1583,8 +1581,10 @@ var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
-	gameSettings = JSON.parse(localStorage.getItem("settings") ?? "{}");
-	ctrlSettings = JSON.parse(localStorage.getItem("settings.ctrl") ?? "{}");
+	gameSettings = localStorage.getItem("settings");
+	gameSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	ctrlSettings = localStorage.getItem("settings.ctrl");
+	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -2941,8 +2941,7 @@ function onPlayerReady(elt, onReady) {
 			});
 		}
 	}
-	catch (e) {
-	}
+	catch (e) {}
 }
 function updateMusic(elt,fast) {
 	if (elt != oMusicEmbed)
@@ -2972,7 +2971,7 @@ function updateMusic(elt,fast) {
 		oMusicEmbed = elt;
 	}
 }
-function fastenMusic(elt) {
+function speedupMusic(elt) {
 	var isOriginal = isOriginalEmbed(elt);
 	if (isOriginal)
 		elt.playbackRate = 1.2;
@@ -17619,7 +17618,7 @@ function move(getId, triggered) {
 											forceStartMusic = true;
 										}
 										else if (!oMap.lastMapSpeed)
-											fastenMusic(mapMusic);
+											speedupMusic(mapMusic);
 									}
 									if (iSfx) {
 										carEngine.volume = fSfxVolume;
@@ -18632,9 +18631,9 @@ function processCode(cheatCode) {
 					let arg = args[i];
 					i++; // cant enumerate so i have to use this, pretty cursed
 				
-					if (typeof arg === 'undefined') continue;
+					if (typeof arg === 'undefined' || arg === 'cur') continue;
 				
-					if (type != 'f' && arg !== 'cur') {
+					if (type !== 'f') {
 						if (arg.endsWith('+')) {     	  // add to current pos
 							pos[type] = pos[type] + parseInt(arg.slice(0, -1));
 						} else if (arg.endsWith('-')) {    	      // decrease current pos
