@@ -1,0 +1,39 @@
+#relief_bottom, #footer_bottom {
+	position: relative;
+	width: 100%;
+}
+#relief_left, #relief_right, #footer_left, #footer_right {
+	position: absolute;
+	width: 20px;
+}
+#relief_left, #relief_right {
+	top: -20px;
+	z-index: -1;
+}
+#footer_left, #footer_right, #footer_center {
+	height: 40px;
+	background-image: url('../images/bottom_bg.png');
+}
+#footer_left {
+	background-position: right;
+}
+#footer_center {
+	background-position: center;
+	color: white;
+	width: 100%;
+	font-size: 90%;
+	text-align: center;
+}
+#footer_right {
+	background-position: left;
+}
+footer a {
+	color: white;
+}
+
+#relief_left, #footer_left {
+	left: -20px;
+}
+#relief_right, #footer_right {
+	right: -20px;
+}

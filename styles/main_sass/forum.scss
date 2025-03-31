@@ -1,0 +1,62 @@
+@use 'mixins' as *;
+
+#forum_section h2 {
+	font-weight: bold;
+	font-size: 0.9em;
+	text-decoration: none;
+	margin: 0;
+	margin-right: 35px;
+	padding: 2px 0px 1px 3px;
+	color: #060;
+}
+
+#forum_section h3 {
+	font-weight: normal;
+	font-size: 0.8em;
+	margin: 0;
+	padding: 0;
+	color: #676;
+	padding: 0px 0px 2px 5px;
+}
+
+#forum_section a {
+	display: block;
+	border-top: solid 1px black;
+	text-decoration: none;
+	word-wrap: break-word;
+	word-break: break-word;
+    @include hyphens(auto);
+}
+
+#forum_section a:hover h2 {
+	color: #0A0;
+}
+
+#forum_section a:hover h3 {
+	color: #898;
+}
+
+#forum_section a:nth-child(2n) {
+	background-color: #DFD;
+}
+
+#forum_section a:nth-child(2n):hover {
+	background-color: #F8FFF8;
+}
+
+#forum_section a:nth-child(2n+1) {
+	background-color: #EFE;
+}
+
+#forum_section a:nth-child(2n+1):hover {
+	background-color: #FFF;
+}
+
+#forum_section a:nth-child(1) {
+	border-top: none;
+}
+
+#forum_section {
+	border: groove 2px #080;
+	margin-bottom: 10px;
+}

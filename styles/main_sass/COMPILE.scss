@@ -1,0 +1,24 @@
+/*
+    Run sass with this file as input to compile all the SCSS files into a single css file.
+    e.g 'sass COMPILE.scss main.css'
+    There's also a npm script to do this:
+    'npm run compile-sass'
+*/
+
+/* Basic layout */
+@use './structure/footer';
+@use './structure/header';
+@use './structure/main';
+@use './structure/sections';
+
+/* Rankings and challenges */
+@use './rankings/challenges';
+@use './rankings/vs_tt';
+
+/* The rest */
+@use './comments';
+@use './creation';
+@use './forum';
+@use './misc';
+@use './news';
+@use './notifs';

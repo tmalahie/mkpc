@@ -1,0 +1,20 @@
+@mixin gradient-background($start-color, $end-color) {
+    background: -webkit-linear-gradient($start-color, $end-color); // For Safari 5.1 to 6.0
+    background: -o-linear-gradient($start-color, $end-color);      // For Opera 11.1 to 12.0
+    background: -moz-linear-gradient($start-color, $end-color);    // For Firefox 3.6 to 15
+    background: linear-gradient($start-color, $end-color);         // Standard syntax
+}
+
+@mixin background-size($size) {
+    background-size: $size; // For modern browsers
+    -webkit-background-size: $size; // For Safari 5.1 to 6.0
+    -moz-background-size: $size; // For Firefox 3.6 to 15
+    -o-background-size: $size; // For Opera 11.1 to 12.0
+}
+
+@mixin hyphens($value) {
+    -ms-hyphens: $value; // For Internet Explorer 10+
+    -moz-hyphens: $value; // For Firefox 3.5+
+    -webkit-hyphens: $value; // For Safari 5.1+ and Chrome 6+
+    hyphens: $value; // Standard syntax
+}

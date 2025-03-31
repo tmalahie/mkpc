@@ -27,15 +27,9 @@
 .collab-popup.collab-track .collab-options-list {
     color: white;
 }
-.collab-popup-section:not(.show) {
-    display: none;
-}
-.collab-form:not(.add) .collab-form-on-add {
-    display: none;
-}
-.collab-form:not(.new) .collab-form-on-new {
-    display: none;
-}
+.collab-popup-section:not(.show),
+.collab-form:not(.add) .collab-form-on-add,
+.collab-form:not(.new) .collab-form-on-new,
 .collab-form:not(.edit) .collab-form-on-edit {
     display: none;
 }

@@ -1,0 +1,79 @@
+@mixin style() {
+	header div {
+		font-size: 250%;
+	}
+	nav a {
+		padding: 5px 0px;
+		margin: 5px 0px;
+		width: 20%;
+	}
+	#menu_left {
+		padding-left: 5px;
+	}
+	#menu_left span {
+		display: none;
+	}
+	#menu_right {
+		padding-right: 5px;
+	}
+	#left_section, #right_section {
+		width: 100%;
+	}
+	#right_section {
+		margin-top: 15px;
+		padding-top: 35px;
+		border-top: solid 1px black;
+	}
+	#left_section .pub_section {
+		display: none;
+	}
+	#right_section .pub_section {
+		position: relative;
+		top: -9px;
+	}
+	header, nav, main, footer {
+		width: 95%;
+	}
+	#relief_left, #footer_left {
+		left: -6px;
+	}
+	#relief_right, #footer_right {
+		right: -6px;
+	}
+	.fp-thumbnail {
+		-webkit-background-size: 135%;
+		-moz-background-size: 135%;
+		-o-background-size: 135%;
+		background-size: 135%;
+	}
+	#developer {
+		display: none;
+	}
+	#challenge_ranking {
+		margin-top: 12px;
+	}
+	#forum_section, #news_section {
+		margin-bottom: 20px;
+	}
+	#creations_section, #comments_section, #challenges_section, #top10 {
+		margin-bottom: 15px;
+	}
+	
+	body {
+		height: 100vh;
+		overflow-y: scroll;
+		background-color: #E8964C;
+		background-image: url('../images/pages/bg-mountains-640w.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+		background-size: 200vw auto, auto;
+		background-position: center -65vw, center;
+	}
+
+	@media only screen and (max-width: 400px) {
+		body {
+			background-image: url('../images/pages/bg-mountains-320w.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+		}
+	}
+	#header_left img, #header_right img {
+		height: 2.6vw;
+	}
+}

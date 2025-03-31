@@ -1,0 +1,286 @@
+/* Also includes CSS for the current people online count */
+
+#rankings_section:not(.rank_vs) #top_vs,
+#rankings_section:not(.rank_battle) #top_battle,
+#rankings_section:not(.rank_clm150) #top_clm150,
+#rankings_section:not(.rank_clm200) #top_clm200,
+#rankings_section:not(.rank_vs) .action_gotovs,
+#rankings_section:not(.rank_battle) .action_gotobattle,
+#rankings_section:not(.rank_clm150) .action_gotoclm150,
+#rankings_section:not(.rank_clm200) .action_gotoclm200,
+#rankings_section:not(.rank_clm150):not(.rank_clm200) #clm_cc {
+	display: none;
+}
+
+#rankings_section:not(.rank_clm200) .action_gotoclm200 {
+	display: none;
+}
+
+.ranking_tabs {
+	display: table;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 5px;
+	text-align: center;
+}
+
+.ranking_tab {
+	position: relative;
+	display: table-cell;
+	vertical-align: middle;
+	padding-left: 10px;
+	padding-right: 10px;
+	font-size: 14px;
+	height: 26px;
+	border-top: solid 1px #820;
+	border-bottom: solid 1px #820;
+}
+
+.ranking_tabs a {
+	text-decoration: none;
+}
+
+.ranking_badge {
+	position: absolute;
+	top: -10px;
+	right: -8px;
+	background-color: rgba(255,51,51, 1);
+	display: inline-block;
+	width: 19px;
+	height: 19px;
+	border-radius: 10px;
+	font-size: 12px;
+	color: white;
+	z-index: 1;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.ranking_badge span {
+	position: relative;
+}
+
+#currently_online {
+	min-height: 4px;
+}
+
+.ranking_current {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	color: #06F;
+	margin-bottom: 10px;
+}
+
+.ranking_current .ranking_activeplayer {
+	color: #06F;
+	font-weight: bold;
+}
+
+.ranking_current .ranking_activeplayer:hover {
+	color: #39F;
+}
+
+.ranking_current .ranking_list_game {
+	text-align: left;
+	margin-top: 0;
+	font-size: 0.9em;
+}
+
+.ranking_current .ranking_list_game .action_button {
+	position: relative;
+	top: -1px;
+	padding: 2px 8px;
+	font-size: 0.75em;
+}
+
+.ranking_activeplayernb {
+	font-weight: bold;
+	text-decoration: underline;
+	cursor: help;	
+}
+
+.ranking_activeplayernb:hover {
+	color: #39F;
+}
+
+.ranking_activeplayertitle {
+	position: fixed;
+	background-color: rgba(91,91,112, 0.95);
+	color: white;
+	padding: 3px 5px;
+	border-radius: 6px;
+	z-index: 10;
+	font-size: 0.9em;
+	opacity: 1;
+	transition: opacity 0.2s ease-in;
+}
+
+.ranking_current .action_button {
+	margin-top: 3px;
+	font-size: 0.8em;
+	margin-left: 5px;
+	padding: 3px 20px;
+}
+
+#rankings_section.rank_battle .tab_battle .ranking_badge {
+	display: none;
+}
+
+#rankings_section:not(.rank_vs) #ranking_current_vs, #rankings_section:not(.rank_battle) #ranking_current_battle, #rankings_section:not(.rank_clm150):not(.rank_clm200) #ranking_current_clm {
+	display: none;
+}
+
+#rankings_section:not(.rank_battle) .tab_battle, #rankings_section:not(.rank_vs) .tab_vs, #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm {
+	background-color: #FED;
+	color: #C00;
+	text-decoration: none;
+}
+
+#rankings_section:not(.rank_battle) .tab_battle:hover, #rankings_section:not(.rank_vs) .tab_vs:hover, #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm:hover {
+	background-color: #FFE7D5;
+	color: #C00;
+}
+
+#rankings_section.rank_battle .tab_battle, #rankings_section.rank_vs .tab_vs, #rankings_section.rank_clm150 .tab_clm, #rankings_section.rank_clm200 .tab_clm {
+	background-color: #FDC;
+	color: #C00;
+	font-weight: bold;
+	cursor: default;
+}
+
+#rankings_section .tab_vs {
+	border-left: solid 1px #820;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
+#rankings_section .tab_clm {
+	border-right: solid 1px #820;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+#right_section #rankings_section h2 {
+	margin-top: 10px;
+	margin-bottom: 4px;
+}
+
+#clm_cc {
+	text-align: center;
+	position: relative;
+	top: -3px;
+}
+
+#clm_cc a {
+	color: #F60;
+}
+
+#clm_cc a:hover {
+	color: #FB0;
+}
+
+#clm_cc span {
+	color: #C99;
+}
+
+#rankings_section.rank_clm150 #clm_cc a.clm_cc_150,
+#rankings_section.rank_clm200 #clm_cc a.clm_cc_200 {
+	cursor: default;
+	color: #820;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+
+#challenge_ranking {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	margin-top: 7px;
+}
+
+#challenge_ranking a {
+	color: #6AF;
+}
+
+#challenge_ranking a:hover {
+	color: #09F;
+}
+
+#top10 {
+	border: groove 2px #800;
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+#top10 table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+#top10 th {
+	padding: 5px 0;
+}
+
+#top10 th, #top10 td {
+	text-align: center;
+	border: solid 1px black;
+}
+
+#top10 tr:nth-child(1) {
+	background-color: #F60;
+	color: #800000;
+}
+
+#top10 tr:nth-child(2) {
+	background-color: #FD9;
+}
+
+#top10 tr:nth-child(2) * {
+	color: #E80;
+}
+
+#top10 tr:nth-child(3) {
+	background-color: #E9DDDD;
+}
+
+#top10 tr:nth-child(3) * {
+	color: #666;
+}
+
+#top10 tr:nth-child(4) {
+	background-color: #FBB;
+}
+
+#top10 tr:nth-child(4) * {
+	color: #B00;
+}
+
+#top10 tr:nth-child(2), #top10 tr:nth-child(3), #top10 tr:nth-child(4) {
+	font-weight: bold;
+}
+
+#top10 tr:nth-child(n+5) * {
+	color: #C00;
+}
+
+#top10 tr:nth-child(2n+5) {
+	background-color: #FED;
+}
+
+#top10 tr:nth-child(2n+6) {
+	background-color: #FDC;
+}
+
+#top10 tr a {
+	text-decoration: none;
+	display: block;
+	padding: 8px 0;
+}
+
+#top10 tr a:hover {
+	opacity: 0.6;
+}

@@ -1,0 +1,55 @@
+/* Main site track comments, not track comments on game pages */
+
+#challenges_section .challenges_section_succeeded h2 {
+	color: #060;
+}
+#challenges_section .challenges_section_succeeded h3 {
+	color: #898;
+}
+#comments_section {
+	height: 180px;
+	border: groove 2px #080;
+	margin-bottom: 10px;
+}
+#comments_section h2 {
+	font-size: 0.8em !important;
+	font-weight: bold;
+	font-size: 1em;
+	text-decoration: none;
+	margin: 0;
+	padding: 2px 0px 1px 3px;
+	color: #00A;
+}
+#comments_section h3 {
+	font-weight: normal;
+	font-size: 0.8em;
+	margin: 0;
+	padding: 0;
+	color: #889;
+	padding: 0px 0px 2px 5px;
+}
+#comments_section h2 img {
+	position: relative;
+	top: 3px;
+	width: 16px;
+}
+#comments_section a {
+	display: block;
+	border-top: solid 1px black;
+	text-decoration: none;
+}
+#comments_section a:nth-child(2n) {
+	background-color: #DDF;
+}
+#comments_section a:nth-child(2n):hover {
+	background-color: #F8F8FF;
+}
+#comments_section a:nth-child(2n+1) {
+	background-color: #EEF;
+}
+#comments_section a:nth-child(2n+1):hover {
+	background-color: #FFF;
+}
+#comments_section a:nth-child(1) {
+	border-top: none;
+}

@@ -1,0 +1,152 @@
+#notifs-bubble {
+	position: relative;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	background-size: auto 20px;
+	background-position: center;
+	background-repeat: no-repeat;
+	border-radius: 16px;
+}
+#notifs-bubble.notifs {
+	background-color: #F60;
+	background-image: url('../images/notifications.png');
+}
+#notifs-bubble.notifs:hover {
+	background-color: #F90;
+}
+#notifs-bubble.no-notifs {
+	background-color: #C96;
+	background-image: url('../images/no-notifications.png');
+}
+#notifs-bubble.no-notifs:hover {
+	background-color: #C19B76;
+}
+#notifs-nb-alert {
+	position: absolute;
+	right: -2px;
+	bottom: -2px;
+	background-color: rgba(255,51,51, 0.8);
+	color: white;
+	font-weight: bold;
+	padding: 1px 4px;
+	font-size: 12px;
+	border-radius: 5px;
+}
+.no-notifs #notifs-nb-alert, .no-notifs #nb-notifs, .no-notifs #notifs-list, .no-notifs #notifs-options, .notifs #no-notif {
+	display: none;
+}
+.notifs:hover #notifs-nb-alert {
+	background-color: rgba(255,51,51, 1);
+}
+.notifs-container {
+	width: 0px;
+	max-height: 0px;
+	transition: max-height 0.3s ease-out, width 0s linear 0.3s;
+	overflow: hidden;
+	position: absolute;
+	z-index: 30;
+	right: -8px;
+	top: 0px;
+	padding-top: 33px;
+}
+#notifs-list {
+	background-color: #DDF;
+	border-left: solid 1px #999;
+	border-bottom: solid 1px #999;
+	max-height: 200px;
+	overflow-y: scroll;
+}
+.notif-container {
+	display: block;
+	width: 100%;
+	color: #008;
+	text-decoration: none;
+	min-height: 60px;
+	height: min-content;
+	overflow: hidden;
+	padding: 0;
+}
+#notifs-options input {
+	width: 100%;
+	padding: 5px 0px;
+	font-weight: bold;
+	background-color: #CCF;
+	color: #66F;
+	cursor: pointer;
+}
+#notifs-options input:hover {
+	background-color: #DDF;
+	color: #99F;
+}
+#notifs-options input:active {
+	background-color: #EEF;
+	color: #AAF;
+}
+.notif-container:hover {
+	background-color: #EEF;
+}
+.notif-container:not(:last-child) {
+	border-bottom: solid 1px #AAA;
+}
+.notif-options {
+	text-align: right;
+}
+.notif-value {
+	font-size: 0.8em;
+	text-align: left;
+	padding: 0px 7px 4px 7px;
+}
+#no-notif {
+	position: relative;
+	background-color: #EEF;
+	padding: 10px 0px;
+	text-align: center;
+	font-style: italic;
+	color: #006;
+	border-left: solid 1px #999;
+	border-bottom: solid 1px #999;
+}
+#nb-notifs {
+	position: relative;
+	background-color: #EEF;
+	font-size: 1.2em;
+	color: navy;
+	font-family: Courier New;
+	padding-top: 5px;
+	padding-bottom: 3px;
+	border-bottom: solid 1px #99C;
+	border-left: solid 1px #99C;
+}
+.close-notif {
+	padding: 1px 4px;
+	margin: 1px 2px;
+	color: #D03;
+	border-radius: 4px;
+	display: inline-block;
+	line-height: 0.95rem;
+}
+.close-notif:hover {
+	background-color: #e97;
+	color: white;
+}
+#no-notif a, #nb-notifs a {
+	position:absolute;
+	right: 2px;
+	bottom: -1px;
+	width: auto;
+	opacity: 0.6;
+	padding: 0;
+}
+#no-notif a:hover, #nb-notifs a:hover {
+	opacity: 0.8 !important;
+}
+#no-notif img, #nb-notifs img {
+	width: 13px;
+	border: none;
+}
+#notifs-bubble:hover .notifs-container {
+	width: 350px;
+	max-height: 300px;
+	transition: max-height 0.4s ease-in;
+}

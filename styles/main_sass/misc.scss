@@ -1,0 +1,203 @@
+/*
+includes:
+ - birthdays
+ - official messages
+ - game info stuff
+ - menu
+ - warn messages
+ - flag counter
+*/
+
+@use 'mixins' as *;
+
+#menu_center a {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: bold;
+	color: white;
+	text-decoration: none;
+	border-radius: 10px;
+}
+#menu_center a:hover {
+	color: #F0C92E;
+}
+#menu_left {
+	left: 0px;
+	top: 7px;
+    padding-left: 10px;
+}
+#menu_right {
+	right: -2px;
+	top: 3px;
+    padding-right: 10px;
+}
+#menu_left, #menu_right {
+	position: absolute;
+}
+#menu_left a, #menu_right a {
+	margin: 0;
+}
+#thispage {
+	background-color: #F60;
+	color: white;
+}
+#chosen {
+	border: solid 1px #FC0;
+	height: 20px;
+	vertical-align: middle;
+}
+#toChoose {
+	border: solid 1px #300;
+	height: 20px;
+	vertical-align: middle;
+}
+
+.slide-img {
+	width: 100%;
+	vertical-align: middle;
+}
+.fp-thumbnail {
+	background-position: center;
+	background-repeat: no-repeat;
+    @include background-size(cover);
+}
+
+.pub_section {
+	text-align: center;
+	max-width: 100%;
+	overflow: hidden;
+}
+#partners {
+	text-align: center;
+	margin: 10px;
+}
+#toBegin {
+	text-align: center;
+	font-size: 120%;
+}
+#toBegin a {
+	text-decoration: none;
+}
+#toBegin img {
+	max-width: 100%;
+	width: 310px;
+	height: 310px;
+	position: relative;
+	top: 2px;
+	background-color: black;
+}
+#screenshots {
+	width: 100%;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-gap: 4px;
+}
+#screenshots img {
+	width: 100%;
+	cursor: zoom-in;
+}
+.action_button {
+	display: inline-block;
+	padding: 5px 10px;
+	background-color: #0C0;
+	font-weight: bold;
+	color: white;
+	border-radius: 5px;
+	text-decoration: none;
+	cursor: pointer;
+}
+.action_button:hover {
+	background-color: #080;
+	color: white;
+}
+
+.button_game {
+	margin: 5px 10px;
+	font-size: 1.2em;
+}
+.birthdays-list {
+	padding: 10px;
+	margin: 5px 5px 15px 15px;
+	background-color: #FEE;
+	color: #820;
+	border-radius: 5px;
+	text-align: justify;
+}
+.birthdays-list img {
+	height: 20px;
+	position: relative;
+	top: 3px;
+	margin-right: 3px;
+}
+.birthdays-list a {
+	color: #F60;
+	font-weight: bold;
+}
+.birthdays-list a:hover {
+	color: #FB0;
+}
+.warning-top-message {
+	padding: 10px;
+	margin: 0 5px 10px 15px;
+	background-color: #FB9;
+	color: #600;
+	border-radius: 5px;
+}
+.warning-top-message a {
+	color: #F30;
+}
+.warning-top-message a:hover {
+	color: #F60;
+}
+#official_message {
+	position: relative;
+	padding: 10px;
+	margin-left: 15px;
+	margin-right: 5px;
+	background-color: #9F6;
+	color: #063;
+	border: dashed 1px #063;
+	border-radius: 5px;
+	font-size: 0.9em;
+}
+#official_message .close {
+	position: absolute;
+	right: 4px;
+	top: 0px;
+	font-size: 1.1em;
+	text-decoration: none;
+}
+#official_message a {
+	font-weight: bold;
+	color: #066;
+}
+#official_message a:hover {
+	font-weight: bold;
+	color: #060;
+}
+#official_message hr {
+	background-color: #063;
+	height: 1px;
+	border: 0;
+}
+
+.flag_counter {
+	text-align: center;
+	height: 1px;
+	overflow: hidden;
+}
+.flag_counter.flag_loaded {
+	border-top: solid 1px black;
+	height: auto;
+	overflow: visible;
+}
+.flag_counter h3 {
+	margin-top: 10px;
+	margin-bottom: 5px;
+	font-size: 1em;
+	color: #560000;
+}
+.flag_counter img {
+	max-width: 100%;
+	margin-bottom: 5px;
+}

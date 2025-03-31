@@ -1,0 +1,56 @@
+@use '../mixins' as *;
+
+@use './devices/pc' as pc;
+@use './devices/mobile' as mobile;
+
+* {
+	box-sizing: border-box;
+}
+
+main {
+	display: block;
+	background-color: white;
+	margin-left: 10px;
+	margin-right: 10px;
+	padding: 10px;
+}
+
+body {
+	background-color: #E8964C;
+	background-image: url('../images/pages/bg-mountains.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-position: center -30vw, center;
+	background-repeat: no-repeat;
+	margin: 5px 0;
+	padding: 0;
+	font-family: Helvetica, arial, sans-serif;
+}
+
+nav {
+	position: relative;
+	text-align: center;
+    @include gradient-background(#C00, #500);
+}
+
+header, nav, main, footer {
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+}
+
+a img {
+	border: none;
+}
+
+/* width >= 800px */
+@media only screen and (min-width: 800px) {
+    @include pc.style();
+}
+
+/* width < 800px */
+@media only screen and (max-width: 799px) {
+    @include mobile.style();
+}
