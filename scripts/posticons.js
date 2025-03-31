@@ -1,69 +1,85 @@
-let iconDelayDt = 100;
-let iconsLoadingCount = 0;
-async function setCircuitImgs(icCircuit,opts) {
-	let imgsData = icCircuit.dataset.cicon;
-	if (imgsData) {
-		let bgs = [];
-		let isMCup = imgsData.endsWith("&type=4");
-		if (isMCup !== opts.mcup)
-			return;
-		delete icCircuit.dataset.cicon;
-		let imgs = imgsData.split(",");
-		for (let j=0;j<imgs.length;j++)
-			bgs[j] = imgs[j];
-		for (let j=0;j<bgs.length;j++)
-			await setCircuitImg(icCircuit,bgs,j,isMCup);
-	}
+// Throttling logic for image loading
+let iconLoadResolvers = [];
+// Counter for active image loads
+let activeIconLoadCount = 0;
+
+// Loads all circuit images on the page
+async function loadCircuitImages(delay=100) {
+
+    const circuitElements = document.querySelectorAll("[data-cicon]");
+    if (!circuitElements.length) return;
+
+    for (const isMultiCup of [false, true]) { // Multicups first, then others
+        for (const circuitElement of circuitElements) {
+            const imageData = circuitElement.dataset.cicon;
+            if (!imageData) continue;
+
+            const isElementMultiCup = imageData.endsWith("&type=4");
+            if (isElementMultiCup !== isMultiCup) continue;
+
+            delete circuitElement.dataset.cicon;
+
+            const imageUrls = imageData.split(",");
+            const backgroundImages = imageUrls.map((url) => url);
+
+            for (const [index, _] of backgroundImages.entries()) {
+                await loadCircuitImage(circuitElement, backgroundImages, index, { delay, isMultiCup });
+            }
+        }
+    }
 }
-async function setCircuitImg(icCircuit,bgs,j,isMCup) {
-	let bgsIncomplete = [];
-	for (let i=0;i<bgs.length;i++)
-		bgsIncomplete[i] = "url('images/uploads/overload.png')";
-	icCircuit.style.backgroundImage = bgsIncomplete.join(",");
-	await waitIconDelay();
-	while (iconsLoadingCount > 25)
-		await waitNextIconLoad();
-	for (let i=0;i<=j;i++) {
-		let bgSrc = bgs[i];
-		let loadingCountInc = isMCup ? 20 : 1;
-		let $bg = new Image();
-		$bg.src = bgSrc;
-		iconsLoadingCount += loadingCountInc;
-		$bg.onload = () => {
-			iconsLoadingCount -= loadingCountInc;
-			bgsIncomplete[i] = "url('"+bgSrc+"')";
-			icCircuit.style.backgroundImage = bgsIncomplete.join(",");
+
+// Loads a single circuit image and updates the background
+async function loadCircuitImage(circuitElement, bgs, index, options) {
+	const placeholders = Array(bgs.length).fill("url('images/uploads/overload.png')");
+	circuitElement.style.backgroundImage = placeholders.join(",");
+	
+	await (new Promise((r) => setTimeout(r, options.delay)));
+	
+	// Throttle the number of concurrent image loads
+	while (activeIconLoadCount > 25) {
+		await waitForNextIconLoad();
+	}
+	
+	for (let i = 0; i <= index; i++) {
+		const imageUrl = bgs[i];
+		const loadIncrement = options.isMultiCup ? 20 : 1;
+		
+		const imageElement = new Image();
+		imageElement.src = imageUrl;
+		
+		activeIconLoadCount += loadIncrement;
+		
+		imageElement.onload = () => {
+			activeIconLoadCount -= loadIncrement;
+			placeholders[i] = `url('${imageUrl}')`;
+			circuitElement.style.backgroundImage = placeholders.join(",");
 			resolveNextIconLoad();
 		};
-		$bg.onerror = () => {
-			iconsLoadingCount -= loadingCountInc;
+		
+		imageElement.onerror = () => {
+			activeIconLoadCount -= loadIncrement;
 			resolveNextIconLoad();
 		};
 	}
 }
-async function loadCircuitImgs() {
-	let icCircuits = document.querySelectorAll("[data-cicon]");
-	for (let i=0;i<icCircuits.length;i++)
-		await setCircuitImgs(icCircuits[i],{mcup:false});
-	for (let i=0;i<icCircuits.length;i++)
-		await setCircuitImgs(icCircuits[i],{mcup:true});
-}
-let iconThrottledPromises = [];
-function waitNextIconLoad() {
-	let res = new Promise((resolve) => {
-		iconThrottledPromises.push(resolve);
+
+function waitForNextIconLoad() {
+	return new Promise((resolve) => {
+		iconLoadResolvers.push(resolve);
 	});
-	return res;
 }
+
 function resolveNextIconLoad() {
-	for (let i=0;i<iconThrottledPromises.length;i++)
-		iconThrottledPromises[i]();
-	iconThrottledPromises = [];
+	for (const resolve of iconLoadResolvers) {
+		resolve();
+	}
+	iconLoadResolvers = [];
 }
-function waitIconDelay() {
-	return new Promise(resolve => setTimeout(resolve, iconDelayDt));
+
+// Initialize image loading when the document is ready
+if (document.readyState !== "loading") {
+    loadCircuitImages();
+} else {
+    document.addEventListener("DOMContentLoaded", () => loadCircuitImages());
 }
-if ("loading" !== document.readyState)
-	loadCircuitImgs();
-else
-	document.addEventListener("DOMContentLoaded", loadCircuitImgs);

@@ -629,8 +629,7 @@ function defile() {
 					lCircuits.push(nextCircuits[i]);
 				for (var i=0;i<nextCircuits.length;i++)
 					addRace();
-				iconDelayDt = 50;
-				loadCircuitImgs();
+				loadCircuitImages(delay=50);
 				mHeight = Math.min(cHeight+hStep, document.getElementById("cTracks").scrollHeight);
 				progressDefile(cHeight, mHeight, dhStep);
 				return true;
@@ -879,8 +878,7 @@ function addRaces() {
 		}
 		document.getElementById("defiler").style.visibility = "hidden";
 	}
-	iconDelayDt = 30;
-	loadCircuitImgs();
+	loadCircuitImages(delay=30);
 }
 document.addEventListener("DOMContentLoaded", function() {
 	var liste0 = document.getElementById("liste")

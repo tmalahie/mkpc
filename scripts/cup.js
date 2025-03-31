@@ -892,7 +892,7 @@ function importCollabTrack(e) {
 			var $table = document.getElementById("table-circuits");
 			var $tbody = $table.querySelector("tbody");
 			$tbody.insertBefore($tr, $tbody.firstChild);
-			loadCircuitImgs();
+			loadCircuitImages();
 		}
 
 		closeCollabImportPopup();
