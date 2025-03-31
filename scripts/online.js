@@ -1701,4 +1701,3 @@ function waitForLoad() {
 }
 waitForLoad();
 document.addEventListener("DOMContentLoaded", o_loadOnline);
-window.chatVersion = 2;

@@ -1,10 +1,10 @@
 function helpLeagues() {
 	window.open('helpLeagues.php','gerer','scrollbars=1, resizable=1, width=500, height=400');
-	void(0);
+	void 0;
 }
 function helpRanks() {
 	window.open('helpRanks.php','gerer','scrollbars=1, resizable=1, width=500, height=400');
-	void(0);
+	void 0;
 }
 function spriteLoad(img) {
 	var w = img.naturalWidth, h = img.naturalHeight;

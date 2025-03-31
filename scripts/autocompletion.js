@@ -1,9 +1,11 @@
-/**
-Vérifie si un texte correspond à une recherche
+var ACbinds = new Array();
 
-value : Le texte recherché
-search : La recherche entrée
-**/
+/**
+ * Checks if a text matches a search query.
+ * @param {string} value
+ * @param {string} search
+ * @returns {boolean}
+ */
 function match(value,search) {
 	var keyWords = search.split(" "), valueWords = value.split(" ");
 	for (var i=0;i<keyWords.length;i++) {
@@ -19,9 +21,12 @@ function match(value,search) {
 	}
 	return true;
 }
+
 /**
-Supprime les caractères spéciaux d'une chaine (idéal pour tester une égalité entre 2 chaînes)
-**/
+ * Pulls special characters from a word and converts it to lowercase.
+ * @param {String} word 
+ * @returns {String}
+ */
 function pullSpecialChars(word) {
 	return word.toLowerCase()
 	.replace("à","a")
@@ -41,30 +46,21 @@ function pullSpecialChars(word) {
 	.replace("ç","c")
 	.replace("ñ","n");
 }
-var ACbinds = new Array();
-/**
-/**
-Permet d'associer à une zone de texte (inout) une fonctionnalité d'autocomplétion "à la Google".
-Lorsque l'utilisateur rentre qqch dans la zone de texte, une liste de suggestions associées lui est affichée en dessous.
 
-input : L'objet DOM de la balise input
-values : Un tableau contenant les recherches suggérées
-- params (facultatif) : Un objet contenant les paramètres de l'autocomplétion
-	- params.maxResults : Le nombre de suggestions maximum à afficher
-	- params.align : La position de la zone de suggestions par rapport à la zone de texte.
-	2 valeurs possible : top, bottom (défaut : bottom)
-	- params.onSelect (facultatif) : La fonction appelée lors d'un choix de sélection. Elle prend 2 arguments :
-		- l'ID du choix de la sélection
-		- Le texte sélectionné
-	- params.onCreateSuggestion : La fonction indiquant ce qui doit être affiché dans la liste de suggestions.
-		Concrètement, Cette liste est un tableau (balise <table>), chaque suggestion est une ligne du tableau (balise <tr>)
-		La fonction Prend en argument l'id et la valeur de la suggestion,
-		Elle retourne une balise <tr> contenant une ou plusieurs balises <td> avec les éléments à afficher.
-		Par défaut, cette fonction retourne '<tr><td>'+ value +'</td></tr>', où value est la valeur de la suggestion (2e argument de la fonction)
-**/
-function autocompletion(input,values, params) {
-	if (!params)
-		params = {};
+/**
+ * Binds a Google-style autocomplete feature to a text box.
+ * Displays a list of suggestions below the input field as the user types.
+ *
+ * @param {HTMLElement} input - The DOM object of the input tag.
+ * @param {Array} values - An array containing the suggested searches.
+ * @param {Object} params - Optional parameters for customization.
+ *   - maxResults: Maximum number of suggestions to display (default: Infinity).
+ *   - align: Position of the suggestion box ('top' or 'bottom', default: 'bottom').
+ *   - onSelect: Callback when a suggestion is selected (default: no-op).
+ *   - onCreateSuggestion: Function to customize suggestion display (default: basic <tr><td>).
+ *   - matcher: Function to match input with suggestions (default: `match` function).
+ */
+function autocompletion(input, values, params={}) {
 	function addDefaultParam(attr,value) {
 		if (params[attr] == undefined)
 			params[attr] = value;
@@ -246,11 +242,12 @@ function autocompletion(input,values, params) {
 		"params" : params
 	});
 }
+
 /**
-Modifie la liste des valeurs de suggestions pour l'auto-complétion
-input : L'objet DOM de la balise input
-values : Les nouvelles valeurs
-**/
+ * Updates the list of suggestion values for autocomplete.
+ * @param {HTMLElement} input 
+ * @param {Array} values
+ */
 function updateautocompletion(input,values) {
 	for (var i=0;i<ACbinds.length;i++) {
 		var ACbind = ACbinds[i];

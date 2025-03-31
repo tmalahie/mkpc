@@ -1,14 +1,13 @@
-var xhr = new XMLHttpRequest();
-
-xhr.onreadystatechange = function() {
-	if (xhr.readyState == XMLHttpRequest.DONE) {
-		if (xhr.status == 200) {
-			var countryData = JSON.parse(xhr.responseText);
-			if (typeof(countryData) == "object" && countryData.countryCode)
-				document.forms[0].country.value = countryData.countryCode.toLowerCase();
-		}
-	}
-};
-
-xhr.open("GET", "api/findCountryByIp.php", true);
-xhr.send();
+fetch("api/findCountryByIp.php")
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(countryData => {
+        if (countryData?.countryCode) {
+            document.forms[0].country.value = countryData.countryCode.toLowerCase();
+        }
+    })
+    .catch();
