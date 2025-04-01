@@ -757,7 +757,8 @@ function updateMenuMusic(menu, forceUpdate) {
 	}
 }
 
-function playMusicSmoothly(src, delay=1000) {
+function playMusicSmoothly(src, delay) {
+	if (!delay) delay = 1000;
 	oMusicEmbed = document.createElement("audio");
 	oMusicEmbed.volume = fMusicVolume;
 	oMusicEmbed.setAttribute("loop", true);
@@ -1582,7 +1583,7 @@ var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
 	gameSettings = localStorage.getItem("settings");
-	gameSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
 	if (isMobile()) {
@@ -18598,22 +18599,34 @@ function processCode(cheatCode) {
 				let argTypes;
 			
 				if (args.length == 2) {
-					if (args[0][args[0].length - 2] === 'f' || args[0][args[0].length - 1] === 'f') {
-						argTypes = ['f', 'r']
-					} else {
-						argTypes = ['x', 'y']
-					}
+					if (args[0].includes('f'))
+						argTypes = ['f', 'r'];
+					else
+						argTypes = ['x', 'y'];
 				} else if (args.length == 3) {
-					argTypes = ['x', 'y', 'r']
-				} else if (args.length == 1) {
-					argTypes = ['f']
+					argTypes = ['x', 'y', 'r'];
+				} if (args.length == 1) {
+					if (args[0].includes('f'))
+						argTypes = ['f'];
+					else
+						argTypes = ['x'];
+				}
+
+				function moveIn2DSpace({x, y, r}, moveBy) {
+					// degrees to radians
+					const rad = (r * Math.PI) / 180;
+				
+					const deltaX = moveBy * Math.sin(rad);
+					const deltaY = moveBy * Math.cos(rad);
+				
+					return { x: x + deltaX, y: y + deltaY, r };
 				}
 			
 				function forwardMult(farg) {
 					return farg.endsWith('-') && -1 || 1;
 				}
 			
-				function stripFwdtoInt(farg) { // e.g 20f -> 20 or 20f- -> 20
+				function stripFwdtoInt(farg) {
 					if (['+', '-'].includes(farg[farg.length - 2])) {
 						return parseInt(farg.slice(0, -2));
 					} else {
@@ -18621,38 +18634,32 @@ function processCode(cheatCode) {
 					}
 				}
 			
-				// 4 types of expected input
-				// 3 args - x y r
-				// 2 args - x y
-				// 2 args - f r
-				// 1 args - f
 				let i = 0;
 				for (let type of argTypes) {
 					let arg = args[i];
-					i++; // cant enumerate so i have to use this, pretty cursed
-				
+					i++;
+			
 					if (typeof arg === 'undefined' || arg === 'cur') continue;
-				
+			
 					if (type !== 'f') {
-						if (arg.endsWith('+')) {     	  // add to current pos
+						if (arg.endsWith('+')) {
 							pos[type] = pos[type] + parseInt(arg.slice(0, -1));
-						} else if (arg.endsWith('-')) {    	      // decrease current pos
+						} else if (arg.endsWith('-')) {
 							pos[type] = pos[type] - parseInt(arg.slice(0, -1));
-						} else {                            	  // exact position specified
-							const parsed = parseInt(arg); 	  // sanity
+						} else {
+							const parsed = parseInt(arg);
 							pos[type] = isNaN(parsed) ? undefined : parsed;
 						}
-				
+			
 						if (type === 'r') {
 							pos[type] = pos[type] % 360;
 						} else {
 							pos[type] = Math.max(0, pos[type]);
 						}
 					} else {
-						const dir = forwardMult(arg); // 1 if forward, -1 if backward
+						const dir = forwardMult(arg);
 						const moveBy = stripFwdtoInt(arg) * dir;
-						pos.x += Math.floor(moveBy * Math.cos(((pos.r + 90) % 360) * Math.PI / 180));
-						pos.y += Math.floor(moveBy * Math.sin(((pos.r + 90) % 360) * Math.PI / 180));
+						pos = moveIn2DSpace(pos, moveBy);
 					}
 				}
 				return pos;
@@ -18661,7 +18668,7 @@ function processCode(cheatCode) {
 			let newPos = correctTPType({x: oKart.x, y: oKart.y, r: oKart.rotation}, args)
 
 			for (let key in newPos) {
-				if (!newPos[key] && newPos[Key] !== 0) {
+				if (!newPos[key] && newPos[key] !== 0) {
 					return 'tp: Invalid '+key+' value';
 				}
 			}
