@@ -101,7 +101,6 @@ if (typeof cupPayloads === 'undefined') {
 var cupIDs = cupPayloads.map(function(cupPayload) {
 	return cupPayload.id;
 });
-//challenges["track"]["4749"].list = [challenges["track"]["4749"].list[1]];
 var challengesForCircuit;
 
 var onlineSpectatorId;
@@ -114,11 +113,6 @@ function MarioKart() {
 var oMaps = listMaps();
 
 var aAvailableMaps = new Array();
-if (typeof Array.isArray === 'undefined') {
-	Array.isArray = function(obj) {
-		return Object.prototype.toString.call(obj) === '[object Array]';
-	}
-};
 for (circuits in oMaps) {
 	aAvailableMaps.push(circuits);
 	var oMap = oMaps[circuits];
@@ -146,12 +140,12 @@ if (isCup && (aAvailableMaps.length > 4))
 
 var iWidth = 80;
 var iHeight = 39;
-var SPF = 67;
+const SPF = 67; // hardcoded ms per frame (15 fps)
 var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
-var bMusic = !!optionOf("music");
-var iSfx = !!optionOf("sfx");
+var bMusicEnabled = !!optionOf("music");
+var bSfxEnabled = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 1;
 var fSfxVolume = 1, fMusicVolume = 1;
 {
@@ -528,7 +522,7 @@ function setMusic(iValue) {
 		removeMapMusics();
 		removeIfExists(endingMusic);
 	}
-	bMusic = !!iValue;
+	bMusicEnabled = !!iValue;
 	if (gameMenu != -1)
 		updateMenuMusic(gameMenu, true);
 }
@@ -545,7 +539,7 @@ function setSfx(iValue) {
 			unpauseMusic(mapMusic);
 		removeGameMusics(listMapMusics().concat([endingMusic]));
 	}
-	iSfx = !!iValue;
+	bSfxEnabled = !!iValue;
 }
 
 function removeMenuMusic(forceRemove) {
@@ -599,7 +593,7 @@ function listMapMusics() {
 	return res;
 }
 function removeGameMusics(whitelist) {
-	if (bMusic || iSfx) {
+	if (bMusicEnabled || bSfxEnabled) {
 		var oMusics = document.getElementsByClassName("gamemusic");
 		for (var i=oMusics.length-1;i>=0;i--) {
 			var oMusic = oMusics[i];
@@ -642,7 +636,7 @@ function resetEvents() {
 	hideVirtualKeyboard();
 }
 function pauseSounds() {
-	if (bMusic || iSfx) {
+	if (bMusicEnabled || bSfxEnabled) {
 		if (!clLocalVars.forcePause) {
 			var pauseMusic = playSoundEffect("musics/events/pause.mp3");
 			pauseMusic.className = "";
@@ -653,7 +647,7 @@ function pauseSounds() {
 	}
 }
 function unpauseSounds() {
-	if (bMusic || iSfx) {
+	if (bMusicEnabled || bSfxEnabled) {
 		var pauseMusic = playSoundEffect("musics/events/pause.mp3");
 		pauseMusic.className = "";
 		setTimeout(function() {
@@ -725,8 +719,8 @@ var muteOnBlur, unmuteOnResume;
 function updateMenuMusic(menu, forceUpdate) {
 	if ((menu != gameMenu) || forceUpdate) {
 		gameMenu = menu;
-		removeMenuMusic(!bMusic);
-		if (bMusic) {
+		removeMenuMusic(!bMusicEnabled);
+		if (bMusicEnabled) {
 
 			// easter egg. plays the original theme instead of the remix
 			let shouldPlayOGTheme = (new Date().getMonth() == 3 && new Date().getDate() == 1) // 100% chance on april fools
@@ -834,14 +828,17 @@ if (!pause) {
 
 // init globals
 var strPlayer = new Array();
-var oMap;
-var lMaps, pMaps;
-var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
-var iRecord;
-var iTrajet;
-var jTrajets;
-var iLapTimes;
-var gPersos = new Array();
+var oMap; // current map
+var lMaps, pMaps; // maps for all overrides
+var iDifficulty = 5; // CPU difficulty
+var bTeamPlay = selectedTeams; // teams enabled (actually an int, 0=no 1=yes)
+var fSelectedClass; 
+var bSelectedMirror; // is mirror mode enabled
+var iRecord; // lap time of ghost (single)
+var iTrajet; // replay data of ghost (single)
+var jTrajets; // replay data of ghosts (multi)
+var iLapTimes; // lap times, e.g [lap1,lap2,lap3]
+var gPersos = new Array(); // chars ghosts use
 var gRecord;
 var gSelectedPerso;
 var gOverwriteRecord;
@@ -858,7 +855,7 @@ if (pause) {
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
 	if (course != "CM")
-		iDificulty = fInfos.difficulty;
+		iDifficulty = fInfos.difficulty;
 	else {
 		iTrajet = fInfos.my_route;
 		gPersos = fInfos.perso;
@@ -1050,7 +1047,7 @@ function setPlanPos(frameState, lMap) {
 					iPlanCharacters[i].style.opacity = 0.25;
 				else {
 					iPlanCharacters[i].style.display = "none";
-					if (iTeamPlay && (iCharWidth==oCharWidth)) {
+					if (bTeamPlay && (iCharWidth==oCharWidth)) {
 						oPlanTeams[i].style.display = "none";
 						oPlanTeams2[i].style.display = "none";
 					}
@@ -1062,7 +1059,7 @@ function setPlanPos(frameState, lMap) {
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
 				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW);
-				if (iTeamPlay && (iCharWidth==oCharWidth)) {
+				if (bTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
 					var iTeamW2 = Math.round(oTeamWidth2*iCharR);
@@ -1427,7 +1424,7 @@ function initPlan(lMap) {
 	oCoinWidth2 = Math.round(oPlanRatio*oCoinWidth);
 	oExpWidth2 = Math.round(oPlanRatio*oExpWidth);
 	oExpBWidth2 = Math.round(oPlanRatio*oExpBWidth);
-	if (iTeamPlay) {
+	if (bTeamPlay) {
 		for (var i=0;i<aTeams.length;i++) {
 			var oTeam = document.createElement("div");
 			oTeam.style.position = "absolute";
@@ -1567,13 +1564,11 @@ function removePlan() {
 	try {
 		oPlanDiv.parentNode.removeChild(oPlanDiv);
 	}
-	catch (e) {
-	}
+	catch (e) {}
 	try {
 		oPlanDiv2.parentNode.removeChild(oPlanDiv2);
 	}
-	catch (e) {
-	}
+	catch (e) {}
 }
 
 var gameSettings;
@@ -1582,24 +1577,19 @@ var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
-	gameSettings = localStorage.getItem("settings");
-	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
-	ctrlSettings = localStorage.getItem("settings.ctrl");
-	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
-	if (isMobile()) {
-		if (ctrlSettings.autoacc === undefined)
-			ctrlSettings.autoacc = 1;
-		if (ctrlSettings.vitem === undefined)
-			ctrlSettings.vitem = 1;
-		if (ctrlSettings.vibration === undefined)
-			ctrlSettings.vibration = 1;
+	gameSettings = JSON.parse(localStorage.getItem("settings") ?? "{}");
+	ctrlSettings = JSON.parse(localStorage.getItem("settings.ctrl") ?? "{}");
+	if (isMobile()) { // init mobile settings
+		ctrlSettings.autoacc ??= 1;
+		ctrlSettings.vitem ??= 1;
+		ctrlSettings.vibration ??= 1;
 	}
 	
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
 	formulaire.dataset.disabled = 1;
 
-	iTeamPlay = isTeamPlay();
+	bTeamPlay = isTeamPlay();
 	aTracksHist.push(1 + aAvailableMaps.indexOf("map"+oMap.ref));
 	iRaceCount++;
 
@@ -1804,7 +1794,7 @@ function loadMap() {
 	initMap();
 
 	removeMenuMusic();
-	if (bMusic && !isOnline)
+	if (bMusicEnabled && !isOnline)
 		loadMapMusic();
 }
 function getShapeType(oBox) {
@@ -2983,10 +2973,10 @@ function speedupMusic(elt) {
 	}
 }
 function shouldPlaySound(oKart) {
-	return iSfx && kartIsPlayer(oKart) && !finishing && !oKart.loose;
+	return bSfxEnabled && kartIsPlayer(oKart) && !finishing && !oKart.loose;
 }
 function shouldPlayMusic(oKart) {
-	return bMusic && kartIsPlayer(oKart) && !finishing && !oKart.loose;
+	return bMusicEnabled && kartIsPlayer(oKart) && !finishing && !oKart.loose;
 }
 function playIfShould(oKart, src) {
 	if (shouldPlaySound(oKart))
@@ -3002,7 +2992,7 @@ function playSoundEffect(src) {
 	return elt;
 }
 function playDistSound(obj, src, maxDist) {
-	if (iSfx) {
+	if (bSfxEnabled) {
 		var pow0 = maxDist/distKart(obj);
 		if (pow0 >= 1) {
 			var res = playSoundEffect(src);
@@ -3038,7 +3028,7 @@ function startMusic(src, autoplay, delay, opts) {
 	return res;
 }
 function postStartMusic(src) {
-	var volume = bMusic ? fMusicVolume : fSfxVolume;
+	var volume = bMusicEnabled ? fMusicVolume : fSfxVolume;
 	if (oMusicEmbed)
 		fadeOutMusic(oMusicEmbed,1,0.6,false,volume);
 	return startMusic(src,true,200, { volume: volume });
@@ -3047,7 +3037,7 @@ function postResumeMusic(elt, ratio) {
 	if (oMusicEmbed == elt)
 		return;
 	var cMusicEmbed = oMusicEmbed;
-	var volume = bMusic ? fMusicVolume : fSfxVolume;
+	var volume = bMusicEnabled ? fMusicVolume : fSfxVolume;
 	fadeOutMusic(cMusicEmbed,1,ratio,true,volume);
 	if (elt) {
 		setTimeout(function() {
@@ -3114,13 +3104,13 @@ function loadMapMusic() {
 	loadEndingMusic();
 	mapMusic.blur();
 	endingMusic.blur();
-	// if (!isMobile() && !isChatting()) {
-	// 	var oDebug = document.createElement("input");
-	// 	document.body.appendChild(oDebug);
-	// 	oDebug.focus();
-	// 	oDebug.blur();
-	// 	document.body.removeChild(oDebug);
-	// }
+	if (!isMobile() && !isChatting()) {
+		var oDebug = document.createElement("input");
+		document.body.appendChild(oDebug);
+		oDebug.focus();
+		oDebug.blur();
+		document.body.removeChild(oDebug);
+	}
 }
 function startMapMusic(lastlap) {
 	if (lastlap) {
@@ -3198,7 +3188,7 @@ function loopAfterIntro(embed, introTime, loopTime) {
 	embed.addEventListener('timeupdate', embed.looper, false);
 }
 function startEngineSound() {
-    if (!iSfx) return;
+    if (!bSfxEnabled) return;
     
     function loadEngineSFX(src, autoplay=false, listen=false) {
         const music = loadMusic(src, autoplay);
@@ -3218,7 +3208,7 @@ function startEngineSound() {
     playingCarEngine = carEngine;
 }
 function updateEngineSound(elt) {
-	if (iSfx && (elt != playingCarEngine)) {
+	if (bSfxEnabled && (elt != playingCarEngine)) {
 		if (playingCarEngine)
 			playingCarEngine.pause();
 		playingCarEngine = elt;
@@ -3227,13 +3217,13 @@ function updateEngineSound(elt) {
 	}
 }
 function startEndMusic() {
-	if (bMusic) {
+	if (bMusicEnabled) {
 		removeMenuMusic(true);
 		removeMapMusics();
 	}
-	if (iSfx)
+	if (bSfxEnabled)
 		removeSoundEffects();
-	if (bMusic) {
+	if (bMusicEnabled) {
 		willPlayEndMusic = true;
 		setTimeout(function() {
 			var oMusics = document.getElementsByClassName("gamemusic");
@@ -3256,13 +3246,13 @@ function startEndMusic() {
 			}
 		}, 200);
 	}
-	if (iSfx && course != "BB") {
+	if (bSfxEnabled && course != "BB") {
 		var goalSound = playSoundEffect("musics/events/goal.mp3");
 		goalSound.className = "";
 	}
 }
 function handleEndRace() {
-	if (bMusic||iSfx)
+	if (bMusicEnabled||bSfxEnabled)
 		startEndMusic();
 	var events = ["next_circuit"];
 	challengeCheck("end_game", events);
@@ -3367,7 +3357,7 @@ function startGame() {
 			oPlayer.id = identifiant;
 		if (isOnline)
 			oPlayer.nick = aPseudos[i];
-		if (iTeamPlay)
+		if (bTeamPlay)
 			oPlayer.team = aTeams[i];
 		else
 			oPlayer.team = -1;
@@ -3408,7 +3398,7 @@ function startGame() {
 		var joueur = aPlayers[i];
 		var inc = i+nbPlayers;
 		var oPlace = aPlaces[inc];
-		var depart = (iDificulty-4)*2+Math.round(Math.random());
+		var depart = (iDifficulty-4)*2+Math.round(Math.random());
 		if (course == "BB")
 			depart = 2;
 		var oEnemy = {
@@ -3469,7 +3459,7 @@ function startGame() {
 
 		if (isOnline)
 			oEnemy.nick = aPseudos[inc];
-		if (iTeamPlay)
+		if (bTeamPlay)
 			oEnemy.team = aTeams[inc];
 		else
 			oEnemy.team = -1;
@@ -4125,7 +4115,7 @@ function startGame() {
 		render();
 	}, 300);
 
-	if (bMusic && !onlineSpectatorState) {
+	if (bMusicEnabled && !onlineSpectatorState) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
 		startingMusic.volume = fMusicVolume;
 		startingMusic.pause();
@@ -4169,8 +4159,8 @@ function startGame() {
 	var refreshGamepadHandler;
 
 	var countDownMusic, goMusic;
-	if ((bMusic || iSfx) && !onlineSpectatorState) {
-		var vOpts = { volume: bMusic ? fMusicVolume : fSfxVolume };
+	if ((bMusicEnabled || bSfxEnabled) && !onlineSpectatorState) {
+		var vOpts = { volume: bMusicEnabled ? fMusicVolume : fSfxVolume };
 		countDownMusic = loadMusic("musics/events/countdown.mp3", false, vOpts);
 		countDownMusic.removeAttribute("loop");
 		document.body.appendChild(countDownMusic);
@@ -4178,13 +4168,13 @@ function startGame() {
 		goMusic.removeAttribute("loop");
 		document.body.appendChild(goMusic);
 		goMusic.blur();
-		// if (!isMobile() && !isChatting()) {
-		// 	var oDebug = document.createElement("input");
-		// 	document.body.appendChild(oDebug);
-		// 	oDebug.focus();
-		// 	oDebug.blur();
-		// 	document.body.removeChild(oDebug);
-		// }
+		if (!isMobile() && !isChatting()) {
+			var oDebug = document.createElement("input");
+			document.body.appendChild(oDebug);
+			oDebug.focus();
+			oDebug.blur();
+			document.body.removeChild(oDebug);
+		}
 	}
 
 	var oRaceCounts;
@@ -4218,7 +4208,7 @@ function startGame() {
 					document.getElementById("decompte"+i).innerHTML--;
 					oPlayers[i].speed += oPlayers[i].speedinc;
 				}
-				if (bMusic || iSfx) {
+				if (bMusicEnabled || bSfxEnabled) {
 					countDownMusic.currentTime = 0;
 					countDownMusic.play();
 				}
@@ -4253,9 +4243,9 @@ function startGame() {
 							inflateNewBalloons(oKart);
 					}
 				}
-				if (bMusic || iSfx) {
+				if (bMusicEnabled || bSfxEnabled) {
 					if (onlineSpectatorId)
-						iSfx = false;
+						bSfxEnabled = false;
 					if (goMusic) {
 						goMusic.play();
 						goMusic.onended = function() {
@@ -4310,7 +4300,7 @@ function startGame() {
 									break;
 								case 13:
 									var focusingElt = document.activeElement;
-									if (focusingElt && focusingElt.onclick && oInfos.contains(focusingElt) && iSfx) {
+									if (focusingElt && focusingElt.onclick && oInfos.contains(focusingElt) && bSfxEnabled) {
 										setTimeout(function() {
 											if (!document.onkeydown)
 												playSoundEffect("musics/events/select.mp3");
@@ -4333,7 +4323,7 @@ function startGame() {
 												var nextElt = inputs[i];
 												if (nextElt && (nextElt.style.display != "none") && (nextElt.style.visibility != "hidden")) {
 													nextElt.focus();
-													if (iSfx)
+													if (bSfxEnabled)
 														playSoundEffect("musics/events/move.mp3");
 													break;
 												}
@@ -4358,7 +4348,7 @@ function startGame() {
 									mirror:bSelectedMirror,
 									double_items:oDoubleItemsEnabled,
 									map:oMap.ref,
-									difficulty:iDificulty,
+									difficulty:iDifficulty,
 									cl:clSelected
 								};
 								if (course == "CM") {
@@ -4431,7 +4421,7 @@ function startGame() {
 						if (oStarter)
 							hudScreens[i].removeChild(oStarter);
 					}
-					if (bMusic && !oMusicEmbed) {
+					if (bMusicEnabled && !oMusicEmbed) {
 						unpauseMusic(mapMusic);
 						forceStartMusic = true;
 					}
@@ -4500,7 +4490,7 @@ function startGame() {
 								else
 									reprendre(true);
 								break;
-							case "balloon" :
+							case "balloon":
 								if (pause) return;
 								if (course == "BB") {
 									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
@@ -4826,10 +4816,10 @@ function startGame() {
 									handleCpChange(tours,demitours, i);
 								}
 								ai(oKart);
-								var aSfx = iSfx;
-								iSfx = false;
+								var aSfx = bSfxEnabled;
+								bSfxEnabled = false;
 								move(i);
-								iSfx = aSfx;
+								bSfxEnabled = aSfx;
 							}
 						}
 						timer++;
@@ -4840,7 +4830,7 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusicEnabled||bSfxEnabled){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
@@ -4877,7 +4867,7 @@ function startGame() {
 		else {
 			for (var i=0;i<strPlayer.length;i++)
 				document.getElementById("decompte"+i).style.visibility = "";
-			if (bMusic || iSfx)
+			if (bMusicEnabled || bSfxEnabled)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
 			//* gogogo
@@ -4911,8 +4901,8 @@ function startGame() {
 		}
 	}
 
-	if (iSfx && !fInfos.replay && !onlineSpectatorId)
-		setTimeout(startEngineSound,bMusic ? 2600:1100);
+	if (bSfxEnabled && !fInfos.replay && !onlineSpectatorId)
+		setTimeout(startEngineSound,bMusicEnabled ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
 		if (onlineSpectatorState) {
@@ -4923,7 +4913,7 @@ function startGame() {
 			if (tnCountdown < 0) tnCountdown = 0;
 		}
 		else {
-			if (iTeamPlay && !onlineSpectatorId)
+			if (bTeamPlay && !onlineSpectatorId)
 				showTeam(tnCountdown);
 		}
 		//*
@@ -4932,7 +4922,7 @@ function startGame() {
 	}
 	else {
 		//* gogogo
-		setTimeout(fncCount,bMusic?3000:1500);
+		setTimeout(fncCount,bMusicEnabled?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
 	if (isMobile()) {
@@ -5702,7 +5692,7 @@ function classement() {
 		document.getElementById("pts"+i).innerHTML = aScores[iPlayer];
 	}
 	var oTeamTable;
-	if (iTeamPlay) {
+	if (bTeamPlay) {
 		var teamsRecap = new Array(selectedNbTeams).fill(0);
 		for (var i=0;i<aScores.length;i++)
 			teamsRecap[aTeams[i]] += aScores[i];
@@ -5900,11 +5890,11 @@ function continuer() {
 							return false;
 						});
 					}
-					if (bMusic)
+					if (bMusicEnabled)
 						endGPMusic = startMusic("musics/menu/congrats.mp3",true,700);
 				}
 				else {
-					if (bMusic)
+					if (bMusicEnabled)
 						endGPMusic = startMusic("musics/menu/toobad.mp3",true,700);
 				}
 
@@ -5941,7 +5931,7 @@ function continuer() {
 				mirror:bSelectedMirror,
 				double_items:oDoubleItemsEnabled,
 				map:oMap.ref,
-				difficulty:iDificulty,
+				difficulty:iDifficulty,
 				perso:gPersos,
 				cpu_route:jTrajets,
 				my_record:gRecord,
@@ -6304,7 +6294,7 @@ function nextRace() {
 		cc:fSelectedClass,
 		mirror:bSelectedMirror,
 		double_items:oDoubleItemsEnabled,
-		difficulty:iDificulty,
+		difficulty:iDifficulty,
 		cl:clSelected
 	};
 	if (course == "GP")
@@ -7205,7 +7195,7 @@ var itemBehaviors = {
 					return oKart.id == fSprite.owner;
 				});
 				if (oKart) {
-					if (iSfx && !finishing && !oPlayers[0].cpu)
+					if (bSfxEnabled && !finishing && !oPlayers[0].cpu)
 						playSoundEffect("musics/events/lightning.mp3");
 					$mkScreen.style.opacity = 0.7;
 					for (var i=0;i<aKarts.length;i++) {
@@ -7294,7 +7284,7 @@ var itemBehaviors = {
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
 
-					if (!iTime && iSfx && !finishing && oKart === oPlayers[0])
+					if (!iTime && bSfxEnabled && !finishing && oKart === oPlayers[0])
 						playSoundEffect("musics/events/pow.mp3");
 
 					if (oKart === oKartOwner || !friendlyFire(oKart,oKartOwner)) {
@@ -7486,7 +7476,7 @@ var itemBehaviors = {
 					case 0:
 						if (oBloops.mine) {
 							oBloops.y -= 2;
-							if (!iTime && iSfx && !finishing)
+							if (!iTime && bSfxEnabled && !finishing)
 								playSoundEffect("musics/events/bloops0.mp3");
 						}
 						break;
@@ -7504,7 +7494,7 @@ var itemBehaviors = {
 						oBloops.elt.style.opacity = jTime;
 						break;
 					case 4:
-						if (!iTime && iSfx && !finishing && !i)
+						if (!iTime && bSfxEnabled && !finishing && !i)
 							playSoundEffect("musics/events/bloops.mp3");
 						oBloops.y += 2;
 						break;
@@ -10483,6 +10473,11 @@ function initCustomDecorsSprites(lMap) {
 
 (function(_0x5b1764,_0x455df6){const _0x8b4c2d=_0xa155,_0x284ac8=_0x5b1764();while(!![]){try{const _0x57e277=-parseInt(_0x8b4c2d(0xf3))/0x1*(-parseInt(_0x8b4c2d(0xee))/0x2)+parseInt(_0x8b4c2d(0xea))/0x3*(parseInt(_0x8b4c2d(0xf6))/0x4)+-parseInt(_0x8b4c2d(0xf0))/0x5*(-parseInt(_0x8b4c2d(0xeb))/0x6)+-parseInt(_0x8b4c2d(0xef))/0x7+-parseInt(_0x8b4c2d(0xf7))/0x8*(-parseInt(_0x8b4c2d(0xf1))/0x9)+parseInt(_0x8b4c2d(0xed))/0xa+-parseInt(_0x8b4c2d(0xf2))/0xb;if(_0x57e277===_0x455df6)break;else _0x284ac8['push'](_0x284ac8['shift']());}catch(_0x2c31f2){_0x284ac8['push'](_0x284ac8['shift']());}}}(_0x4683,0x7cb26));function getRecordStats(_0x465b6c){const _0x5d5922=_0xa155;let _0x40aee8=_0x465b6c+_0x5d5922(0xf5),_0x255f43=0x0;for(let _0x2c92f6=0x0;_0x2c92f6<_0x40aee8[_0x5d5922(0xf4)];_0x2c92f6++){let _0x5ed858=_0x40aee8[_0x5d5922(0xec)](_0x2c92f6);_0x255f43=(_0x255f43<<0x5)-_0x255f43+_0x5ed858,_0x255f43|=0x0;}let _0x47dc74=(_0x255f43>>>0x0)['toString'](0x10),_0x4702de='';for(let _0x5d8578=0x0;_0x5d8578<_0x47dc74[_0x5d5922(0xf4)];_0x5d8578++){let _0x1f15c2=_0x47dc74['charCodeAt'](_0x5d8578);_0x4702de+=String[_0x5d5922(0xe9)]((_0x1f15c2^_0x5d8578*0x1f)%0x100);}return btoa(_0x4702de);}function _0xa155(_0x3c2ba9,_0x5bd477){const _0x468353=_0x4683();return _0xa155=function(_0xa155b6,_0x2402e7){_0xa155b6=_0xa155b6-0xe9;let _0x57d83f=_0x468353[_0xa155b6];return _0x57d83f;},_0xa155(_0x3c2ba9,_0x5bd477);}function _0x4683(){const _0x4e3ebc=['1784007HeyleA','24949815xZofQd','1kmMgRY','length','fg4L5S4oAcWU','28JpLdzP','8GGQJZW','fromCharCode','286179zyMOrl','18yMmHRX','charCodeAt','6441810ISxjfS','1700354RPvVGO','3661469hhDSsa','1569430dSNIjB'];_0x4683=function(){return _0x4e3ebc;};return _0x4683();}
 
+// so random people don't get tagged as cheaters
+// when the minification messes something up
+if (getRecordStats('test') !== 'ZClbPkuo2e0=')
+	throw new Error("GetRecordStats is corrupted!");
+
 function getApparentRotation(oPlayer) {
 	var res = oPlayer.rotation;
 	var changeView = oPlayer.changeView;
@@ -10613,7 +10608,7 @@ function initAiPoints(lMap, oKart, inc) {
 			var minDifficulty = 4 + aiOptions.difficulty*0.5;
 			var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
 			var maxSelectedClass = getRelSpeedFromCc(aiOptions.ccm);
-			if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
+			if ((iDifficulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
 				isValidShortcuts = true;
 				if (!aiOptions.itemsDict) {
 					var oItems = {};
@@ -11275,11 +11270,11 @@ function correctCamZ(z,iDeltaX) {
 }
 
 function direction(fDir, rotation) {
-	return Math[["sin","cos"][fDir]](rotation * Math.PI / 180)
+	return (fDir == 0 ? Math.sin : Math.cos)(rotation * Math.PI / 180);
 }
 function getItemDistributionRange(oKart) {
 	var a = (oKart.place-1)/aKarts.length, b = oKart.place/aKarts.length;
-	if (course != "BB") {
+	if (course != "BB") { // based on distance to the 1st (2nd if frontrunning) place
 		var x, d;
 		if (oKart.place == 1) {
 			var distToSecond = -distanceToPlace(oKart, 2);
@@ -11295,7 +11290,7 @@ function getItemDistributionRange(oKart) {
 		a = getItemAvgRange(a2,a);
 		b = getItemAvgRange(b2,b);
 	}
-	else {
+	else { // battle mode - based on your and others' balloon count
 		var maxBalloons = 0;
 		for (var i=0;i<aKarts.length;i++)
 			maxBalloons = Math.max(maxBalloons, aKarts[i].ballons.length+aKarts[i].reserve);
@@ -11311,13 +11306,13 @@ function getItemDistributionRange(oKart) {
 function getItemAvgRange(x1,x2) {
 	var res;
 	switch (itemDistribution.algorithm) {
-	case "dist":
+	case "dist": // distance based
 		res = x1;
 		break;
-	case "rank":
+	case "rank": // rank based
 		res = x2;
 		break;
-	default:
+	default: // rank+distance based
 		res = Math.pow(x1,1-metaItemPosition)*Math.pow(x2,metaItemPosition);
 	}
 	return Math.min(0.99999, res);
@@ -11384,7 +11379,7 @@ function otherObjects(oKart, blackList) {
 }
 
 function friendlyFire(kart,oKart) {
-	return (kart == oKart || (iTeamPlay && !selectedFriendlyFire && (kart.team==oKart.team)));
+	return (kart == oKart || (bTeamPlay && !selectedFriendlyFire && (kart.team==oKart.team)));
 }
 function sameTeam(team1,team2) {
 	if (team1 == -1)
@@ -11413,18 +11408,19 @@ function inflateNewBalloons(oKart) {
 		oKart.reserve--;
 	}
 }
-function createBalloonSprite(oKart,team) {
-	if (team === undefined) team = oKart.team;
-	return new Sprite("ballon" + ((team!=-1) ? team:""));
+function createBalloonSprite(oKart, team=oKart.team) {
+    const teamSuffix = team !== -1 ? team : "";
+    return new Sprite(`ballon${teamSuffix}`);
 }
 function balloonSrc(team) {
-	return 'images/sprites/sprite_'+(team==-1?'ballon':('ballon'+team))+'.png';
+    const teamSuffix = team === -1 ? 'ballon' : `ballon${team}`;
+    return `images/sprites/sprite_'${teamSuffix}.png`;
 }
-function updateBalloonHud(oCompteur,oPlayer) {
+function updateBalloonHud(hudCounter, oPlayer) {
 	var oSrc = balloonSrc(oPlayer.team);
-	oCompteur.innerHTML = "";
+	hudCounter.innerHTML = "";
 	for (var i=0;i<oPlayer.reserve;i++)
-		oCompteur.innerHTML += '<img src="'+oSrc+'" style="width:'+(iScreenScale*3)+'px;margin:0 '+Math.round(iScreenScale*0.5)+'px 0 '+Math.round(iScreenScale*0.2)+'px" />';
+		hudCounter.innerHTML += '<img src="'+oSrc+'" style="width:'+(iScreenScale*3)+'px;margin:0 '+Math.round(iScreenScale*0.5)+'px 0 '+Math.round(iScreenScale*0.2)+'px" />';
 }
 
 var syncItems = [];
@@ -12737,7 +12733,7 @@ var challengeRules = {
 				}
 				clLocalVars.reached[reachedZone] = true;
 				clLocalVars.nbPass++;
-				if (iSfx) {
+				if (bSfxEnabled) {
 					if (challenge === clSelected)
 						playSoundEffect("musics/events/clpass.mp3");
 				}
@@ -13082,12 +13078,12 @@ var challengeRules = {
 	},
 	"difficulty": {
 		"success": function(scope) {
-			return (iDificulty == 4+(2-scope.value)*0.5);
+			return (iDifficulty == 4+(2-scope.value)*0.5);
 		}
 	},
 	"no_teams": {
 		"success": function(scope) {
-			return !iTeamPlay;
+			return !bTeamPlay;
 		}
 	},
 	"participants": {
@@ -14185,7 +14181,7 @@ function showChallengePopup(challenge, res) {
 		doPressKey("pause");
 		delete clLocalVars.forcePause;
 	}
-	if (bMusic || iSfx) {
+	if (bMusicEnabled || bSfxEnabled) {
 		if (!challengeMusic) {
 			challengeMusic = playSoundEffect("musics/events/challenge.mp3");
 			challengeMusic.className = "";
@@ -14379,7 +14375,7 @@ function showClFailedPopup() {
 	$popup.innerHTML = '<strong style="color:#800;font-size:1.8em">&times;</strong>&nbsp;' + (language ? 'Challenge failed...':'Défi échoué...');
 	var hudScreen = oChallengeCpts.parentNode;
 	hudScreen.appendChild($popup);
-	if (iSfx && !finishing && !oPlayers[0].cpu)
+	if (bSfxEnabled && !finishing && !oPlayers[0].cpu)
 		playSoundEffect("musics/events/clfail.mp3");
 }
 
@@ -15243,14 +15239,13 @@ function powCpuDodge(oKart) {
 	let dodgeZ = oKart.z;
 
 	if (!oKart.jumped) {
-		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
-		if (Math.random() < n) {
+		let n = 2 ** (-0.5 * (iDifficulty - 4));
+		if (Math.random() < n) { // dodge
 			return;
 		}
 		else {
-			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
-			if (dodgeZ < 0) dodgeZ = 0.1;
-			else if (dodgeZ > 1) dodgeZ = 1;
+			// clamp between 0 and 1
+			dodgeZ = Math.max(0, Math.min(1 - n + Math.random() * (iDifficulty / 12), 1));
 		}
 
 		oKart.z = dodgeZ;
@@ -15409,18 +15404,17 @@ function onlyThisItems(includingItems) {
 	}
 }
 
-if(!Math.hypot)Math.hypot=function(x,y){return Math.sqrt(x*x+y*y)};
 function distKart(obj) {
-	var res = Infinity;
-	for (var i=0;i<oPlayers.length;i++) {
-		var oPlayer = oPlayers[i];
-		if (kartIsPlayer(oPlayer) && !finishing) {
-			var dist = Math.hypot(obj.x-oPlayer.x, obj.y-oPlayer.y);
-			if (dist < res)
-				res = dist;
-		}
-	}
-	return res;
+    let res = Infinity;
+    for (const oPlayer of oPlayers) {
+        if (kartIsPlayer(oPlayer) && !finishing) {
+            const dist = Math.hypot(obj.x - oPlayer.x, obj.y - oPlayer.y);
+            if (dist < res) {
+                res = dist;
+            }
+        }
+    }
+    return res;
 }
 function stuntKart(oKart) {
 	oKart.figstate = 21;
@@ -15514,20 +15508,16 @@ function places(kartIndex, rankScores, forceUpdate) {
 
 
 function getLastCp(kart) {
-	if (oMap.sections) {
-		if ((kart.tours > 1) && (kart.tours <= oMap.tours))
-			return oMap.sections[kart.tours-2];
-		return oMap.checkpoint.length-1;
-	}
-	return 0;
+	if (!oMap.sections) return 0;
+	if ((kart.tours > 1) && (kart.tours <= oMap.tours))
+		return oMap.sections[kart.tours-2];
+	return oMap.checkpoint.length-1;
 }
 function getNextCp(kart) {
-	if (oMap.sections) {
-		if (kart.tours <= oMap.sections.length)
-			return oMap.sections[kart.tours-1];
-		return oMap.checkpoint.length-1;
-	}
-	return 0;
+	if (!oMap.sections) return 0;
+	if (kart.tours <= oMap.sections.length)
+		return oMap.sections[kart.tours-1];
+	return oMap.checkpoint.length-1;
 }
 function getCpDiff(kart) {
 	var lastCp = getLastCp(kart), nextCp = getNextCp(kart);
@@ -16187,7 +16177,7 @@ function resetDatas() {
 					infos0.style.fontFamily = "Courier";
 					infos0.style.top = iScreenScale * 3 +"px";
 					infos0.style.left = Math.round(iScreenScale*25+10) +"px";
-					infos0.style.backgroundColor = iTeamPlay ? "blue":"#063";
+					infos0.style.backgroundColor = bTeamPlay ? "blue":"#063";
 					infos0.style.color = primaryColor;
 					var oTrs = new Array();
 					var oTds = new Array();
@@ -16218,7 +16208,7 @@ function resetDatas() {
 						oTr.appendChild(oTds[i][0]);
 						oTds[i][1].appendChild(oSmall);
 						oTr.appendChild(oTds[i][1]);
-						if (iTeamPlay) {
+						if (bTeamPlay) {
 							oTr.style.textShadow = "-1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 							for (var j=0;j<oTds[i].length;j++)
 								oTds[i][j].style.padding = '0 '+ Math.round(iScreenScale/2) +'px';
@@ -16268,7 +16258,7 @@ function resetDatas() {
 						}
 
 						var oTeamTable;
-						if (iTeamPlay && shareLink.options && shareLink.options.localScore) {
+						if (bTeamPlay && shareLink.options && shareLink.options.localScore) {
 							var teamsRecap = new Array(selectedNbTeams).fill(0);
 							for (var i=0;i<rCode[3].length;i++)
 								teamsRecap[rCode[3][i][4]] += rCode[3][i][2];
@@ -16306,7 +16296,7 @@ function resetDatas() {
 					window.onbeforeunload = logGameTime;
 					supprArme(0);
 					resetWrongWay(oPlayer);
-					if (bMusic||iSfx)
+					if (bMusicEnabled||bSfxEnabled)
 						startEndMusic();
 					finishing = true;
 					document.getElementById("racecountdown").innerHTML = rCode[4]-(course=="BB"?6:5);
@@ -16349,7 +16339,7 @@ function resetDatas() {
 					var firstTeam = rCode[3][0][4];
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
-						if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
+						if (bTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
 							if (oKart.ballons.length && !oKart.tourne) {
 								do {
 									popBalloon(oKart);
@@ -17372,12 +17362,12 @@ function move(getId, triggered) {
 					if (course != "CM")
 						document.getElementById("infoPlace"+getId).innerHTML = oKart.place;
 					while (oKart.using.length) {
-						var aMusic = bMusic, aSfx = iSfx;
-						bMusic = false;
-						iSfx = false;
+						var aMusic = bMusicEnabled, aSfx = bSfxEnabled;
+						bMusicEnabled = false;
+						bSfxEnabled = false;
 						arme(getId);
-						bMusic = aMusic;
-						iSfx = aSfx;
+						bMusicEnabled = aMusic;
+						bSfxEnabled = aSfx;
 					}
 					oKart.arme = false;
 					stopDrifting(getId);
@@ -17412,7 +17402,7 @@ function move(getId, triggered) {
 								var maxPts = Math.round(aKarts.length*1.25);
 								var styleMore = "";
 								var styleMore2 = "";
-								if (iTeamPlay) {
+								if (bTeamPlay) {
 									styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 									styleMore2 = ' style="padding: 0 '+ Math.round(iScreenScale/2) +'px"';
 								}
@@ -17439,7 +17429,7 @@ function move(getId, triggered) {
 								document.getElementById("infos0").style.fontFamily = "Courier";
 								document.getElementById("infos0").style.top = iScreenScale * 3 +"px";
 								document.getElementById("infos0").style.left = Math.round(iScreenScale*24+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
-								document.getElementById("infos0").style.backgroundColor = iTeamPlay ? "blue":"#063";
+								document.getElementById("infos0").style.backgroundColor = bTeamPlay ? "blue":"#063";
 								document.getElementById("infos0").style.color = primaryColor;
 								document.getElementById("infos0").innerHTML = positions;
 								handleRankingStyle();
@@ -17590,7 +17580,7 @@ function move(getId, triggered) {
 				if (!onlineSpectatorId) {
 					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
 					oKart.time = 40;
-					if (bMusic || iSfx) {
+					if (bMusicEnabled || bSfxEnabled) {
 						if (oKart.tours == oMap.tours) {
 							var firstOne = true;
 							for (var i=0;i<oPlayers.length;i++) {
@@ -17601,13 +17591,13 @@ function move(getId, triggered) {
 							}
 							if (firstOne) {
 								var cMusicEmbed = postStartMusic("musics/events/lastlap.mp3");
-								if (iSfx) {
+								if (bSfxEnabled) {
 									fadeOutMusic(carEngine,1,0.6,-1,fSfxVolume);
 									fadeOutMusic(carEngine2,1,0.6,-1,fSfxVolume);
 								}
 								cMusicEmbed.removeAttribute("loop");
 								setTimeout(function() {
-									if (bMusic) {
+									if (bMusicEnabled) {
 										if (willPlayEndMusic || isEndMusicPlayed)
 											return;
 										if (document.body.contains(cMusicEmbed)) {
@@ -17621,7 +17611,7 @@ function move(getId, triggered) {
 										else if (!oMap.lastMapSpeed)
 											speedupMusic(mapMusic);
 									}
-									if (iSfx) {
+									if (bSfxEnabled) {
 										carEngine.volume = fSfxVolume;
 										carEngine2.volume = fSfxVolume;
 									}
@@ -17635,7 +17625,7 @@ function move(getId, triggered) {
 								}
 							}
 						}
-						else if (iSfx)
+						else if (bSfxEnabled)
 							playSoundEffect("musics/events/nextlap.mp3");
 					}
 					if (timeTrialMode()) {
@@ -17710,7 +17700,7 @@ function move(getId, triggered) {
 					aKarts[i].loose = true;
 			}
 			else if (aKarts.length > 1) {
-				if (iTeamPlay) {
+				if (bTeamPlay) {
 					var EnVie = new Array(selectedNbTeams).fill(false);
 					var nEnVie = 0;
 					for (i=0;i<aKarts.length;i++) {
@@ -17758,7 +17748,7 @@ function move(getId, triggered) {
 				var iPlace = 1;
 				var styleMore = "";
 				var styleMore2 = "";
-				if (iTeamPlay) {
+				if (bTeamPlay) {
 					styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 					styleMore2 = ' style="padding: 0 '+ Math.round(iScreenScale/2) +'px"';
 				}
@@ -17786,7 +17776,7 @@ function move(getId, triggered) {
 				document.getElementById("infos0").style.fontFamily = "Courier";
 				document.getElementById("infos0").style.top = iScreenScale * 3 +"px";
 				document.getElementById("infos0").style.left = Math.round(iScreenScale*24+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
-				document.getElementById("infos0").style.backgroundColor = iTeamPlay ? "blue":"#063";
+				document.getElementById("infos0").style.backgroundColor = bTeamPlay ? "blue":"#063";
 				document.getElementById("infos0").style.color = primaryColor;
 				document.getElementById("infos0").innerHTML = positions;
 				handleRankingStyle();
@@ -17840,7 +17830,7 @@ function move(getId, triggered) {
 					}
 				}
 			}
-			var rSpeed = iDificulty, influence = 1;
+			var rSpeed = iDifficulty, influence = 1;
 			if (nCpus > 0) {
 				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
@@ -17861,9 +17851,9 @@ function move(getId, triggered) {
 					oKart.distToFirstCache = 0;
 				influence = Math.pow(0.96, 6*(apparentId/nCpus-0.5));
 			}
-			rSpeed *= influence*iDificulty/5;
+			rSpeed *= influence*iDifficulty/5;
 			var rRatio = 1.25;
-			if ((iDificulty > 4.75) && (aKarts.length > 8))
+			if ((iDifficulty > 4.75) && (aKarts.length > 8))
 				rRatio *= Math.log(1+100*aKarts.length/8)/5.5;
 			if (oKart.maxspeed0 > rSpeed*rRatio) oKart.maxspeed0 = rSpeed*rRatio;
 			else if (oKart.maxspeed0 < rSpeed) oKart.maxspeed0 = rSpeed;
@@ -18100,8 +18090,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
-		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
+	if (bSfxEnabled && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
+		if ((bMusicEnabled&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
 			if (oKart.turbodrift == (oKart.turbodrift0-1)) {
 				carEngine3.currentTime = 0;
@@ -18120,7 +18110,7 @@ function move(getId, triggered) {
 					oKart.sparkSound = undefined;
 				}
 			}
-			if (bMusic && oKart.protect && oKart.turboSound)
+			if (bMusicEnabled && oKart.protect && oKart.turboSound)
 				oKart.turboSound.volume = 0;
 		}
 		else
@@ -18525,7 +18515,6 @@ function resetWrongWay(oKart) {
 }
 
 var clLocalVars, clHud, clSelected;
-//clSelected = challenges["track"]["7037"]["list"][3];
 
 function openCheats() {
     var cheatCode = prompt("MKPC Console command");
@@ -18541,13 +18530,13 @@ function openCheats() {
     }
 }
 function cheatArgs(cheatCode) {
-    if (cheatCode.charAt(0) != "/") return null;
+    if (cheatCode.charAt(0) != "/") return "Commands must start with a slash (/)";
     cheatCode = cheatCode.substring(1);
     return cheatCode.split(" ");
 }
 function processCode(cheatCode) {
     const rawArgs = cheatArgs(cheatCode);
-    if (!rawArgs) return false;
+    if (!rawArgs || typeof rawArgs === 'string') return false;
 
     const command = rawArgs[0];
     const args = rawArgs.slice(1);
@@ -19473,7 +19462,7 @@ function ai(oKart) {
 			}
 		}
 	}
-	if (oMap.jumpable && (iDificulty > 4)) {
+	if (oMap.jumpable && (iDifficulty > 4)) {
 		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
 			if (speedToAim >= 8) {
 				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
@@ -19986,7 +19975,7 @@ document.onkeydown = function(e) {
 				releaseOverEvents();
 				selectedOscrElt.click();
 				selectedOscrElt = undefined;
-				if (iSfx)
+				if (bSfxEnabled)
 					playSoundEffect("musics/events/"+ (isBack ? "back" : "select") +".mp3");
 			}
 			break;
@@ -19998,14 +19987,14 @@ document.onkeydown = function(e) {
 				if (bounds.width > 0 && bounds.height > 0) {
 					releaseOverEvents();
 					oBackButton.click();
-					if (iSfx)
+					if (bSfxEnabled)
 						playSoundEffect("musics/events/back.mp3");
 					break;
 				}
 			}
 			break;
 		}
-		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
+		if (!["ArrowUp", "ArrowLeft", "ArrowRight", "ArrowDown"].includes(e.key)) return;
 		if (e.preventDefault)
 			e.preventDefault();
 		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
@@ -20101,14 +20090,15 @@ document.onkeydown = function(e) {
 		switch (gameAction) {
 			case "up":
 				oPlayers[0].speedinc = 1;
-				var $decompte = document.getElementById("decompte0");
-				if ($decompte.innerHTML > 1)
+				if (document.getElementById("decompte0")?.innerHTML > 1)
 					updateEngineSound(carEngine2);
 				return false;
 			case "left":
+				// BUG: does not account for player handling stat
 				oPlayers[0].rotincdir = getMirrorFactor();
 				return false;
 			case "right":
+				// BUG: does not account for player handling stat
 				oPlayers[0].rotincdir = -getMirrorFactor();
 				return false;
 		}
@@ -20119,9 +20109,11 @@ document.onkeydown = function(e) {
 				oPlayers[1].speedinc = 1;
 				break;
 			case "left_p2":
+				// BUG: does not account for player handling stat
 				oPlayers[1].rotincdir = getMirrorFactor();
 				break;
 			case "right_p2":
+				// BUG: does not account for player handling stat
 				oPlayers[1].rotincdir = -getMirrorFactor();
 		}
 	}
@@ -20149,7 +20141,7 @@ function showFocusIndicator(oScr, oButton) {
 	focusIndicator.style.height = (oRect.height + 2*paddingH) +"px";
 	focusIndicator.style.borderRadius = paddingH +"px";
 
-	if (iSfx)
+	if (bSfxEnabled)
 		playSoundEffect("musics/events/move.mp3");
 }
 
@@ -20234,12 +20226,6 @@ function addButtonLegacy(lettre, key, x, y, w, h, fs) {
 	return oButton;
 }
 
-if (!String.prototype.startsWith) {
-	String.prototype.startsWith = function(searchString, position) {
-		position = position || 0;
-    	return this.indexOf(searchString, position) === position;
-	};
-}
 function isCustomPerso(playerName, opts) {
 	if (!opts) opts = {};
 	if (playerName.startsWith("cp-")) {
@@ -23092,11 +23078,11 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				var newOptions = ""; // will be used later
 				if (!isOnline) {
 					if (course == "VS") {
-						iDificulty = 4+selectedDifficulty*0.5;
-						newOptions = "difficulty="+ selectedDifficulty +"&players="+ fInfos.nbPlayers +"&team="+ fInfos.teams;
+						iDifficulty = 4+selectedDifficulty*0.5;
+						newOptions = `difficulty=${selectedDifficulty}&players=${fInfos.nbPlayers}&team=${fInfos.teams}`;
 					}
 					else
-						newOptions = "players="+ fInfos.nbPlayers +"&team="+ fInfos.teams;
+						newOptions = `players=${fInfos.nbPlayers}&team=${fInfos.teams}`;
 				}
 				oScr.innerHTML = "";
 				cImg.j++;
@@ -23545,7 +23531,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oForm.style.fontSize = (2*iScreenScale) +"px";
 		oForm.style.zIndex = 2;
 		if (!IdJ && !newP) {
-			iDificulty = selectedDifficulty;
+			iDifficulty = selectedDifficulty;
 			fInfos.nbPlayers = selectedPlayers;
 			fInfos.teams = selectedTeams;
 			fInfos.nbteams = +selectedNbTeams;
@@ -23575,7 +23561,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oForm.appendChild(oDiffDiv);
 		}
 		else
-			iDificulty = 4.5;
+			iDifficulty = 4.5;
 		oTeamsDiv = document.createElement("label");
 		oTeamsDiv.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
 		var oSelect = document.createElement("select");
@@ -23656,7 +23642,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oChoosePerso.style.marginLeft = (iScreenScale*2) +"px";
 		oChoosePerso.style.color = "white";
 		oChoosePerso.onclick = function() {
-			iDificulty = selectedDifficulty;
+			iDifficulty = selectedDifficulty;
 			selectedPlayers = fInfos.nbPlayers;
 			selectedTeams = fInfos.teams;
 			if (oItemSelect)
@@ -25437,7 +25423,7 @@ function selectGamersScreen() {
 }
 
 function acceptRulesScreen() {
-    function createRuleRow(whenTrue, title, description, id) {
+    function createRuleRow(whenTrue, title, description) {
         if (!whenTrue) return "";
         return `
             <tr>
@@ -25758,15 +25744,24 @@ function selectChallengesScreen() {
 				oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
 				oDiv.style.color = "#FC0";
 				switch (challenge.status) {
-				case 'pending_completion':
-					oDiv.innerHTML = toLanguage('This challenge is pending completion. Succeed it to publish it.', 'Ce défi est en attente de réussite. Réussissez-le pour le publier.');
-					break;
-				case 'pending_publication':
-					oDiv.innerHTML = toLanguage('This challenge is pending publication. Click on &quot;Manage challenges&quot; to publish it.', 'Ce défi est en attente de publication. Cliquez sur &quot;Gérer les défis&quot; pour le publier.');
-					break;
-				case 'pending_moderation':
-					oDiv.innerHTML = toLanguage('This challenge is pending moderation. It will be published once a validator validates it.', 'Ce défi est en attente de modération. Il sera publié dès qu\'un modérateur l\'aura validé.');
-					break;
+					case 'pending_completion':
+						oDiv.innerHTML = toLanguage(
+							'This challenge is pending completion. Succeed it to publish it.',
+							'Ce défi est en attente de réussite. Réussissez-le pour le publier.'
+						);
+						break;
+					case 'pending_publication':
+						oDiv.innerHTML = toLanguage(
+							'This challenge is pending publication. Click on &quot;Manage challenges&quot; to publish it.',
+							'Ce défi est en attente de publication. Cliquez sur &quot;Gérer les défis&quot; pour le publier.'
+						);
+						break;
+					case 'pending_moderation':
+						oDiv.innerHTML = toLanguage(
+							'This challenge is pending moderation. It will be published once a validator validates it.',
+							'Ce défi est en attente de modération. Il sera publié dès qu\'un modérateur l\'aura validé.'
+						);
+						break;
 				}
 				oDiv.style.fontWeight = "bold";
 				oTd.appendChild(oDiv);
@@ -26450,19 +26445,34 @@ function chooseRandMap() {
 	else
 		chooseWithin(0, NBCIRCUITS);
 }
-function chooseWithin(min,range) {
-	var max = min+range;
-	var availableTracks = {};
-	for (var i=min+1;i<=max;i++)
-		availableTracks[i] = 1;
-	for (var i=0;i<aTracksHist.length;i++)
-		delete availableTracks[aTracksHist[i]];
-	availableTracks = Object.keys(availableTracks);
-	if (!availableTracks.length && aTracksHist.length) {
-		aTracksHist = aTracksHist.slice(aTracksHist.length-Math.floor(range/2));
-		return chooseWithin(min,range);
-	}
-	return choose(availableTracks[Math.floor(Math.random()*availableTracks.length)], true);
+
+function chooseWithin(min, range) {
+    const max = min + range;
+    let availableTracks = {};
+
+    // Populate available tracks within the range
+    for (let trackId = min + 1; trackId <= max; trackId++) {
+        availableTracks[trackId] = true;
+    }
+
+    // Random can't repick tracks!
+    for (const trackId of aTracksHist) {
+        delete availableTracks[trackId];
+    }
+
+    // Convert available tracks to an array
+    const trackIds = Object.keys(availableTracks);
+
+    // If no tracks are available, trim history and retry
+    if (trackIds.length === 0 && aTracksHist.length > 0) {
+        const halfRange = Math.floor(range / 2);
+        aTracksHist = aTracksHist.slice(-halfRange);
+        return chooseWithin(min, range);
+    }
+
+    // Randomly select a track from the available ones
+    const randomIndex = Math.floor(Math.random() * trackIds.length);
+    return choose(trackIds[randomIndex], true);
 }
 
 function selectMapScreen(opts) {
@@ -27188,13 +27198,13 @@ function selectRaceScreen(cup) {
 	else {
 		if (course == "GP") {
 			if (page != "MK")
-				iDificulty = 5;
+				iDifficulty = 5;
 			else {
 				var cupNb = Math.floor(cup/4)%5;
 				if (cup < 40)
-					iDificulty = Math.min(4.5+cupNb/7,5);
+					iDifficulty = Math.min(4.5+cupNb/7,5);
 				else
-					iDificulty = Math.min(4.6+cupNb/7,5);
+					iDifficulty = Math.min(4.6+cupNb/7,5);
 			}
 		}
 		cup++;
@@ -27295,9 +27305,9 @@ function choose(map,rand) {
 						if (shareLink.options && shareLink.options.cpu) {
 							var cpuLevel = shareLink.options.cpuLevel || 0;
 							cpuLevel = 2-cpuLevel;
-							iDificulty = 4+cpuLevel*0.5;
+							iDifficulty = 4+cpuLevel*0.5;
 							if (isBattle)
-								iDificulty = 4.5;
+								iDifficulty = 4.5;
 						}
 						if (gameRules.cc)
 							fSelectedClass = getRelSpeedFromCc(gameRules.cc);
@@ -27368,7 +27378,7 @@ function choose(map,rand) {
 						var cCursor = 0;
 						var cTime = 50;
 						function moveCursor() {
-							var isInFuckingLoop = true;
+							var isInLoop = true;
 							if (cCursor == rCode[1]) {
 								var pTime = 0, iTime = cTime;
 								for (var i=0;i<nbChoices;i++) {
@@ -27376,9 +27386,9 @@ function choose(map,rand) {
 									pTime += iTime;
 								}
 								if (pTime >= (tThen-new Date().getTime()))
-									isInFuckingLoop = false;
+									isInLoop = false;
 							}
-							if (isInFuckingLoop) {
+							if (isInLoop) {
 								trs[cCursor].style.backgroundColor = "";
 								trs[cCursor].style.color = "";
 								cCursor++;
@@ -27545,7 +27555,7 @@ function choose(map,rand) {
 
 	formulaire.dataset.disabled = 1;
 
-	if (bMusic) {
+	if (bMusicEnabled) {
 		startMusicHandler = setInterval(function() {
 			if (oMap && oMap.mapImg) {
 				loadMapMusic();
@@ -29103,9 +29113,11 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		document.body.style.cursor = "progress";
 		if (ghostsData)
 			oScr.style.visibility = "hidden";
-		xhr("otherghosts.php", "map="+ getCreationId(oMaps[aAvailableMaps[map]]) +"&type="+ getCreationTable() +"&cc="+ getActualCc(), function(reponse) {
+		xhr("otherghosts.php", `map=${getCreationId(oMaps[aAvailableMaps[map]])}&type=${getCreationTable()}&cc=${getActualCc()}`, function(reponse) {
 			if (reponse) {
 				try {
+					// FIXME: disgusting hack. the ghost data is so messed up that
+					// JSON.parse fails
 					gTimes = eval(reponse);
 				}
 				catch (e) {
@@ -30675,12 +30687,12 @@ else {
 	"vMusic", "music", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
 		[1, toLanguage("On","Activ&eacute;e")]
-	], bMusic);
+	], bMusicEnabled);
 	addOption("pSfx", toLanguage("Sound effects","Bruitages"),
 	"vSfx", "sfx", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
 		[1, toLanguage("On","Activ&eacute;s")]
-	], iSfx);
+	], bSfxEnabled);
 	addOption("pFps", toLanguage("Framerate","FPS"),
 	"vFps", "fps", [
 		[1, "15 FPS"],
