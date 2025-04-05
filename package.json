@@ -6,7 +6,7 @@
   "scripts": {
     "test": "playwright test",
     "compile-sass": "sass --no-source-map --style=compressed ./styles/main_sass/COMPILE.scss ./styles/main.css",
-    "minify-mk": "terser ./scripts/mk.js -c -m -o ./scripts/mk.min.js"
+    "minify-mk": "node ./build/minify-mk.js"
   },
   "repository": {
     "type": "git",
