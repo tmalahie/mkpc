@@ -2,9 +2,10 @@
 header('Content-Type: text/plain');
 if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 	include('../includes/initdb.php');
+	include('../includes/getId.php');
+	include('../includes/utils-cooldown.php');
 	$id = 0;
-	if (($getId=mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE nom="'.$_POST['pseudo'].'" AND banned=0 AND deleted=0'))) && password_verify($_POST['code'],$getId['code'])) {
-		include('../includes/getId.php');
+	if (!isLoginCooldowned() && ($getId=mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE nom="'.$_POST['pseudo'].'" AND banned=0 AND deleted=0'))) && password_verify($_POST['code'],$getId['code'])) {
 		function ip_banned() {
 			global $identifiants;
 			return mysql_numrows(mysql_query('SELECT * FROM `ip_bans` WHERE ip1="'.$identifiants[0].'" AND ip2="'.$identifiants[1].'" AND ip3="'.$identifiants[2].'" AND ip4="'.$identifiants[3].'"'));

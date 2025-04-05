@@ -1,5 +1,6 @@
 <?php
 require_once('getRights.php');
+require_once('apc.php');
 
 function getProfileIdsString() {
     global $id, $identifiants;
@@ -198,6 +199,15 @@ function isPassRecoveryCooldowned() {
     $passLinks = $getPassLinks['nb'];
     if ($passLinks >= 15)
         return true;
+    return false;
+}
+function isLoginCooldowned() {
+    global $identifiants;
+    $loginAttempts = apcu_inc('login_attempts:'.$identifiants[0], 1, $success, 1000);
+    if ($loginAttempts >= 25) {
+        logCooldownEvent('login');
+        return true;
+    }
     return false;
 }
 function logCooldownEvent($type) {
