@@ -4,7 +4,8 @@ include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
 if (isset($_POST['pseudo']) && isset($_POST['code'])) {
-	if (($getId = mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE nom="'.$_POST['pseudo'].'"'))) && password_verify($_POST['code'],$getId['code'])) {
+	include('../includes/utils-cooldown.php');
+	if (!isLoginCooldowned() && ($getId = mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE nom="'.$_POST['pseudo'].'"'))) && password_verify($_POST['code'],$getId['code'])) {
 		if ($getId['deleted'] && !isset($_GET['forced'])) {
 			$warningDeleted = true;
 		}
