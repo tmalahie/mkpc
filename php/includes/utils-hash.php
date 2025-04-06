@@ -1,6 +1,11 @@
 <?php
 @include('customHash.php');
+
 function isHashValid($body) {
+     // selfhost (customHash does not exist)
+    if (!function_exists('customHash')) return true; // always valid
+    
+    // prod (wargor, customHash exists)
     $hash = customHash($body);
     if (!isset($_SESSION["tthash:$hash"]) || $_SESSION["tthash:$hash"] < time())
         return false;
