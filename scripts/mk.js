@@ -29116,9 +29116,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		xhr("otherghosts.php", `map=${getCreationId(oMaps[aAvailableMaps[map]])}&type=${getCreationTable()}&cc=${getActualCc()}`, function(reponse) {
 			if (reponse) {
 				try {
-					// FIXME: disgusting hack. the ghost data is so messed up that
-					// JSON.parse fails
-					gTimes = eval(reponse);
+					gTimes = JSON.parse(reponse);
 				}
 				catch (e) {
 					return false;
