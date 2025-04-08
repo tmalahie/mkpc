@@ -28,12 +28,14 @@
         return true;
     }
 
+    let res0;
+    let res1;
+    //let res2;
     (async function() {
-        const res0 = await fetch("php/includes/mk/maps.json").then(res => res.json());
-        const res2 = await fetch("https://mkpc-staging.malahieude.net/api/export-maps.php").then(res => res.json());
+        res0 = await fetch("php/includes/mk/maps.json").then(res => res.json());
+        res2 = await fetch("https://mkpc-staging.malahieude.net/api/export-maps.php").then(res => res.json());
 
-        const res1 = {};
-        //const res2 = {};
+        res1 = {};
         for (let i = 1; i <= 56; i++) {
             const oMap = res0["map" + i];
             if (oMap.horspiste)

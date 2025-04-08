@@ -35,7 +35,7 @@ if (isset($_POST['map'])) {
         $result[] = [
             (int) $ghost['id'],
             $ghost['perso'],
-            isset($ghost['name']) ? $ghost['name'] : '',
+            isset($ghost['name']) ? htmlspecialchars($ghost['name']) : 'Unknown',
             (int) $ghost['time'],
             $ghost['lap_times']
         ];
