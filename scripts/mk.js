@@ -827,12 +827,12 @@ if (!pause) {
 }
 
 // init globals
-var strPlayer = new Array();
+var strPlayer = new Array(); // list of current characters e.g ['mario'] or ['mario','luigi'] if 2p mode
 var oMap; // current map
 var lMaps, pMaps; // maps for all overrides
 var iDifficulty = 5; // CPU difficulty
 var bTeamPlay = selectedTeams; // teams enabled (actually an int, 0=no 1=yes)
-var fSelectedClass; 
+var fSelectedClass; // cc / 150 (e.g 1 when 150cc, 1.5 when 200cc)
 var bSelectedMirror; // is mirror mode enabled
 var iRecord; // lap time of ghost (single)
 var iTrajet; // replay data of ghost (single)
@@ -840,18 +840,18 @@ var jTrajets; // replay data of ghosts (multi)
 var iLapTimes; // lap times, e.g [lap1,lap2,lap3]
 var gPersos = new Array(); // chars ghosts use
 var gRecord;
-var gSelectedPerso;
+var gSelectedPerso; // currently selected ghost?
 var gOverwriteRecord;
-var selectedItemDistrib;
-var selectedPtDistrib;
-var oDoubleItemsEnabled;
+var selectedItemDistrib; // selected item distribution
+var selectedPtDistrib; // selected point distribution
+var bDoubleItems; // double items enabled
 if (pause) {
 	strPlayer = fInfos.player;
 	selectedItemDistrib = fInfos.distribution;
 	selectedPtDistrib = fInfos.ptsdistrib;
 	fSelectedClass = fInfos.cc;
 	bSelectedMirror = fInfos.mirror;
-	oDoubleItemsEnabled = !!fInfos.double_items;
+	bDoubleItems = !!fInfos.double_items;
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
 	if (course != "CM")
@@ -2695,7 +2695,7 @@ function arme(ID, backwards, forwards) {
 				}
 			}
 		}
-		else if (!oKart.using.length || !oDoubleItemsEnabled)
+		else if (!oKart.using.length || !bDoubleItems)
 			consumeItem(ID);
 	}
 	else {
@@ -4346,7 +4346,7 @@ function startGame() {
 									ptsdistrib:ptsDistribution,
 									cc:fSelectedClass,
 									mirror:bSelectedMirror,
-									double_items:oDoubleItemsEnabled,
+									double_items:bDoubleItems,
 									map:oMap.ref,
 									difficulty:iDifficulty,
 									cl:clSelected
@@ -4384,7 +4384,7 @@ function startGame() {
 										ptsdistrib:ptsDistribution,
 										cc:fSelectedClass,
 										mirror:bSelectedMirror,
-										double_items:oDoubleItemsEnabled,
+										double_items:bDoubleItems,
 										perso:new Array(),
 										cl:clSelected
 									};
@@ -5929,7 +5929,7 @@ function continuer() {
 				ptsdistrib:ptsDistribution,
 				cc:fSelectedClass,
 				mirror:bSelectedMirror,
-				double_items:oDoubleItemsEnabled,
+				double_items:bDoubleItems,
 				map:oMap.ref,
 				difficulty:iDifficulty,
 				perso:gPersos,
@@ -6011,12 +6011,12 @@ function continuer() {
 							document.body.style.cursor = "default";
 							var enregistre;
 							try {
-								enregistre = eval(reponse);
+								enregistre = JSON.parse(reponse);
 							}
 							catch (e) {
 								return false;
 							}
-							function showBackUi(success) {
+							function showBackUI(success) {
 								oInput.disabled = true;
 								oCheckbox.disabled = true;
 								oValide.parentNode.removeChild(oValide);
@@ -6064,10 +6064,10 @@ function continuer() {
 										if (reponse == 1) {
 											gRecord = getActualGameTimeMS();
 											if (gOverwriteRecord) gOverwriteRecord = 2;
-											showBackUi(true);
+											showBackUI(true);
 											return true;
 										} else if (reponse == -1) {
-											showBackUi(false);
+											showBackUI(false);
 											oValide.style.display = "";
 											aPara2.innerHTML = toLanguage(
 												`You have exceeded your saved ghosts quota. You can <a href="manageGhosts.php" target="_blank" style="color: orange">delete ghosts</a> to save space`,
@@ -6080,22 +6080,38 @@ function continuer() {
 										}
 									});
 								} else {
-									showBackUi(true);
+									showBackUI(true);
 								}
 							}
 							else {
-								showBackUi(false);
+								showBackUI(false);
 								switch (enregistre) {
-								case 0:
-									aPara2.innerHTML = toLanguage("You did a better score on this race before.<br />Your score has not been registered.", "Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;.");
-									break;
-								case 1:
-									aPara2.innerHTML = toLanguage("This username is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
-									break;
-								default:
-									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
-									break;
+									case 0: // not the best pr
+										aPara2.innerHTML = toLanguage(
+											"You did a better score on this race before.<br />Your score has not been registered.",
+											"Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;."
+										);
+										break;
+									case 1: // name already used
+										aPara2.innerHTML = toLanguage(
+											`This username is already used, please choose another one. If it's you, <a href="forum.php" target="_blank" style="color: orange">log-in</a> to your account and try again.`,
+											`Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href="forum.php" target="_blank" style="color: orange">connectez-vous</a> et réessayez.`
+										);
+										break;
+									case 2: // name too long
+										aPara2.innerHTML = toLanguage(
+											"This username is too long, please choose a shorter one.",
+											"Ce pseudo est trop long, veuillez en choisir un plus court."
+										);
+										break;
+									default: // unknown error (tthash, invalid cc, banned etc.)
+										aPara2.innerHTML = toLanguage(
+											"An unknown error occured, please try again later",
+											"Une erreur inconnue est survenue, veuillez réessayer ultérieurement"
+										);
+										break;
 								}
+								// you can still try again (unless there is a better pr)
 								if (enregistre != 0)
 									rollbackUi();
 							}
@@ -6201,7 +6217,7 @@ function continuer() {
 					ptsdistrib:ptsDistribution,
 					cc:fSelectedClass,
 					mirror:bSelectedMirror,
-					double_items:oDoubleItemsEnabled,
+					double_items:bDoubleItems,
 					map:oMap.ref,
 					my_route:iTrajet,
 					replay:true,
@@ -6244,7 +6260,7 @@ function continuer() {
 				ptsdistrib:ptsDistribution,
 				cc:fSelectedClass,
 				mirror:bSelectedMirror,
-				double_items:oDoubleItemsEnabled,
+				double_items:bDoubleItems,
 				perso:new Array(),
 				cl:clSelected
 			};
@@ -6293,7 +6309,7 @@ function nextRace() {
 		ptsdistrib:ptsDistribution,
 		cc:fSelectedClass,
 		mirror:bSelectedMirror,
-		double_items:oDoubleItemsEnabled,
+		double_items:bDoubleItems,
 		difficulty:iDifficulty,
 		cl:clSelected
 	};
@@ -7109,19 +7125,16 @@ function redrawCanvas(i, fCamera, lMap) {
 
 	var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
 
-	for (var j=0;j<aStrips.length;j++) {
-
-		var oStrip = aStrips[j];
-
+	for (let strip of aStrips) {
 		try {
 			oScreenContext.drawImage(
 				oViewCanvas,
-				(iViewCanvasWidth-oStrip.stripwidth)/2,
-				iViewCanvasYOffset - oStrip.mapz,
-				oStrip.stripwidth,
-				oStrip.mapzspan,
+				(iViewCanvasWidth-strip.stripwidth)/2,
+				iViewCanvasYOffset - strip.mapz,
+				strip.stripwidth,
+				strip.mapzspan,
 
-				0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+				0,(iHeight-strip.viewy)*vLineScale,iWidthScale,1
 			);
 		}
 		catch (e) {}
@@ -10345,7 +10358,7 @@ for (var type in decorBehaviors) {
 function initItemSprite(oArme) {
 	var aBoxes = [];
 	var nbBoxes = oArme[2];
-	if (!nbBoxes || !oDoubleItemsEnabled)
+	if (!nbBoxes || !bDoubleItems)
 		nbBoxes = 1;
 	for (var j=0;j<nbBoxes;j++)
 		aBoxes[j] = new Sprite("item");
@@ -11515,7 +11528,7 @@ function consumeItem(i) {
 	}
 }
 function consumeItemIfDouble(i) {
-	if (oDoubleItemsEnabled)
+	if (bDoubleItems)
 		consumeItem(i);
 }
 function loseUsingItems(oKart) {
@@ -16830,7 +16843,7 @@ function move(getId, triggered) {
 		}
 		var nbItems = lMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
+			if ((!oKart.arme || (bDoubleItems && !oKart.stash && (it || !oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);
@@ -18159,7 +18172,7 @@ var getPlayerAtScreen = function(i) {
 	return oPlayers[i];
 };
 var getScreenPlayerIndex = function(i) {
-	// Same, can be overriden
+	// Can be overriden, see oSpecCam
 	return i;
 }
 function isControlledByPlayer(id) {
@@ -18171,7 +18184,7 @@ function isControlledByPlayer(id) {
 function timeTrialMode() {
 	if (course == "CM")
 		return true;
-	if (isOnline && shareLink.options && shareLink.options.timeTrial)
+	if (isOnline && shareLink.options?.timeTrial)
 		return true;
 	return false;
 }
@@ -23102,15 +23115,15 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				else
 					selectedPtDistrib = modePtDistributions[0];
 				if (oDoubleItemCheckbox) {
-					oDoubleItemsEnabled = !oDoubleItemCheckbox.checked;
-					selectedDoubleItems = oDoubleItemsEnabled;
-					if (oDoubleItemsEnabled)
+					bDoubleItems = !oDoubleItemCheckbox.checked;
+					selectedDoubleItems = bDoubleItems;
+					if (bDoubleItems)
 						localStorage.removeItem("doubleitems");
 					else
 						localStorage.setItem("doubleitems", "0");
 				}
 				else
-					oDoubleItemsEnabled = true;
+					bDoubleItems = true;
 				if (oClassSelect) {
 					selectedCc = parseInt(oClassSelect.value);
 					selectedMirror = oClassSelect.value.endsWith("m");
@@ -27355,9 +27368,9 @@ function choose(map,rand) {
 						else
 							selectedPtDistrib = ptDistributions[0];
 						if (shareLink.options && shareLink.options.doubleItems == 0)
-							oDoubleItemsEnabled = false;
+							bDoubleItems = false;
 						else
-							oDoubleItemsEnabled = true;
+							bDoubleItems = true;
 						var tNow = new Date().getTime();
 						tnCourse = tNow+rCode[2];
 						if (isSingle)
@@ -27372,7 +27385,6 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						//rCode[2] = 0; // TODO remove
 						var tThen = tNow+rCode[2];
 						connecte = rCode[3]+1;
 						var cCursor = 0;
@@ -30552,7 +30564,7 @@ function refreshGameControls() {
 }
 
 function toLanguage(english, french) {
-	return language ? english:french;
+	return language ? english : french;
 }
 function toPlace(place) {
 	var suffix;
@@ -30561,24 +30573,24 @@ function toPlace(place) {
 		if ((dec >= 10) && (dec < 20))
 			suffix = 'th';
 		else {
-			switch (place%10) {
-			case 1 :
+			switch (place % 10) {
+			case 1:
 				suffix = "st";
 				break;
-			case 2 :
+			case 2:
 				suffix = "nd";
 				break;
-			case 3 :
+			case 3:
 				suffix = "rd";
 				break;
-			default :
+			default:
 				suffix = "th";
 			}
 		}
 	}
 	else
 		suffix = (place != 1) ? "e" : "er";
-	return place + "<sup> "+ suffix + "</sup>";
+	return `${place}<sup> ${suffix}</sup>`;
 }
 function toTitle(text, top) {
     var oTitle = document.createElement("div");
