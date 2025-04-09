@@ -240,8 +240,10 @@ include('../includes/menu.php');
 				<?php 
 				if ($scoreMode == SCOREMODE_TOTALTIME) {
 					echo '<td>' . ($language ? 'Total Time' : 'Temps total') . '</td>';
-				} else {
+				} elseif ($scoreMode == SCOREMODE_SCORE) {
 					echo '<td>' . ($language ? 'Score' : 'Score') . '</td>';
+				} elseif ($scoreMode == SCOREMODE_AF) {
+					echo '<td>' . ($language ? 'Average Rank' : 'Classement moyen') . '</td>';
 				}
 				?>
 				<td><?= $language ? 'Details' : 'Détails' ?></td>
