@@ -1,4 +1,9 @@
 <?php
+// --- Constants ---
+define('SCOREMODE_SCORE', 1);
+define('SCOREMODE_TOTALTIME', 2);
+define('SCOREMODE_AF', 3);
+
 // --- Initial Setup ---
 include('../includes/language.php');
 include('../includes/session.php');
@@ -6,13 +11,126 @@ include('../includes/initdb.php');
 include('../includes/o_online.php');
 include('../includes/heads.php');
 
+// --- Helpers --- 
+
+function formatTotalTime($ms) {
+	$totalSeconds = floor($ms / 1000);
+	$hours = floor($totalSeconds / 3600);
+	$minutes = floor(($totalSeconds % 3600) / 60);
+	$seconds = $totalSeconds % 60;
+	$milliseconds = $ms % 1000;
+
+	if ($hours > 0) {
+		return sprintf('%d:%d:%02d.%03d', $hours, $minutes, $seconds, $milliseconds);
+	} else {
+		return sprintf('%d:%02d.%03d', $minutes, $seconds, $milliseconds);
+	}
+}
+
+function getAverageRank($userId) {
+    $rankQuery = 
+	"SELECT * 
+    FROM mkrecords 
+    WHERE player = $userId
+    ORDER BY time ASC";
+    
+    $rankResult = mysql_query($rankQuery);
+    
+    $ranks = [];
+    
+    $currentRank = 1;
+    while ($row = mysql_fetch_array($rankResult)) {
+        $ranks[] = $currentRank;
+        $currentRank++;
+    }
+
+    if (count($ranks) == 0) {
+        return null;
+    }
+
+    $averageRank = array_sum($ranks) / count($ranks);
+    
+	// truncate to 3 decimal places
+    return floor($averageRank * 1000) / 1000;
+}
+
+function getRecordCount($userId) {
+	$recordCountQuery = 
+	"SELECT COUNT(*) AS record_count 
+	FROM mkrecords 
+	WHERE player = $userId;";
+	$recordCountResult = mysql_fetch_array(mysql_query($recordCountQuery));
+
+	return $recordCountResult['record_count'];
+}
+
+
+function getTotalTime($userId) {
+	$timesQuery = 
+	"SELECT 
+		SUM(time) AS total_time
+	FROM 
+		mkrecords
+	WHERE 
+		player = $userId;
+	";
+	$timesResult = mysql_fetch_array(mysql_query($timesQuery));
+
+	return formatTotalTime($timesResult['total_time']);
+}
+
+function renderLeaderboardRow($record, $place, $cc, $rowClass, $scoreMode) {
+	// dumb hack! print_rank echos not returns and because its used in tons of files i cant change it...
+	ob_start(); // start capturing output
+	print_rank($place);
+	$rank = ob_get_clean(); // get print_rank output
+
+	$userId = $record['player'];
+
+	$flag = $record['code'] ? '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ' : '';
+	$totalTime = getTotalTime($userId);
+	$recordCount = getRecordCount($userId);
+	$profileUrl = "profil.php?id=$userId";
+	$detailsUrl = "classement.php?user=$userId&cc=$cc&pts";
+
+	// Determine which data to show based on scoreMode
+	$dataColumn = null;
+	if ($scoreMode == SCOREMODE_SCORE) {
+		$dataColumn = $record['score'];
+	} elseif ($scoreMode == SCOREMODE_TOTALTIME) {
+		$dataColumn = $totalTime;
+	} elseif ($scoreMode == SCOREMODE_AF) {
+		$dataColumn = getAverageRank($userId);
+	}
+
+	if ($scoreMode != SCOREMODE_SCORE) {
+		if ($recordCount < 56) {
+			$dataColumn = "<span style=\"color: red !important;\">$dataColumn&nbsp($recordCount/56)</span>";
+		} elseif ($scoreMode == SCOREMODE_TOTALTIME) {
+			$dataColumn = formatTotalTime($dataColumn);
+		}
+	}
+
+	return <<<HTML
+		<tr class="$rowClass">
+			<td>$rank</td>
+			<td><a href="$profileUrl" class="recorder">$flag{$record['nom']}</a></td>
+			<td>$dataColumn</td>
+			<td><a href="$detailsUrl">
+				<img src="images/details.png" class="details" alt="Preview" />
+			</a></td>
+		</tr>
+	HTML;
+}
+
 // --- Page Variables ---
-$page = 'game';
-$language = $language ?? false;
+
+$scoreMode = isset($_GET['mode']) ? intval($_GET['mode']) : SCOREMODE_SCORE;
 $cc = isset($_GET['cc']) ? intval($_GET['cc']) : 150;
-$page = isset($_GET['page']) ? max(intval($_GET['page']), 1) : 1;
+$pagenum = isset($_GET['page']) ? max(intval($_GET['page']), 1) : 1;
 $player = $_POST['joueur'] ?? null;
 
+$language = $language ?? false;
 $getPseudo = mysql_fetch_array(mysql_query("SELECT nom FROM mkjoueurs WHERE id='$id'"));
 $myPseudo = $getPseudo['nom'] ?? null;
 ?>
@@ -42,6 +160,7 @@ $myPseudo = $getPseudo['nom'] ?? null;
 
 <body>
 <?php
+$page = 'game';
 include('../includes/header.php');
 include('../includes/menu.php');
 ?>
@@ -69,7 +188,7 @@ include('../includes/menu.php');
 	</div>
 
 	<!-- Player Search -->
-	<form method="post" action="classement.global.php?cc=<?= $cc ?>">
+	<form method="post" action="classement.global.php?cc=<?= $cc ?>&mode=<?= $scoreMode ?>">
 		<blockquote>
 			<p>
 				<label for="joueur"><strong><?= $language ? 'See player' : 'Voir joueur' ?></strong></label> :
@@ -78,6 +197,13 @@ include('../includes/menu.php');
 			</p>
 		</blockquote>
 	</form>
+
+	<!-- Mode Toggle Buttons -->
+	<div id="modeselect">
+		<a href="classement.global.php?cc=<?= $cc ?>&mode=1"><?= $language ? 'Score' : 'Score' ?></a> <span>|</span>
+		<a href="classement.global.php?cc=<?= $cc ?>&mode=2"><?= $language ? 'Total Time' : 'Temps total' ?></a> <span>|</span>
+		<a href="classement.global.php?cc=<?= $cc ?>&mode=3"><?= $language ? 'Average Rank' : 'Classement moyen' ?></a>
+	</div>
 
 	<?php
 	// --- Leaderboard Query ---
@@ -88,7 +214,7 @@ include('../includes/menu.php');
 		INNER JOIN mkprofiles p ON p.id = j.id 
 		LEFT JOIN mkcountries c ON c.id = p.country 
 		WHERE class = '$cc' 
-			AND " . ($player ? "j.nom = '".mysql_real_escape_string($player)."'" : "j.deleted = 0") . "
+			AND " . ($player ? "j.nom = '$player'" : "j.deleted = 0") . "
 		ORDER BY t.score DESC, t.player
 	";
 	$records = mysql_query($query);
@@ -111,7 +237,13 @@ include('../includes/menu.php');
 			<tr id="titres">
 				<td>Place</td>
 				<td><?= $language ? 'Username' : 'Pseudo' ?></td>
-				<td>Score</td>
+				<?php 
+				if ($scoreMode == SCOREMODE_TOTALTIME) {
+					echo '<td>' . ($language ? 'Total Time' : 'Temps total') . '</td>';
+				} else {
+					echo '<td>' . ($language ? 'Score' : 'Score') . '</td>';
+				}
+				?>
 				<td><?= $language ? 'Details' : 'Détails' ?></td>
 			</tr>
 
@@ -125,40 +257,19 @@ include('../includes/menu.php');
 						AND j.deleted = 0
 				");
 				$place = 1 + mysql_numrows($getPlaces);
-				?>
-				<tr class="clair">
-					<td><?= print_rank($place) ?></td>
-					<td><a href="profil.php?id=<?= $record['player'] ?>" class="recorder">
-						<?= $record['code'] ? '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ' : '' ?>
-						<?= htmlspecialchars($player) ?>
-					</a></td>
-					<td><?= $record['score'] ?></td>
-					<td><a href="classement.php?user=<?= $record['player'] ?>&cc=<?= $cc ?>&pts">
-						<img src="images/details.png" class="details" alt="Preview" />
-					</a></td>
-				</tr>
-				<?php
+				
+				echo renderLeaderboardRow($record, $place, $cc, 'clair', $scoreMode);
 			} else {
-				$place = ($page - 1) * 20;
+				$place = ($pagenum - 1) * 20;
 				$end = $place + 20;
 				$i = 0;
 				while ($record = mysql_fetch_array($records)) {
 					$i++;
 					if ($i > $place) {
 						$place++;
-						?>
-						<tr class="<?= ($i % 2) ? 'clair' : 'fonce' ?>">
-							<td><?= print_rank($place) ?></td>
-							<td><a href="profil.php?id=<?= $record['player'] ?>" class="recorder">
-								<?= $record['code'] ? '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" onerror="this.style.display=\'none\'" /> ' : '' ?>
-								<?= $record['nom'] ?>
-							</a></td>
-							<td><?= $record['score'] ?></td>
-							<td><a href="classement.php?user=<?= $record['player'] ?>&cc=<?= $cc ?>&pts">
-								<img src="images/details.png" class="details" alt="Preview" />
-							</a></td>
-						</tr>
-						<?php
+
+						echo renderLeaderboardRow($record, $place, $cc, ($i % 2) ? 'clair' : 'fonce', $scoreMode);
+
 						if ($i == $end) break;
 					}
 				}
@@ -166,24 +277,24 @@ include('../includes/menu.php');
 			?>
 
 			<!-- Pagination -->
-			<tr><td colspan="4" id="page"><strong>Page : </strong>
+			<tr><td colspan="5" id="page"><strong>Page : </strong>
 				<?php
-				function pageLink($page, $isCurrent) {
+				function pageLink($pagenum, $isCurrent) {
 					global $cc;
-					echo $isCurrent ? "<span>$page</span>" : "<a href=\"?cc=$cc&amp;page=$page\">$page</a>";
+					echo $isCurrent ? "<span>$pagenum</span>" : "<a href=\"?cc=$cc&amp;page=$pagenum\">$pagenum</a>";
 					echo '&nbsp; ';
 				}
 
 				if ($player) {
-					$page = ceil($place / 20);
-					pageLink($page, true);
+					$pagenum = ceil($place / 20);
+					pageLink($pagenum, true);
 				} else {
 					require_once('../includes/utils-paging.php');
 					$limit = ceil($nb_temps / 20);
-					$allPages = makePaging($page, $limit);
+					$allPages = makePaging($pagenum, $limit);
 					foreach ($allPages as $i => $block) {
 						if ($i) echo '...&nbsp;';
-						foreach ($block as $p) pageLink($p, $p == $page);
+						foreach ($block as $p) pageLink($p, $p == $pagenum);
 					}
 				}
 				?>
