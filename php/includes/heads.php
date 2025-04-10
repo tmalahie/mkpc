@@ -4,7 +4,6 @@ if (!isset($hthumbnail)) {
     $hthumbnail = 'https://mkpc.malahieude.net/images/screenshots/ss1.png';
 }
 
-// Include external description utility and format the description
 require_once('utils-description.php');
 $hdescription = formatDescription($hdescription);
 

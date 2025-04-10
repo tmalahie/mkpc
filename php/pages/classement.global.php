@@ -8,7 +8,6 @@ define('SCOREMODE_AF', 3);
 include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
-include('../includes/o_online.php');
 include('../includes/heads.php');
 
 // --- Helpers --- 
@@ -156,6 +155,7 @@ $myPseudo = $getPseudo['nom'] ?? null;
 			margin-right: 6px;
 		}
 	</style>
+	<?php include('../includes/o_online.php'); ?>
 </head>
 
 <body>
@@ -238,13 +238,22 @@ include('../includes/menu.php');
 				<td>Place</td>
 				<td><?= $language ? 'Username' : 'Pseudo' ?></td>
 				<?php 
-				if ($scoreMode == SCOREMODE_TOTALTIME) {
-					echo '<td>' . ($language ? 'Total Time' : 'Temps total') . '</td>';
-				} elseif ($scoreMode == SCOREMODE_SCORE) {
-					echo '<td>' . ($language ? 'Score' : 'Score') . '</td>';
-				} elseif ($scoreMode == SCOREMODE_AF) {
-					echo '<td>' . ($language ? 'Average Rank' : 'Classement moyen') . '</td>';
+				echo '<td>';
+				switch ($scoreMode) {
+					case SCOREMODE_TOTALTIME:
+						echo $language ? 'Total Time' : 'Temps total';
+						break;
+					case SCOREMODE_SCORE:
+						echo $language ? 'Score' : 'Score';
+						break;
+					case SCOREMODE_AF:
+						echo $language ? 'Average Rank' : 'Classement moyen';
+						break;
+					default:
+						echo 'UNKNOWN MODE???';
+						break;
 				}
+				echo '</td>';
 				?>
 				<td><?= $language ? 'Details' : 'Détails' ?></td>
 			</tr>

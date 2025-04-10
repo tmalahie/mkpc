@@ -25,8 +25,7 @@ body {
 </head>
 <body>
 	<div class="challenge-explain">
-        <?php
-        if ($language) {
+        <?php if ($language): ?>
             ?>
             <h1>Challenges: recommendations</h1>
             <p>
@@ -43,10 +42,7 @@ body {
                 To see a full list of rules your challenge should respect, you can read this <a class="pretty-link" target="_blank" href="topic.php?topic=7109">forum topic</a>.<br />
                 Also, please check that the difficulty you assigned to your challenge is relevant. Click <a class="pretty-link" href="helpDifficulty.html">here</a> to see recommendations about difficulty.
             </p>
-            <?php
-        }
-        else {
-            ?>
+        <?php else: ?>
             <h1>Défis : recommandations</h1>
             <p>
                 Tous les défis que vous créez seront vérifiés par l'équipe de validation avant d'être publiés.<br />
@@ -62,9 +58,7 @@ body {
                 Pour voir la liste complète des règles que votre défi doit respecter, vous pouvez lire <a class="pretty-link" target="_blank" href="topic.php?topic=7109">ce topic</a> sur le forum.<br />
                 Vérifiez également que la difficulté qur vous avez attribuée à votre défi est pertinente. Cliquez <a class="pretty-link" href="aideDifficulty.html">ici</a> pour voir les recommandations sur la difficulté.
             </p>
-            <?php
-        }
-        ?>
+        <?php endif; ?>
 	</div>
 </body>
 </html>

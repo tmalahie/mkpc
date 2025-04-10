@@ -208,7 +208,6 @@ body {
 	stroke: black;
 }
 #editor-svg text {
-	alignment-baseline: middle;
 	text-anchor: middle;
 	pointer-events: none;
 	opacity: 0.8;

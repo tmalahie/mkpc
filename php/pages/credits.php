@@ -4,7 +4,7 @@ include('../includes/session.php');
 include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 $game = $isBattle ? 'battle':'vs';
-$pts_ = 'pts_'.$game;
+$pts_ = "pts_$game";
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -38,22 +38,15 @@ include('../includes/menu.php');
 ?>
 <main>
     <h1><?php echo $language ? 'Mario Kart PC - Credits':'Mario Kart PC - Crédits'; ?></h1>
-    <p><?php
-    if ($language) {
-        ?>
+    <p><?php if ($language): ?>
         Mario Kart PC uses a variety of online resources for the game.<br />
         This page gathers all the sites and people who provided these resources.<br />
         Many thanks to them!
-        <?php
-    }
-    else {
-        ?>
+        <?php else: ?>
         Mario Kart PC utilise un certain nombre de resources en ligne pour le jeu.<br />
         Cette page regroupe l'ensemble des sites et personnes à l'origine de ces resources.<br />
         Un grand merci à eux !
-        <?php
-    }
-    ?></p>
+    </p><?php endif; ?>
     <div id="credits">
     <?php
     $credits = array(
