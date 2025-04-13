@@ -14,16 +14,11 @@ include('../includes/heads.php');
 
 function formatTotalTime($ms) {
 	$totalSeconds = floor($ms / 1000);
-	$hours = floor($totalSeconds / 3600);
 	$minutes = floor(($totalSeconds % 3600) / 60);
 	$seconds = $totalSeconds % 60;
 	$milliseconds = $ms % 1000;
 
-	if ($hours > 0) {
-		return sprintf('%d:%d:%02d.%03d', $hours, $minutes, $seconds, $milliseconds);
-	} else {
-		return sprintf('%d:%02d.%03d', $minutes, $seconds, $milliseconds);
-	}
+	return sprintf('%d:%02d.%03d', $minutes, $seconds, $milliseconds);
 }
 
 function getAverageRank($userId) {
@@ -78,48 +73,39 @@ function getTotalTime($userId) {
 	return formatTotalTime($timesResult['total_time']);
 }
 
-function renderLeaderboardRow($record, $place, $cc, $rowClass, $scoreMode) {
-	// dumb hack! print_rank echos not returns and because its used in tons of files i cant change it...
-	ob_start(); // start capturing output
-	print_rank($place);
-	$rank = ob_get_clean(); // get print_rank output
+function pushLeaderboardData($place, $record) {
+	global $cc, $scoreMode;
 
-	$userId = $record['player'];
-
-	$flag = $record['code'] ? '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ' : '';
-	$totalTime = getTotalTime($userId);
-	$recordCount = getRecordCount($userId);
-	$profileUrl = "profil.php?id=$userId";
-	$detailsUrl = "classement.php?user=$userId&cc=$cc&pts";
-
-	// Determine which data to show based on scoreMode
-	$dataColumn = null;
-	if ($scoreMode == SCOREMODE_SCORE) {
-		$dataColumn = $record['score'];
-	} elseif ($scoreMode == SCOREMODE_TOTALTIME) {
-		$dataColumn = $totalTime;
-	} elseif ($scoreMode == SCOREMODE_AF) {
-		$dataColumn = getAverageRank($userId);
+	switch ($scoreMode) {
+		case SCOREMODE_TOTALTIME:
+			$measureHeader = _('Total Time');
+			$measureValue = getTotalTime($record['player']);
+			break;
+		case SCOREMODE_AF:
+			$measureHeader = _('Average Rank');
+			$measureValue = getAverageRank($record['player']);
+			break;
+		default:
+			$measureHeader = _('Score');
+			$measureValue = $record['score'];
+			break;
 	}
 
 	if ($scoreMode != SCOREMODE_SCORE) {
+		$recordCount = getRecordCount($record['player']);
 		if ($recordCount < 56) {
-			$dataColumn = "<span style=\"color: red !important;\">$dataColumn&nbsp($recordCount/56)</span>";
+			$measureValue = "<span style=\"color: red !important;\">$measureValue&nbsp($recordCount/56)</span>";
 		} elseif ($scoreMode == SCOREMODE_TOTALTIME) {
-			$dataColumn = formatTotalTime($dataColumn);
+			$measureValue = formatTotalTime($measureValue);
 		}
 	}
 
-	return <<<HTML
-		<tr class="$rowClass">
-			<td>$rank</td>
-			<td><a href="$profileUrl" class="recorder">$flag{$record['nom']}</a></td>
-			<td>$dataColumn</td>
-			<td><a href="$detailsUrl">
-				<img src="images/details.png" class="details" alt="Preview" />
-			</a></td>
-		</tr>
-	HTML;
+	return [
+		'Place' => ['type' => CELLTYPE_PLACE, 'place' => print_rank($place, true)],
+		_('Nick') => ['type' => CELLTYPE_PROFILE, 'id' => $record['player'], 'nick' => $record['nom'], 'flag' => $record['code']],
+		$measureHeader => $measureValue, // changes depending on scoreMode
+		'Details' => '<a href="classement.php?user='.$record['player'].'&cc='.$cc.'&pts"><img src="images/details.png" class="details" alt="Preview" /></a>'
+	];
 }
 
 // --- Page Variables ---
@@ -129,14 +115,13 @@ $cc = isset($_GET['cc']) ? intval($_GET['cc']) : 150;
 $pagenum = isset($_GET['page']) ? max(intval($_GET['page']), 1) : 1;
 $player = $_POST['joueur'] ?? null;
 
-$language = $language ?? false;
 $getPseudo = mysql_fetch_array(mysql_query("SELECT nom FROM mkjoueurs WHERE id='$id'"));
 $myPseudo = $getPseudo['nom'] ?? null;
 ?>
 <!DOCTYPE html>
-<html lang="<?= $language ? 'en' : 'fr' ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
-	<title><?= $language ? 'Time trial ranking' : 'Classement contre-la-montre' ?> - Mario Kart PC</title>
+	<title><?= _('Time trial ranking')?> - Mario Kart PC</title>
 	<link rel="stylesheet" href="styles/classement.css">
 	<link rel="stylesheet" href="styles/auto-complete.css">
 	<style>
@@ -166,11 +151,9 @@ include('../includes/menu.php');
 ?>
 
 <main>
-	<h1><?= $language ? 'Time Trial - Global ranking' : 'Contre-la-montre - Classement global' ?></h1>
+	<h1><?= _('Time Trial - Global ranking') ?></h1>
 	<p>
-		<?= $language
-			? 'This page shows a leaderboard of top players in time trial.<br />This leaderboard is based on a score calculation which depends on your rank on each circuit. See <a href="topic.php?topic=5318">this topic</a> for further info.'
-			: 'Cette page affiche le classement des meilleurs joueurs en contre la montre.<br />Ce classement se base sur un calcul de score dépendant de votre place sur chaque circuit. Voir <a href="topic.php?topic=5318">ce topic</a> pour en savoir plus.' ?>
+		<?= _('This page shows a leaderboard of top players in time trial.<br />This leaderboard is based on a score calculation which depends on your rank on each circuit. See <a href="topic.php?topic=5318">this topic</a> for further info.') ?>
 	</p>
 
 	<div class="pub"><?php require_once('../includes/utils-ads.php'); showSmallAd(); ?></div>
@@ -178,7 +161,7 @@ include('../includes/menu.php');
 	<!-- Mode Selection -->
 	<div class="ranking-modes-ctn">
 		<div>
-			<span><?= $language ? 'Class:' : 'Cylindrée :' ?></span>
+			<span><?= _('Class:') ?></span>
 			<div class="ranking-modes">
 				<?= $cc == 150
 					? '<span>150cc</span><a href="classement.global.php?cc=200">200cc</a>'
@@ -191,18 +174,18 @@ include('../includes/menu.php');
 	<form method="post" action="classement.global.php?cc=<?= $cc ?>&mode=<?= $scoreMode ?>">
 		<blockquote>
 			<p>
-				<label for="joueur"><strong><?= $language ? 'See player' : 'Voir joueur' ?></strong></label> :
-				<input type="text" name="joueur" id="joueur" value="<?= htmlspecialchars($player ?: $myPseudo) ?>" />
-				<input type="submit" value="<?= $language ? 'Validate' : 'Valider' ?>" class="action_button" />
+				<label for="joueur"><strong><?= _('See player') ?></strong></label> :
+				<input type="text" name="joueur" id="joueur" value="<?= $player ?: $myPseudo ?>" />
+				<input type="submit" value="<?= _('Validate') ?>" class="action_button" />
 			</p>
 		</blockquote>
 	</form>
 
 	<!-- Mode Toggle Buttons -->
 	<div id="modeselect">
-		<a href="classement.global.php?cc=<?= $cc ?>&mode=1"><?= $language ? 'Score' : 'Score' ?></a> <span>|</span>
-		<a href="classement.global.php?cc=<?= $cc ?>&mode=2"><?= $language ? 'Total Time' : 'Temps total' ?></a> <span>|</span>
-		<a href="classement.global.php?cc=<?= $cc ?>&mode=3"><?= $language ? 'Average Rank' : 'Classement moyen' ?></a>
+		<a href="classement.global.php?cc=<?= $cc ?>&mode=1">Score</a> <span>|</span>
+		<a href="classement.global.php?cc=<?= $cc ?>&mode=2"><?= _('Total Time') ?></a> <span>|</span>
+		<a href="classement.global.php?cc=<?= $cc ?>&mode=3"><?= _('Average Rank') ?></a>
 	</div>
 
 	<?php
@@ -232,92 +215,71 @@ include('../includes/menu.php');
 
 	if ($nb_temps):
 		require_once('../includes/utils-leaderboard.php');
-	?>
-		<table>
-			<tr id="titres">
-				<td>Place</td>
-				<td><?= $language ? 'Username' : 'Pseudo' ?></td>
-				<?php 
-				echo '<td>';
-				switch ($scoreMode) {
-					case SCOREMODE_TOTALTIME:
-						echo $language ? 'Total Time' : 'Temps total';
-						break;
-					case SCOREMODE_SCORE:
-						echo $language ? 'Score' : 'Score';
-						break;
-					case SCOREMODE_AF:
-						echo $language ? 'Average Rank' : 'Classement moyen';
-						break;
-					default:
-						echo 'UNKNOWN MODE???';
-						break;
+		$leaderboardData = [];
+
+		if ($player) {
+			$getPlaces = mysql_query("
+				SELECT t.player FROM mkttranking t 
+				INNER JOIN mkjoueurs j ON t.player = j.id 
+				WHERE class = '$cc' 
+					AND (t.score > '{$record['score']}' OR (t.score = '{$record['score']}' AND t.player < '{$record['player']}')) 
+					AND j.deleted = 0
+			");
+			$place = 1 + mysql_numrows($getPlaces);
+			
+			$leaderboardData[] = pushLeaderboardData($place, $record);
+		} else {
+			$place = ($pagenum - 1) * 20;
+			$end = $place + 20;
+			$i = 0;
+			while ($record = mysql_fetch_array($records)) {
+				$i++;
+				if ($i > $place) {
+					$place++;
+
+					$leaderboardData[] = pushLeaderboardData($place, $record);
+
+					if ($i == $end) break;
 				}
-				echo '</td>';
-				?>
-				<td><?= $language ? 'Details' : 'Détails' ?></td>
-			</tr>
+			}
+		}
 
+		renderLeaderboardTable($leaderboardData, true);
+		?>
+
+		<!-- Pagination -->
+		<tr><td colspan="4" id="page"><strong>Page : </strong>
 			<?php
+			function pageLink($pagenum, $isCurrent) {
+				global $cc;
+				echo $isCurrent 
+					? "<span>$pagenum</span>"
+					: "<a href=\"?cc=$cc&amp;page=$pagenum\">$pagenum</a>";
+				echo '&nbsp; ';
+			}
+
 			if ($player) {
-				$getPlaces = mysql_query("
-					SELECT t.player FROM mkttranking t 
-					INNER JOIN mkjoueurs j ON t.player = j.id 
-					WHERE class = '$cc' 
-						AND (t.score > '{$record['score']}' OR (t.score = '{$record['score']}' AND t.player < '{$record['player']}')) 
-						AND j.deleted = 0
-				");
-				$place = 1 + mysql_numrows($getPlaces);
-				
-				echo renderLeaderboardRow($record, $place, $cc, 'clair', $scoreMode);
+				$pagenum = ceil($place / 20);
+				pageLink($pagenum, true);
 			} else {
-				$place = ($pagenum - 1) * 20;
-				$end = $place + 20;
-				$i = 0;
-				while ($record = mysql_fetch_array($records)) {
-					$i++;
-					if ($i > $place) {
-						$place++;
-
-						echo renderLeaderboardRow($record, $place, $cc, ($i % 2) ? 'clair' : 'fonce', $scoreMode);
-
-						if ($i == $end) break;
-					}
+				require_once('../includes/utils-paging.php');
+				$limit = ceil($nb_temps / 20);
+				$allPages = makePaging($pagenum, $limit);
+				foreach ($allPages as $i => $block) {
+					if ($i) echo '...&nbsp;';
+					foreach ($block as $p) pageLink($p, $p == $pagenum);
 				}
 			}
 			?>
-
-			<!-- Pagination -->
-			<tr><td colspan="5" id="page"><strong>Page : </strong>
-				<?php
-				function pageLink($pagenum, $isCurrent) {
-					global $cc;
-					echo $isCurrent ? "<span>$pagenum</span>" : "<a href=\"?cc=$cc&amp;page=$pagenum\">$pagenum</a>";
-					echo '&nbsp; ';
-				}
-
-				if ($player) {
-					$pagenum = ceil($place / 20);
-					pageLink($pagenum, true);
-				} else {
-					require_once('../includes/utils-paging.php');
-					$limit = ceil($nb_temps / 20);
-					$allPages = makePaging($pagenum, $limit);
-					foreach ($allPages as $i => $block) {
-						if ($i) echo '...&nbsp;';
-						foreach ($block as $p) pageLink($p, $p == $pagenum);
-					}
-				}
-				?>
-			</td></tr>
+		</td></tr>
 		</table>
 	<?php else: ?>
-		<p><strong><?= $language ? 'No results found for this search' : 'Aucun résultat trouvé pour cette recherche' ?></strong></p>
+		<p><strong><?= _('No results found for this search') ?></strong></p>
 	<?php endif; ?>
 
 	<p>
-		<a href="classement.php?cc=<?= $cc ?>"><?= $language ? 'Ranking circuit by circuit' : 'Classement circuit par circuit' ?></a><br />
-		<a href="index.php"><?= $language ? 'Back to Mario Kart PC' : 'Retour à Mario Kart PC' ?></a>
+		<a href="classement.php?cc=<?= $cc ?>"><?= _('Ranking circuit by circuit') ?></a><br />
+		<a href="index.php"><?= _('Back to Mario Kart PC') ?></a>
 	</p>
 </main>
 

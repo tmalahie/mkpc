@@ -6,11 +6,10 @@ include('../includes/initdb.php');
 include('../includes/heads.php');
 
 require_once('../includes/challenge-consts.php');
-require_once('../includes/utils-leaderboard.php');
 require_once('../includes/utils-ads.php');
 
-$pagenum = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
-$player = isset($_POST['player']) ? $_POST['player']:null;
+$pagenum = isset($_GET['page']) ? max(intval($_GET['page']), 1) : 1;
+$player = isset($_POST['player']) ? $_POST['player'] : null;
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else
@@ -19,11 +18,14 @@ $get = $_GET;
 foreach ($get as $k => $getk)
 	$get[$k] = stripslashes($get[$k]);
 
+$challengeDifficulties = getChallengeDifficulties();
+$challengeRewards = getChallengeRewards();
+
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
-	<title><?php echo $language ? 'Challenges leaderboard':'Classement défis'; ?> - Mario Kart PC</title>
+	<title><?= _('Challenges leaderboard') ?> - Mario Kart PC</title>
 	<link rel="stylesheet" type="text/css" href="styles/classement.css" />
 	<link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 	<style type="text/css">
@@ -53,20 +55,18 @@ include('../includes/menu.php');
 ?>
 
 <main>
-	<h1><?= $language ? 'Challenge points - Leaderboard' : 'Classement des points défis' ?></h1>
+	<h1><?= _('Challenge points - Leaderboard') ?></h1>
 	<p>
 		<?php if ($language): ?>
 			<div id="ranking_explain">
 				This page displays the ranking of the players with the most points in the MKPC challenge mode
 				<a href="#null" onclick="document.getElementById('ranking_info').style.display = document.getElementById('ranking_info').style.display ? '' : 'block'; return false" style="position:relative;top:-1px">[Read more]</a>.
 				<div id="ranking_info">
-					<a href="challengesList.php">Challenges</a> are actions to perform in the game (Ex: &quot;Complete a track in less than 1:30&quot;).
-					They are created by members thanks to the <strong>challenge editor</strong>. Anyone can create challenges, including you!<br />
+					<a href="challengesList.php">Challenges</a> are tasks to complete in the game (e.g: &quot;Complete a track in less than 1:30&quot;) for points!
+					They are created by members using the <strong>challenge editor</strong>. Anyone can create challenges, including you!<br />
 					When you complete a challenge, you win a certain amount of <strong>challenge points</strong> depending on the difficulty of the challenge. Your position in the ranking is determined by your number of challenge points.
 					<ul>
 						<?php
-						$challengeDifficulties = getChallengeDifficulties();
-						$challengeRewards = getChallengeRewards();
 						foreach ($challengeDifficulties as $index => $difficulty) {
 							$end = $challengeRewards[$index] >= 2 ? 's' : '';
 							echo "<li><strong>$difficulty</strong> challenges give you <strong>{$challengeRewards[$index]} pt$end</strong>.</li>";
@@ -88,7 +88,8 @@ include('../includes/menu.php');
 						$challengeDifficulties = getChallengeDifficulties();
 						$challengeRewards = getChallengeRewards();
 						foreach ($challengeDifficulties as $index => $difficulty) {
-							echo '<li>Un défi <strong>' . $difficulty . '</strong> rapporte <strong>' . $challengeRewards[$index] . ' pt' . ($challengeRewards[$index] >= 2 ? 's' : '') . '</strong>.</li>';
+							$fin = $challengeRewards[$index] >= 2 ? 's' : '';
+							echo "<li>Un défi <strong>$difficulty</strong> rapporte <strong>{$challengeRewards[$index]} pt$fin</strong>.</li>";
 						}
 						?>
 					</ul>
@@ -97,15 +98,30 @@ include('../includes/menu.php');
 		<?php endif; ?>
 	</p>
 	<?php showSmallAdSection(); ?>
+
+	<!-- Player Search -->
 	<form method="post" action="challengeRanking.php">
 		<p>
-			<label for="player"><strong><?= $language ? 'See player' : 'Voir player' ?></strong></label> :
+			<label for="player"><strong><?= _('See player') ?></strong></label> :
 			<input type="text" name="player" id="player" value="<?= htmlspecialchars($player ?: $myPseudo) ?>" />
-			<input type="submit" value="<?= $language ? 'Validate' : 'Valider' ?>" class="action_button" />
+			<input type="submit" value="<?= _('Validate') ?>" class="action_button" />
 		</p>
 	</form>
 	<?php
-	$recordsResult = mysql_query('SELECT j.id, j.nom AS nickname, j.pts_challenge AS points, c.code AS country_code FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id = j.id LEFT JOIN `mkcountries` c ON c.id = p.country WHERE ' . ($player ? 'j.nom="' . $player . '"' : 'j.pts_challenge > 0 AND j.deleted = 0') . ' ORDER BY j.pts_challenge DESC, j.id');
+	$where = ($player ? "j.nom=\"$player\"" : 'j.pts_challenge > 0 AND j.deleted = 0');
+	$recordsResult = mysql_query(
+		"SELECT j.id, j.nom
+		AS nickname, j.pts_challenge
+		AS points, c.code
+		AS country_code
+		FROM `mkprofiles` p
+		INNER JOIN `mkjoueurs` j
+		ON p.id = j.id
+		LEFT JOIN `mkcountries` c
+		ON c.id = p.country
+		WHERE $where
+		ORDER BY j.pts_challenge DESC, j.id
+	");
 
 	if ($player) {
 		if ($record = mysql_fetch_array($recordsResult)) {
@@ -117,101 +133,94 @@ include('../includes/menu.php');
 	} else {
 		$recordCount = mysql_numrows($recordsResult);
 	}
+	
 
-	if ($recordCount > 0):
-	?>
-		<table>
-			<tr id="titres">
-				<td>Place</td>
-				<td><?= $language ? 'Nick' : 'Pseudo' ?></td>
-				<td>Score</td>
-			</tr>
-			<?php
-			if ($player) {
-				$placeResult = mysql_query('SELECT id FROM `mkjoueurs` WHERE (pts_challenge > 0) AND (pts_challenge > ' . $record['points'] . ' OR (pts_challenge = ' . $record['points'] . ' AND id < ' . $record['id'] . ')) AND deleted = 0');
-				$place = 1 + mysql_numrows($placeResult);
-				$pagenum = 0;
-			} else {
-				$place = ($pagenum - 1) * 20;
-			}
+	if ($recordCount > 0) {
+		require_once('../includes/utils-leaderboard.php');
 
+		$leaderboardData = [];
+
+		// helper function to construct table rows
+		function pushLeaderboardData($place, $record) {
+			global $leaderboardData;
+			$leaderboardData[] = [
+				'Place' => ['type' => CELLTYPE_PLACE, 'place' => print_rank($place, true)],
+				_('Nick') => ['type' => CELLTYPE_PROFILE, 'id' => $record['id'], 'nick' => $record['nickname'], 'flag' => $record['country_code']],
+				'Score' => $record['points']
+			];
+		}
+
+
+		if ($player) {
+			$placeResult = mysql_query(
+				"SELECT id 
+				FROM `mkjoueurs` 
+				WHERE (pts_challenge > 0) 
+				AND (pts_challenge > {$record['points']}
+				OR (pts_challenge = {$record['points']}
+				AND id < {$record['id']}))
+				AND deleted = 0
+			");
+			$place = 1 + mysql_numrows($placeResult);
+			$pagenum = 0;
+
+			pushLeaderboardData($place, $record);
+		} else {
+			$place = ($pagenum - 1) * 20;
 			$i = 0;
 			$end = $place + 20;
 
-			if ($player):
-			?>
-				<tr class="clair">
-					<td><?php print_rank($place); ?></td>
-					<td>
-						<a href="profil.php?id=<?= $record['id'] ?>" class="recorder">
-							<?php if ($record['country_code']): ?>
-								<img src="images/flags/<?= $record['country_code'] ?>.png" alt="<?= $record['country_code'] ?>" />
-							<?php endif; ?>
-							<?= htmlspecialchars($player) ?>
-						</a>
-					</td>
-					<td><?= $record['points'] ?></td>
-				</tr>
-			<?php else: ?>
-				<?php while ($record = mysql_fetch_array($recordsResult)): ?>
-					<?php
-					$i++;
-					if ($i > $place):
-						$place++;
-					?>
-						<tr class="<?= ($i % 2) ? 'clair' : 'fonce' ?>">
-							<td><?php print_rank($place); ?></td>
-							<td>
-								<a href="profil.php?id=<?= $record['id'] ?>" class="recorder">
-									<?php if ($record['country_code']): ?>
-										<img src="images/flags/<?= $record['country_code'] ?>.png" alt="<?= $record['country_code'] ?>" onerror="this.style.display='none'" />
-									<?php endif; ?>
-									<?= htmlspecialchars($record['nickname']) ?>
-								</a>
-							</td>
-							<td><?= $record['points'] ?></td>
-						</tr>
-						<?php if ($i == $end) break; ?>
-					<?php endif; ?>
-				<?php endwhile; ?>
-			<?php endif; ?>
-			<tr>
-				<td colspan="4" id="page">
-					<strong>Page : </strong>
-					<?php
-					if ($player) {
-						$pagenum = ceil($place / 20);
-						$getParams['page'] = $pagenum;
-						echo '<a href="?' . http_build_query($getParams) . '">' . $pagenum . '</a>';
-					} else {
-						function renderPageLink($pagenum, $isCurrent) {
-							global $getParams;
-							$getParams['page'] = $pagenum;
-							echo ($isCurrent ? "<span>$pagenum</span>" : '<a href="?' . http_build_query($getParams) . '">' . $pagenum . '</a>') . '&nbsp; ';
-						}
+			while ($record = mysql_fetch_array($recordsResult)) {
+				$i++;
+				if ($i > $place) {
+					$place++;
+					pushLeaderboardData($place, $record);
+					if ($i == $end) break;
+				}
+			}
+		}
 
-						$limit = ceil($recordCount / 20);
-						require_once('../includes/utils-paging.php');
-						$allPages = makePaging($pagenum, $limit);
-						foreach ($allPages as $index => $block) {
-							if ($index > 0) {
-								echo '...&nbsp; ';
-							}
-							foreach ($block as $p) {
-								renderPageLink($p, $p == $pagenum);
-							}
+		// --- Display the leaderboard table ---
+		renderLeaderboardTable($leaderboardData, true);
+		?>
+		
+		<tr>
+			<td colspan="4" id="page">
+				<strong>Page : </strong>
+				<?php
+				if ($player) {
+					$pagenum = ceil($place / 20);
+					$getParams['page'] = $pagenum;
+					echo '<a href="?' . http_build_query($getParams) . '">' . $pagenum . '</a>';
+				} else {
+					function renderPageLink($pagenum, $isCurrent) {
+						global $getParams;
+						$getParams['page'] = $pagenum;
+						echo ($isCurrent ? "<span>$pagenum</span>" : '<a href="?' . http_build_query($getParams) . '">' . $pagenum . '</a>') . '&nbsp; ';
+					}
+
+					$limit = ceil($recordCount / 20);
+					require_once('../includes/utils-paging.php');
+					$allPages = makePaging($pagenum, $limit);
+					foreach ($allPages as $index => $block) {
+						if ($index > 0) {
+							echo '...&nbsp; ';
+						}
+						foreach ($block as $p) {
+							renderPageLink($p, $p == $pagenum);
 						}
 					}
-					?>
-				</td>
-			</tr>
+				}
+				?>
+			</td>
+		</tr>
 		</table>
-	<?php else: ?>
-		<p><strong><?= $language ? 'No results found for this search' : 'Aucun résultat trouvé pour cette recherche' ?></strong></p>
-	<?php endif; ?>
+	<?php /* else: */ } else { ?>
+		<p><strong><?= _('No results found for this search') ?></strong></p>
+	<?php /* endif; */ } ?>
 	<p>
-		<a href="challengesList.php"><?= $language ? 'Back to challenge list' : 'Retour à la liste des défis' ?></a><br />
-		<a href="index.php"><?= $language ? 'Back to Mario Kart PC' : 'Retour à Mario Kart PC' ?></a>
+		<a href="challengesList.php"><?= _('Back to challenge list') ?></a><br />
+		<a href="index.php"><?= _('Back to Mario Kart PC') ?></a>
 	</p>
 </main>
 
@@ -219,23 +228,27 @@ include('../includes/menu.php');
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>
 <script type="text/javascript">
-<?php
-$playerdata = array();
+	<?php
+		$playerdata = array();
 
-$players = mysql_query('SELECT nom FROM `mkjoueurs` WHERE pts_challenge>0 AND deleted=0 ORDER BY nom');
+		$players = mysql_query(
+			"SELECT nom
+			FROM `mkjoueurs`
+			WHERE pts_challenge>0
+			AND deleted=0
+			ORDER BY nom"
+		);
 
-while ($player = mysql_fetch_array($players)) {
-    $playerdata[] = $player['nom'];
-}
+		while ($player = mysql_fetch_array($players)) {
+			$playerdata[] = $player['nom'];
+		}
 
-$players_json = json_encode($playerdata);
+		$players_json = json_encode($playerdata);
 
-echo "var players =  $players_json ;";
-?>
-autocompleteDummy("#player", players);
+		echo "window.players = $players_json;\n";
+	?>
+	autocompleteDummy("#player", players);
 </script>
-<?php
-mysql_close();
-?>
+<?php mysql_close(); ?>
 </body>
 </html>
