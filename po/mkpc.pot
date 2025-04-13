@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-15 22:15+0100\n"
+"POT-Creation-Date: 2025-04-13 11:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,9 +18,66 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+#: php/includes/bbCode.php
+msgid "en"
+msgstr ""
+
+#: php/includes/bbCode.php php/pages/admin-logs.php
+msgid "Deleted account"
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "Please enter a username"
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "Please choose a password"
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "You made a mistake re-entering your password"
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "Your password must be at least 8 characters long."
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid ""
+"You username mustn't contain special chars.<br />Allowed chars are : "
+"letters, numbers, the dash - and the underscore _"
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "Please enter a valid email address"
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid ""
+"This account is already used and deleted. If you want to recover it, simply "
+"relog-in."
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "This username is already used. Please choose another one."
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "You have been banned."
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "Too many accounts created recently, please try again later."
+msgstr ""
+
+#: php/includes/handle_sub.php
+msgid "Sorry, an unknown error occured, please try again later."
+msgstr ""
+
 #: php/pages/addNews.php php/pages/admin-logs.php php/pages/admin.php
-#: php/pages/adminPersos.php php/pages/adminReports.php php/pages/forum.php
-#: php/pages/index.php
+#: php/pages/adminPersos.php php/pages/adminReports.php
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php php/pages/forum.php php/pages/index.php
 msgctxt "html language"
 msgid "en"
 msgstr ""
@@ -139,10 +196,6 @@ msgstr ""
 
 #: php/pages/admin-logs.php php/pages/index.php
 msgid "Untitled"
-msgstr ""
-
-#: php/pages/admin-logs.php
-msgid "Deleted account"
 msgstr ""
 
 #: php/pages/admin-logs.php
@@ -450,6 +503,8 @@ msgid "Back to the forum"
 msgstr ""
 
 #: php/pages/admin-logs.php php/pages/admin.php php/pages/adminPersos.php
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
 msgid "Back to Mario Kart PC"
 msgstr ""
 
@@ -738,8 +793,102 @@ msgstr ""
 msgid "See archived reports"
 msgstr ""
 
+#: php/pages/bestscores.php
+msgid "Online mode leaderboard"
+msgstr ""
+
+#: php/pages/bestscores.php
+msgid "Mario Kart PC Leaderboard"
+msgstr ""
+
+#: php/pages/bestscores.php php/pages/index.php
+msgid "VS mode"
+msgstr ""
+
+#: php/pages/bestscores.php
+msgid "Battle mode"
+msgstr ""
+
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
+msgid "See player"
+msgstr ""
+
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
+msgid "Validate"
+msgstr ""
+
+#: php/pages/bestscores.php
+msgid "Username"
+msgstr ""
+
+#. else:
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
+msgid "No results found for this search"
+msgstr ""
+
+#: php/pages/bestscores.php
+msgid "Back to the online mode"
+msgstr ""
+
+#: php/pages/challengeRanking.php
+msgid "Challenges leaderboard"
+msgstr ""
+
+#: php/pages/challengeRanking.php php/pages/index.php
+msgid "Challenge points - Leaderboard"
+msgstr ""
+
+#: php/pages/challengeRanking.php php/pages/classement.global.php
+#: php/pages/index.php
+msgid "Nick"
+msgstr ""
+
+#. endif;
+#: php/pages/challengeRanking.php
+msgid "Back to challenge list"
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid "Total Time"
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid "Average Rank"
+msgstr ""
+
+#: php/pages/classement.global.php php/pages/index.php
+msgid "Score"
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid "Time trial ranking"
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid "Time Trial - Global ranking"
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid ""
+"This page shows a leaderboard of top players in time trial.<br />This "
+"leaderboard is based on a score calculation which depends on your rank on "
+"each circuit. See <a href=\"topic.php?topic=5318\">this topic</a> for "
+"further info."
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid "Class:"
+msgstr ""
+
+#: php/pages/classement.global.php
+msgid "Ranking circuit by circuit"
+msgstr ""
+
 #: php/pages/forum.php
-msgid "Auto-ban by IP"
+msgid "Automatic IP ban"
 msgstr ""
 
 #: php/pages/forum.php
@@ -856,10 +1005,6 @@ msgid ""
 "href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
 "<strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the "
 "1<small class=\"superscript\">st</small>."
-msgstr ""
-
-#: php/pages/forum.php
-msgid "Classement"
 msgstr ""
 
 #: php/pages/forum.php
@@ -1221,10 +1366,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: php/pages/index.php
-msgid "Challenge points - Leaderboard"
-msgstr ""
-
-#: php/pages/index.php
 msgid "Recent activity"
 msgstr ""
 
@@ -1273,10 +1414,6 @@ msgid "Currently online:"
 msgstr ""
 
 #: php/pages/index.php
-msgid "VS mode"
-msgstr ""
-
-#: php/pages/index.php
 msgid "Battle"
 msgstr ""
 
@@ -1286,14 +1423,6 @@ msgstr ""
 
 #: php/pages/index.php
 msgid "Rank"
-msgstr ""
-
-#: php/pages/index.php
-msgid "Nick"
-msgstr ""
-
-#: php/pages/index.php
-msgid "Score"
 msgstr ""
 
 #: php/pages/index.php

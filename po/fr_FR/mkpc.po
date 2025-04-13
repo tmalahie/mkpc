@@ -1,26 +1,92 @@
-# French translations for PACKAGE package.
+# SPDX-FileCopyrightText: 2025 French translations for PACKAGE package
 # Copyright (C) 2023 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 #  <ano@nymous.com>, 2023.
+# SPDX-FileCopyrightText: 2025 Pianta <ano@nymous.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-15 22:12+0100\n"
-"PO-Revision-Date: 2023-03-20 22:14+0100\n"
-"Last-Translator: flo <ano@nymous.com>\n"
+"POT-Creation-Date: 2025-04-13 11:34+0200\n"
+"PO-Revision-Date: 2025-04-13 11:42+0200\n"
+"Last-Translator: Pianta <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 22.12.3\n"
+"X-Generator: Lokalize 25.07.70\n"
+
+#: php/includes/bbCode.php
+msgid "en"
+msgstr "fr"
+
+#: php/includes/bbCode.php php/pages/admin-logs.php
+msgid "Deleted account"
+msgstr "Compte supprimé"
+
+#: php/includes/handle_sub.php
+msgid "Please enter a username"
+msgstr "Veuillez entrer un pseudo"
+
+#: php/includes/handle_sub.php
+msgid "Please choose a password"
+msgstr "Veuillez choisir un mot de passe"
+
+#: php/includes/handle_sub.php
+msgid "You made a mistake re-entering your password"
+msgstr "Vous avez fait une erreur en retapant votre mot de passe."
+
+#: php/includes/handle_sub.php
+msgid "Your password must be at least 8 characters long."
+msgstr "Votre mot de passe doit comporter 8 caractères."
+
+#: php/includes/handle_sub.php
+msgid ""
+"You username mustn't contain special chars.<br />Allowed chars are : "
+"letters, numbers, the dash - and the underscore _"
+msgstr ""
+"Votre pseudo ne doit pas contenir de caract&egrave;res spéciaux.<br />Les cara"
+"ct&egrave;res autoris&eacute;s sont les lettres sans accents, les chiffres, le"
+" tiret - et le underscore _"
+
+#: php/includes/handle_sub.php
+msgid "Please enter a valid email address"
+msgstr "Veuillez entrer une adresse email valide"
+
+#: php/includes/handle_sub.php
+msgid ""
+"This account is already used and deleted. If you want to recover it, simply "
+"relog-in."
+msgstr ""
+"Ce pseudo est déjà utilisé par un compte supprimé. S'il s'agit du vôtre et que"
+" vous souhaitez le récupérer, reconnectez-vous simplement avec vos identifiant"
+"s."
+
+#: php/includes/handle_sub.php
+msgid "This username is already used. Please choose another one."
+msgstr ""
+"Ce pseudo est d&eacute;ja utilis&eacute;. Veuillez en choisir un autre."
+
+#: php/includes/handle_sub.php
+msgid "You have been banned."
+msgstr "Vous avez &eacute;t&eacute; banni."
+
+#: php/includes/handle_sub.php
+msgid "Too many accounts created recently, please try again later."
+msgstr "Trop de comptes créés récemment, veuillez réessayer ultérieurement.`"
+
+#: php/includes/handle_sub.php
+msgid "Sorry, an unknown error occured, please try again later."
+msgstr ""
+"Désolé, une erreur inconnue est survenue, veuillez réessayer plus tard."
 
 #: php/pages/addNews.php php/pages/admin-logs.php php/pages/admin.php
-#: php/pages/adminPersos.php php/pages/adminReports.php php/pages/forum.php
-#: php/pages/index.php
+#: php/pages/adminPersos.php php/pages/adminReports.php
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php php/pages/forum.php php/pages/index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -146,10 +212,6 @@ msgstr "Titre supprimé"
 #: php/pages/admin-logs.php php/pages/index.php
 msgid "Untitled"
 msgstr "Sans titre"
-
-#: php/pages/admin-logs.php
-msgid "Deleted account"
-msgstr "Compte supprimé"
 
 #: php/pages/admin-logs.php
 msgid "Deleted topic"
@@ -462,6 +524,8 @@ msgid "Back to the forum"
 msgstr "Retour au forum"
 
 #: php/pages/admin-logs.php php/pages/admin.php php/pages/adminPersos.php
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
 msgid "Back to Mario Kart PC"
 msgstr "Retour à Mario Kart PC"
 
@@ -771,8 +835,106 @@ msgstr "Retour aux signalements en cours"
 msgid "See archived reports"
 msgstr "Voir les signalements archivés"
 
+#: php/pages/bestscores.php
+msgid "Online mode leaderboard"
+msgstr "Classement mode en ligne"
+
+#: php/pages/bestscores.php
+msgid "Mario Kart PC Leaderboard"
+msgstr "Classement Mario Kart PC"
+
+#: php/pages/bestscores.php php/pages/index.php
+msgid "VS mode"
+msgstr "Course VS"
+
+#: php/pages/bestscores.php
+msgid "Battle mode"
+msgstr "Bataille de ballons"
+
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
+msgid "See player"
+msgstr "Voir player"
+
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
+msgid "Validate"
+msgstr "Valider"
+
+#: php/pages/bestscores.php
+msgid "Username"
+msgstr "Pseudo"
+
+#. else:
+#: php/pages/bestscores.php php/pages/challengeRanking.php
+#: php/pages/classement.global.php
+msgid "No results found for this search"
+msgstr "Aucun résultat trouvé pour cette recherche"
+
+#: php/pages/bestscores.php
+msgid "Back to the online mode"
+msgstr "Retour &agrave; l'accueil du mode en ligne"
+
+#: php/pages/challengeRanking.php
+msgid "Challenges leaderboard"
+msgstr "Classement défis"
+
+#: php/pages/challengeRanking.php php/pages/index.php
+msgid "Challenge points - Leaderboard"
+msgstr "Classement des points défis"
+
+#: php/pages/challengeRanking.php php/pages/classement.global.php
+#: php/pages/index.php
+msgid "Nick"
+msgstr "Pseudo"
+
+#. endif;
+#: php/pages/challengeRanking.php
+msgid "Back to challenge list"
+msgstr "Retour à la liste des défis"
+
+#: php/pages/classement.global.php
+msgid "Total Time"
+msgstr "Temps total"
+
+#: php/pages/classement.global.php
+msgid "Average Rank"
+msgstr "Classement moyen"
+
+#: php/pages/classement.global.php php/pages/index.php
+msgid "Score"
+msgstr "Score"
+
+#: php/pages/classement.global.php
+msgid "Time trial ranking"
+msgstr "Classement contre-la-montre"
+
+#: php/pages/classement.global.php
+msgid "Time Trial - Global ranking"
+msgstr "Contre-la-montre - Classement global"
+
+#: php/pages/classement.global.php
+msgid ""
+"This page shows a leaderboard of top players in time trial.<br />This "
+"leaderboard is based on a score calculation which depends on your rank on "
+"each circuit. See <a href=\"topic.php?topic=5318\">this topic</a> for "
+"further info."
+msgstr ""
+"Cette page affiche le classement des meilleurs joueurs en contre la montre."
+"<br />Ce classement se base sur un calcul de score dépendant de votre place "
+"sur chaque circuit. Voir <a href=\"topic.php?topic=5318\">ce topic</a> pour "
+"en savoir plus."
+
+#: php/pages/classement.global.php
+msgid "Class:"
+msgstr "Cylindrée:"
+
+#: php/pages/classement.global.php
+msgid "Ranking circuit by circuit"
+msgstr "Classement circuit par circuit"
+
 #: php/pages/forum.php
-msgid "Auto-ban by IP"
+msgid "Automatic IP ban"
 msgstr "Auto-ban par IP"
 
 #: php/pages/forum.php
@@ -904,10 +1066,6 @@ msgstr ""
 "href=\"{urlToProfile}\">{monthlyTopPlayer}</a> avec "
 "<strong>{monthlyTopPlayerMessagesWithCount}</strong> depuis le 1<small "
 "class=\"superscript\">er</small> {month}."
-
-#: php/pages/forum.php
-msgid "Classement"
-msgstr ""
 
 #: php/pages/forum.php
 msgid "Ranking of month's most active members"
@@ -1336,10 +1494,6 @@ msgstr[0] "<a href=\"{url}\">{count} défi</a> en attente de validation"
 msgstr[1] "<a href=\"{url}\">{count} défis</a> en attente de validation"
 
 #: php/pages/index.php
-msgid "Challenge points - Leaderboard"
-msgstr "Classement des points défis"
-
-#: php/pages/index.php
 msgid "Recent activity"
 msgstr "Activité récente"
 
@@ -1388,10 +1542,6 @@ msgid "Currently online:"
 msgstr "Actuellement en ligne :"
 
 #: php/pages/index.php
-msgid "VS mode"
-msgstr "Course VS"
-
-#: php/pages/index.php
 msgid "Battle"
 msgstr "Bataille"
 
@@ -1402,14 +1552,6 @@ msgstr "CLM"
 #: php/pages/index.php
 msgid "Rank"
 msgstr "Rang"
-
-#: php/pages/index.php
-msgid "Nick"
-msgstr "Pseudo"
-
-#: php/pages/index.php
-msgid "Score"
-msgstr "Score"
 
 #: php/pages/index.php
 msgid "Visitors since november 2017"
@@ -1430,6 +1572,12 @@ msgstr "Chargement"
 #: php/pages/topic.php
 msgid "MKPC Forum"
 msgstr "Forum MKPC"
+
+#~ msgid "Search"
+#~ msgstr "Recherche"
+
+#~ msgid "Details"
+#~ msgstr "Détails"
 
 #~ msgid "Current bracket"
 #~ msgstr "Classement actuel"
