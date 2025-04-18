@@ -1,7 +1,6 @@
 <?php
 include('../includes/language.php');
 include('../includes/initdb.php');
-$howEmail = false;
 $showMissNick = false;
 $showEmail = false;
 if (isset($_GET['pseudo'])) {

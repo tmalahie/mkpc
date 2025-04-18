@@ -1,29 +1,16 @@
 <?php
 include('../includes/session.php');
-if (!$id) {
-	echo "Vous n'&ecirc;tes pas connect&eacute;";
-	exit;
-}
 include('../includes/language.php');
-include('../includes/initdb.php');
-if (!$id) {
-	echo "Vous n'&ecirc;tes pas connect&eacute;";
-	mysql_close();
-	exit;
-}
 require_once('../includes/getRights.php');
-if (!hasRight('manager')) {
-	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
-	mysql_close();
-	exit;
-}
+
+requireRank('manager');
+
 mysql_query('INSERT IGNORE INTO mkips (SELECT id AS player,identifiant AS ip1,identifiant2 AS ip2, identifiant3 AS ip3, identifiant4 AS ip4 FROM mkprofiles WHERE identifiant IS NOT NULL AND NOT exists (SELECT * FROM mkips WHERE player=id AND ip1=identifiant AND ip2=identifiant2 AND ip3=identifiant3 AND ip4=identifiant4))');
-//mysql_query('DELETE FROM mkips WHERE identifiant=0 AND identifiant2=0 AND identifiant3=0 AND identifiant4=0');
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
-<title><?php echo $language ? 'Double accounts':'Double comptes'; ?> - Mario Kart PC</title>
+<title><?= _('Alternate accounts'); ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -54,11 +41,11 @@ if ($unban) {
 }
 ?>
 <main>
-	<h1><?php echo $language ? 'See double accounts':'Voir les doubles comptes'; ?></h1>
+	<h1><?= _('See alternate accounts'); ?></h1>
 	<?php
 	if (isset($_GET['pseudo'])) {
 		echo '<p>';
-		echo $language ? 'Double accounts of '. htmlspecialchars($_GET['pseudo']) .': ' : 'Doubles comptes de '. htmlspecialchars($_GET['pseudo']) .' : ';
+		echo $language ? 'Alternate accounts of '. htmlspecialchars($_GET['pseudo']) .': ' : 'Doubles comptes de '. htmlspecialchars($_GET['pseudo']) .' : ';
 		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $_GET['pseudo'] .'"'))) {
 			$getPlayers = mysql_query('SELECT DISTINCT res.player FROM (SELECT player FROM `mkips` m WHERE EXISTS(SELECT * FROM `mkips` m2 WHERE player='. $getId['id'] .' AND m2.ip1=m.ip1 AND m2.ip2=m.ip2 AND m2.ip3=m.ip3 AND m2.ip4=m.ip4) AND player!="'. $getId['id'] .'") res');
 			$v = '';
@@ -74,11 +61,11 @@ if ($unban) {
 	?>
 	<form method="get" action="doublecomptes.php">
 	<blockquote>
-	<p><label for="pseudo"><strong><?php echo $language ? 'Enter the username':'Pseudo du joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
+	<p><label for="pseudo"><strong><?php _('Enter the username'); ?></strong></label> : <input type="text" name="pseudo" id="pseudo" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
-	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
-	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
+	<p><a href="forum.php"><?= _('Back to the forum') ?></a><br />
+	<a href="index.php"><?= _('Back to Mario Kart PC') ?></a></p>
 </main>
 <?php
 include('../includes/footer.php');
@@ -86,7 +73,7 @@ include('../includes/footer.php');
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>
 <script type="text/javascript">
-autocompletePlayer('#pseudo');
+	autocompletePlayer('#pseudo');
 </script>
 <?php
 mysql_close();

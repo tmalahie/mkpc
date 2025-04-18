@@ -20,7 +20,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 				if (!$getId['banned'] && mysql_numrows(mysql_query('SELECT * FROM `ip_bans` WHERE ip1="'.$identifiants[0].'" AND ip2="'.$identifiants[1].'" AND ip3="'.$identifiants[2].'" AND ip4="'.$identifiants[3].'"'))) {
 					mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id="'.$id.'"');
 					mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$id.',"'.$identifiants[0].'","'.$identifiants[1].'","'.$identifiants[2].'","'.$identifiants[3].'")');
-					mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. _('Auto-ban by IP') .'",NULL)');
+					mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. _('Automatic IP ban') .'",NULL)');
 				}
 			}
 			banIfBlackIp();
@@ -201,9 +201,9 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 			monthlyTopPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getMonthlyTopPlayer['nb']),
 		);
 		echo '<a href="ranking-forum.php?month=last">';
-		echo '<img src="images/cups/cup2.png" alt="' . _("Classement") . '"/>';
+		echo '<img src="images/cups/cup2.png" alt="' . _("Ranking") . '"/>';
 		echo _("Ranking of month's most active members");
-		echo '<img src="images/cups/cup2.png" alt="' . _("Classement") .  '"/></a>';
+		echo '<img src="images/cups/cup2.png" alt="' . _("Ranking") .  '"/></a>';
 		echo "</li>";
 	}
 	?>
