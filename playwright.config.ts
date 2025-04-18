@@ -26,6 +26,9 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://127.0.0.1:8080',
 
+    /* Screenshot when the test fails. See https://playwright.dev/docs/api/class-testoptions#test-options-screenshot */
+    screenshot: 'only-on-failure',
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
