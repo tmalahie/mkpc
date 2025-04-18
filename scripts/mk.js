@@ -722,18 +722,14 @@ function updateMenuMusic(menu, forceUpdate) {
 		removeMenuMusic(!bMusicEnabled);
 		if (bMusicEnabled) {
 
-			// easter egg. plays the original theme instead of the remix
-			let shouldPlayOGTheme = (new Date().getMonth() == 3 && new Date().getDate() == 1) // 100% chance on april fools
-			|| (Math.random() * 10000 < 1); // 0.01% chance outside of it
+			playMusicSmoothly(
+				`musics/menu/${gameMenu ? "selection" : "main"}.mp3`,
+				forceUpdate && 0 // 0 delay if forceUpdate else 1000 (default)
+			);
 
-			let path = "musics/menu/" 
-			+ (gameMenu ? "selection" : "main")
-			+ (shouldPlayOGTheme ? "" : "-remix")
-			+ ".mp3";
-
-			playMusicSmoothly(path, forceUpdate && 0);
 			if (!gameMenu)
 				loopAfterIntro(oMusicEmbed, 60.15,54.9);
+
 			var cMusicEmbed = oMusicEmbed;
 			muteOnBlur = function() {
 				if (oMusicEmbed == cMusicEmbed) {
@@ -2779,9 +2775,9 @@ var bRunning = false;
 var bCounting = false;
 
 var currentIframeID = 0;
-function loadMusic(src, autoplay, opts) {
+function loadMusic(src, opts) {
     var res;
-    var isOriginal = isOriginalMusic(src);
+    var isOriginal = src.includes("mp3");
 
     if (isOriginal) {
         if (!loadMusic.cache) {
@@ -2807,7 +2803,7 @@ function loadMusic(src, autoplay, opts) {
             res.volume = fSfxVolume;
         }
 
-        if (autoplay) {
+        if (opts.autoplay) {
             res.play();
         }
     } else {
@@ -2815,7 +2811,7 @@ function loadMusic(src, autoplay, opts) {
         var ytId = youtube_parser(src);
         res = document.createElement("iframe");
         res.id = "youtube-video-" + (currentIframeID++);
-        res.src = "https://www.youtube.com/embed/" + ytId + "?" + (autoplay ? "autoplay=1&amp;" : "") + (opts.start ? "" : "loop=1&amp;") + "enablejsapi=1&amp;allow=autoplay";
+        res.src = "https://www.youtube.com/embed/" + ytId + "?" + (opts.autoplay ? "autoplay=1&amp;" : "") + (opts.start ? "" : "loop=1&amp;") + "enablejsapi=1&amp;allow=autoplay";
         res.opts = opts;
         res.setAttribute("enablejsapi", 1);
         res.setAttribute("allow", "autoplay");
@@ -2983,7 +2979,7 @@ function playIfShould(oKart, src) {
 		return playSoundEffect(src);
 }
 function playSoundEffect(src) {
-	var elt = loadMusic(src, true);
+	var elt = loadMusic(src, { autoplay: true });
 	elt.removeAttribute("loop");
 	elt.onended = function() {
 		document.body.removeChild(this);
@@ -3001,8 +2997,8 @@ function playDistSound(obj, src, maxDist) {
 		}
 	}
 }
-function startMusic(src, autoplay, delay, opts) {
-	var res = loadMusic(src, autoplay, opts);
+function startMusic(src, opts) {
+	var res = loadMusic(src, opts);
 	if (res.volume != null) {
 		if (opts && opts.volume != null)
 			res.volume = opts.volume;
@@ -3010,7 +3006,7 @@ function startMusic(src, autoplay, delay, opts) {
 			res.volume = fMusicVolume;
 	}
 	document.body.appendChild(res);
-	if (delay) {
+	if (opts.delay) {
 		pauseMusic(res);
 		var lMusicEmbed = oMusicEmbed;
 		setTimeout(function() {
@@ -3018,10 +3014,10 @@ function startMusic(src, autoplay, delay, opts) {
 				stopMusic(lMusicEmbed);
 				unpauseMusic(res);
 			}
-		}, delay);
+		}, opts.delay);
 		oMusicEmbed = res;
 	}
-	else if (autoplay) {
+	else if (opts.autoplay) {
 		stopMusic(oMusicEmbed);
 		oMusicEmbed = res;
 	}
@@ -3031,7 +3027,7 @@ function postStartMusic(src) {
 	var volume = bMusicEnabled ? fMusicVolume : fSfxVolume;
 	if (oMusicEmbed)
 		fadeOutMusic(oMusicEmbed,1,0.6,false,volume);
-	return startMusic(src,true,200, { volume: volume });
+	return startMusic(src, { autoplay: true, delay: 200, volume: volume });
 }
 function postResumeMusic(elt, ratio) {
 	if (oMusicEmbed == elt)
@@ -3065,9 +3061,6 @@ function resetPowerup(oKart) {
 		oKart.megachampi = 0;
 		stopMegaMusic(oKart);
 	}
-}
-function isOriginalMusic(src) {
-	return (src.indexOf("mp3") != -1);
 }
 function isOriginalEmbed(elt) {
 	return (elt.tagName.toLowerCase() == "audio");
@@ -3125,7 +3118,7 @@ function startMapMusic(lastlap) {
 		foreachLMap(function(lMap,pMap, i) {
 			if (pMap.music === undefined && pMap.yt === undefined) return;
 			var opts = pMap.yt_opts || {};
-			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
+			lMap.mapMusic = startMusic(pMap.music ? `musics/maps/map${pMap.music}.mp3` : pMap.yt, opts);
 			lMap.mapMusic.permanent = 1;
 			bufferMusic(lMap.mapMusic, function() {
 				if (endingMusic && pMap.music)
@@ -3135,7 +3128,7 @@ function startMapMusic(lastlap) {
 			if (!i) {
 				mapMusic = lMap.mapMusic;
 				if (!i && opts.last) {
-					lastMapMusic = startMusic(opts.last.url, false, 0, opts.last);
+					lastMapMusic = startMusic(opts.last.url, opts.last);
 					lastMapMusic.permanent = 1;
 				}
 			}
@@ -3191,7 +3184,7 @@ function startEngineSound() {
     if (!bSfxEnabled) return;
     
     function loadEngineSFX(src, autoplay=false, listen=false) {
-        const music = loadMusic(src, autoplay);
+        const music = loadMusic(src, { 'autoplay': autoplay, 'volume': fSfxVolume });
         music.permanent = 1;
         document.body.appendChild(music);
         if (listen)
@@ -3252,8 +3245,7 @@ function startEndMusic() {
 	}
 }
 function handleEndRace() {
-	if (bMusicEnabled||bSfxEnabled)
-		startEndMusic();
+	startEndMusic();
 	var events = ["next_circuit"];
 	challengeCheck("end_game", events);
 	challengeCheck("end_gp", events);
@@ -4161,10 +4153,10 @@ function startGame() {
 	var countDownMusic, goMusic;
 	if ((bMusicEnabled || bSfxEnabled) && !onlineSpectatorState) {
 		var vOpts = { volume: bMusicEnabled ? fMusicVolume : fSfxVolume };
-		countDownMusic = loadMusic("musics/events/countdown.mp3", false, vOpts);
+		countDownMusic = loadMusic("musics/events/countdown.mp3", vOpts);
 		countDownMusic.removeAttribute("loop");
 		document.body.appendChild(countDownMusic);
-		goMusic = loadMusic("musics/events/go.mp3", false, vOpts);
+		goMusic = loadMusic("musics/events/go.mp3", vOpts);
 		goMusic.removeAttribute("loop");
 		document.body.appendChild(goMusic);
 		goMusic.blur();
@@ -4830,7 +4822,30 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusicEnabled||bSfxEnabled){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function() {
+							var oKart = aKarts[0];
+							var tours = oKart.tours,
+								demitours = oKart.demitours;
+							oKart.tours = oMap.tours + 1;
+							oKart.demitours = 0;
+							handleCpChange(tours, demitours, 0);
+							oKart.aipoint = 0;
+							oKart.changeView = 180;
+							oKart.maxspeed = 5.7;
+							oKart.speed = 5.7;
+							oKart.tourne = 0;
+							oKart.stopDrifting();
+							oKart.stopStunt();
+							if ($speedometers[0]) $speedometers[0].style.display = "none";
+							document.onkeyup = undefined;
+							document.getElementById("infos0").style.display = "";
+							var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];
+							if (firstButton) firstButton.focus();
+							timerMS = iRecord;
+							showTimer(timerMS);
+							startEndMusic();
+							cycle();
+						}, SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
@@ -5891,11 +5906,11 @@ function continuer() {
 						});
 					}
 					if (bMusicEnabled)
-						endGPMusic = startMusic("musics/menu/congrats.mp3",true,700);
+						endGPMusic = startMusic("musics/menu/congrats.mp3", { autoplay: true, delay: 700 });
 				}
 				else {
 					if (bMusicEnabled)
-						endGPMusic = startMusic("musics/menu/toobad.mp3",true,700);
+						endGPMusic = startMusic("musics/menu/toobad.mp3", { autoplay: true, delay: 700 });
 				}
 
 				reinitChallengeVars();
@@ -10614,10 +10629,10 @@ function initAiPoints(lMap, oKart, inc) {
 			aishortcut = aishortcut.slice(1);
 			if (!aishortcut[2]) aishortcut[2] = {};
 			var aiOptions = aishortcut[2];
-			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
-			if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
-			if (aiOptions.cc == null) aiOptions.cc = 150;
-			if (aiOptions.ccm == null) aiOptions.ccm = 1000;
+			aiOptions.items ??= ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
+			aiOptions.difficulty ??= 1.01;
+			aiOptions.cc ??= 150;
+			aiOptions.ccm ??= 1000;
 			var minDifficulty = 4 + aiOptions.difficulty*0.5;
 			var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
 			var maxSelectedClass = getRelSpeedFromCc(aiOptions.ccm);
@@ -12011,28 +12026,74 @@ function getLineHorizontality(iX,iY, nX,nY, lines) {
 }
 function isBreakingItem(decorBehavior) {
 	if (!decorBehavior.damagingItems) return false;
-	if (decorBehavior.damagingItems.megachampi && collisionPlayer.megachampi) return true;
-	if (decorBehavior.damagingItems.billball && collisionPlayer.billball) return true;
-	if (decorBehavior.damagingItems.etoile && collisionPlayer.etoile) return true;
-	if (decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM) return true;
+
+	const { damagingItems } = decorBehavior;
+	const { megachampi, billball, etoile, champi } = damagingItems;
+
+	if (megachampi && collisionPlayer.megachampi) return true;
+	if (billball && collisionPlayer.billball) return true;
+	if (etoile && collisionPlayer.etoile) return true;
+	if (champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM) return true;
+
+	return false;
 }
 
-function secants(x11,y11,x21,y21, x12,y12,x22,y22) {
-	var den = -x21*y22 + x21*y12 + x11*y22 - x11*y12 + x22*y21 - x22*y11 - x12*y21 + x12*y11;
-	var l = (-x22*y11 + x12*y11 - x11*y12 + x11*y22 + x22*y12 - x12*y22)/den;
-	if ((l >= 0) && (l <= 1)) {
-		var m = (x11*y21 - x21*y11 + x21*y12 - x11*y12 - x12*y21 + x12*y11)/den;
-		if ((m >= 0) && (m <= 1))
-			return [l, m];
-	}
-	return null;
+function secants(x11, y11, x21, y21, x12, y12, x22, y22) {
+    // Get the intersection parameters (l and m)
+    // Line 1 goes from (x11, y11) to (x21, y21)
+    // Line 2 goes from (x12, y12) to (x22, y22)
+    const [l, m] = intersectionLineLine(x11, y11, x21, y21, x12, y12, x22, y22);
+
+    // Check if the intersection point lies within both line segments
+    // l and m are both supposed to be between 0 and 1 (inclusive) if the lines intersect *within* the segments
+    if ((l >= 0 && l <= 1) && (m >= 0 && m <= 1)) {
+        // The segments intersect!
+        return [l, m]; // Return the parameters where the intersection happens
+    }
+
+    // No intersection within the line segments
+    return null;
 }
-function intersectionLineLine(x11,y11,x21,y21, x12,y12,x22,y22) {
-	var den = -x21*y22 + x21*y12 + x11*y22 - x11*y12 + x22*y21 - x22*y11 - x12*y21 + x12*y11;
-	var l = (-x22*y11 + x12*y11 - x11*y12 + x11*y22 + x22*y12 - x12*y22)/den;
-	var m = (x11*y21 - x21*y11 + x21*y12 - x11*y12 - x12*y21 + x12*y11)/den;
-	return [l,m];
+
+function intersectionLineLine(x11, y11, x21, y21, x12, y12, x22, y22) {
+    // Calculate the direction vector of the first line (from point 1 to point 2)
+    const dx1 = x21 - x11;
+    const dy1 = y21 - y11;
+
+    // Calculate the direction vector of the second line (from point 1 to point 2)
+    const dx2 = x22 - x12;
+    const dy2 = y22 - y12;
+
+    // Matrix A represents the linear system:
+    // [dx1  -dx2] * [l] = [bx]
+    // [dy1  -dy2]   [m]   [by]
+    // where l and m are the scalar parameters along the direction vectors of each line
+    const a = dx1;
+    const b = -dx2;
+    const c = dy1;
+    const d = -dy2;
+
+    // Vector B represents the difference between the starting points of the two lines
+    const bx = x12 - x11;
+    const by = y12 - y11;
+
+    // Compute the determinant of matrix A to check if the lines are parallel
+    const det = a * d - b * c;
+
+	// If the determinant is 0, the lines are either parallel or coincident,
+	// so there is no unique intersection point.
+    if (det == 0)
+        return [Infinity, Infinity];
+
+    // Use Cramer's Rule to solve for the scalar parameters l and m
+    // These parameters represent how far along each line the intersection occurs
+    const l = (bx * d - b * by) / det; // l is the scalar along the first line
+    const m = (a * by - bx * c) / det; // m is the scalar along the second line
+
+    // Return the scalars (not the actual point).
+    return [l, m];
 }
+
 function projete(x,y, x1,y1, x2,y2) {
 	var d = (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
 	if (d)
@@ -12514,8 +12575,7 @@ function tombe(iX, iY, iC) {
 			}
 		}
 	}
-	if (fTrou)
-		return fTrou;
+	if (fTrou) return fTrou;
 	if (outsideMap) {
 		if (lMap.trous && lMap.trous.cp) return true;
 		var rotation;
@@ -16309,8 +16369,7 @@ function resetDatas() {
 					window.onbeforeunload = logGameTime;
 					supprArme(0);
 					resetWrongWay(oPlayer);
-					if (bMusicEnabled||bSfxEnabled)
-						startEndMusic();
+					startEndMusic();
 					finishing = true;
 					document.getElementById("racecountdown").innerHTML = rCode[4]-(course=="BB"?6:5);
 					if (!onlineSpectatorId || (onlineSpectatorState === "queuing")) {
@@ -18499,7 +18558,7 @@ function handleWrongWay(oKart) {
 						wrongWaySprite.h = 32;
 					}
 					if (!oKart.wrongWaySound && shouldPlaySound(oKart)) {
-						oKart.wrongWaySound = loadMusic("musics/events/wrongway.mp3", true);
+						oKart.wrongWaySound = loadMusic("musics/events/wrongway.mp3", { autoplay: true });
 						document.body.appendChild(oKart.wrongWaySound);
 					}
 				}
@@ -26210,22 +26269,15 @@ function searchCourse(opts) {
 						}
 					}
 					else {
-						var isAlert = oAlert.checked;
 						oScr.innerHTML = "";
 						oContainers[0].removeChild(oScr);
-						if (isAlert) {
-							var oMusicAlert = document.createElement("embed");
-							oMusicAlert.src = "musics/mkalert.wav";
-							oMusicAlert.setAttribute("loop", false);
-							oMusicAlert.setAttribute("autostart", true);
-							oMusicAlert.style.position = "absolute";
-							oMusicAlert.style.left = "-1000px";
-							oMusicAlert.style.top = "-1000px";
-							document.body.appendChild(oMusicAlert);
+						if (oAlert.checked) {
+							let oMusicAlert = new Audio("musics/events/matchfound.mp3");
+							oMusicAlert.loop = false;
+							oMusicAlert.play();
 							var sTime = new Date().getTime();
 							alert(toLanguage("Opponents have been found !\nGood luck !", "Des adversaires ont \xE9t\xE9 trouv\xE9s !\nBonne chance !"));
 							reponse.time -= Math.round((new Date().getTime()-sTime)/1000);
-							document.body.removeChild(oMusicAlert);
 						}
 						handleMatchmakingSuccess(reponse);
 					}
