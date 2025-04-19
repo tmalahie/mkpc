@@ -24306,13 +24306,20 @@ function selectItemScreen(oScr, callback, options) {
 
 	var itemMode = getItemMode();
 	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
-		oItemDistributions.push(selectedItemDistrib);
-	for (var i=0;i<oItemDistributions.length;i++) {
-		var oItemDistribution = oItemDistributions[i];
-		for (var j=0;j<oItemDistribution.value.length;j++) {
-			for (var item in oItemDistribution.value[j] && !(item in possibleItems))
-				possibleItems.push(item);
+
+	for (const distrib of oItemDistributions) {
+		for (const spot of distrib.value) {
+			for (const item in spot) {
+				if (!possibleItems.includes(item)) {
+					possibleItems.push(item);
+					
+					for (const code in secretCodes) {
+						const data = secretCodes[code];
+						if (data[0] == item)
+							secretCodes[code][2] = true;
+					}
+				}
+			}
 		}
 	}
 
@@ -24789,7 +24796,14 @@ function selectItemScreen(oScr, callback, options) {
 
 				var $textarea = $form.querySelector("textarea");
 
-				importedDistrib = JSON.parse($textarea.value);
+				try {
+					importedDistrib = JSON.parse($textarea.value);
+				}
+				catch (e) {
+					alert(toLanguage("The item distribution text is not formatted correctly!", "Le texte de la distribution des objets n'est pas formaté correctement !"));
+					return;
+				}
+					
 				oScr2.removeChild(oExportScreen);
 
 				for (var i=0;i<importedDistrib.length;i++) {
