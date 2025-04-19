@@ -7769,7 +7769,7 @@ var itemBehaviors = {
 					break;
 				}
 
-				if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)) && isMoving && (i%2) && !fSprite.z)
+				if (isMoving && (i%2) && !fSprite.z && handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)))
 					handleHeightInc(fSprite);
 
 				if ((fSprite.z || fSprite.heightinc) && !(i%2) && isMoving) {
