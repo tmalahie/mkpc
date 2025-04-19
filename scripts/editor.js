@@ -204,8 +204,8 @@ function pasteShape(e,selfData,point) {
 	var clipboardContent = editorClipboard.content;
 	switch (clipboardContent.type) {
 	case "rectangle":
-		clipboardContent.x = point.x - clipboardContent.w/2;
-		clipboardContent.y = point.y - clipboardContent.h/2;
+		clipboardContent.x = Math.floor(point.x - clipboardContent.w/2);
+		clipboardContent.y = Math.floor(point.y - clipboardContent.h/2);
 		break;
 	case "polygon":
 		var polygonCenter = getPolygonCenter(clipboardContent.points);
