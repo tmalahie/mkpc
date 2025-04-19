@@ -9357,9 +9357,6 @@ var decorBehaviors = {
 				}
 				for (var j=0;j<oPlayers.length;j++)
 					decorData[2][j].img.style.opacity = opacity;
-
-				this.canHurt = opacity == 1;
-				this.transparent = opacity < 1;
 			}
 			else {
 				var bSpeed = 5, bDir = (180-decorData[4])*Math.PI/180, bDist = decorData[6][4];
@@ -17006,11 +17003,10 @@ function move(getId, triggered) {
 			oKart.speed = Math.hypot(oKart.x-aPosX,oKart.y-aPosY);
 	}
 	if (collisionDecor) {
-		let canHurt = decorBehaviors[collisionDecor].canHurt;
-		if (clLocalVars.decorsHit && !oKart.cpu && canHurt != false)
+		if (clLocalVars.decorsHit && !oKart.cpu)
 			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
-		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv && localKart && canHurt != false) {
+		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv && localKart) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
 				loseBall(getId);
