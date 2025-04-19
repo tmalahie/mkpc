@@ -3065,7 +3065,7 @@ function shouldStopMegaStarMusic(oKart) {
 		check = shouldPlaySound(oKart);
 
 	else if (!bMusic && iSfx)
-		check = true;
+		check = oKart == oPlayers[0];
 
 	return check;
 }
