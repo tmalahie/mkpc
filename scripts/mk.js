@@ -27328,14 +27328,30 @@ function choose(map,rand) {
 						var oTr = document.createElement("tr");
 
 						let nameCell = document.createElement("td");
-						nameCell.innerHTML = choixJoueurs[i][5];
-						nameCell.style.width = (iScreenScale*20) + "px";
+						var nameDiv = document.createElement("div");
+						nameDiv.style.maxWidth = (iScreenScale*20) + "px";
+						nameDiv.style.overflow = "hidden";
+						nameDiv.style.textOverflow = "ellipsis";
+						nameDiv.style.marginLeft = iScreenScale +"px";
+						nameDiv.style.marginRight = iScreenScale +"px";
+						nameDiv.style.color = "#ccc";
+						nameDiv.style.fontSize = "0.8em";
+						nameDiv.innerHTML = choixJoueurs[i][5];
+						nameCell.appendChild(nameDiv);
 
 						var oTd = document.createElement("td");
 						var isChoix = choixJoueurs[i][2];
 						var isRandom = choixJoueurs[i][3];
-						oTd.innerHTML += isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
-						oTd.style.width = (iScreenScale*35) + "px";
+						var trackDiv = document.createElement("div");
+						trackDiv.style.marginLeft = iScreenScale +"px";
+						trackDiv.style.marginRight = iScreenScale +"px";
+						trackDiv.style.maxWidth = (iScreenScale*35) + "px";
+						trackDiv.style.overflow = "hidden";
+						trackDiv.style.whiteSpace = "nowrap";
+						trackDiv.style.textOverflow = "ellipsis";
+						trackDiv.innerHTML += isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						oTd.appendChild(trackDiv);
+						
 						if (onlineSpectatorId && (choixJoueurs[i][0] == identifiant)) {
 							if (isChoix) {
 								setSpectatorId(undefined);
