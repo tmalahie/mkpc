@@ -11546,7 +11546,8 @@ function dropCurrentItem(oKart) {
 		}
 		if (itemType) {
 			for (var i=0;i<itemCount;i++) {
-				var rAngle = oKart.rotation*Math.PI/180 + (Math.random()-0.5)*0.9*Math.PI, rDist = 9 + Math.random()*6;
+				var rAngle = oKart.rotation*Math.PI/180 + i/itemCount*2*Math.PI + (Math.random()-0.5)*0.5*Math.PI;
+				let rDist = 8 + Math.random()*5;
 				var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
 				dropNewItem(oKart, item);
 				item.sprite[0].fadein(200);
@@ -27351,7 +27352,7 @@ function choose(map,rand) {
 						trackDiv.style.textOverflow = "ellipsis";
 						trackDiv.innerHTML += isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
 						oTd.appendChild(trackDiv);
-						
+
 						if (onlineSpectatorId && (choixJoueurs[i][0] == identifiant)) {
 							if (isChoix) {
 								setSpectatorId(undefined);
