@@ -109,7 +109,7 @@ $nbPages = ceil($nbChallenges/$challengesPerPage);
 include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
-<link rel="stylesheet" type="text/css" href="styles/challenge-creations.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/challenge-creations.css?reload=2" />
 
 <?php
 include('../includes/o_online.php');
@@ -181,6 +181,9 @@ function rejectChallenge(id) {
 }
 function editChallenge(id) {
 	window.open('challengeEdit.php?ch='+id+'&moderate', '_blank');
+}
+function showRejections(id) {
+	window.open('challengeRejections.php?id='+id, '_blank','scrollbars=1, resizable=1, width=800, height=600');
 }
 function remoderateChallenge(id) {
 	o_confirm(o_language ? "Put this challenge back to the &quot;pending moderation&quot; list?" : "Repasser ce défi dans la liste des défis à modérer ?", function(valided) {
@@ -423,6 +426,12 @@ include('../includes/menu.php');
 				if (empty($circuit))
 					continue;
 				$isCup = (strpos($circuit['cicon'], ',') !== false);
+				if (isset($moderate)) {
+					$getRejections = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkclvalidations WHERE challenge="'. $challenge['id'] .'"'));
+					$countRejections = $getRejections['nb'];
+				}
+				else
+					$countRejections = 0;
 				?>
 				<a class="challenges-list-item<?php
 					if ($rateChallenges)
@@ -433,6 +442,8 @@ include('../includes/menu.php');
 						if (isset($challenge['succeeded']))
 							echo ' challenges-list-item-success';
 					}
+					if ($countRejections)
+						echo ' challenges-list-item-moderated';
 					?>" id="challenges-item-<?php echo $challenge['id']; ?>" href="<?php echo 'challengeTry.php?challenge='. $challenge['id']; ?>" id="challenges-item-<?php echo $challenge['id']; ?>">
 					<div class="challenges-item-circuit creation_icon <?php echo ($isCup ? 'creation_cup':'single_creation'); ?>"<?php
 						if (isset($circuit['icon'])) {
@@ -514,6 +525,16 @@ include('../includes/menu.php');
 							?>
 							<div class="challenges-item-author">
 								<?php echo ($language ? 'By':'Par').' <strong>'. $circuit['author'] .'</strong>'; ?>
+							</div>
+							<?php
+						}
+						if ($countRejections) {
+							?>
+							<div class="challenges-item-rejections">
+								<?php
+								echo '<strong>'. $countRejections .' ' . ($language ? ('rejection' . ($countRejections>=2 ? 's':'')):'refus') .'</strong>';
+								echo ' <span class="challenges-item-rejections-details" onclick="javascript:showRejections('. $challenge['id'] .')">['. ($language ? '?' : 'Détails') .']</span>';
+								?>
 							</div>
 							<?php
 						}

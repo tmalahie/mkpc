@@ -136,6 +136,9 @@
 	.challenges-item-description > div {
 		max-height: 80px;
 	}
+	.challenges-list-item-moderated .challenges-item-description > div {
+		max-height: 100px;
+	}
 }
 .challenges-item-description > div::-webkit-scrollbar {
 	width: 12px;
@@ -222,6 +225,16 @@
 	white-space: nowrap;
 	font-size: 0.8em;
 	color: #666;
+}
+.challenges-item-rejections {
+	margin-top: 0.25em;
+	color: #800;
+	font-size: 0.75em;
+}
+.challenges-item-rejections .challenges-item-rejections-details {
+	color: #424;
+	text-decoration: underline;
+	cursor: pointer;
 }
 .challenges-list-item-rate .challenges-item-author {
 	max-width: 200px;
