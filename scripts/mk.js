@@ -24855,7 +24855,7 @@ function selectItemScreen(oScr, callback, options) {
 						if (confirm(toLanguage("Enable "+ secretCodes[code][1][0] +" item?", "Ajouter "+ secretCodes[code][1][1] +"?"))) {
 							possibleItems.push(secretCodes[code][0]);
 							secretCodes[code][2] = true;
-							//oScr.removeChild(oScr2);
+							oScr.removeChild(oScr2);
 							selectItemScreen(oScr, callback, options);
 							return;
 						}
