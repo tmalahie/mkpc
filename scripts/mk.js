@@ -7222,7 +7222,8 @@ var itemBehaviors = {
 			12, // 5: wait
 			1, // 6: scale up, move, damage (boom 3)
 			1, // 7: move
-			3 // 8: disappear
+			3, // 8: disappear
+			15 // 9: wait to prevent early removal (should fix the effectless pow glitch)
 		],
 		onlineResync: false,
 		move: function(fSprite) {
@@ -15249,6 +15250,14 @@ function powCpuDodge(oKart) {
 	}
 }
 
+function powJump(oKart) {
+	if (oKart.z === 0) {
+		oKart.z = 1;
+		oKart.heightinc = 0.5;
+		oKart.jumped = true;
+	}
+}
+
 function powEffect(i, oKart, fSprite) {
 	let fullHit = oKart.z == 0;
 	let spinPower = fullHit ? 62 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
@@ -15260,9 +15269,7 @@ function powEffect(i, oKart, fSprite) {
 	stopDrifting(i);
 
 	if (fullHit) {
-		oKart.z = 1;
-		oKart.heightinc = 0.5;
-		oKart.jumped = true;
+		powJump(oKart);
 		handleItemHit(oKart, "pow");
 
 		if (course === "BB") {
@@ -15284,6 +15291,8 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 			dropCurrentItem(oKart);
 			if (!oKart.protect && !oKart.frminv)
 				powEffect(i, oKart, fSprite);
+			if (oKart.z === 0)
+				powJump(oKart);
 		}
 	}
 }
