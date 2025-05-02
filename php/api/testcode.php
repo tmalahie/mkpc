@@ -22,7 +22,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			if (ip_banned()) {
 				include('../includes/language.php');
 				mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id="'.$id.'"');
-				mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. ($language ? 'Auto-ban by IP' : 'Auto-ban par IP') .'",NULL)');
+				mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. ($language ? 'Auto-ban by IP' : 'Auto-ban par IP') .'",NULL,NULL)');
 				setcookie('mkp', '', 0,'/');
 				session_destroy();
 				$id = 0;
