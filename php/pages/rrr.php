@@ -1091,13 +1091,15 @@ foreach ($data['horspistes'] as $type => &$hps) {
     }
 }
 $trous = $circuitData->trous;
-for ($i=0;$i<4;$i++) {
-    foreach ($trous[$i] as &$trouData) {
-        if (count($trouData) == 6)
-            $trouData = array(array($trouData[0],$trouData[1],$trouData[2]-1,$trouData[3]-1),array($trouData[4],$trouData[5]));
+if (is_array($trous)) {
+    for ($i=0;$i<4;$i++) {
+        foreach ($trous[$i] as &$trouData) {
+            if (count($trouData) == 6)
+                $trouData = array(array($trouData[0],$trouData[1],$trouData[2]-1,$trouData[3]-1),array($trouData[4],$trouData[5]));
+        }
     }
+    $data['trous'] = $trous;
 }
-$data['trous'] = $trous;
 $data['checkpoint'] = $circuitData->checkpoint;
 $data['arme'] = $circuitData->arme;
 $sauts = $circuitData->sauts;
