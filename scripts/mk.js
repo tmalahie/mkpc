@@ -15290,8 +15290,7 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 			dropCurrentItem(oKart);
 			if (!oKart.protect && !oKart.frminv)
 				powEffect(i, oKart, fSprite);
-			if (oKart.z === 0)
-				powJump(oKart);
+			powJump(oKart);
 		}
 	}
 }
