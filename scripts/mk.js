@@ -784,7 +784,6 @@ function baseCustomPersos() {
 }
 
 var itemDistribution;
-let possibleItems = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
 var ptsDistribution;
 
 var oBgLayers = new Array();
@@ -24315,6 +24314,7 @@ function selectItemScreen(oScr, callback, options) {
 
 	var itemMode = getItemMode();
 	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+	let possibleItems = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
 
 	for (const distrib of oItemDistributions) {
 		for (const spot of distrib.value) {
@@ -24329,6 +24329,16 @@ function selectItemScreen(oScr, callback, options) {
 					}
 				}
 			}
+		}
+	}
+
+	// remove battle forbidden items
+	if (itemMode == "BB") {
+		const battleForbidden = ["billball", "eclair"];
+		for (const item of battleForbidden) {
+			const idx = possibleItems.indexOf(item);
+			if (idx !== -1)
+				possibleItems.splice(idx, 1);
 		}
 	}
 
