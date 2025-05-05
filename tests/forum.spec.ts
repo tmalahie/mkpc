@@ -22,10 +22,10 @@ test('logging in and creating a new topic', async ({ page }) => {
   // Create a new topic
   await page.getByRole('link', { name: 'International forum' }).click();
   await page.getByRole('paragraph').filter({ hasText: /^New topic$/ }).getByRole('link', { name: 'New topic' }).click();
-  await page.getByLabel('Title :').click();
-  await page.getByLabel('Title :').fill(TOPIC_NAME);
-  await page.getByLabel('Message :').click();
-  await page.getByLabel('Message :').fill(TOPIC_CONTENT);
+  await page.getByLabel('Title:').click();
+  await page.getByLabel('Title:').fill(TOPIC_NAME);
+  await page.getByLabel('Message:').click();
+  await page.getByLabel('Message:').fill(TOPIC_CONTENT);
   await page.getByRole('button', { name: 'Send' }).click();
 
   // Try to open the topic just after posting it
