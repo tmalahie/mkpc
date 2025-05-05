@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-15 22:15+0100\n"
+"POT-Creation-Date: 2025-05-05 19:04+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,8 +25,9 @@ msgctxt "html language"
 msgid "en"
 msgstr ""
 
-#: php/pages/addNews.php
-msgid "News Mario Kart PC"
+#: php/pages/addNews.php php/pages/editNews.php php/pages/listNews.php
+#: php/pages/supprNews.php
+msgid "Mario Kart PC - News"
 msgstr ""
 
 #: php/pages/addNews.php
@@ -79,20 +80,26 @@ msgstr ""
 msgid "Please enter a content"
 msgstr ""
 
-#: php/pages/addNews.php
-msgid "Title"
+#: php/pages/addNews.php php/pages/editNews.php php/pages/edittopic.php
+#: php/pages/newtopic.php
+msgid "Title:"
 msgstr ""
 
-#: php/pages/addNews.php php/pages/forum.php
-msgid "Category"
+#: php/pages/addNews.php php/pages/editNews.php php/pages/edittopic.php
+msgid "Category:"
+msgstr ""
+
+#: php/pages/addNews.php php/pages/edit.php php/pages/editNews.php
+#: php/pages/edittopic.php php/pages/newtopic.php php/pages/repondre.php
+msgid "BBcode:"
 msgstr ""
 
 #: php/pages/addNews.php
 msgid "Help"
 msgstr ""
 
-#: php/pages/addNews.php
-msgid "Content"
+#: php/pages/addNews.php php/pages/editNews.php
+msgid "Content:"
 msgstr ""
 
 #: php/pages/addNews.php
@@ -519,7 +526,7 @@ msgid "Following an official event (oscars, festival, ...)"
 msgstr ""
 
 #: php/pages/admin.php
-msgid "See <strong>double accounts</strong>"
+msgid "See <strong>alt accounts</strong>"
 msgstr ""
 
 #: php/pages/admin.php
@@ -631,8 +638,8 @@ msgstr ""
 
 #: php/pages/admin.php
 msgid ""
-"Go to the track in question and click on &quot;Edit&quot; or &quot;"
-"Delete&quot;"
+"Go to the track in question and click on &quot;Edit&quot; or "
+"&quot;Delete&quot;"
 msgstr ""
 
 #: php/pages/admin.php
@@ -641,8 +648,8 @@ msgstr ""
 
 #: php/pages/admin.php
 msgid ""
-"Go to the news in question and click on &quot;Edit&quot; or &quot;"
-"Delete&quot;"
+"Go to the news in question and click on &quot;Edit&quot; or "
+"&quot;Delete&quot;"
 msgstr ""
 
 #: php/pages/admin.php
@@ -738,6 +745,11 @@ msgstr ""
 msgid "See archived reports"
 msgstr ""
 
+#: php/pages/edit.php php/pages/edittopic.php php/pages/newtopic.php
+#: php/pages/repondre.php
+msgid "Message:"
+msgstr ""
+
 #: php/pages/forum.php
 msgid "Auto-ban by IP"
 msgstr ""
@@ -811,6 +823,10 @@ msgid "Advanced search"
 msgstr ""
 
 #: php/pages/forum.php
+msgid "Category"
+msgstr ""
+
+#: php/pages/forum.php
 msgid "Topics nb"
 msgstr ""
 
@@ -852,10 +868,9 @@ msgstr ""
 
 #: php/pages/forum.php
 msgid ""
-"The most active member of the month is <a "
-"href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
-"<strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the "
-"1<small class=\"superscript\">st</small>."
+"The most active member of the month is <a href=\"{urlToProfile}"
+"\">{monthlyTopPlayer}</a> with <strong>{monthlyTopPlayerMessagesWithCount}</"
+"strong> since {month} the 1<small class=\"superscript\">st</small>."
 msgstr ""
 
 #: php/pages/forum.php
@@ -938,7 +953,7 @@ msgstr ""
 
 #: php/pages/index.php
 msgid ""
-"Win as many races as possible and <strong>climb in the official ranking</"
+"Win as many races as possible and <strong>climb the official leaderboard</"
 "strong>!"
 msgstr ""
 
@@ -1025,8 +1040,8 @@ msgstr ""
 #: php/pages/index.php
 msgid ""
 "Finally, you can face players from the whole world thanks to the "
-"<strong>multiplayer online mode</strong>! Climb the <a "
-"href=\"{url}\">rankings</a> and become world champion!"
+"<strong>multiplayer online mode</strong>! Climb the <a href=\"{url}"
+"\">rankings</a> and become world champion!"
 msgstr ""
 
 #: php/pages/index.php
@@ -1046,25 +1061,25 @@ msgstr ""
 #: php/pages/index.php
 msgid ""
 "A big thanks to Nintendo, these three sites and these artists without which "
-"Mario Kart PC would have probably never existed !"
+"Mario Kart PC would have probably never existed!"
 msgstr ""
 
 #: php/pages/index.php
 msgid ""
-"<a href=\"{url_main_site}\">Nihilogic</a> for the <a "
-"href=\"{url_mario_kart}\">basic Mario Kart</a>"
+"<a href=\"{url_main_site}\">Nihilogic</a> for the <a href=\"{url_mario_kart}"
+"\">basic Mario Kart</a>"
 msgstr ""
 
 #: php/pages/index.php
 msgid ""
-"<a href=\"{url_main_site}\">SNESMaps</a> for the <a "
-"href=\"{url_mario_kart}\">track images</a>"
+"<a href=\"{url_main_site}\">SNESMaps</a> for the <a href=\"{url_mario_kart}"
+"\">track images</a>"
 msgstr ""
 
 #: php/pages/index.php
 msgid ""
-"<a href=\"{url_main_site}\">Khinsider</a> for the <a "
-"href=\"{url_mario_kart}\">musics</a>"
+"<a href=\"{url_main_site}\">Khinsider</a> for the <a href=\"{url_mario_kart}"
+"\">musics</a>"
 msgstr ""
 
 #: php/pages/index.php

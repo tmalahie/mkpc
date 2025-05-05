@@ -102,7 +102,7 @@ foreach ($get as $k => $getk)
 	showSmallAdSection();
 	?>
 	<form method="post" action="challengeRanking.php">
-	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 	</form>
 	<?php
 	$records = mysql_query('SELECT j.id,j.nom,j.pts_challenge AS nb,c.code FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. ($joueur ? 'j.nom="'.$joueur.'"':'j.pts_challenge>0 AND j.deleted=0') .' ORDER BY j.pts_challenge DESC,j.id');

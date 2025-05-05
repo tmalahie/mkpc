@@ -257,7 +257,7 @@ function o_refreshtable() {
 							var o_ignore = document.createElement("div");
 							o_ignore.innerHTML = o_language ? "Ignore":"Ignorer";
 							o_ignore.onclick = function(e) {
-								o_confirm(o_language ? "Ignore "+ memberPseudo +"?<br />You won't be able to send or receive messages from him." : "Ignorer "+ memberPseudo +" ?<br />Vous ne pourrez plus envoyer ni recevoir de messages de lui.", function(res) {
+								o_confirm(o_language ? "Ignore "+ memberPseudo +"?<br />You won't be able to send or receive messages from them." : "Ignorer "+ memberPseudo +" ?<br />Vous ne pourrez plus envoyer ni recevoir de messages de lui.", function(res) {
 									if (res) {
 										o_xhr("ignore.php", "member="+ memberID, function(reponse) {
 											if (reponse == 1) {

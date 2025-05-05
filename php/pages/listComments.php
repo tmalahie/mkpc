@@ -8,7 +8,7 @@ if (isset($_GET['user'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Comments list of':'Liste des commentaires de'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'List of comments from':'Liste des commentaires de'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -44,7 +44,7 @@ include('../includes/menu.php');
 		$comments = array_slice($comments,($page-1)*$commentsPerPage,$commentsPerPage);
 		$nbPages = ceil($nbComments/$commentsPerPage);
 		?>
-		<h1><?php echo $language ? 'Comments list of':'Liste des commentaires de'; ?> <?php echo $getInfos['nom']; ?> (<?php echo $nbComments; ?>)</h1>
+		<h1><?php echo $language ? 'List of comments from':'Liste des commentaires de'; ?> <?php echo $getInfos['nom']; ?> (<?php echo $nbComments; ?>)</h1>
 		<?php
 		if ($nbComments) {
 			require_once('../includes/utils-date.php');

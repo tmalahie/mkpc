@@ -179,8 +179,8 @@ if ($unban) {
             ?>
             To ban a member you can enter either:
             <ul>
-                <li>His username (ex: <em>tendokiddo</em>)</li>
-                <li>His profile URL (ex: <em><?php echo $origin; ?>/profil.php?id=73654</em>)</li>
+                <li>Their username (ex: <em>tendokiddo</em>)</li>
+                <li>Their profile URL (ex: <em><?php echo $origin; ?>/profil.php?id=73654</em>)</li>
                 <li>The URL of a challenge he published (ex: <em><?php echo $origin; ?>/challengeTry.php?challenge=1234</em>)</li>
                 <li>The URL of a circuit he published (ex: <em><?php echo $origin; ?>/circuit.php?id=1234</em>)</li>
             </ul>

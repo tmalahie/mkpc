@@ -118,7 +118,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<div>
 									<?= _("Race and battle in <strong>online mode</strong>!") ?>
 									<br />
-									<?= _("Win as many races as possible and <strong>climb in the official ranking</strong>!") ?>
+									<?= _("Win as many races as possible and <strong>climb the official leaderboard</strong>!") ?>
 								</div>
 							</div>
 						</div>
@@ -242,7 +242,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		?>
 		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
 		<div>
-			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !") ?>
+			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed!") ?>
 				<ul>
 					<li>
 						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">basic Mario Kart</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>

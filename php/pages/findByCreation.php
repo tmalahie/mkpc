@@ -167,9 +167,9 @@ include('../includes/menu.php');
         <?php
         if ($language) {
             ?>
-            This page allows you to find a user from his creation.<br />
-            This can be useful if you find an inappropriate track or character and want to punish his author,<br />
-            but you don't know his account.<br />
+            This page allows you to find a user from their creation.<br />
+            This can be useful if you find an inappropriate track or character and want to punish their author,<br />
+            but you don't know their account.<br />
             If the user does not have an account, you will have the option to create it.
             <?php
         }

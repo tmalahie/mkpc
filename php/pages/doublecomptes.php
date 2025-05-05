@@ -23,7 +23,7 @@ mysql_query('INSERT IGNORE INTO mkips (SELECT id AS player,identifiant AS ip1,id
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Double accounts':'Double comptes'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Alt accounts':'Double comptes'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -54,11 +54,11 @@ if ($unban) {
 }
 ?>
 <main>
-	<h1><?php echo $language ? 'See double accounts':'Voir les doubles comptes'; ?></h1>
+	<h1><?php echo $language ? 'See alt accounts':'Voir les doubles comptes'; ?></h1>
 	<?php
 	if (isset($_GET['pseudo'])) {
 		echo '<p>';
-		echo $language ? 'Double accounts of '. htmlspecialchars($_GET['pseudo']) .': ' : 'Doubles comptes de '. htmlspecialchars($_GET['pseudo']) .' : ';
+		echo $language ? 'Alt accounts of '. htmlspecialchars($_GET['pseudo']) .': ' : 'Doubles comptes de '. htmlspecialchars($_GET['pseudo']) .' : ';
 		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $_GET['pseudo'] .'"'))) {
 			$getPlayers = mysql_query('SELECT DISTINCT res.player FROM (SELECT player FROM `mkips` m WHERE EXISTS(SELECT * FROM `mkips` m2 WHERE player='. $getId['id'] .' AND m2.ip1=m.ip1 AND m2.ip2=m.ip2 AND m2.ip3=m.ip3 AND m2.ip4=m.ip4) AND player!="'. $getId['id'] .'") res');
 			$v = '';

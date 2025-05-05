@@ -24,6 +24,7 @@ if (isset($profileId)) {
 	$me = ($id == $profileId);
 	include('../includes/language.php');
 	include('../includes/avatars.php');
+	$their = $me ? ($language ? 'your':'mes') : ($language ? 'their':'ses');
 	if (!$me) {
 		if (isset($_GET['unignore'])) {
 			mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"');
@@ -36,7 +37,7 @@ if (isset($profileId)) {
 		if ($getInfos['banned'])
 			$error = $language ? 'This account has been banned.':'Ce compte a été banni.';
 		elseif (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'.$id.'" AND ignored="'.$profileId.'"')))
-			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. You won\'t see his messages in MKPC chat nor in online mode. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Unignore</a>':'Vous venez d\'ignorer '. $getInfos['nom'] .'. Vous ne verrez plus ses messages dans le chat MKPC ni dans le mode en ligne. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Désignorer</a>';
+			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. You won\'t see their messages in MKPC chat nor in online mode. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Unignore</a>':'Vous venez d\'ignorer '. $getInfos['nom'] .'. Vous ne verrez plus ses messages dans le chat MKPC ni dans le mode en ligne. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Désignorer</a>';
 		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,DATE(sub_date) AS sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $profileId .'"'));
 		if ($getProfile['identifiant'] === null)
 			$getProfile['identifiant'] = -1;
@@ -245,7 +246,7 @@ include('../includes/menu.php');
 				$s = ($nbNicks>=2) ? 's':'';
 				?>
 				<div class="last-nick"><?php
-				echo $language ? 'Last username'.$s.':' : 'Ancien'.$s.' pseudo'.$s.' :';
+				echo $language ? 'Previous username'.$s.':' : 'Ancien'.$s.' pseudo'.$s.' :';
 				echo ' ';
 				echo implode(', ', $oldNicks);
 				?></div>
@@ -632,7 +633,7 @@ include('../includes/menu.php');
 				foreach ($lastMessages as $message)
 					print_forum_msg($message);
 				?>
-				<h3><a href="forum-search.php?author=<?php echo $getInfos['nom']; ?>#search-results"><?php echo $language ? 'See all their messages':'Voir tous ses messages'; ?></a></h3>
+				<h3><a href="forum-search.php?author=<?php echo $getInfos['nom']; ?>#search-results"><?php echo $language ? "See all $their messages":"Voir tous $their messages"; ?></a></h3>
 				<?php
 			}
 			else
@@ -716,11 +717,11 @@ include('../includes/menu.php');
 				echo '</tr>';
 				echo '</table>';
 				?>
-				<h3><a href="creations.php?user=<?php echo urlencode($profileId); ?>&amp;tri=1"><?php echo $language ? 'See all their circuits':'Voir tous ses circuits'; ?></a></h3>
+				<h3><a href="creations.php?user=<?php echo urlencode($profileId); ?>&amp;tri=1"><?php echo $language ? "See all $their circuits":"Voir tous $their circuits"; ?></a></h3>
 				<?php
 			}
 			else
-				echo '<h2><em>'. ($language ? 'No created circuit':'Aucun circuit créé') .'</em></h2>';
+				echo '<h2><em>'. ($language ? 'No created circuits':'Aucun circuit créé') .'</em></h2>';
 
 			function print_challenge($challenge, &$challengeParams) {
 				global $language;
@@ -803,7 +804,7 @@ include('../includes/menu.php');
 						print_challenge($challenge, $challengeParams);
 					?>
 					</div>
-					<h3><a href="challengesList.php?author=<?php echo urlencode($profileId); ?>&amp;ordering=rating"><?php echo $language ? 'See all their challenges':'Voir tous ses défis'; ?></a></h3>
+					<h3><a href="challengesList.php?author=<?php echo urlencode($profileId); ?>&amp;ordering=rating"><?php echo $language ? "See all $their challenges":"Voir tous $their défis"; ?></a></h3>
 					<?php
 				}
 			}
@@ -846,7 +847,7 @@ include('../includes/menu.php');
 				}
 				?>
 				</div>
-				<h3><a href="listComments.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all their comments':'Voir tous ses commentaires'; ?></a></h3>
+				<h3><a href="listComments.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? "See all $their comments":"Voir tous $their commentaires"; ?></a></h3>
 				<?php
 			}
 			if ($nbClSucceess['nb']) {
@@ -913,11 +914,11 @@ include('../includes/menu.php');
 				}
 				?>
 				</table>
-				<h3><a href="classement.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all their scores':'Voir tous ses temps'; ?></a></h3>
+				<h3><a href="classement.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? "See all $their records":"Voir tous $their temps"; ?></a></h3>
 				<?php
 			}
 			else
-				echo '<h2><em>'. ($language ? 'No time trial score':'Aucun temps en contre-la-montre') .'</em></h2>';
+				echo '<h2><em>'. ($language ? 'No time trial records':'Aucun temps en contre-la-montre') .'</em></h2>';
 			?>
 			<hr />
 			<?php

@@ -545,7 +545,7 @@
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'to your message in the topic':'à votre message sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'circuit_comment' :
-				$verb = ($language ? 'commented on':((count($names)>1) ? 'ont commenté':' a commenté'));
+				$verb = ($language ? 'commented on':((count($names)>1) ? 'ont commenté':'a commenté'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'reaction_trackcom' :
