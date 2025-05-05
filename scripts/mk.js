@@ -24289,7 +24289,7 @@ function handleCcSelectChange(oSelect,oScr, onSubmit) {
 	else
 		oSelect.currentValue = oSelect.value;
 }
-let secretCodes = {
+const secretCodes = {
 	"darkshell": ["carapacenoire", ["the dark shell", "la carapace noire"], false]
 };
 function selectItemScreen(oScr, callback, options) {
@@ -24310,34 +24310,48 @@ function selectItemScreen(oScr, callback, options) {
 	oTableItems.style.left = (iScreenScale*5) +"px";
 	oTableItems.setAttribute("cellpadding", 0);
 	oTableItems.setAttribute("cellspacing", 0);
-
+	
 	var itemMode = getItemMode();
 	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-	let possibleItems = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
-
-	for (const distrib of oItemDistributions) {
-		for (const spot of distrib.value) {
-			for (const item in spot) {
-				if (!possibleItems.includes(item)) {
-					possibleItems.push(item);
-					
-					for (const code in secretCodes) {
-						const data = secretCodes[code];
-						if (data[0] == item)
-							secretCodes[code][2] = true;
-					}
-				}
-			}
-		}
-	}
+	
+	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
+	const possibleItems = distribOrder.slice();
+	const battleForbidden = ["billball", "eclair"];
 
 	// remove battle forbidden items
 	if (itemMode == "BB") {
-		const battleForbidden = ["billball", "eclair"];
 		for (const item of battleForbidden) {
 			const idx = possibleItems.indexOf(item);
 			if (idx !== -1)
 				possibleItems.splice(idx, 1);
+		}
+	}
+
+	// add typed secret items
+	for (const code in secretCodes) {
+		const data = secretCodes[code];
+
+		const name = data[0];
+		const typed = data[2];
+
+		if (typed && !(possibleItems.includes(name)))
+			possibleItems.push(name);
+	}
+
+	// add secret items that are already in any distrib
+	for (const distrib of oItemDistributions) {
+		for (const spot of distrib.value) {
+			for (const item in spot) {
+				if (!possibleItems.includes(item)) {
+					for (const code in secretCodes) {
+						const data = secretCodes[code];
+						const name = data[0];
+						possibleItems.push(item);
+						if (name === item)
+							secretCodes[code][2] = true;
+					}
+				}
+			}
 		}
 	}
 
