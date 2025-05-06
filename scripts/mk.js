@@ -24,7 +24,7 @@ if (typeof cupOpts === 'undefined') {
 else {
 	if (cupOpts.keyid) {
 		try {
-			cupOpts = JSON.parse(sessionStorage.getItem("cupopt."+cupOpts.keyid));
+			cupOpts = JSON.parse(sessionStorage.getItem(`cupopt.${cupOpts.keyid}`));
 		}
 		catch (e) {
 		}
@@ -595,10 +595,10 @@ function listMapMusics() {
 function removeGameMusics(whitelist) {
 	if (bMusicEnabled || bSfxEnabled) {
 		var oMusics = document.getElementsByClassName("gamemusic");
-		for (var i=oMusics.length-1;i>=0;i--) {
-			var oMusic = oMusics[i];
-			if (!whitelist || whitelist.indexOf(oMusic) === -1)
-				document.body.removeChild(oMusic);
+		for (let music of oMusics) {
+			if (!whitelist || whitelist.includes(music)) {
+				document.body.removeChild(music);
+			}
 		}
 		oMusicEmbed = undefined;
 	}
@@ -749,24 +749,17 @@ function updateMenuMusic(menu, forceUpdate) {
 
 function playMusicSmoothly(src, delay) {
 	if (!delay) delay = 1000;
-	oMusicEmbed = document.createElement("audio");
+	oMusicEmbed = new Audio(src);
 	oMusicEmbed.volume = fMusicVolume;
-	oMusicEmbed.setAttribute("loop", true);
-	oMusicEmbed.style.position = "absolute";
-	oMusicEmbed.style.left = "-1000px";
-	oMusicEmbed.style.top = "-1000px";
-	var oMusicSource = document.createElement("source");
-	oMusicSource.type = "audio/mpeg";
-	oMusicSource.src = src;
-	oMusicEmbed.appendChild(oMusicSource);
-    clearTimeout(oMusicHandler);
+	oMusicEmbed.loop = true;
+	clearTimeout(oMusicHandler);
 	if (delay) {
 		oMusicHandler = setTimeout(function() {
 			oMusicEmbed.play();
 		}, delay);
+	} else {
+		oMusicEmbed.autoplay = true;
 	}
-	else
-		oMusicEmbed.setAttribute("autoplay", true);
 	document.body.appendChild(oMusicEmbed);
 }
 
@@ -2775,11 +2768,10 @@ var bRunning = false;
 var bCounting = false;
 
 var currentIframeID = 0;
-function loadMusic(src, opts) {
+function loadMusic(src, opts={}) {
     var res;
-    var isOriginal = src.includes("mp3");
 
-    if (isOriginal) {
+    if (src.includes("mp3")) {
         if (!loadMusic.cache) {
             loadMusic.cache = {};
         }
@@ -2797,7 +2789,7 @@ function loadMusic(src, opts) {
         oMusicSource.type = "audio/mpeg";
         res.appendChild(oMusicSource);
 
-        if (opts && opts.volume != null) {
+        if (opts.volume != null) {
             res.volume = opts.volume;
         } else {
             res.volume = fSfxVolume;
@@ -2997,7 +2989,7 @@ function playDistSound(obj, src, maxDist) {
 		}
 	}
 }
-function startMusic(src, opts) {
+function startMusic(src, opts={}) {
 	var res = loadMusic(src, opts);
 	if (res.volume != null) {
 		if (opts && opts.volume != null)
@@ -4978,7 +4970,6 @@ function startGame() {
 }
 
 function showVirtualKeyboard() {
-	setupVibrate();
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 
 	function showItemLine(inverted) {
@@ -5372,7 +5363,7 @@ function setupCommonMobileControls() {
 	}
 }
 
-function setupVibrate() {
+function vibration() {
 	if (ctrlSettings.vibration) {
 		navigator.vibrate = navigator.vibrate
 		|| navigator.webkitVibrate /* old versions of Chrome/Opera */
@@ -5385,7 +5376,6 @@ function setupVibrate() {
 }
 
 function showSpectatorKeyboard() {
-	setupVibrate();
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	addButton("\u2190", { key: "left", src: "left" });
 	addButton("\u2192", { key: "right", src: "right" });
@@ -26272,9 +26262,24 @@ function searchCourse(opts) {
 						oScr.innerHTML = "";
 						oContainers[0].removeChild(oScr);
 						if (oAlert.checked) {
-							let oMusicAlert = new Audio("musics/events/matchfound.mp3");
-							oMusicAlert.loop = false;
-							oMusicAlert.play();
+							if (Notification.permission === "granted") {
+								new Notification("Opponents found!", {
+									body: "Good luck!",
+								});
+							}
+
+							// page title blink
+							let originalTitle = document.title;
+							let changedTitle = language ? "Match found!" : "Match trouv\xE9 !";
+							let blinkInterval = setInterval(() => {
+								document.title = (document.title === changedTitle) ? originalTitle : changedTitle;
+							}, 500);
+
+							setTimeout(() => {
+								clearInterval(blinkInterval);
+								document.title = originalTitle;
+							}, 5000);
+
 							var sTime = new Date().getTime();
 							alert(toLanguage("Opponents have been found !\nGood luck !", "Des adversaires ont \xE9t\xE9 trouv\xE9s !\nBonne chance !"));
 							reponse.time -= Math.round((new Date().getTime()-sTime)/1000);
@@ -30867,7 +30872,7 @@ function onButtonTouch(e) {
 	if (e) e.preventDefault();
 	this.style.backgroundColor = "#603";
 	this.dataset.pressed = "1";
-	navigator.vibrate(30);
+	vibration(30);
 	var keycodes = this.dataset.key.split(",");
 	for (var i=0;i<keycodes.length;i++)
 		doPressKey(keycodes[i]);
