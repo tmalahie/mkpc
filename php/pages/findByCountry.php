@@ -83,7 +83,7 @@ $place = ($page-1)*20;
 		<?php
 	}
 	?>
-	<tr><td colspan="3" id="page"><strong>Page : </strong> 
+	<tr><td colspan="3" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
 	<?php
 	function pageLink($page, $isCurrent) {
 		$get = $_GET;

@@ -73,8 +73,8 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	</p>
 	<form method="post" action="edit-pseudo.php">
 	<blockquote>
-		<p><label for="joueur"><strong><?php echo $language ? 'Last username':'Ancien pseudo'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); ?>" required="required" /></p>
-		<p><label for="newpseudo"><strong><?php echo $language ? 'New username':'Nouveau pseudo'; ?></strong></label> : <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); ?>" required="required" /></p>
+		<p><label for="joueur"><strong><?php echo $language ? 'Last username':'Ancien pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); ?>" required="required" /></p>
+		<p><label for="newpseudo"><strong><?php echo $language ? 'New username':'Nouveau pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); ?>" required="required" /></p>
 		<p><input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>

@@ -170,7 +170,7 @@ foreach ($get as $k => $getk)
 			}
 		}
 	?>
-	<tr><td colspan="4" id="page"><strong>Page : </strong> 
+	<tr><td colspan="4" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
 	<?php
 	if ($joueur) {
 		$page = ceil($place/20);

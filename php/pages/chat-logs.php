@@ -160,7 +160,7 @@ include('../includes/menu.php');
 					<div class="mute-form-ctn">
 					<a href="javascript:void(0)" onclick="toggleMute()"><?php echo $language ? 'Mute player':'Muter le joueur'; ?>...</a>
 					<form id="mute-form" onsubmit="mute(event, <?php echo $memberId; ?>)">
-						<label for="mute-time"><?php echo $language ? "Mute for":"Muter pendant"; ?></label> : 
+						<label for="mute-time"><?php echo $language ? "Mute for":"Muter pendant"; ?></label><?php echo $language ? ':':' :'; ?> 
 						<input type="text" size="2" name="mute-time" id="mute-time" value="1" />
 						<select name="unit" style="width:80px">
 							<option value="1"><?php echo $language ? 'minutes':'minutes'; ?></option>

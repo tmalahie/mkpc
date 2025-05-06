@@ -51,7 +51,7 @@ include('../includes/menu.php');
 	<form method="post" action="edit-user.php">
 	<blockquote>
 		<p>
-			<label for="joueur"><strong><?php echo $language ? 'Member username':'Pseudo du membre'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php if (isset($nick)) echo htmlspecialchars($nick); ?>" required="required" />
+			<label for="joueur"><strong><?php echo $language ? 'Member username':'Pseudo du membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php if (isset($nick)) echo htmlspecialchars($nick); ?>" required="required" />
 			<input type="submit" value="Ok" class="action_button" />
 		</p>
 	</blockquote>
