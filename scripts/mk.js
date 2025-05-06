@@ -4723,6 +4723,7 @@ function startGame() {
 							return handleSpectatorInput(e);
 						var gameAction = getGameAction(e);
 						if (!gameAction) return;
+						hadInputDuringRace = true;
 						var aElt = document.activeElement;
 						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit") && e.keyCode) return;
 						if (e.preventDefault)
@@ -5800,6 +5801,7 @@ function continuer() {
 			var forceClic3 = true;
 			oContinue.onclick = function() {
 				forceClic3 = false;
+				hadInputDuringRace = true;
 				nextRace();
 			};
 			if (isOnline)
@@ -6265,6 +6267,8 @@ function nextRace() {
 	};
 	if (course == "GP")
 		fInfos.map = oMap.ref+1;
+	if (!hadInputDuringRace)
+		fInfos.afk = true;
 	if (strPlayer.length == 1)
 		removePlan();
 	oBgLayers.length = 0;
@@ -16239,11 +16243,13 @@ function resetDatas() {
 						setTimeout(function(){if(forceClic2)continuer();}, 5000);
 						oContinue.onclick = function() {
 							forceClic2 = false;
+							hadInputDuringRace = true;
 							continuer();
 						};
 					}
 					oContinue.onclick = function() {
 						forceClic = false;
+						hadInputDuringRace = true;
 						updateTable();
 					};
 					setTimeout(function(){if(forceClic)updateTable();}, 5000);
@@ -16277,6 +16283,7 @@ function resetDatas() {
 					if (lakitu) lakitu.style.display = "none";
 					if (onlineSpectatorState === "queuing") {
 						forceClic = false;
+						hadInputDuringRace = true;
 						infos0.style.display = "none";
 						xhr("getCourse.php", getOnlineCourseParams({
 							spectator: onlineSpectatorId
@@ -19890,6 +19897,9 @@ function releaseOverEvents() {
 			$overElt.onmouseout();
 	}
 }
+var hadInputDuringRace = true;
+if (fInfos && fInfos.afk)
+	hadInputDuringRace = false;
 document.onkeydown = function(e) {
 	if (!oPlayers.length) {
 		var oScr = oContainers[0].childNodes[0];
@@ -20015,6 +20025,8 @@ document.onkeydown = function(e) {
 		return res;
 	}
 	var gameAction = getGameAction(e);
+	if (gameAction)
+		hadInputDuringRace = true;
 	if (oPlayers[0]) {
 		switch (gameAction) {
 			case "up":
@@ -26656,6 +26668,7 @@ function selectMapScreen(opts) {
 			}
 			else {
 				forceClic4 = false;
+				hadInputDuringRace = true;
 				clearMapScreen();
 				if (isOnline)
 					document.getElementById("waitrace").style.visibility = "hidden";
@@ -26899,7 +26912,7 @@ function selectMapScreen(opts) {
 
 			oPImg.onclick = function() {
 				clearMapScreen();
-
+				hadInputDuringRace = true;
 				selectRaceScreen(this.alt*4);
 			}
 
@@ -26968,6 +26981,7 @@ function selectMapScreen(opts) {
 			
 			oPInput.onclick = function() {
 				forceClic4 = false;
+				hadInputDuringRace = true;
 				clearMapScreen();
 				chooseRandMap();
 			};
@@ -27028,12 +27042,21 @@ function selectMapScreen(opts) {
 		if (isOnline) {
 			handleSpectatorLink(function() {
 				forceClic4 = false;
+				hadInputDuringRace = true;
 				clearMapScreen();
 			});
 
 			setTimeout(function() {
 				if (forceClic4) {
+					if (!hadInputDuringRace) {
+						var $spectatorLink = document.getElementById("enable-spectator-mode");
+						if ($spectatorLink) {
+							$spectatorLink.click();
+							return;
+						}
+					}
 					clearMapScreen();
+					hadInputDuringRace = false;
 					chooseRandMap();
 				}
 			}, document.getElementById("racecountdown").innerHTML*1000);
@@ -27141,6 +27164,7 @@ function selectRaceScreen(cup) {
 			oPInput.style.top = (30*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			forceClic4 = false;
+			hadInputDuringRace = true;
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			if (isOnline && isCup && !isMCups) {
@@ -27234,6 +27258,7 @@ function selectRaceScreen(cup) {
 
 			mDiv.onclick = function() {
 				forceClic4 = false;
+				hadInputDuringRace = true;
 				oScr.innerHTML = "";
 				oContainers[0].removeChild(oScr);
 				if (!isOnline) {
@@ -27275,6 +27300,7 @@ function selectRaceScreen(cup) {
 			oPInput.onclick = function() {
 				if (course != "CM") {
 					forceClic4 = false;
+					hadInputDuringRace = true;
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
 					chooseRandMap();
@@ -27291,13 +27317,22 @@ function selectRaceScreen(cup) {
 			setSRest();
 			handleSpectatorLink(function() {
 				forceClic4 = false;
+				hadInputDuringRace = true;
 				oScr.innerHTML = "";
 				oContainers[0].removeChild(oScr);
 			});
 			setTimeout(function() {
 				if (forceClic4) {
+					if (!hadInputDuringRace) {
+						var $spectatorLink = document.getElementById("enable-spectator-mode");
+						if ($spectatorLink) {
+							$spectatorLink.click();
+							return;
+						}
+					}
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
+					hadInputDuringRace = false;
 					chooseRandMap();
 				}
 			}, document.getElementById("racecountdown").innerHTML*1000);
@@ -28485,6 +28520,7 @@ function showSpectatorLink(opts) {
 	else {
 		$spectatorLink.title = toLanguage("You'll see games but not play on it", "Vous verrez les parties mais ne jouerez pas dedans");
 		$spectatorLink.innerHTML = toLanguage('Switch to spectator mode', 'Passer en mode spectateur');
+		$spectatorLink.id = "enable-spectator-mode";
 		$spectatorLink.onclick = function(e) {
 			e.preventDefault();
 			if (switchingSpectator) return;
