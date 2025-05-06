@@ -4,8 +4,11 @@ include('../php/includes/language.php');
 include('../php/includes/session.php');
 include('../php/includes/smileys.php');
 ?>
+
+SMILEY_NAMES = <?= json_encode($smileyNames); ?>;
+
 function helpBbCode() {
-	window.open('<?php echo $language ? 'helpBbCode':'aideBbCode'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
+	window.open('<?= $language ? 'helpBbCode':'aideBbCode'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
 	void(0);
 }
 function ajouter(smiley) {
@@ -13,8 +16,7 @@ function ajouter(smiley) {
 	field.focus();
 	
 	if (window.ActiveXObject) {
-		var textRange = document.selection.createRange();            
-		var currentSelection = textRange.text;
+		var textRange = document.selection.createRange();
 		textRange.text = smiley;
 		textRange.moveStart('character', 0);
 		textRange.moveEnd('character', 0);
@@ -42,10 +44,6 @@ function closeSmileys() {
 	document.body.removeChild(document.getElementById("smileys-list"));
 }
 function moresmileys() {
-	var smileyNames = [<?php
-	for ($i=0;$i<$nbSmileys2;$i++)
-		echo ($i ? ',':'') . '"'. $smileyNames[$i] .'"';
-	?>];
 	var frame = document.createElement("div");
 	frame.id = "smileys-list";
 	frame.style.width = "640px";
@@ -64,13 +62,13 @@ function moresmileys() {
 			return false;
 		}
 	}
-	for (var i=0;i<smileyNames.length;i++) {
+	for (var i=0;i<SMILEYNAMES.length;i++) {
 		var smiley = document.createElement("img");
 		smiley.src = "images/smileys/smiley"+ i +".gif";
-		smiley.alt = smileyNames[i];
+		smiley.alt = SMILEYNAMES[i];
 		if (!smiley.dataset)
 			smiley.dataset = {};
-		smiley.dataset.i = smileyNames[i];
+		smiley.dataset.i = SMILEYNAMES[i];
 		smiley.onclick = function() {
 			ajouterPlus(this.dataset.i);
 		};
@@ -141,53 +139,23 @@ function htmlspecialchars(str) {
 
 function apercu() {
 	var content = document.forms[0].message.value;
-	if (content) {
-		var now = new Date();
-		document.querySelectorAll('.mDate')[0].innerHTML = "<?php echo $language ? 'Today at "+ now.getHours() +":"+ zerofill(now.getMinutes()) +":"+ zerofill(now.getSeconds()) +"':'Aujourd\'hui &agrave; "+ now.getHours() +":"+ zerofill(now.getMinutes()) +":"+ zerofill(now.getSeconds()) +"'; ?>";
-		content = htmlspecialchars(content);
-		content = content.replace(/\[center\]([\s\S]*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>');
-		content = content.replace(/\[right\]([\s\S]*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>');
-		content = content.replace(/\[left\]([\s\S]*?)\[\/left\]/g, '<div style="text-align: left;">$1</div>');
-		content = content.replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>');
-		content = content.replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>');
-		content = content.replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>');
-		content = content.replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>');
-		content = content.replace(/\[url\](http[^\[]*?)\[\/url\]/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-		content = content.replace(/\[img\](http[^\[]*?)\[\/img\]/g, '<img src="$1" alt="$1" />');
-		content = content.replace(/\[url=(http[^\]]+)\]([\s\S]*?)\[\/url\]/g, '<a href="$1" class="type1" target="_blank" rel="noopener noreferrer">$2</a>');
-		content = content.replace(/\[color=([^;\]]+)\]([\s\S]*?)\[\/color\]/g, '<span style="color: $1">$2</span>');
-		content = content.replace(/\[font=([a-zA-Z ]+)\]([\s\S]*?)\[\/font\]/g, '<span style="font-family: $1">$2</span>');
-		content = content.replace(/\[size=([0-9]{1,2})\]([\s\S]*?)\[\/size\]/g, '<span style="font-size: $1pt;">$2</span>');
-		content = content.replace(/\[yt\].*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?\[]*).*\[\/yt\]/g, '<iframe src="https://www.youtube.com/embed/$1" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>');
-		content = content.replace(/\[yt\].*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?\[]*).*\[\/yt\]/g, '<iframe src="https://www.youtube.com/embed/$1" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>');
-		content = content.replace(/\[(fr|en)\]([\s\S]*?)\[\/\1\][ \r\n\t]*\[(fr|en)\]([\s\S]*?)\[\/\3\]/g, '<div class="tr-ctn tr-ctn-<?php echo ($language ? 'en':'fr'); ?>"><div class="tr-tabs"><div class="tr-tab-$1" onclick="this.parentNode.parentNode.className=\'tr-ctn tr-ctn-$1\'"></div><div class="tr-tab-$3" onclick="this.parentNode.parentNode.className=\'tr-ctn tr-ctn-$3\'"></div></div><div class="tr-msgs"><div class="tr-msg-$1">$2</div><div class="tr-msg-$3">$4</div></div></div>');
-		var aContent;
-		do {
-			aContent = content;
-			content = content.replace(/\[quote\]([\s\S]*?)\[\/quote\]/g, '<div class="quote1">$1</div>');
-			content = content.replace(/\[quote=([\s\S]+?)\]([\s\S]*?)\[\/quote\]/g, '<div class="quote1"><div class="quote1author"><a href="profil.php?pseudo=$1" target="_blank">$1</a> <?php echo $language ? 'wrote':'a &eacute;crit '; ?>:</div>$2</div>');
-		} while (content != aContent);
-		do {
-			aContent = content;
-			content = content.replace(/\[spoiler\]([\s\S]*?)\[\/spoiler\]/g, '<div class="spoiler1"><div class="spoiler1disp">Spoiler [<a class="spoiler1show" href="#null" onclick="this.parentNode.parentNode.className=\'spoiler1 spoiler1shown\';return false"><?php echo $language ? 'Show':'Afficher'; ?></a><a class="spoiler1hide" href="#null" onclick="this.parentNode.parentNode.className=\'spoiler1\';return false"><?php echo $language ? 'Hide':'Masquer'; ?></a>]</div><div class="spoiler1cont">$1</div></div>');
-		} while (content != aContent);
-		content = content.replace(/\B@([a-zA-Z0-9\-_]+)/g, '<a class="ref1" href="profil.php?pseudo=$1" target="_blank">@$1</a>');
-		content = replaceAll(replaceAll(replaceAll(content, "  ", " &nbsp;"), "\n", "<br />"), "\t", " &nbsp; &nbsp; &nbsp; &nbsp;");
-		<?php
-		for ($i=0;$i<$nbSmileys2;$i++)
-			echo 'content = replaceAll(content, ":'. $smileyNames[$i] .':", \'<img src="images/smileys/smiley'. $i .'.gif" alt="'. $smileyNames[$i] .'" />\');';
-		for ($i=0;$i<$nbSmileys;$i++)
-			echo 'content = replaceAll(content, "'. $smileys[$i] .'", \'<img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" />\');';
-		for ($i=0;$i<$nbSmileys2;$i++)
-			echo 'content = replaceAll(content, ":'. $i .':", \'<img src="images/smileys/smiley'. $i .'.gif" alt="Smiley '. $smileyNames[$i] .'" />\');';
-		?>
-		document.getElementById("fMessages").style.display = "block";
+	if (!content) {
+		document.getElementById("fMessages").style.display = "none";
+		return;
+	}
+
+	var now = new Date();
+	document.querySelectorAll('.mDate')[0].innerHTML = "<?php echo $language ? 'Today at "+ now.getHours() +":"+ zerofill(now.getMinutes()) +":"+ zerofill(now.getSeconds()) +"':'Aujourd\'hui &agrave; "+ now.getHours() +":"+ zerofill(now.getMinutes()) +":"+ zerofill(now.getSeconds()) +"'; ?>";
+	o_xhr("bbcodeConvert.php", content, function(r) {
+		content = r;
+
 		var mContent = document.querySelectorAll(".mBody")[0];
 		mContent.innerHTML = "";
 		mContent.style.width = "";
-		mContent.style.width = mContent.scrollWidth +"px";
+		mContent.style.width = mContent.scrollWidth + "px";
 		mContent.innerHTML = content;
-	}
-	else
-		document.getElementById("fMessages").style.display = "none";
+
+		document.getElementById("fMessages").style.display = "block";
+		return true;
+	});
 }
