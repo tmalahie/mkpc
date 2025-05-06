@@ -2528,6 +2528,7 @@ function arme(ID, backwards, forwards) {
 			oKart.size = 1;
 			oKart.mini = 0;
 			oKart.protect = true;
+			playIfShould(oKart, "musics/events/megamushroom_start.mp3");
 			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
@@ -2749,7 +2750,7 @@ function arme(ID, backwards, forwards) {
 			var shiftDist = backwards?7.5:(6+uL);
 			if (oKart.using.length > 1)
 				shiftDist += 5;
-			var itemPayload = throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:0,vx:uX,vy:uY,owner:oKart.id,lives:10});
+			var itemPayload = throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:oKart.z,vx:uX,vy:uY,owner:oKart.id,lives:10});
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
@@ -2770,9 +2771,9 @@ function arme(ID, backwards, forwards) {
 			var lapId = getCurrentLapId(oKart);
 			var itemPayload;
 			if (backwards)
-				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:oKart.z,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
 			else
-				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:oKart.z,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			throwItem(oKart, itemPayload);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -3056,12 +3057,23 @@ function postResumeMusic(elt, ratio) {
 		}, 500);
 	}
 }
+function shouldStopMegaStarMusic(oKart) {
+	let check;
+
+	if (bMusic && iSfx)
+		check = shouldPlaySound(oKart);
+
+	else if (!bMusic && iSfx)
+		check = oKart == oPlayers[0];
+
+	return check;
+}
 function stopStarMusic(oKart) {
-	if (shouldPlaySound(oKart) && !oPlayers[1])
+	if (shouldStopMegaStarMusic(oKart))
 		postResumeMusic(mapMusic, 0.9);
 }
 function stopMegaMusic(oKart) {
-	if (shouldPlaySound(oKart) && !oPlayers[1])
+	if (shouldStopMegaStarMusic(oKart))
 		postResumeMusic(mapMusic, 0.92);
 }
 function resetPowerup(oKart) {
@@ -7171,6 +7183,7 @@ var itemBehaviors = {
 								if (kart.megachampi && !kart.etoile) {
 									kart.megachampi = Math.min(kart.megachampi, 8);
 									kart.size = Math.pow(1.05, kart.megachampi);
+									playIfShould(kart, "musics/events/megamushroom_end.mp3");
 								}
 							}
 						}
@@ -7208,7 +7221,8 @@ var itemBehaviors = {
 			12, // 5: wait
 			1, // 6: scale up, move, damage (boom 3)
 			1, // 7: move
-			3 // 8: disappear
+			3, // 8: disappear
+			15 // 9: wait to prevent early removal (should fix the effectless pow glitch)
 		],
 		onlineResync: false,
 		move: function(fSprite) {
@@ -7720,11 +7734,11 @@ var itemBehaviors = {
 					fSprite.vx = cSpeed * Math.sin(theta);
 					fSprite.vy = cSpeed * Math.cos(theta);
 				}
-				else if ((isMoving && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
+				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY)) {
 					if (ctx && ctx.checkCollisions) {
 						ctx.checkCollisions(fSprite);
 						if (fSprite.deleted)
@@ -7742,7 +7756,7 @@ var itemBehaviors = {
 					if (collisionDecorHit)
 						fSprite.lives = 0;
 					if (fSprite.lives > 0) {
-						var horizontality = getHorizontality(fSprite.x,fSprite.y,collisionFloor?collisionFloor.z:0, fMoveX,fMoveY);
+						var horizontality = getHorizontality(fSprite.x,fSprite.y,collisionFloor?collisionFloor.z:fSprite.z, fMoveX,fMoveY);
 						var ux = horizontality[0], uy = horizontality[1];
 						var vx = fSprite.vx, vy = fSprite.vy;
 						var m_u = vx*ux + vy*uy;
@@ -7753,6 +7767,15 @@ var itemBehaviors = {
 					else
 						detruit(fSprite);
 					break;
+				}
+
+				if (isMoving && (i%2) && !fSprite.z && handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)))
+					handleHeightInc(fSprite);
+
+				if ((fSprite.z || fSprite.heightinc) && !(i%2) && isMoving) {
+					if (!fSprite.heightinc)
+						fSprite.heightinc = 0;
+					handleHeightInc(fSprite);
 				}
 			}
 		},
@@ -7907,6 +7930,7 @@ var itemBehaviors = {
 							}
 							fSprite.x = fNewPosX;
 							fSprite.y = fNewPosY;
+							fSprite.z = tCible.z;
 							l = steps-1;
 						}
 						else {
@@ -8045,7 +8069,7 @@ var itemBehaviors = {
 						}
 					}
 					else if (!fSprite.z) {
-						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
+						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 5)) {
 							for (var k=0;k<4;k++) {
 								var h = getHorizontality(fSprite.x,fSprite.y,fSprite.z0||0, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
 								if (h) {
@@ -8069,12 +8093,10 @@ var itemBehaviors = {
 							}
 						}
 
-						if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY))) {
-							if ((l%2))
-								handleHeightInc(fSprite);
-						}
+						if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)) && (l%5))
+							handleHeightInc(fSprite);
 					}
-					if ((fSprite.z || fSprite.heightinc) && !(l%2)) {
+					if ((fSprite.z || fSprite.heightinc) && !(l%5)) {
 						if (!fSprite.heightinc)
 							fSprite.heightinc = 0;
 						handleHeightInc(fSprite);
@@ -9857,7 +9879,7 @@ var decorBehaviors = {
 										fMoveX = 0;
 										fMoveY = 0;
 									}
-									else if (pAsset = touche_asset(decorData[0],decorData[1], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
+									else if (pAsset = touche_asset(decorData[0],decorData[1],decorData[3], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
 										switch (pAsset[0]) {
 										case "bumpers":
 											var ux = fMoveX, uy = fMoveY;
@@ -11470,6 +11492,11 @@ function loseUsingItems(oKart) {
 	if (oKart.using.length) {
 		for (var i=0;i<oKart.using.length;i++) {
 			var oItem = oKart.using[i];
+			// space rotating shells to prevent instant breaking
+			if (oKart.rotitem && (oItem.type == "carapace" || oItem.type == "carapace-rouge")) {
+				oItem.x += (oKart.x - oItem.x) * 3.5;
+				oItem.y += (oKart.y - oItem.y) * 3.5;
+			}
 			if (oItem.z)
 				oItem.z = 0;
 			var itemBehavior = itemBehaviors[oItem.type];
@@ -11487,44 +11514,48 @@ function loseUsingItem(oKart) {
 		loseUsingItems(oKart);
 }
 function dropCurrentItem(oKart) {
-	var sArme = oKart.arme;
-	if (!sArme) return;
-	var sRoulette = oKart.roulette;
-	var iKart = aKarts.indexOf(oKart);
-	consumeItem(iKart);
-	consumeItemIfDouble(iKart);
 	delete oKart.champiType;
 	delete oKart.champior;
 	delete oKart.champior0;
-	if (sRoulette < 25) return;
-	if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) return;
-	var itemCount = 1;
-	var sArmeCountRegex = sArme.match(/^(.+)X(\d+)$/);
-	if (sArmeCountRegex) {
-		sArme = sArmeCountRegex[1];
-		itemCount = +sArmeCountRegex[2];
-	}
-	var itemType;
-	switch (sArme) {
-	case "champi":
-	case "etoile":
-	case "banane":
-	case "carapace":
-	case "poison":
-		itemType = sArme;
-		break;
-	case "carapacerouge":
-		itemType = "carapace-rouge";
-		break;
-	}
-	if (itemType) {
-		for (var i=0;i<itemCount;i++) {
-			var rAngle = oKart.rotation*Math.PI/180 + (Math.random()-0.5)*0.9*Math.PI, rDist = 9 + Math.random()*6;
-			var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
-			dropNewItem(oKart, item);
-			item.sprite[0].fadein(200);
+	var iKart = aKarts.indexOf(oKart);
+	for (let j = 0; j < 2; j++) {
+		var sArme = j == 0 ? oKart.arme : oKart.stash; 
+		if (!sArme) continue;
+		var sRoulette = j == 0 ? oKart.roulette : oKart.roulette2;
+		if (sRoulette < 25) continue;
+		if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) continue;
+		var itemCount = 1;
+		var sArmeCountRegex = sArme.match(/^(.+)X(\d+)$/);
+		if (sArmeCountRegex) {
+			sArme = sArmeCountRegex[1];
+			itemCount = +sArmeCountRegex[2];
+		}
+		var itemType;
+		switch (sArme) {
+		case "champi":
+		case "etoile":
+		case "banane":
+		case "carapace":
+		case "poison":
+		case "fauxobjet":
+			itemType = sArme;
+			break;
+		case "carapacerouge":
+			itemType = "carapace-rouge";
+			break;
+		}
+		if (itemType) {
+			for (var i=0;i<itemCount;i++) {
+				var rAngle = oKart.rotation*Math.PI/180 + i/itemCount*2*Math.PI + (Math.random()-0.5)*0.5*Math.PI;
+				let rDist = 8 + Math.random()*5;
+				var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
+				dropNewItem(oKart, item);
+				item.sprite[0].fadein(200);
+			}
 		}
 	}
+	consumeItem(iKart);
+	consumeItemIfDouble(iKart);
 }
 function deleteUsingItems(oKart) {
 	for (var i=oKart.using.length-1;i>=0;i--)
@@ -13164,6 +13195,21 @@ var challengeRules = {
 		}
 	},
 	"avoid_decors": {
+		"preinitSelected": function(scope) {
+			const fireballsDecors = ["fire3star", "firering"];
+			const fireballDecors = ["fireplant"];
+
+			for (let decorType in scope.value) {
+				if (decorType.startsWith("custom-"))
+					decorType = getDecorCustomData(decorType, oMap).type;
+
+				if (fireballsDecors.includes(decorType) && !scope.value.fireballs)
+					scope.value.fireballs = {};
+
+				if (fireballDecors.includes(decorType) && !scope.value.fireball)
+					scope.value.fireball = {};
+			}
+		},
 		"initLocalVars": function(scope) {
 			if (!clLocalVars.decorsHit)
 				clLocalVars.decorsHit = {};
@@ -14316,6 +14362,8 @@ function showClFailedPopup() {
 	$popup.style.display = "flex";
 	$popup.style.alignItems = "center";
 	$popup.style.fontFamily = "Courier New";
+	$popup.style.zIndex = 1000000;
+	$popup.style.textShadow = "1px 1px 0 black, -1px 1px 0 black, 1px -1px 0 black, -1px -1px 0 black";
 	$popup.innerHTML = '<strong style="color:#800;font-size:1.8em">&times;</strong>&nbsp;' + (language ? 'Challenge failed...':'Défi échoué...');
 	var hudScreen = oChallengeCpts.parentNode;
 	hudScreen.appendChild($popup);
@@ -14996,11 +15044,11 @@ function touche_poison(iX, iY, iP) {
 	}
 	return false;
 }
-function touche_champi(iX, iY) {
+function touche_champi(iX, iY, iI, iJ) {
 	for (var i=0;i<items["champi"].length;i++) {
 		var oBox = items["champi"][i];
-		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
-			if (itemInteractionsDisabled(oBox)) continue;
+		const hitbox = [oBox.x-4, oBox.y-4, 8, 8];
+		if (pointCrossRectangle(iX, iY, iI, iJ, hitbox) || pointInRectangle(iX, iY, hitbox)) {
 			detruit(oBox);
 			return true;
 		}
@@ -15008,11 +15056,11 @@ function touche_champi(iX, iY) {
 	return false;
 }
 
-function touche_etoile(iX, iY) {
+function touche_etoile(iX, iY, iI, iJ) {
 	for (var i=0;i<items["etoile"].length;i++) {
 		var oBox = items["etoile"][i];
-		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
-			if (itemInteractionsDisabled(oBox)) continue;
+		const hitbox = [oBox.x-4, oBox.y-4, 8, 8];
+		if (pointCrossRectangle(iX, iY, iI, iJ, hitbox) || pointInRectangle(iX, iY, hitbox)) {
 			detruit(oBox);
 			return true;
 		}
@@ -15201,22 +15249,26 @@ function powCpuDodge(oKart) {
 	}
 }
 
+function powJump(oKart) {
+	if (oKart.z === 0) {
+		oKart.z = 1;
+		oKart.heightinc = 0.5;
+		oKart.jumped = true;
+	}
+}
+
 function powEffect(i, oKart, fSprite) {
 	let fullHit = oKart.z == 0;
 	let spinPower = fullHit ? 62 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
 	if (spinPower % 2 === 1) spinPower++;
 
-	loseUsingItems(oKart);
-	dropCurrentItem(oKart);
 	oKart.spin(spinPower);
 	oKart.champi = 0;
 	delete oKart.champiType;
 	stopDrifting(i);
 
 	if (fullHit) {
-		oKart.z = 1;
-		oKart.heightinc = 0.5;
-		oKart.jumped = true;
+		powJump(oKart);
 		handleItemHit(oKart, "pow");
 
 		if (course === "BB") {
@@ -15232,12 +15284,18 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
 	
-	if (fSprite.countstate === 6 && fSprite.countdown === 1)
-		if (oKart != oKartOwner && !oKart.protect && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant))
-			powEffect(i, oKart, fSprite);
+	if (fSprite.countstate === 6 && fSprite.countdown === 1) {
+		if (oKart != oKartOwner && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant)) {
+			loseUsingItems(oKart);
+			dropCurrentItem(oKart);
+			if (!oKart.protect && !oKart.frminv)
+				powEffect(i, oKart, fSprite);
+			powJump(oKart);
+		}
+	}
 }
 
-function touche_asset(aPosX,aPosY, iX,iY) {
+function touche_asset(aPosX,aPosY,aPosZ, iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	var turningAssets = ["pointers", "flippers"];
 	for (var i=0;i<turningAssets.length;i++) {
@@ -15299,7 +15357,7 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 			for (var i=0;i<lMap[key].length;i++) {
 				var asset = lMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cW = Math.max(4,asset[1][2]/2), cH = Math.max(4,asset[1][3]/2);
-				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH))
+				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH) && aPosZ == 0)
 					return [key,asset];
 			}
 		}
@@ -15314,7 +15372,7 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 				var flower = asset[1];
 				var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
 				var oRect = [x-w,y-w,2*w,2*h];
-				if (pointInRectangle(iX,iY, oRect))
+				if (pointInRectangle(iX,iY, oRect) && aPosZ == 0)
 					return [key,asset];
 			}
 		}
@@ -16541,7 +16599,7 @@ function move(getId, triggered) {
 	var fNewPosX = oKart.x + fMoveX;
 	var fNewPosY = oKart.y + fMoveY;
 	
-	var aPosX = oKart.x, aPosY = oKart.y;
+	var aPosX = oKart.x, aPosY = oKart.y, aPosZ = oKart.z;
 
 	if (!oKart.z && !oKart.heightinc) {
 		if (clLocalVars.autoAccelerate && !oKart.cpu)
@@ -16583,27 +16641,34 @@ function move(getId, triggered) {
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
-			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
-			fMidPosX = fNewPosX; fMidPosY = fNewPosY;
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
-				handleHardHit(getId);
-			else if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
-				handleSoftHit(getId);
-			else if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
-				handlePoisonHit(getId);
-			else if ((touche_champi(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && touche_champi(fMidPosX, fMidPosY))) && !oKart.tourne) {
-				oKart.champi = 20;
-				oKart.champiType = CHAMPI_TYPE_ITEM;
-				oKart.maxspeed = 11;
-				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
-				playIfShould(oKart,"musics/events/boost.mp3");
+			if (!oKart.cannon) {
+				while (touche_champi(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne) {
+					oKart.champi = 20;
+					oKart.champiType = CHAMPI_TYPE_ITEM;
+					oKart.maxspeed = 11;
+					oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
+					playIfShould(oKart,"musics/events/boost.mp3");
+				}
+				while (touche_etoile(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne && !oKart.billball) {
+					setStarState(oKart, 80);
+				}
+
+				var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
+				fMidPosX = fNewPosX; fMidPosY = fNewPosY;
+				while ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))))
+					if (!oKart.protect && !oKart.frminv)
+						handleHardHit(getId);
+				while ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
+					if (!oKart.protect && !oKart.frminv)
+						handleSoftHit(getId);
+				while ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))))
+					if (!oKart.protect && !oKart.frminv)
+						handlePoisonHit(getId);
 			}
-			else if ((touche_etoile(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && touche_etoile(fMidPosX, fMidPosY))) && !oKart.tourne && !oKart.billball) {
-				setStarState(oKart, 80);
-			}
-			else if (!oKart.tourne && (oKart.z < 1.2)) {
+
+			if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
-				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
+				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
 				if (asset) {
@@ -17934,6 +17999,8 @@ function move(getId, triggered) {
 		oKart.megachampi--;
 		if (oKart.megachampi > 71)
 			oKart.size *= 1.05;
+		else if (oKart.megachampi == 8)
+			playIfShould(oKart, "musics/events/megamushroom_end.mp3");
 		else if (oKart.megachampi < 8) {
 			oKart.size /= 1.05;
 			if (!oKart.megachampi) {
@@ -24222,6 +24289,9 @@ function handleCcSelectChange(oSelect,oScr, onSubmit) {
 	else
 		oSelect.currentValue = oSelect.value;
 }
+const secretCodes = {
+	"darkshell": ["carapacenoire", ["the dark shell", "la carapace noire"], false]
+};
 function selectItemScreen(oScr, callback, options) {
 	options = options || {};
 	var oScr2 = document.createElement("div");
@@ -24240,19 +24310,50 @@ function selectItemScreen(oScr, callback, options) {
 	oTableItems.style.left = (iScreenScale*5) +"px";
 	oTableItems.setAttribute("cellpadding", 0);
 	oTableItems.setAttribute("cellspacing", 0);
+	
 	var itemMode = getItemMode();
-	var possibleItems = {};
 	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
-		oItemDistributions.push(selectedItemDistrib);
-	for (var i=0;i<oItemDistributions.length;i++) {
-		var oItemDistribution = oItemDistributions[i];
-		for (var j=0;j<oItemDistribution.value.length;j++) {
-			for (var item in oItemDistribution.value[j])
-				possibleItems[item] = 1;
+	
+	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
+	const possibleItems = distribOrder.slice();
+	const battleForbidden = ["billball", "eclair"];
+
+	// remove battle forbidden items
+	if (itemMode == "BB") {
+		for (const item of battleForbidden) {
+			const idx = possibleItems.indexOf(item);
+			if (idx !== -1)
+				possibleItems.splice(idx, 1);
 		}
 	}
-	possibleItems = Object.keys(possibleItems);
+
+	// add typed secret items
+	for (const code in secretCodes) {
+		const data = secretCodes[code];
+
+		const name = data[0];
+		const typed = data[2];
+
+		if (typed && !(possibleItems.includes(name)))
+			possibleItems.push(name);
+	}
+
+	// add secret items that are already in any distrib
+	for (const distrib of oItemDistributions) {
+		for (const spot of distrib.value) {
+			for (const item in spot) {
+				if (!possibleItems.includes(item)) {
+					for (const code in secretCodes) {
+						const data = secretCodes[code];
+						const name = data[0];
+						possibleItems.push(item);
+						if (name === item)
+							secretCodes[code][2] = true;
+					}
+				}
+			}
+		}
+	}
 
 	var itemDistribution0 = oItemDistributions[0].value;
 	var currentDistribution = selectedItemDistrib;
@@ -24291,7 +24392,13 @@ function selectItemScreen(oScr, callback, options) {
 			var oInput = document.createElement("input");
 			oInput.type = "number";
 			oInput.value = jDistribution[itemName] || "";
-			oInput.style.width = Math.round(iScreenScale*3.4) +"px";
+
+			// reduce row width if too many items in distribution
+			let mult = 3.4;
+			if (possibleItems.length > 19)
+				mult = 3.4 - (possibleItems.length - 19) * 0.14;
+			oInput.style.width = Math.round(iScreenScale*mult) +"px";
+
 			oInput.className = "noarrow";
 			oInput.style.backgroundColor = "black";
 			oInput.style.color = "white";
@@ -24721,7 +24828,14 @@ function selectItemScreen(oScr, callback, options) {
 
 				var $textarea = $form.querySelector("textarea");
 
-				importedDistrib = JSON.parse($textarea.value);
+				try {
+					importedDistrib = JSON.parse($textarea.value);
+				}
+				catch (e) {
+					alert(toLanguage("The item distribution text is not formatted correctly!", "Le texte de la distribution des objets n'est pas formaté correctement !"));
+					return;
+				}
+					
 				oScr2.removeChild(oExportScreen);
 
 				for (var i=0;i<importedDistrib.length;i++) {
@@ -24744,36 +24858,46 @@ function selectItemScreen(oScr, callback, options) {
 			oScr2.appendChild(oExportScreen);
 		}
 		oSetForm.appendChild(oLink);
+		oScr2.tabIndex = 0;
+		oScr2.style.outline = "none";
 
-		if (possibleItems.indexOf("carapacenoire") === -1) {
-			oScr2.tabIndex = 0;
-			oScr2.style.outline = "none";
-			var secretCode = "darkshell", typedCode = "";
-			oScr2.onkeydown = function(e) {
-				var key = e.key;
-				if (key.length === 1) {
-					key = key.toLowerCase();
-					typedCode += key;
-					if (!secretCode.startsWith(typedCode)) {
-						typedCode = "";
-						if (secretCode.startsWith(key))
-							typedCode = key;
-						return;
+		let typedCode = "";
+
+		oScr2.onkeydown = function(e) {
+			var key = e.key;
+			if (key.length === 1) {
+				key = key.toLowerCase();
+				typedCode += key;
+				
+				let validCode = false;
+				for (const code in secretCodes) {
+					if (code.startsWith(typedCode)) {
+						validCode = true;
+						break;
 					}
-					if (typedCode === secretCode) {
-						if (confirm("Enable dark shell item?")) {
-							itemDistribution0[itemDistribution0.length-1].carapacenoire = 0;
+				}
+
+				if (!validCode) {
+					typedCode = "";
+					return;
+				}
+
+				for (const code in secretCodes) {
+					if (typedCode === code && !secretCodes[code][2]) {
+						if (confirm(toLanguage("Enable "+ secretCodes[code][1][0] +" item?", "Ajouter "+ secretCodes[code][1][1] +"?"))) {
+							possibleItems.push(secretCodes[code][0]);
+							secretCodes[code][2] = true;
 							oScr.removeChild(oScr2);
 							selectItemScreen(oScr, callback, options);
 							return;
 						}
 					}
 				}
-			};
-			setTimeout(function() {
-				oScr2.focus();
-			}, 1);
-		}
+			}
+		};
+		setTimeout(function() {
+			oScr2.focus();
+		}, 1);
 	}
 	
 	oScr2.appendChild(oSetForm);
@@ -26720,6 +26844,8 @@ function selectMapScreen(opts) {
 			var mScreenScale = iScreenScale;
 
 			oPImg.onmouseover = function() {
+				this.style.filter = 'brightness(0.5)';
+
 				var oDefMap = new Image();
 				oDefMap.src = getMapSelectorSrc(i);
 				oDefMap.alt = this.alt*4+4;
@@ -26766,6 +26892,7 @@ function selectMapScreen(opts) {
 				document.getElementById("dMaps").style.display = "none";
 				document.getElementById("dMaps").innerHTML = "";
 				oCupName.style.display = "none";
+				this.style.filter = 'brightness(1)';
 			}
 
 			oPImg.onclick = function() {
@@ -27223,7 +27350,7 @@ function choose(map,rand) {
 	oTable.style.textAlign = "center";
 	oTable.style.left = (iScreenScale*25) +"px";
 	oTable.style.top = (iScreenScale*2) +"px";
-	oTable.style.width = (iScreenScale*30) +"px";
+	//oTable.style.width = (iScreenScale*50) +"px";
 	if (onlineSpectatorState)
 		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
@@ -27246,10 +27373,32 @@ function choose(map,rand) {
 				for (i=0;i<choixJoueurs.length;i++) {
 					if (!choixJoueurs[i][7]) {
 						var oTr = document.createElement("tr");
+
+						let nameCell = document.createElement("td");
+						var nameDiv = document.createElement("div");
+						nameDiv.style.maxWidth = (iScreenScale*20) + "px";
+						nameDiv.style.overflow = "hidden";
+						nameDiv.style.textOverflow = "ellipsis";
+						nameDiv.style.marginLeft = iScreenScale +"px";
+						nameDiv.style.marginRight = iScreenScale +"px";
+						nameDiv.style.color = "#ccc";
+						nameDiv.style.fontSize = "0.8em";
+						nameDiv.innerHTML = choixJoueurs[i][5];
+						nameCell.appendChild(nameDiv);
+
 						var oTd = document.createElement("td");
 						var isChoix = choixJoueurs[i][2];
 						var isRandom = choixJoueurs[i][3];
-						oTd.innerHTML = isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						var trackDiv = document.createElement("div");
+						trackDiv.style.marginLeft = iScreenScale +"px";
+						trackDiv.style.marginRight = iScreenScale +"px";
+						trackDiv.style.maxWidth = (iScreenScale*35) + "px";
+						trackDiv.style.overflow = "hidden";
+						trackDiv.style.whiteSpace = "nowrap";
+						trackDiv.style.textOverflow = "ellipsis";
+						trackDiv.innerHTML += isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						oTd.appendChild(trackDiv);
+
 						if (onlineSpectatorId && (choixJoueurs[i][0] == identifiant)) {
 							if (isChoix) {
 								setSpectatorId(undefined);
@@ -27258,6 +27407,7 @@ function choose(map,rand) {
 							else
 								oTd.style.display = "none";
 						}
+						oTr.appendChild(nameCell);
 						oTr.appendChild(oTd);
 						oTBody.appendChild(oTr);
 						nbChoices++;
@@ -27394,7 +27544,7 @@ function choose(map,rand) {
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
 							if (cID == 1)
-								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
+								trs[cCursor].getElementsByTagName("td")[1].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
 						}
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
 						if (onlineSpectatorState) {
