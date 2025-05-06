@@ -24313,6 +24313,8 @@ function selectItemScreen(oScr, callback, options) {
 	
 	var itemMode = getItemMode();
 	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
+		oItemDistributions.push(selectedItemDistrib);
 	
 	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
 	const possibleItems = distribOrder.slice();
@@ -27350,7 +27352,6 @@ function choose(map,rand) {
 	oTable.style.textAlign = "center";
 	oTable.style.left = (iScreenScale*25) +"px";
 	oTable.style.top = (iScreenScale*2) +"px";
-	//oTable.style.width = (iScreenScale*50) +"px";
 	if (onlineSpectatorState)
 		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
@@ -27392,6 +27393,7 @@ function choose(map,rand) {
 						var trackDiv = document.createElement("div");
 						trackDiv.style.marginLeft = iScreenScale +"px";
 						trackDiv.style.marginRight = iScreenScale +"px";
+						trackDiv.style.minWidth = (iScreenScale*15) +"px";
 						trackDiv.style.maxWidth = (iScreenScale*35) + "px";
 						trackDiv.style.overflow = "hidden";
 						trackDiv.style.whiteSpace = "nowrap";
@@ -27405,7 +27407,7 @@ function choose(map,rand) {
 								hideSpectatorLink();
 							}
 							else
-								oTd.style.display = "none";
+								oTr.style.display = "none";
 						}
 						oTr.appendChild(nameCell);
 						oTr.appendChild(oTd);
