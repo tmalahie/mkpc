@@ -2,7 +2,7 @@
 	position: absolute;
 	text-align: center;
 	color: #DDD;
-	z-index: 20001;
+	z-index: 20000;
 	visibility: hidden;
     pointer-events: none;
 }
