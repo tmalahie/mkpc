@@ -1,10 +1,10 @@
-function autocompleteDummy(selector,values, options) {
+function autocompleteDummy(selector, values, options) {
 	var valuesLowered = [];
 	valuesLowered.length = values.length;
 	for (var i=0;i<values.length;i++)
 		valuesLowered[i] = values[i].toLowerCase();
 	var params = {
-		selector: "#joueur",
+		selector: selector,
 		minChars: 1,
 		source: function(term, suggest) {
 			var res = [];
@@ -21,8 +21,7 @@ function autocompleteDummy(selector,values, options) {
 		}
 	};
 	if (options) {
-		for (var key in options)
-			params[key] = options[key];
+		Object.assign(params, options);
 	}
 	new autoComplete(params);
 }

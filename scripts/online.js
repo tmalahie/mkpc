@@ -590,19 +590,9 @@ function o_notify_online(key,pseudo,battle) {
 		b_notify("o_online."+key,pseudo, (o_language ? 'Wants to play an online '+(battle?"battle":"race")+' with you.' : 'Propose de vous affronter sur une '+(battle?"bataille":"course")+' en ligne.'));
 }
 function o_newmsgsound() {
-	if (o_active) {
-		if (!o_focused) {
-			var pEmbed = document.getElementsByTagName("embed");
-			if (pEmbed.length)
-				document.body.removeChild(pEmbed[0]);
-			var newMsg = document.createElement("embed");
-			newMsg.src = "musics/new.mp3";
-			newMsg.setAttribute("autostart", "true");
-			newMsg.style.position = "absolute";
-			newMsg.style.left = "-1000px";
-			newMsg.style.top = "-1000px";
-			document.body.appendChild(newMsg);
-		}
+	if (o_active && !o_focused) {
+		const audio = new Audio("musics/new.mp3");
+		audio.play();
 	}
 }
 function o_loadprevious(memberID) {

@@ -36,10 +36,7 @@ function autocompletePlayer(selector, options) {
 			}
 		}
 	};
-	if (options) {
-		for (var key in options)
-			params[key] = options[key];
-	}
+	if (options) Object.assign(params, options);
 	var autoHandler = 0;
 	new autoComplete(params);
 }
