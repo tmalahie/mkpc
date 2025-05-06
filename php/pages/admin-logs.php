@@ -599,7 +599,7 @@ include('../includes/menu.php');
             <p id="admin-filter">
                 <label for="log-type">
                     <strong><?= _('Log type') ?></strong>
-                </label> :
+                </label><?php echo $language ? ':':' :'; ?>
                 <select name="type" id="log-type" onchange="this.form.submit()">
                     <option value=""><?= _('Select') ?>...</option>
                     <?php
@@ -661,7 +661,7 @@ include('../includes/menu.php');
         <?php
     }
     ?>
-    <tr><td colspan="4" id="page"><strong>Page : </strong> 
+    <tr><td colspan="4" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
     <?php
     $get = $_GET;
     function pageLink($page, $isCurrent) {

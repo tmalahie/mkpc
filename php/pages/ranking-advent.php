@@ -64,7 +64,7 @@ foreach ($get as $k => $getk)
 			foreach ($dGet as $k=>$val)
 				echo '<input type="hidden" name="'.htmlspecialchars($k).'" value="'.htmlspecialchars($val).'" />';
 			?>
-			<label for="joueur"><strong><?php echo $language ? 'See day':'Voir jour'; ?></strong></label> : <select name="d" onchange="this.form.submit()">
+			<label for="joueur"><strong><?php echo $language ? 'See day':'Voir jour'; ?></strong></label><?php echo $language ? ':':' :'; ?> <select name="d" onchange="this.form.submit()">
 			<?php
 			if ($getMaxD = mysql_fetch_array(mysql_query('SELECT MAX(day) AS d FROM mkadvent WHERE year="'. $year .'"'))) {
 				$maxD = $getMaxD['d'];
@@ -72,7 +72,7 @@ foreach ($get as $k => $getk)
 					echo '<option value="'.$d.'"'. ($d == $day ? ' selected="selected"' : '') .'>'.$d.'</option>';
 			}
 			?>
-			</select> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" />
+			</select> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" />
 		</p>
 		</form>
 		<?php
@@ -80,7 +80,7 @@ foreach ($get as $k => $getk)
 	else {
 		?>
 		<form method="post" action="?<?php echo http_build_query($get) ?>">
-		<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo $joueur; ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
+		<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo $joueur; ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 		</form>
 		<?php
 	}
@@ -164,7 +164,7 @@ foreach ($get as $k => $getk)
 			}
 		}
 	?>
-	<tr><td colspan="4" id="page"><strong>Page : </strong> 
+	<tr><td colspan="4" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
 	<?php
 	if ($joueur) {
 		$page = ceil($place/20);

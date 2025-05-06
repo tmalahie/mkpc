@@ -187,7 +187,7 @@ for ($i=0;$i<8;$i++) {
 <p><?php
 $PJ = $language ? 'P':'J';
 for ($i=0;$i<8;$i++)
-	echo '<span class="startposition" style="left: '.((${"s$i"}[0]%6)*100+25).'px; top: '.(floor(${"s$i"}[0]/6)*100+25).'px" title="'. ($language ? 'Double-clic to rotate':'Double-clic pour pivoter') .'" onclick="inClick(this, '.$i.')" ondblclick="var kart=this.getElementsByTagName(\'img\')[0];var newR=(kart.src.replace(/000/g,\'\').match(/[0-9]/)[0]*1+1)%4;document.forms[0].r'.$i.'.value=newR;kart.src=\'images/pieces/piececircuit_s\'+newR+\'.png\';return false" oncontextmenu="event.preventDefault();this.ondblclick()" onmousedown="return false"><img src="images/pieces/piececircuit_s'.${"s$i"}[1].'.png" alt="kart" />&nbsp;<br />&nbsp;'.$PJ.($i+1).'</span>';
+	echo '<span class="startposition" style="left: '.((${"s$i"}[0]%6)*100+25).'px; top: '.(floor(${"s$i"}[0]/6)*100+25).'px" title="'. ($language ? 'Double-click to rotate':'Double-clic pour pivoter') .'" onclick="inClick(this, '.$i.')" ondblclick="var kart=this.getElementsByTagName(\'img\')[0];var newR=(kart.src.replace(/000/g,\'\').match(/[0-9]/)[0]*1+1)%4;document.forms[0].r'.$i.'.value=newR;kart.src=\'images/pieces/piececircuit_s\'+newR+\'.png\';return false" oncontextmenu="event.preventDefault();this.ondblclick()" onmousedown="return false"><img src="images/pieces/piececircuit_s'.${"s$i"}[1].'.png" alt="kart" />&nbsp;<br />&nbsp;'.$PJ.($i+1).'</span>';
 ?></p>
 <?php
 if ($language) {

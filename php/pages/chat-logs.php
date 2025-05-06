@@ -120,7 +120,7 @@ include('../includes/menu.php');
 	<h1><?php echo $language ? 'See online chat logs':'Voir les logs du mode en ligne'; ?></h1>
 	<form method="get" action="chat-logs.php">
 	<blockquote>
-	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($memberNick)) echo htmlspecialchars($memberNick); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
+	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($memberNick)) echo htmlspecialchars($memberNick); ?>" /> <input type="submit" value="<?php echo $language ? 'Search' : 'Rechercher'; ?>" class="action_button" />
 	<br /><strong><?php echo $language ? '&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <small>&nbsp; &nbsp;</small>OR':'&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp;OU'; ?> : <a href="?all"><?php echo $language ? 'See all logs' : 'Voir tous les logs'; ?></a></strong></p>
 	</blockquote>
 	</form>
@@ -160,7 +160,7 @@ include('../includes/menu.php');
 					<div class="mute-form-ctn">
 					<a href="javascript:void(0)" onclick="toggleMute()"><?php echo $language ? 'Mute player':'Muter le joueur'; ?>...</a>
 					<form id="mute-form" onsubmit="mute(event, <?php echo $memberId; ?>)">
-						<label for="mute-time"><?php echo $language ? "Mute for":"Muter pendant"; ?></label> : 
+						<label for="mute-time"><?php echo $language ? "Mute for":"Muter pendant"; ?></label><?php echo $language ? ':':' :'; ?> 
 						<input type="text" size="2" name="mute-time" id="mute-time" value="1" />
 						<select name="unit" style="width:80px">
 							<option value="1"><?php echo $language ? 'minutes':'minutes'; ?></option>

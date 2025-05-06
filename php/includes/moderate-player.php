@@ -227,7 +227,7 @@ if ($unban) {
         }
         ?></strong></label> &nbsp;<input type="text" name="joueur" id="joueur" /> <input type="button" value="&rarr;" class="action_button show_form_details" onclick="showBanFormDetails()" />
 		<div id="ban_msg">
-			Message : <textarea name="msg" cols="30" rows="4"<?php if ($action === 'warn') echo ' required="required"'; ?>></textarea><br />
+			<?= _('Message:'); ?> <textarea name="msg" cols="30" rows="4"<?php if ($action === 'warn') echo ' required="required"'; ?>></textarea><br />
             <?php
             if ($action === 'ban') {
                 ?>

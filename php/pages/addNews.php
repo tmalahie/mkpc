@@ -26,7 +26,7 @@ if ($id) {
 <!DOCTYPE html>
 <html lang="<?= P_("html language", "en") ?>">
 <head>
-<title><?= _("News Mario Kart PC") ?></title>
+<title><?= _("Mario Kart PC - News") ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -125,9 +125,9 @@ showRegularAdSection();
 	?>
 <form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?= _('Please enter a title') ?>');return false}if(!this.message.value){alert('<?= _('Please enter a content') ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
 <table id="nMessage">
-<tr><td class="mLabel"><label for="title"><?= _('Title') ?> :</label></td>
+<tr><td class="mLabel"><label for="title"><?= _('Title:') ?></label></td>
 <td class="mInput"><input type="text" id="title" name="title" onchange="document.getElementById('mTitle').innerHTML=htmlspecialchars(this.value)" value="<?php if ($draft) echo htmlspecialchars($draft['title']); ?>" /></td></tr>
-<tr><td class="mLabel"><label for="category"><?= _('Category') ?> :</label></td>
+<tr><td class="mLabel"><label for="category"><?= _('Category:') ?></label></td>
 <td class="mInput">
 	<select id="category" name="category" onchange="document.getElementById('mCategory').innerHTML=this.options[this.selectedIndex].text">
 		<?php
@@ -145,11 +145,11 @@ showRegularAdSection();
 		?>
 	</select>
 </td></tr>
-<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?= _('Help') ?></a></td><td><?php
+<tr><td class="mLabel"><?= _('BBcode:'); ?><br /><a href="javascript:helpBbCode()"><?= _('Help') ?></a></td><td><?php
 $isNews = true;
 include('../includes/bbButtons.php');
 ?></td></tr>
-<tr><td class="mLabel"><p><label for="message"><?= _('Content'); ?> :</label></p>
+<tr><td class="mLabel"><p><label for="message"><?= _('Content:'); ?></label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';

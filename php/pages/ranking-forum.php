@@ -113,7 +113,7 @@ else
 			$params['year'] = $lastMonth->format('Y');
 		}
 		?>
-		<label for="month"><strong><?php echo $language ? 'Month':'Mois'; ?></strong></label> :
+		<label for="month"><strong><?php echo $language ? 'Month':'Mois'; ?></strong></label><?php echo $language ? ':':' :'; ?>
 		<select name="month" id="month">
 			<?php
 			foreach ($months as $i=>$fMonth) {
@@ -123,7 +123,7 @@ else
 			?>
 		</select>
 		&nbsp;
-		<label for="year"><strong><?php echo $language ? 'Year':'Année'; ?></strong></label> :
+		<label for="year"><strong><?php echo $language ? 'Year':'Année'; ?></strong></label><?php echo $language ? ':':' :'; ?>
 		<select name="year" id="year">
 			<?php
 			for ($i=2012;$i<=$y;$i++)
@@ -133,7 +133,7 @@ else
 		<input type="submit" value="Ok" class="action_button" />
 	</form>
 	<form method="post" action="?<?php echo http_build_query($get) ?>">
-	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 	</form>
 	<?php
 	if ($mode) {
@@ -211,7 +211,7 @@ else
 			}
 		}
 	?>
-	<tr><td colspan="4" id="page"><strong>Page : </strong> 
+	<tr><td colspan="4" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
 	<?php
 	if ($joueur) {
 		$page = ceil($place/20);

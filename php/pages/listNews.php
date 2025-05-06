@@ -7,7 +7,7 @@ require_once('../includes/getRights.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>News Mario Kart PC</title>
+<title><?= _("Mario Kart PC - News") ?></title>
 <?php
 include('../includes/heads.php');
 ?>

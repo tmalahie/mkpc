@@ -99,7 +99,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 	?>
 	<form method="post" action="updatepts.php<?php if ($isBattle) echo '?battle'; ?>">
 	<blockquote>
-		<p><label for="joueur"><strong><?php echo $language ? 'Player':'Joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" required="required" /></p>
+		<p><label for="joueur"><strong><?php echo $language ? 'Player':'Joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" required="required" /></p>
 		<p><label for="pts"><strong><?php echo $language ? 'Add':'Ajouter'; ?></strong></label> <input type="number" min="-9999" max="9999" style="width:50px" name="pts" id="pts" /> pts.</p>
 		<p><input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
 	</blockquote>

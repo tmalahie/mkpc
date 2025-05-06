@@ -79,7 +79,7 @@ if ($ban) {
             $banId = substr($ban, strlen($profileUrl));
         elseif (str_starts_with($ban, $challengeUrl)) {
             $challengeId = intval(substr($ban, strlen($challengeUrl)));
-            if ($getIp = mysql_fetch_array(mysql_query('SELECT l.identifiant,l.circuit,l.type FROM `mkchallenges` c INNER JOIN `mkclrace` l ON c.clist=l.id WHERE c.id="'. $challengeId .'"'))) {
+            if ($getIp = mysql_fetch_array(mysql_query('SELECT l.identifiant,l.circuit,l.type FROM `mkchallenges` c INNER JOIN `mkclrace` l ON c.clist=l.id WHERE c.id="'. $challengeId .'" AND l.circuit IS NOT NULL'))) {
                 $banIp = $getIp['identifiant'];
                 $circuitId = $getIp['circuit'];
                 $circuitType = $getIp['type'];
@@ -164,9 +164,9 @@ if ($unban) {
 	<p>
 		<label for="joueur"><strong><?php
             echo $language ? 'Ban a member':'Bannir un membre';
-        ?></strong></label> : <input type="text" name="ban" id="joueur" onkeypress="handleValidate(event)" onblur="handleNameBlur()" />
+        ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="ban" id="joueur" onkeypress="handleValidate(event)" onblur="handleNameBlur()" />
 		<div id="ban_msg">
-			Message : <textarea name="msg" cols="30" rows="4"></textarea><br />
+			<?= _('Message:'); ?> <textarea name="msg" cols="30" rows="4"></textarea><br />
             <label><input type="checkbox" name="ban_until" onclick="hanleBanUntil(this.checked)" /> <?php echo $language ? "Ban until:":"Bannir jusqu'à :"; ?> <input type="date" name="ban_until_date" disabled /></label><br />
             <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
 		</div>
@@ -179,8 +179,8 @@ if ($unban) {
             ?>
             To ban a member you can enter either:
             <ul>
-                <li>His username (ex: <em>tendokiddo</em>)</li>
-                <li>His profile URL (ex: <em><?php echo $origin; ?>/profil.php?id=73654</em>)</li>
+                <li>Their username (ex: <em>tendokiddo</em>)</li>
+                <li>Their profile URL (ex: <em><?php echo $origin; ?>/profil.php?id=73654</em>)</li>
                 <li>The URL of a challenge he published (ex: <em><?php echo $origin; ?>/challengeTry.php?challenge=1234</em>)</li>
                 <li>The URL of a circuit he published (ex: <em><?php echo $origin; ?>/circuit.php?id=1234</em>)</li>
             </ul>

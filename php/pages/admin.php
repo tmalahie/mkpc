@@ -131,7 +131,7 @@ include('../includes/menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="doublecomptes.php">
-				<div class="action-title"><?= _("See <strong>double accounts</strong>") ?></div>
+				<div class="action-title"><?= _("See <strong>alt accounts</strong>") ?></div>
 				<div class="action-desc"><?= _("If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)") ?></div>
 			</a>
 		</li>

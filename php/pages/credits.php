@@ -99,85 +99,85 @@ include('../includes/menu.php');
                 'author_raw' => $language ? '<strong>Racoon Sam</strong>, <strong>EdpR</strong> and <a>Red5Pizza</a>' : '<strong>Racoon Sam</strong>, <strong>EdpR</strong> et <a>Red5Pizza</a>',
                 'base_url' => 'profil.php?id=8113',
                 'res_url' => 'images/sprites/sprite_daisy.png',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'sprite of Daisy':'sprite de Daisy'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? 'Daisy\'s sprite':'sprite de Daisy'
             ),
             array(
                 'author' => $language ? '<strong>SWN</strong> and <strong>BVX</strong>':'<strong>SWN</strong> et <strong>BVX</strong>',
                 'res_url' => 'images/sprites/sprite_waluigi.png',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'sprite of Waluigi':'sprite de Waluigi'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? 'Waluigi\'s sprite':'sprite de Waluigi'
             ),
             array(
                 'author' => '<strong>Devicho</strong>',
                 'res_url' => 'images/sprites/sprite_bowser_jr.png',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'sprite of Bowser Jr':'sprite de Bowser Jr'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? 'Bowser Jr\'s sprite':'sprite de Bowser Jr'
             ),
             array(
                 'author' => '<strong>Clutch</strong>',
                 'res_url' => 'images/sprites/sprite_diddy-kong.png',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'sprite of Diddy-Kong':'sprite de Diddy Kong'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? 'Diddy-Kong\'s sprite':'sprite de Diddy Kong'
             ),
             array(
                 'author' => '<strong>Flare</strong>',
                 'res_url' => 'images/sprites/sprite_birdo.png',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'sprite of Birdo':'sprite de Birdo'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? 'Birdo\'s sprite':'sprite de Birdo'
             ),
             array(
                 'author' => '<strong>Frario</strong>',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_donkey-kong.png">sprite of Donkey Kong</a> and <a href="images/sprites/sprite_wario.png">of Wario</a>':'<a href="images/sprites/sprite_donkey-kong.png">sprite de Donkey Kong</a> et <a href="images/sprites/sprite_wario.png">de Wario</a>'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_donkey-kong.png">Donkey Kong\'s sprite</a> and <a href="images/sprites/sprite_wario.png">Wario\'s sprite</a>':'<a href="images/sprites/sprite_donkey-kong.png">sprite de Donkey Kong</a> et <a href="images/sprites/sprite_wario.png">de Wario</a>'
             ),
             array(
                 'author' => '<strong>Jex99</strong>',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_funky-kong.png">sprite of Funky Kong</a> and <a href="images/sprites/sprite_frere_marto.png">of Hammer Bro</a>':'<a href="images/sprites/sprite_funky-kong.png">sprite de Funky Kong</a> et <a href="images/sprites/sprite_frere_marto.png">de Frère Marto</a>'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_funky-kong.png">Funky Kong\'s sprite</a> and <a href="images/sprites/sprite_frere_marto.png">Hammer Bro\'s sprite</a>':'<a href="images/sprites/sprite_funky-kong.png">sprite de Funky Kong</a> et <a href="images/sprites/sprite_frere_marto.png">de Frère Marto</a>'
             ),
             array(
                 'author' => '<strong>Darking</strong>',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'images/sprites/sprite_bowser_skelet.png',
-                'description' => $language ? 'sprite of Dry Bowser':'sprite de Bowser Skelet'
+                'description' => $language ? 'Dry Bowser\'s sprite':'sprite de Bowser Skelet'
             ),
             array(
                 'author_raw' => '<strong>X Gamer 66</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'images/sprites/sprite_flora_piranha.png',
-                'description' => $language ? 'sprite of Petey Piranha':'sprite de Flora Piranha'
+                'description' => $language ? 'Petey Piranha\'s sprite':'sprite de Flora Piranha'
             ),
             array(
                 'author' => 'Red5Pizza',
                 'base_url' => 'profil.php?id=8113',
-                'for' => $language ? 'for the':'pour les',
-                'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Rosalina</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Harmonie</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
+                'for' => $language ? 'for':'pour les',
+                'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bullet Bill</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Rosalina</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Harmonie</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
             ),
             array(
                 'author' => '<strong>LISARTINO2009</strong>',
                 'res_url' => 'images/sprites/sprite_toadette.png',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'sprite of Toadette':'sprite de Toadette'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? 'Toadette\'s sprite':'sprite de Toadette'
             ),
             array(
                 'author' => 'Angel121',
                 'base_url' => 'profil.php?id=45670',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_skelerex.png">sprite of Dry Bones</a>':'<a href="images/sprites/sprite_skelerex.png">sprite de Skelerex</a>'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_skelerex.png">Dry Bones\' sprite</a>':'<a href="images/sprites/sprite_skelerex.png">sprite de Skelerex</a>'
             ),
             array(
                 'author' => 'Hoppingicon',
                 'base_url' => 'profil.php?id=26749',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_frere_marto.png">sprite of Hammer Bro</a>':'<a href="images/sprites/sprite_frere_marto.png">sprite de Frère Marto</a>'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_frere_marto.png">Hammer Bro\'s sprite</a>':'<a href="images/sprites/sprite_frere_marto.png">sprite de Frère Marto</a>'
             ),
             array(
                 'author' => 'Aluigi1300',
                 'base_url' => 'profil.php?id=8923',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_yoshi.png">sprite of Yoshi</a>':'<a href="images/sprites/sprite_yoshi.png">sprite de Yoshi</a>'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_yoshi.png">Yoshi\'s sprite</a>':'<a href="images/sprites/sprite_yoshi.png">sprite de Yoshi</a>'
             ),
             array(
                 'author_raw' => '<strong>Waluigi68</strong> '. ($language ? 'and':'et') .' <a class="author" href="profil.php?id=36925">BowserJr03</a>',

@@ -128,7 +128,7 @@ include('../includes/menu.php');
         <?php
         }
         ?>
-        <tr><td colspan="4" id="page"><strong>Page : </strong> 
+        <tr><td colspan="4" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
         <?php
         function pageLink($page, $isCurrent) {
             echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?page='.$page.'">'.$page.'</a>').'&nbsp; ';

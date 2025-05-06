@@ -22028,7 +22028,7 @@ function privateLink(options) {
 			oDiv.style.textAlign = "center";
 			oDiv.style.fontSize = (iScreenScale*3) + "px";
 			oDiv.style.color = "#CFC";
-			oDiv.innerHTML = language ? 'The following private link has been generated:<br /><a href="'+url+'" style="color:AAF">'+url+'</a><br /><br />Enjoy game :)' : 'Le lien privé suivant a été généré :<br /><a href="'+url+'" style="color:AAF">'+url+'</a><br /><br />Bonne partie :)';
+			oDiv.innerHTML = language ? 'The following private link has been generated:<br /><a href="'+url+'" style="color:AAF">'+url+'</a><br /><br />Enjoy your game :)' : 'Le lien privé suivant a été généré :<br /><a href="'+url+'" style="color:AAF">'+url+'</a><br /><br />Bonne partie :)';
 			oScr.appendChild(oDiv);
 
 			if (customOptionsExist) {
