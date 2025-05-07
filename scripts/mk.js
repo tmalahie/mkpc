@@ -17877,6 +17877,7 @@ function move(getId, triggered) {
 				oKart.figuring = false;
 				oKart.figstate = 0;
 				oKart.fell = true;
+				oKart.heightinc = 0;
 				oKart.champi = 0;
 				kartReplaced = true;
 				delete oKart.champiType;
