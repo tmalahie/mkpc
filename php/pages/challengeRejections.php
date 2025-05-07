@@ -88,7 +88,7 @@ table tbody tr td {
 			}
 			if ($metadata)
 				echo '<br />';
-			echo $language ? 'This challenge has been rejected <strong>'. $countRejections .' time'. ($countRejections > 1 ? 's' : '') .'</strong>.' : 'Ce défi a été refusé <strong>'. $countRejections .' fois</strong>.';
+			echo $language ? 'This challenge has already been rejected <strong>'. $countRejections .' time'. ($countRejections > 1 ? 's' : '') .'</strong>.' : 'Ce défi a déjà été refusé <strong>'. $countRejections .' fois</strong>.';
             ?>
 		</div>
 		<table>
