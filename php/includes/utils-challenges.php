@@ -301,7 +301,7 @@ $clRulesByType = array(
 			}
 		),
 		'cc' => array(
-			'description' => $language ? 'in ${value}cc class':'en mode ${value}cc',
+			'description' => $language ? 'in ${value}cc':'en ${value}cc',
 			'description_mockup' => $language ? 'Class (cc)':'Cylindrée (cc)',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'description_lambda' => function($language,&$scope) {
@@ -563,7 +563,7 @@ $clRulesByType = array(
 						$direction = $language ? ' right' : ' à droite';
 						break;
 				}
-				return $language ? "without turning $direction" : "sans tourner $direction";
+				return $language ? "without turning$direction" : "sans tourner$direction";
 			},
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
@@ -646,7 +646,7 @@ $clRulesByType = array(
 			'course' => array('bcup', 'mbcup')
 		),
 		'difficulty' => array(
-			'description_mockup' => $language ? 'difficulty...':'difficulté...',
+			'description_mockup' => $language ? 'CPU difficulty...':'difficulté des ORDIs...',
 			'description_lambda' => function($language,&$scope) {
 				return $language ? 'in '.$scope->options[$scope->value+2].' mode':'en mode '.$scope->options[$scope->value+2];
 			},
@@ -707,12 +707,12 @@ $clRulesByType = array(
 		),
 		'no_item_box' => array(
 			'description' => null,
-			'description_mockup' => $language ? 'without items':'sans objets',
+			'description_mockup' => $language ? 'without item boxes':'sans boîtes à objets',
 			'course' => array('vs', 'battle')
 		),
 		'extra_items' => array(
 			'description' => null,
-			'description_mockup' => $language ? 'add extra items...':'ajouter des objets...',
+			'description_mockup' => $language ? 'add extra item boxes...':'ajouter des boîtes à objets...',
 			'course' => array('vs', 'battle'),
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
@@ -753,7 +753,7 @@ $clRulesByType = array(
 		),
 		'place_items' => array(
 			'description' => null,
-			'description_mockup' => $language ? 'add items in the track':'rajouter des objets sur la piste',
+			'description_mockup' => $language ? 'put items on the track...':'placer des objets sur la piste...',
 			'course' => array('vs', 'battle'),
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
