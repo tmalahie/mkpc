@@ -150,9 +150,9 @@ var SPF = 67;
 var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
-var bMusic = !!optionOf("music");
-var iSfx = !!optionOf("sfx");
-var iFps = +localStorage.getItem("nbFrames") || 1;
+var bMusic = localStorage.getItem("bMusic") === "1";
+var iSfx = localStorage.getItem("iSfx") === "1";
+var iFps = +localStorage.getItem("nbFrames") || 4;
 var vSfx = 1, vMusic = 1;
 {
 	var vSettings = localStorage.getItem("settings.vol");
@@ -5853,11 +5853,25 @@ function resetScreen() {
 function getFrameSettings(currentSettings) {
 	var frameint = currentSettings.frameint;
 	if (!frameint) {
-		if (iFps > 3)
-			frameint = "ease_out_cubic";
-		else if (iFps > 1)
-			frameint = "ease_out_quad";
+		switch (iFps) {
+			case 1: // 15fps
+				frameint = "ease_out_quart";
+				break;
+
+			case 2: // 30fps
+				frameint = "ease_out_cubic";
+				break;
+
+			case 3: // 45fps
+				frameint = "ease_out_quad";
+				break;
+
+			default: // 60fps and more
+				frameint = "ease_out_linear";
+				break;
+		}
 	}
+
 	var defaultframerad = Math.floor(iFps/2);
 	var framerad = (currentSettings.framerad >= 0) ? +currentSettings.framerad : defaultframerad;
 	return {
