@@ -18947,7 +18947,7 @@ function handleExplosionHit(getId, pExplose) {
 	oKart.spin(pExplose);
 	loseUsingItems(oKart);
 	stopDrifting(getId);
-	
+
 	if (pExplose >= 84) {
 		oKart.champi = 0;
 		delete oKart.champiType;
@@ -20613,6 +20613,7 @@ document.onkeydown = function(e) {
 				var isBack = selectedOscrElt.value === toLanguage("Back","Retour");
 				releaseOverEvents();
 				selectedOscrElt.click();
+				selectedOscrElt = undefined;
 				if (iSfx)
 					playSoundEffect("musics/events/"+ (isBack ? "back" : "select") +".mp3");
 			}
