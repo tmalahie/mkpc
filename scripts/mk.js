@@ -1853,13 +1853,22 @@ var getItemCollisionLap = function() {
 	return 0;
 }
 function initMap() {
+	oMap.conditionOverrides = [];
 	lMaps = [oMap];
 	pMaps = [oMap];
 	if (oMap.lapOverrides) {
 		var lapOverrides = oMap.lapOverrides;
 		for (var i=0;i<lapOverrides.length;i++) {
-			lMaps.push(Object.assign({}, lMaps[i], lapOverrides[i]));
-			pMaps.push(Object.assign({}, lapOverrides[i]));
+			var lapOverride = lapOverrides[i];
+			if (lapOverride.lap) {
+				lMaps.push(Object.assign({}, lMaps[i], lapOverrides[i]));
+				pMaps.push(Object.assign({}, lapOverrides[i]));
+			}
+			else {
+				if (lapOverride.zone)
+					lapOverride.zone = classifyByShape(lapOverride.zone);
+				oMap.conditionOverrides.push(lapOverride);
+			}
 		}
 		foreachLMap = function(callback) {
 			for (var i=0;i<lMaps.length;i++)
@@ -3351,6 +3360,7 @@ function startGame() {
 			sprite : new Sprite(joueur),
 			cpu : false,
 			aipoints : oMap.aipoints[0],
+			conditionOverrides : [],
 
 			tourne : 0,
 			tombe : 0,
@@ -3467,7 +3477,8 @@ function startGame() {
 			lastAItime : 0,
 			aipoints : oMap.aipoints[0],
 			maxspeed : 5.7,
-			maxspeed0: 5.7
+			maxspeed0: 5.7,
+			conditionOverrides: []
 		};
 		if (isOnline) {
 			oEnemy.id = aIDs[i];
@@ -3696,6 +3707,7 @@ function startGame() {
 					aipoints : oMap.aipoints[0],
 					maxspeed : 5.7,
 					maxspeed0 : 5.7,
+					conditionOverrides: [],
 
 					place : 1
 				});
@@ -10544,6 +10556,33 @@ function handleCpChange(prevLap,prevCP, getId) {
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
 	return lapId
+}
+function handleConditionalOverrides(aX,aY, getId) {
+	var oKart = aKarts[getId];
+	var isChanged = false;
+	for (var i=0;i<oMap.conditionOverrides.length;i++) {
+		var oOverride = oMap.conditionOverrides[i];
+		if (oKart.conditionOverrides.includes(oOverride))
+			continue;
+		if (satisfyOverrideCondition(oOverride, aX,aY, oKart)) {
+			oKart.conditionOverrides.push(oOverride);
+			isChanged = true;
+		}
+	}
+	if (isChanged)
+		alert(0);
+}
+function satisfyOverrideCondition(oOverride, aX,aY, oKart) {
+	if (oOverride.time) {
+		if (getActualGameTimeMS() > oOverride.time)
+			return true;
+	}
+	else if (oOverride.zone) {
+		var posX = oKart.x, posY = oKart.y;
+		if (pointInZone(posX,posY, oOverride.zone))
+			return true;
+	}
+	return false;
 }
 function resetRenderState() {
 	lastState = undefined;
@@ -18068,6 +18107,7 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	handleConditionalOverrides(aPosX,aPosY, getId);
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
 		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
