@@ -24334,11 +24334,11 @@ function selectItemScreen(oScr, callback, options) {
 
 	// remove battle forbidden items
 	if (itemMode == "BB") {
-		for (const item of battleForbidden) {
+		battleForbidden.forEach(function(item) {
 			const idx = possibleItems.indexOf(item);
 			if (idx !== -1)
 				possibleItems.splice(idx, 1);
-		}
+		});
 	}
 
 	// add typed secret items
@@ -24353,8 +24353,8 @@ function selectItemScreen(oScr, callback, options) {
 	}
 
 	// add secret items that are already in any distrib
-	for (const distrib of oItemDistributions) {
-		for (const spot of distrib.value) {
+	oItemDistributions.forEach(function(distrib) {
+		distrib.value.forEach(function(spot) {
 			for (const item in spot) {
 				if (!possibleItems.includes(item)) {
 					for (const code in secretCodes) {
@@ -24366,8 +24366,8 @@ function selectItemScreen(oScr, callback, options) {
 					}
 				}
 			}
-		}
-	}
+		});
+	});
 
 	var itemDistribution0 = oItemDistributions[0].value;
 	var currentDistribution = selectedItemDistrib;
