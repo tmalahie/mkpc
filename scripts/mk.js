@@ -8396,7 +8396,7 @@ var itemBehaviors = {
 
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
-								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose && !pCible.cannon && !pCible.tourne) {
 									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
