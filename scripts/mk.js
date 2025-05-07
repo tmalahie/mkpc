@@ -27385,8 +27385,9 @@ function choose(map,rand) {
 	oTable.style.position = "absolute";
 	oTable.style.fontSize = (iScreenScale*2) +"pt";
 	oTable.style.textAlign = "center";
-	oTable.style.left = (iScreenScale*25) +"px";
+	oTable.style.left = (iScreenScale*41) +"px";
 	oTable.style.top = (iScreenScale*2) +"px";
+	oTable.style.transform = oTable.style.WebkitTransform = oTable.style.MozTransform = "translateX(-50%)";
 	if (onlineSpectatorState)
 		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
