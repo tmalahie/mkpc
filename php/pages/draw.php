@@ -475,7 +475,8 @@ if (isset($_GET['i'])) {
 							</label>
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-zone">
-							<?php echo $language ? "Activation zone:":"Zone d'activation :"; ?> <button class="toolbox-button"><?php echo $language ? 'Set...':'Définir...'; ?></button>
+							<input type="hidden" id="lapoverride-zone-data" value="[]" />
+							<?php echo $language ? "Activation zone:":"Zone d'activation :"; ?> <button class="toolbox-button" onclick="openOverrideZoneEditor()"><?php echo $language ? 'Set...':'Définir...'; ?></button>
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
 							<label>

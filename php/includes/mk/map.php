@@ -43,9 +43,14 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	<?php
 }
 if ($lapId) {
-	echo '"lap":'.$circuitPayload->meta->lap.',';
+	if (isset($circuitPayload->meta->lap))
+		echo '"lap":'.$circuitPayload->meta->lap.',';
 	if (isset($circuitPayload->meta->cp))
 		echo '"cp":'.$circuitPayload->meta->cp.',';
+	if (isset($circuitPayload->meta->time))
+		echo '"time":'.$circuitPayload->meta->time.',';
+	if (isset($circuitPayload->meta->zone))
+		echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
 	if (isset($circuitPayload->meta->interactions))
 		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }
