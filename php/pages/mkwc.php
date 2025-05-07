@@ -5,9 +5,9 @@ include('../includes/session.php');
 include('../includes/initdb.php');
 //$console = isset($_GET['console']) ? $_GET['console'] : null;
 //$multiConsole = true;
-$console = 'mkt';
+$console = 'mkw';
 $multiConsole = false;
-$year = 2023;
+$year = 2025;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $lowerStage = $language ? 'Lower Group Stage':'Phase de Groupe inférieure';
@@ -20,7 +20,6 @@ $tournamentWinner = null;
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
-    $bracketImg = 'bracket-mkw.png';
     $teams = array(
         $playInStage => array(
             "$group I" => array(
@@ -38,22 +37,25 @@ case 'mkw':
             array(
                 'single' => true,
                 'list' => array(
+                    'afr'=> $language ? 'Africa':'Afrique',
+                    'asi'=> $language ? 'Asia':'Asie', 
                     'aus'=> $language ? 'Australia':'Australie',
                     'bnl'=> $language ? 'Benelux':'Benelux',
                     'can'=> $language ? 'Canada':'Canada',
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
                     'eng'=> $language ? 'England':'Angleterre',
+                    'spa'=> $language ? 'Spain':'Espagne',
                     'fra'=> $language ? 'France':'France',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'ind'=> $language ? 'India':'Inde',
                     'ire'=> $language ? 'Ireland':'Irlande',
-                    'jap'=> $language ? 'Japan':'Japon',
+                    'ita'=> $language ? 'Italy':'Italie',
                     'lta'=> $language ? 'Latin America':'Amérique Latine',
-                    'nor'=> $language ? 'Norway':'Norvège',
-                    'sco'=> $language ? 'Scotland':'Écosse',
-                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
-                    'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                    'asi'=> $language ? 'Asia':'Asie',
-                    'ita'=> $language ? 'Italy':'Italie'
+                    'lus'=> $language ? 'Luso Alliance':'Alliance Luso',
+                    'nor'=> $language ? 'Nordic Countries':'Pays Nordiques',
+                    'sco'=> $language ? 'Scotland':'Ecosse',
+                    'usn'=> $language ? 'United States North':'Etats-Unis du Nord',
+                    'uss'=> $language ? 'United States South':'Etats-Unis du Sud'
                 )
             )
         )
