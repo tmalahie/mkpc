@@ -17221,8 +17221,11 @@ function move(getId, triggered) {
 		}
 		else if (oKart.speed && !oKart.billball && !oKart.cannon)
 			oKart.rotation += angleInc(oKart);
-		if (oKart.frminv)
+		if (oKart.frminv) {
 			oKart.frminv--;
+			if (!oKart.frminv)
+				delete oKart.frminvIsBill;
+		}
 	}
 	if (oKart.rotation < 0)
 		oKart.rotation += 360;
@@ -18643,6 +18646,8 @@ function move(getId, triggered) {
 			updateProtectFlag(oKart);
 			if (!oKart.cpu)
 				delete oKart.aipoint;
+			oKart.frminv = 5;
+			oKart.frminvIsBill = true;
 		}
 		updateItemCountdownHud(getId, oKart.billball/oKart.billball0);
 	}
@@ -18934,10 +18939,15 @@ function kartInstantSpeed(oKart) {
 }
 function handleExplosionHit(getId, pExplose) {
 	var oKart = aKarts[getId];
+
+	if (oKart.frminvIsBill)
+		return;
+
 	loseBall(getId);
 	oKart.spin(pExplose);
 	loseUsingItems(oKart);
 	stopDrifting(getId);
+	
 	if (pExplose >= 84) {
 		oKart.champi = 0;
 		delete oKart.champiType;
