@@ -49,8 +49,12 @@ if ($lapId) {
 		echo '"cp":'.$circuitPayload->meta->cp.',';
 	if (isset($circuitPayload->meta->time))
 		echo '"time":'.$circuitPayload->meta->time.',';
+	if (isset($circuitPayload->meta->endTime))
+		echo '"endTime":'.$circuitPayload->meta->endTime.',';
 	if (isset($circuitPayload->meta->zone))
 		echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
+	if (isset($circuitPayload->meta->endZone))
+		echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
 	if (isset($circuitPayload->meta->interactions))
 		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }

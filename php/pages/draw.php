@@ -476,13 +476,29 @@ if (isset($_GET['i'])) {
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-zone">
 							<input type="hidden" id="lapoverride-zone-data" value="[]" />
-							<?php echo $language ? "Activation zone:":"Zone d'activation :"; ?> <button class="toolbox-button" onclick="openOverrideZoneEditor()"><?php echo $language ? 'Set...':'Définir...'; ?></button>
+							<input type="hidden" id="lapoverride-end-zone-data" value="[]" />
+							<div class="lapoverride-triggers">
+								<label>
+									<span><?php echo $language ? "Trigger zone":"Zone d'activation"; ?></span>
+									<span><button class="toolbox-button" onclick="openZoneEditor('override_start')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+								</label>
+								<label>
+									<span><?php echo $language ? "(Optional) Untrigger zone":"(Optionnel) Zone de désactivation"; ?></span>
+									<span><button class="toolbox-button" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+								</label>
+							</div>
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
-							<label>
-								<?php echo $language ? "Enable at time:":"Activer au temps"; ?>
-								<input type="text" id="lapoverride-time" size="7" placeholder="1:30" />
-							</label>
+							<div class="lapoverride-triggers">
+								<label>
+									<span><?php echo $language ? "Enable at time":"Activer au temps"; ?></span>
+									<span><input type="text" id="lapoverride-time" size="7" placeholder="1:30" /></button></span>
+								</label>
+								<label>
+									<span><?php echo $language ? "(Optional) Disable at time":"(Optionnel) Désactiver au temps"; ?></span>
+									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></button></span>
+								</label>
+							</div>
 						</div>
 						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php
 						echo $language ? 'Disable interactions with other overrides' : 'Désactiver les interactions avec les autres modificateurs';
