@@ -8182,6 +8182,7 @@ var itemBehaviors = {
 					}
 				}
 			}
+			const spdMult = 4/3;
 			var relSpeed = cappedRelSpeed();
 			var relSpeed2 = relSpeed*relSpeed;
 			var fTeleport = inTeleport(fSprite.x,fSprite.y);
@@ -8209,7 +8210,7 @@ var itemBehaviors = {
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 						var itemBehavior = itemBehaviors["carapace-bleue"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
-							var dSpeed = 10*relSpeed;
+							var dSpeed = 12*relSpeed * spdMult;
 							if (fMove2 > dSpeed*dSpeed) {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
@@ -8279,7 +8280,7 @@ var itemBehaviors = {
 				if (!isBB) {
 					var lMap = getCurrentLMap(fSprite.ailap);
 					var aipoints = lMap.aipoints[fSprite.aimap];
-					var dSpeed = 15*relSpeed;
+					var dSpeed = 15*relSpeed * spdMult;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
 						var target = aipoints[fSprite.aipoint];
@@ -8397,6 +8398,7 @@ var itemBehaviors = {
 					}
 				}
 			}
+			const spdMult = 4/3;
 			var relSpeed = cappedRelSpeed();
 			var relSpeed2 = relSpeed*relSpeed;
 			if (fSprite.aipoint == -1) {
@@ -8408,7 +8410,7 @@ var itemBehaviors = {
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 						var itemBehavior = itemBehaviors["carapace-noire"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
-							var dSpeed = 10*relSpeed;
+							var dSpeed = 12*relSpeed * spdMult;
 							if (fMove2 > dSpeed*dSpeed) {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
@@ -8470,7 +8472,7 @@ var itemBehaviors = {
 				var isBB = (course == "BB");
 				if (!isBB) {
 					var aipoints = oMap.aipoints[fSprite.aimap];
-					var dSpeed = 15*relSpeed;
+					var dSpeed = 15*relSpeed * spdMult;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
 						var target = aipoints[fSprite.aipoint];
