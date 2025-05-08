@@ -1868,16 +1868,20 @@ function initMap() {
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
 			if (lapOverride.lap) {
-				lMaps.push(Object.assign({}, lMaps[i], mapOverrides[i]));
-				pMaps.push(Object.assign({}, mapOverrides[i]));
-				lapOverrides.push(mapOverrides[i]);
+				var prevId = lMaps.length-1;
+				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
+				pMaps.push(Object.assign({}, lapOverride));
+				lapOverrides.push(lapOverride);
 			}
 			else {
 				if (lapOverride.zone)
 					lapOverride.zone = classifyByShape(lapOverride.zone);
+				if (lapOverride.endZone)
+					lapOverride.endZone = classifyByShape(lapOverride.endZone);
 				oMap.conditionOverrides.push(lapOverride);
 			}
 		}
+		oMap.lapOverrides = lapOverrides;
 		var sMaps = [];
 		for (var i=0;i<lMaps.length;i++)
 			sMaps.push(Object.assign({}, lMaps[i]));
@@ -1912,15 +1916,19 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
+		var loadedOverrides = new Set();
 		function initSubOverrides(lapId, conditionOverrides) {
 			var res = lMaps.length;
-			var lMap = Object.assign({}, sMaps[lapId]);
+			var lMap = Object.assign({ parentOverrideId: lapId }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
-				var lapOverride = oMap.conditionOverrides[conditionOverrides[i]];
-				console.log(lapOverride);
+				var oId = conditionOverrides[i];
+				var lapOverride = oMap.conditionOverrides[oId];
 				Object.assign(lMap, lapOverride);
-				Object.assign(pMap, lapOverride);
+				if (!loadedOverrides.has(oId)) {
+					Object.assign(pMap, lapOverride);
+					loadedOverrides.add(oId);
+				}
 			}
 			for (var i=0;i<subOverridesCallbacks.length;i++)
 				subOverridesCallbacks[i](lMap,pMap, res);
@@ -10608,32 +10616,54 @@ function handleConditionalOverrides(aX,aY, getId) {
 	var prevLapId;
 	for (var i=0;i<oMap.conditionOverrides.length;i++) {
 		var oOverride = oMap.conditionOverrides[i];
-		if (oKart.conditionOverrides.includes(i))
-			continue;
-		if (satisfyOverrideCondition(oOverride, aX,aY, oKart)) {
-			if (prevLapId === undefined)
-				prevLapId = getCurrentLapId(oKart);
-			var insertIndex = oKart.conditionOverrides.findIndex(x => x > i);
-			if (insertIndex === -1) oKart.conditionOverrides.push(i);
-			else oKart.conditionOverrides.splice(insertIndex, 0, i);
-			oKart.conditionOverridesHash = oKart.conditionOverrides.join(",");
-			isChanged = true;
+		if (oKart.conditionOverrides.includes(i)) {
+			if (shouldUntriggerOverride(oOverride, aX,aY, oKart)) {
+				if (prevLapId === undefined)
+					prevLapId = getCurrentLapId(oKart);
+				var deleteIndex = oKart.conditionOverrides.indexOf(i);
+				oKart.conditionOverrides.splice(deleteIndex, 1);
+				isChanged = true;
+			}
+		}
+		else {
+			if (shouldTriggerOverride(oOverride, aX,aY, oKart)) {
+				if (prevLapId === undefined)
+					prevLapId = getCurrentLapId(oKart);
+				oKart.conditionOverrides.push(i);
+				isChanged = true;
+			}
 		}
 	}
 	if (isChanged) {
+		oKart.conditionOverridesHash = oKart.conditionOverrides.join(",");
+		if (!oKart.conditionOverridesHash)
+			delete oKart.conditionOverridesHash;
 		var lapId = getCurrentLapId(oKart);
 		if (prevLapId === lapId) return lapId;
 		handleLapChange(prevLapId,lapId, getId);
 	}
 }
-function satisfyOverrideCondition(oOverride, aX,aY, oKart) {
+function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 	if (oOverride.time) {
-		if (getActualGameTimeMS() > oOverride.time)
+		var gameTime = getActualGameTimeMS();
+		if ((gameTime >= oOverride.time) && (gameTime < oOverride.endTime))
 			return true;
 	}
 	else if (oOverride.zone) {
 		var posX = oKart.x, posY = oKart.y;
 		if (pointInZone(posX,posY, oOverride.zone))
+			return true;
+	}
+	return false;
+}
+function shouldUntriggerOverride(oOverride, aX,aY, oKart) {
+	if (oOverride.endZone) {
+		var posX = oKart.x, posY = oKart.y;
+		if (pointInZone(posX,posY, oOverride.endZone))
+			return true;
+	}
+	if (oOverride.endTime) {
+		if (getActualGameTimeMS() >= oOverride.endTime)
 			return true;
 	}
 	return false;
