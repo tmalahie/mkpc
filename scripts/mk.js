@@ -2340,6 +2340,9 @@ function dropNewItem(oKart, item) {
 	addNewItem(oKart, item);
 }
 function addNewItem(kart,item) {
+	if (tombe(item.x, item.y))
+		return;
+
 	var collection = item.type;
 	var itemBehavior = itemBehaviors[collection];
 	if (itemBehavior.sprite !== false) {
@@ -11532,6 +11535,10 @@ function loseUsingItems(oKart) {
 			}
 			if (oItem.z)
 				oItem.z = 0;
+
+			if (tombe(oItem.x, oItem.y))
+				detruit(oItem);
+
 			var itemBehavior = itemBehaviors[oItem.type];
 			if (itemBehavior.drop)
 				itemBehavior.drop(oItem,oKart);
@@ -11583,7 +11590,8 @@ function dropCurrentItem(oKart) {
 				let rDist = 8 + Math.random()*5;
 				var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
 				dropNewItem(oKart, item);
-				item.sprite[0].fadein(200);
+				if (item.sprite)
+					item.sprite[0].fadein(200);
 			}
 		}
 	}
