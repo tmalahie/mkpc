@@ -15838,15 +15838,13 @@ function touche_crouge(iX, iY, iP) {
 	return false;
 }
 function touche_crouge_aux(iX,iY, oBox) {
-	if (!oBox.z) {
-		var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
-		const size = 4;
-		if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y)) {
-			if (itemInteractionsDisabled(oBox)) return false;
-			handleHit(oBox);
-			detruit(oBox,isHitSound(oBox));
-			return true;
-		}
+	var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
+	const size = 4;
+	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y && oBox.z < 1.2)) {
+		if (itemInteractionsDisabled(oBox)) return false;
+		handleHit(oBox);
+		detruit(oBox,isHitSound(oBox));
+		return true;
 	}
 	return false;
 }
