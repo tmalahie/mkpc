@@ -3203,7 +3203,22 @@ function startMapMusic(lastlap) {
 	}
 	else {
 		foreachLMap(function(lMap,pMap, i) {
-			if (pMap.music === undefined && pMap.yt === undefined) return;
+			if (pMap.music === undefined && pMap.yt === undefined) {
+				var prevMap;
+				if (lMap.music !== undefined) {
+					prevMap = lMaps.findLast(function(lMap2) {
+						return lMap2.mapMusic && lMap2.music === lMap.music;
+					});
+				}
+				if (lMap.yt !== undefined) {
+					prevMap = lMaps.findLast(function(lMap2) {
+						return lMap2.mapMusic && lMap2.yt === lMap.yt && lMap2.yt_opts === lMap.yt_opts;
+					});
+				}
+				if (prevMap)
+					lMap.mapMusic = prevMap.mapMusic;
+				return;
+			}
 			var opts = pMap.yt_opts || {};
 			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
 			lMap.mapMusic.permanent = 1;
@@ -3227,24 +3242,25 @@ function loadEndingMusic() {
 	endingMusic = startMusic(endingSrc);
 	endingMusic.permanent = 1;
 }
-function updateMapMusic(pMap) {
-	if (!pMap) return;
-	if (!pMap.mapMusic) return;
-	if (pMap.mapMusic === mapMusic) return;
+function updateMapMusic(lMap,nMap) {
+	if (!nMap.mapMusic) return;
+	if (nMap.mapMusic === mapMusic) return;
+	if (nMap.mapMusic === lMap.mapMusic) return;
 	var lastMapMusic = mapMusic;
-	mapMusic = pMap.mapMusic;
+	mapMusic = nMap.mapMusic;
 	bufferMusic(mapMusic);
 	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
-	var isLastLap = (pMap.lap === oMap.tours-1);
-	if (isLastLap && !pMap.cp) {
+	var isLastLap = (nMap.lap === oMap.tours-1);
+	if (isLastLap && !nMap.cp) {
 		removeIfExists(lastMapMusic);
-		if (pMap.yt)
+		if (nMap.yt)
 			oMap.lastMapSpeed = 1;
 		return;
 	}
 	setTimeout(function() {
-		removeIfExists(lastMapMusic);
-		var fast = isLastLap && !pMap.yt_opts;
+		if (nMap.parentOverrideId === undefined)
+			removeIfExists(lastMapMusic);
+		var fast = isLastLap && !nMap.yt_opts;
 		updateMusic(mapMusic, fast);
 	}, 1000);
 }
@@ -5617,8 +5633,8 @@ function resetScreen() {
 			fLastZ = iPointZ;
 		}
 	}
-	foreachLMap(function(lMap,pMap) {
-		updateBgLayers(pMap, function(strImages, fixedScale) {
+	foreachLMap(function(lMap) {
+		updateBgLayers({},lMap, function(strImages, fixedScale) {
 			if (lMap === oMap)
 				setupBgLayer(strImages, fixedScale, true);
 			else
@@ -10592,12 +10608,14 @@ function handleLapChange(prevLapId,lapId, getId) {
 	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
-	updateBgLayers(pMap, function(strImages, fixedScale) {
-		resetBgLayers();
-		setupBgLayer(strImages, fixedScale, false);
-	});
-	if (!onlineSpectatorId && !oKart.cpu && (lapId > prevLapId))
-		updateMapMusic(pMap);
+	if (pMap) {
+		updateBgLayers(lMap,nMap, function(strImages, fixedScale) {
+			resetBgLayers();
+			setupBgLayer(strImages, fixedScale, false);
+		});
+		if (!onlineSpectatorId && !oKart.cpu && ((lapId > prevLapId) || (nMap.parentOverrideId !== undefined) || (lMap.parentOverrideId !== undefined)))
+			updateMapMusic(lMap,nMap);
+	}
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
@@ -10742,41 +10760,42 @@ function resetBgLayers() {
 		}
 	}
 }
-function updateBgLayers(pMap, callback) {
-	if (!pMap) return;
-	if (pMap.custombg) {
-		if (customBgData[pMap.custombg]) {
-			if (customBgData[pMap.custombg].data !== undefined)
-				callback(customBgData[pMap.custombg].data, false);
+function updateBgLayers(lMap,nMap, callback) {
+	if (nMap.custombg) {
+		if (lMap.custombg === nMap.custombg) return;
+		if (customBgData[nMap.custombg]) {
+			if (customBgData[nMap.custombg].data !== undefined)
+				callback(customBgData[nMap.custombg].data, false);
 			else
-				customBgData[pMap.custombg].callbacks.push(callback);
+				customBgData[nMap.custombg].callbacks.push(callback);
 		}
 		else {
-			customBgData[pMap.custombg] = {
+			customBgData[nMap.custombg] = {
 				callbacks: [callback]
 			};
-			xhr("getBgData.php", "id="+pMap.custombg, function(res) {
-				if (customBgData[pMap.custombg].data) return true;
+			xhr("getBgData.php", "id="+nMap.custombg, function(res) {
+				if (customBgData[nMap.custombg].data) return true;
 				if (!res) {
-					delete customBgData[pMap.custombg];
+					delete customBgData[nMap.custombg];
 					return true;
 				}
 				res = JSON.parse(res);
-				customBgData[pMap.custombg].data = res.layers.map(function(layer) {
+				customBgData[nMap.custombg].data = res.layers.map(function(layer) {
 					return layer.path;
 				});
-				var callbacks = customBgData[pMap.custombg].callbacks;
+				var callbacks = customBgData[nMap.custombg].callbacks;
 				for (var i=0;i<callbacks.length;i++)
-					callbacks[i](customBgData[pMap.custombg].data, false);
+					callbacks[i](customBgData[nMap.custombg].data, false);
 				callbacks.length = 0;
 				return true;
 			});
 		}
 	}
-	else if (pMap.fond) {
-		callback(pMap.fond.map(function(layer) {
+	else if (nMap.fond) {
+		if (lMap.fond === nMap.fond) return;
+		callback(nMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
-		}), pMap.fond.length===2);
+		}), nMap.fond.length===2);
 	}
 }
 function setupBgLayer(strImages, fixedScale, isDelay) {
