@@ -2674,16 +2674,19 @@ function arme(ID, backwards, forwards) {
 
 			case "champior" :
 			itemKey = "champi";
-			if (oKart.champi < 12) {
-				tpsUse = 20;
-				oKart.champiType = CHAMPI_TYPE_ITEM;
-				oKart.maxspeed = 11;
-				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
+			tpsUse = 20;
+			oKart.champiType = CHAMPI_TYPE_ITEM;
+			oKart.maxspeed = 11;
+			oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
+
+			if (!oKart.champiorSound || timer - oKart.champiorSound >= 8) {
+				oKart.champiorSound = timer;
 				playIfShould(oKart,"musics/events/boost.mp3");
-				if (!oKart.champior) {
-					oKart.champior = 70;
-					oKart.champior0 = oKart.champior;
-				}
+			}
+
+			if (!oKart.champior) {
+				oKart.champior = 70;
+				oKart.champior0 = oKart.champior;
 			}
 			break;
 
@@ -18715,6 +18718,7 @@ function move(getId, triggered) {
 		if (oKart.champior <= 0) {
 			delete oKart.champior;
 			delete oKart.champior0;
+			delete oKart.champiorSound;
 			consumeItem(getId);
 		}
 		updateItemCountdownHud(getId, oKart.champior/oKart.champior0);
