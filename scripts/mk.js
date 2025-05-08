@@ -15704,7 +15704,8 @@ function touche_banane(iX, iY, iP) {
 	for (var i=0;i<items["banane"].length;i++) {
 		var oBox = items["banane"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+			const size = 4;
+			if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
@@ -15719,7 +15720,8 @@ function touche_poison(iX, iY, iP) {
 	for (var i=0;i<items["poison"].length;i++) {
 		var oBox = items["poison"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+			const size = 4;
+			if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
@@ -15758,7 +15760,8 @@ function touche_fauxobjet(iX, iY, iP) {
 	for (var i=0;i<items["fauxobjet"].length;i++) {
 		var oBox = items["fauxobjet"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+			const size = 4;
+			if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
@@ -15781,7 +15784,8 @@ function touche_cverte(iX, iY, iP) {
 	return false;
 }
 function touche_cverte_aux(iX,iY, oBox) {
-	if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+	const size = 4;
+	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
@@ -15823,7 +15827,8 @@ function touche_crouge(iX, iY, iP) {
 function touche_crouge_aux(iX,iY, oBox) {
 	if (!oBox.z) {
 		var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
-		if (isHitbox ? (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) : (iX == oBox.x && iY == oBox.y)) {
+		const size = 4;
+		if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y)) {
 			if (itemInteractionsDisabled(oBox)) return false;
 			handleHit(oBox);
 			detruit(oBox,isHitSound(oBox));
@@ -15852,7 +15857,8 @@ function touche_bobomb(iX, iY, iP, opts) {
 				}
 			}
 			else {
-				if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+				const size = 5;
+				if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 					for (j=0;j<aKarts.length;j++) {
 						var jKart = aKarts[j];
 						var k = jKart.using.indexOf(oBox);
