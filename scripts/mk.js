@@ -1916,19 +1916,16 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
-		var loadedOverrides = new Set();
-		function initSubOverrides(lapId, conditionOverrides) {
+		function initSubOverrides(lapId, conditionOverrides,prevConditionOverrides) {
 			var res = lMaps.length;
 			var lMap = Object.assign({ parentOverrideId: lapId }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
 				var oId = conditionOverrides[i];
-				var lapOverride = oMap.conditionOverrides[oId];
+				var lapOverride = JSON.parse(JSON.stringify(oMap.conditionOverrides[oId]));
 				Object.assign(lMap, lapOverride);
-				if (!loadedOverrides.has(oId)) {
-					Object.assign(pMap, lapOverride);
-					loadedOverrides.add(oId);
-				}
+				//if (prevConditionOverrides && !prevConditionOverrides.includes(oId))
+				Object.assign(pMap, lapOverride);
 			}
 			for (var i=0;i<subOverridesCallbacks.length;i++)
 				subOverridesCallbacks[i](lMap,pMap, res);
@@ -1945,7 +1942,7 @@ function initMap() {
 				if (!lMap.subOverrides)
 					lMap.subOverrides = {};
 				if (!lMap.subOverrides[oKart.conditionOverridesHash])
-					lMap.subOverrides[oKart.conditionOverridesHash] = initSubOverrides(lapId, oKart.conditionOverrides);
+					lMap.subOverrides[oKart.conditionOverridesHash] = initSubOverrides(lapId, oKart.conditionOverrides,oKart.prevConditionOverrides);
 				lapId = lMap.subOverrides[oKart.conditionOverridesHash];
 				return lapId;
 			}
@@ -2003,15 +2000,42 @@ function initMap() {
 	foreachLMap(function(lMap,pMap, lapId) {
 		var isMain = (lMap === oMap);
 		lMap.mapImg = oMap.mapImg;
-		if (!isMain && !pMap.img)
+		if (!isMain && !pMap.img) {
+			if (lMap.parentOverrideId !== undefined) {
+				var olMap = lMaps[lMap.parentOverrideId];
+				if (olMap && olMap.mapImg)
+					lMap.mapImg = olMap.mapImg;
+			}
 			return;
+		}
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
+		if (lMap.parentOverrideId !== undefined) {
+			var olMap = lMaps.find(function(lMap2) {
+				if (!lMap2.mapImg) return false;
+				var mapSrc2 = isCup ? (complete ? lMap2.img:"mapcreate.php"+ lMap2.map):"images/maps/map"+lMap2.map+"."+lMap2.ext;
+				return mapSrc === mapSrc2;
+			});
+			if (olMap) {
+				lMap.mapImg = olMap.mapImg;
+				return;
+			}
+		}
 		var oMapImg;
 		function handleMapLoad() {
-			lMap.mapImg = oMapImg;
+			assignMapImg(lMap);
 			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
 				if (pMaps[nLapId].img) return;
-				lMaps[nLapId].mapImg = oMapImg;
+				assignMapImg(lMaps[nLapId]);
+			}
+		}
+		function assignMapImg(nlMap) {
+			nlMap.mapImg = oMapImg;
+			if (nlMap.subOverrides) {
+				for (var i=0;i<nlMap.subOverrides.length;i++) {
+					var nsMap = lMaps[nlMap.subOverrides[i]];
+					if (nsMap && !nsMap.img)
+						nsMap.mapImg = oMapImg;
+				}
 			}
 		}
 		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
@@ -3246,6 +3270,7 @@ function updateMapMusic(lMap,nMap) {
 	if (!nMap.mapMusic) return;
 	if (nMap.mapMusic === mapMusic) return;
 	if (nMap.mapMusic === lMap.mapMusic) return;
+	if (!document.body.contains(nMap.mapMusic)) return;
 	var lastMapMusic = mapMusic;
 	mapMusic = nMap.mapMusic;
 	bufferMusic(mapMusic);
@@ -4200,6 +4225,14 @@ function startGame() {
 		}
 	});
 
+	if (oMap.conditionOverrides.length) {
+		setTimeout(function() {
+			for (var i=0;i<oMap.conditionOverrides.length;i++) {
+				getCurrentLapId({ tours: 1, demitours: 0, conditionOverrides: [i], prevConditionOverrides: [], conditionOverridesHash: i.toString() })
+			}
+		});
+	}
+
 	if ((strPlayer.length == 1) && !gameSettings.nomap && !clLocalVars.noMap) {
 		initPlan(oMap);
 		oPlanDiv.style.opacity = 0.01;
@@ -4968,7 +5001,7 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			//* gogogo
+			/* gogogo
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -5019,7 +5052,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -10636,8 +10669,10 @@ function handleConditionalOverrides(aX,aY, getId) {
 		var oOverride = oMap.conditionOverrides[i];
 		if (oKart.conditionOverrides.includes(i)) {
 			if (shouldUntriggerOverride(oOverride, aX,aY, oKart)) {
-				if (prevLapId === undefined)
+				if (prevLapId === undefined) {
 					prevLapId = getCurrentLapId(oKart);
+					oKart.prevConditionOverrides = oKart.conditionOverrides.slice();
+				}
 				var deleteIndex = oKart.conditionOverrides.indexOf(i);
 				oKart.conditionOverrides.splice(deleteIndex, 1);
 				isChanged = true;
@@ -10645,8 +10680,10 @@ function handleConditionalOverrides(aX,aY, getId) {
 		}
 		else {
 			if (shouldTriggerOverride(oOverride, aX,aY, oKart)) {
-				if (prevLapId === undefined)
+				if (prevLapId === undefined) {
 					prevLapId = getCurrentLapId(oKart);
+					oKart.prevConditionOverrides = oKart.conditionOverrides.slice();
+				}
 				oKart.conditionOverrides.push(i);
 				isChanged = true;
 			}
@@ -10657,6 +10694,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 		if (!oKart.conditionOverridesHash)
 			delete oKart.conditionOverridesHash;
 		var lapId = getCurrentLapId(oKart);
+		oKart.prevConditionOverrides = oKart.conditionOverrides;
 		if (prevLapId === lapId) return lapId;
 		handleLapChange(prevLapId,lapId, getId);
 	}
@@ -13959,9 +13997,8 @@ function foreachDMap(lMap,pMap,f) {
 	for (var k=lapId+1;k<lMaps.length;k++) {
 		var nMap = lMaps[k];
 		if (nMap === lMap) continue;
-		var qMap = pMaps[k];
-		if (qMap.decor) break;
-		f(nMap, qMap);
+		if (nMap.decor !== lMap.decor) continue;
+		f(nMap, pMaps[k]);
 	}
 }
 function isSameDistrib(d1,d2) {
