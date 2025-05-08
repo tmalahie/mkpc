@@ -587,6 +587,8 @@ function removeMapMusics() {
 	removeIfExists(mapMusic);
 	foreachLMap(function(lMap) {
 		removeIfExists(lMap.mapMusic);
+	}, {
+		subOverrides: false
 	});
 	removeIfExists(lastMapMusic);
 }
@@ -594,6 +596,8 @@ function listMapMusics() {
 	var res = [mapMusic];
 	foreachLMap(function(lMap) {
 		res.push(lMap.mapMusic);
+	}, {
+		subOverrides: false
 	});
 	res.push(lastMapMusic);
 	return res;
@@ -629,6 +633,8 @@ function clearResources() {
 		oMapImg = lMap.mapImg;
 		if (oMapImg.clear)
 			oMapImg.clear();
+	}, {
+		subOverrides: false
 	});
 }
 function resetEvents() {
@@ -1857,12 +1863,14 @@ function initMap() {
 	lMaps = [oMap];
 	pMaps = [oMap];
 	if (oMap.lapOverrides) {
-		var lapOverrides = oMap.lapOverrides;
-		for (var i=0;i<lapOverrides.length;i++) {
-			var lapOverride = lapOverrides[i];
+		var mapOverrides = oMap.lapOverrides;
+		var lapOverrides = [];
+		for (var i=0;i<mapOverrides.length;i++) {
+			var lapOverride = mapOverrides[i];
 			if (lapOverride.lap) {
-				lMaps.push(Object.assign({}, lMaps[i], lapOverrides[i]));
-				pMaps.push(Object.assign({}, lapOverrides[i]));
+				lMaps.push(Object.assign({}, lMaps[i], mapOverrides[i]));
+				pMaps.push(Object.assign({}, mapOverrides[i]));
+				lapOverrides.push(mapOverrides[i]);
 			}
 			else {
 				if (lapOverride.zone)
@@ -1870,9 +1878,20 @@ function initMap() {
 				oMap.conditionOverrides.push(lapOverride);
 			}
 		}
-		foreachLMap = function(callback) {
+		var sMaps = [];
+		for (var i=0;i<lMaps.length;i++)
+			sMaps.push(Object.assign({}, lMaps[i]));
+		var subOverridesCallbacks = [];
+		foreachLMap = function(callback, opts) {
 			for (var i=0;i<lMaps.length;i++)
 				callback(lMaps[i],pMaps[i],i);
+			if (!opts) {
+				opts = {
+					subOverrides: true
+				}
+			}
+			if (opts.subOverrides && oMap.conditionOverrides.length)
+				subOverridesCallbacks.push(callback);
 		}
 		getCurrentLMap = function(l) {
 			if (l >= lMaps.length) l = lMaps.length-1;
@@ -1893,14 +1912,40 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
+		function initSubOverrides(lapId, conditionOverrides) {
+			var res = lMaps.length;
+			var lMap = Object.assign({}, sMaps[lapId]);
+			var pMap = {};
+			for (var i=0;i<conditionOverrides.length;i++) {
+				var lapOverride = oMap.conditionOverrides[conditionOverrides[i]];
+				console.log(lapOverride);
+				Object.assign(lMap, lapOverride);
+				Object.assign(pMap, lapOverride);
+			}
+			for (var i=0;i<subOverridesCallbacks.length;i++)
+				subOverridesCallbacks[i](lMap,pMap, res);
+			lMaps.push(lMap);
+			pMaps.push(pMap);
+			return res;
+		}
 		getCurrentLapId = function(oKart) {
-			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours)
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours && oKart._lapOverrideCache.coh === oKart.conditionOverridesHash)
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
+			if (oKart.conditionOverridesHash) {
+				var lMap = getCurrentLMap(lapId);
+				if (!lMap.subOverrides)
+					lMap.subOverrides = {};
+				if (!lMap.subOverrides[oKart.conditionOverridesHash])
+					lMap.subOverrides[oKart.conditionOverridesHash] = initSubOverrides(lapId, oKart.conditionOverrides);
+				lapId = lMap.subOverrides[oKart.conditionOverridesHash];
+				return lapId;
+			}
 			if (oKart.sprite) {
 				oKart._lapOverrideCache = {
 					tours: oKart.tours,
 					cp: oKart.demitours,
+					coh: oKart.conditionOverridesHash,
 					lapId: lapId
 				};
 			}
@@ -1945,6 +1990,8 @@ function initMap() {
 				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
+	oMap.maxCheckpoints = 0;
+	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap,pMap, lapId) {
 		var isMain = (lMap === oMap);
 		lMap.mapImg = oMap.mapImg;
@@ -2014,8 +2061,6 @@ function initMap() {
 			oMapImg.src = mapSrc;
 		}
 	});
-	oMap.maxCheckpoints = 0;
-	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap) {
 		if (lMap.collision) {
 			var collisionProps = {rectangle:{},polygon:{}};
@@ -10551,7 +10596,7 @@ function handleLapChange(prevLapId,lapId, getId) {
 function handleCpChange(prevLap,prevCP, getId) {
 	if (!oMap.lapOverrides) return collisionLap;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP, conditionOverrides: oKart.conditionOverrides });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
@@ -10560,17 +10605,26 @@ function handleCpChange(prevLap,prevCP, getId) {
 function handleConditionalOverrides(aX,aY, getId) {
 	var oKart = aKarts[getId];
 	var isChanged = false;
+	var prevLapId;
 	for (var i=0;i<oMap.conditionOverrides.length;i++) {
 		var oOverride = oMap.conditionOverrides[i];
-		if (oKart.conditionOverrides.includes(oOverride))
+		if (oKart.conditionOverrides.includes(i))
 			continue;
 		if (satisfyOverrideCondition(oOverride, aX,aY, oKart)) {
-			oKart.conditionOverrides.push(oOverride);
+			if (prevLapId === undefined)
+				prevLapId = getCurrentLapId(oKart);
+			var insertIndex = oKart.conditionOverrides.findIndex(x => x > i);
+			if (insertIndex === -1) oKart.conditionOverrides.push(i);
+			else oKart.conditionOverrides.splice(insertIndex, 0, i);
+			oKart.conditionOverridesHash = oKart.conditionOverrides.join(",");
 			isChanged = true;
 		}
 	}
-	if (isChanged)
-		alert(0);
+	if (isChanged) {
+		var lapId = getCurrentLapId(oKart);
+		if (prevLapId === lapId) return lapId;
+		handleLapChange(prevLapId,lapId, getId);
+	}
 }
 function satisfyOverrideCondition(oOverride, aX,aY, oKart) {
 	if (oOverride.time) {
@@ -13845,6 +13899,8 @@ function countInLMap(callback) {
 	foreachLMap(function(lMap,pMap) {
 		const nb = callback(pMap);
 		if (nb) res += nb;
+	}, {
+		subOverrides: false
 	});
 	return res;
 }
@@ -18354,6 +18410,8 @@ function handleDecorExplosions(fSprite, callback) {
 				}
 			}
 		}
+	}, {
+		subOverrides: false
 	});
 }
 
@@ -19597,6 +19655,8 @@ function moveDecor() {
 				}
 			}
 		}
+	}, {
+		subOverrides: false
 	});
 	if (oMap.coins) {
 		for (var i=0;i<oMap.coins.length;i++) {
