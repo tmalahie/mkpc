@@ -7878,6 +7878,15 @@ var itemBehaviors = {
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
+			function canTarget(fSprite, oKart) {
+				const isOwner = oKart.id == fSprite.owner;
+				const isHurt = oKart.tourne;
+				const fellOff = oKart.fell;
+				const inCannon = oKart.cannon;
+				const isDead = oKart.loose;
+				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead);
+			}
+
 			var fNewPosX;
 			var fNewPosY;
 
@@ -7912,6 +7921,10 @@ var itemBehaviors = {
 						var tCible = aKarts.find(function(oKart) {
 							return oKart.id == fSprite.target;
 						});
+						if (!canTarget(fSprite, tCible)) {
+							fSprite.target = -1;
+							return;
+						}
 						var fDist = Math.pow(tCible.x-fSprite.x, 2) + Math.pow(tCible.y-fSprite.y, 2);
 						if (fDist < 500) {
 							fNewPosX = tCible.x;
@@ -8024,7 +8037,7 @@ var itemBehaviors = {
 
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
-								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose && !pCible.cannon && !pCible.tourne) {
+								if (canTarget(fSprite, pCible)) {
 									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
