@@ -8269,7 +8269,7 @@ var itemBehaviors = {
 
 			var steps = 5;
 			for (var l=0;l<steps;l++) {
-				var dSpeed = (fSprite.heightinc ? 15:12)*cappedRelSpeed()/steps;
+				var dSpeed = 14*cappedRelSpeed()/steps;
 				var fTeleport;
 				if (fSprite.owner != -1) {
 					if (fSprite.cannon) {
@@ -8585,7 +8585,7 @@ var itemBehaviors = {
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 						var itemBehavior = itemBehaviors["carapace-bleue"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
-							var dSpeed = 12*relSpeed * spdMult;
+							var dSpeed = 10*relSpeed * spdMult;
 							if (fMove2 > dSpeed*dSpeed) {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
@@ -8777,7 +8777,7 @@ var itemBehaviors = {
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 						var itemBehavior = itemBehaviors["carapace-noire"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
-							var dSpeed = 12*relSpeed * spdMult;
+							var dSpeed = 10*relSpeed * spdMult;
 							if (fMove2 > dSpeed*dSpeed) {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
