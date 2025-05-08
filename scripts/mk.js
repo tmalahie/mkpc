@@ -7576,9 +7576,11 @@ var itemBehaviors = {
 							}
 							else {
 								if (kart.megachampi && !kart.etoile) {
+									if (kart.megachampi > 8)
+										playIfShould(kart, "musics/events/megamushroom_end.mp3");
+
 									kart.megachampi = Math.min(kart.megachampi, 8);
 									kart.size = Math.pow(1.05, kart.megachampi);
-									playIfShould(kart, "musics/events/megamushroom_end.mp3");
 								}
 							}
 						}
