@@ -150,8 +150,8 @@ var SPF = 67;
 var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
-var bMusic = localStorage.getItem("bMusic") === "1";
-var iSfx = localStorage.getItem("iSfx") === "1";
+var bMusic = localStorage.getItem("bMusic") === null || localStorage.getItem("bMusic") === "1";
+var iSfx = localStorage.getItem("iSfx") === null || localStorage.getItem("iSfx") === "1";
 var iFps = +localStorage.getItem("nbFrames") || 4;
 var vSfx = 1, vMusic = 1;
 {
@@ -521,7 +521,7 @@ function setMusic(iValue) {
 	if (iValue)
 		localStorage.setItem("bMusic", 1);
 	else
-		localStorage.removeItem("bMusic");
+		localStorage.setItem("bMusic", 0);
 	if (formulaire && formulaire.dataset.disabled) {
 		if (iValue)
 			return showParamChangeDisclaimer();
@@ -536,7 +536,7 @@ function setSfx(iValue) {
 	if (iValue)
 		localStorage.setItem("iSfx", 1);
 	else
-		localStorage.removeItem("iSfx");
+		localStorage.setItem("iSfx", 0);
 	if (formulaire && formulaire.dataset.disabled) {
 		if (iValue)
 			return showParamChangeDisclaimer();
