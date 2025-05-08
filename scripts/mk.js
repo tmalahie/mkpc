@@ -897,11 +897,11 @@ var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
 	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(), oPlanCarapacesNoires = new Array(),
-	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
+	oPlanEtoiles = new Array(), oPlanMegas = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
 	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
-	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
+	oPlanEtoiles2 = new Array(), oPlanMegas2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
@@ -1286,11 +1286,13 @@ function setPlanPos(frameState, lMap) {
 	setCarapacesNoiresPos(oPlanCarapacesNoires, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
 	setCarapacesNoiresPos(oPlanCarapacesNoires2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
-	var oStars = new Array(), oBillBalls = new Array();
+	var oStars = new Array(), oMegas = new Array(), oBillBalls = new Array();
 	for (var i=0;i<frameState.karts.length;i++) {
 		var oKart = frameState.karts[i];
 		if (oKart.ref.etoile)
 			oStars.push(oKart);
+		else if (oKart.ref.megachampi)
+			oMegas.push(oKart);
 		else if (oKart.ref.billball)
 			oBillBalls.push(oKart);
 	}
@@ -1300,6 +1302,13 @@ function setPlanPos(frameState, lMap) {
 		setObject(oPlanEtoiles[i],oStars[i].x,oStars[i].y, oObjWidth,oPlanSize);
 		setObject(oPlanEtoiles2[i],oStars[i].x,oStars[i].y, oStarWidth2,oPlanSize2).style.width = oStarWidth2+"px";
 		oPlanEtoiles[i].style.zIndex = oPlanEtoiles2[i].style.zIndex = 2;
+	}
+	syncObjects(oPlanMegas,oMegas,"megachampi", oObjWidth,oPlanCtn);
+	syncObjects(oPlanMegas2,oMegas,"megachampi", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<oMegas.length;i++) {
+		setObject(oPlanMegas[i],oMegas[i].x,oMegas[i].y, oMegaWidth,oPlanSize).style.width = oMegaWidth+"px";
+		setObject(oPlanMegas2[i],oMegas[i].x,oMegas[i].y, oMegaWidth2,oPlanSize2).style.width = oMegaWidth2+"px";
+		oPlanMegas[i].style.zIndex = oPlanMegas2[i].style.zIndex = 2;
 	}
 	syncObjects(oPlanBillballs,oBillBalls,"billball", oObjWidth,oPlanCtn);
 	syncObjects(oPlanBillballs2,oBillBalls,"billball", oObjWidth2,oPlanCtn2);
@@ -1428,6 +1437,8 @@ function initPlan(lMap) {
 	oTeamWidth = Math.round(iScreenScale*2.4);
 	oBBWidth = iScreenScale*2;
 	oStarWidth2 = Math.round(iScreenScale*1.5);
+	oMegaWidth = Math.round(iScreenScale*2.5);
+	oMegaWidth2 = Math.round(iScreenScale*2.0);
 	oObjWidth = Math.round(iScreenScale*1.5);
 	oCoinWidth = Math.round(iScreenScale*1.2);
 	oExpWidth = Math.round(iScreenScale*4.2);
@@ -1547,6 +1558,7 @@ function resetPlan(lMap) {
 	oPlanCarapacesNoires.length = 0;
 
 	oPlanEtoiles.length = 0;
+	oPlanMegas.length = 0;
 	oPlanBillballs.length = 0;
 	oPlanTeams.length = 0;
 
@@ -1568,6 +1580,7 @@ function resetPlan(lMap) {
 	oPlanCarapacesNoires2.length = 0;
 
 	oPlanEtoiles2.length = 0;
+	oPlanMegas2.length = 0;
 	oPlanBillballs2.length = 0;
 	oPlanTeams2.length = 0;
 	customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
