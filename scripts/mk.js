@@ -4473,8 +4473,9 @@ function startGame() {
 		}
 	}
 
+	// race counter before race starts
 	var oRaceCounts;
-	if ((course != "CM") && (iRaceCount > 1) && isLocalScore()) {
+	if ((course != "CM") && isLocalScore()) {
 		oRaceCounts = new Array();
 		for (var i=0;i<strPlayer.length;i++) {
 			var oRaceCount = document.createElement("div");
@@ -4482,6 +4483,7 @@ function startGame() {
 			oRaceCount.style.right = Math.round(iScreenScale*0.6+1) +"px";
 			oRaceCount.style.top = Math.round(iScreenScale*0.4-3) +"px";
 			oRaceCount.style.color = "white";
+			oRaceCount.style.zIndex = 30000;
 			oRaceCount.style.fontFamily = '"MuseoModerno", Arial';
 			oRaceCount.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 			var shadowShift = Math.round(iScreenScale/8) +"px";
@@ -27855,8 +27857,9 @@ function exitCircuit() {
 		document.location.href = "index.php";
 }
 
+// race counter in track selection
 function showRaceCountIfRelevant(oScr) {
-	if ((course != "CM") && iRaceCount && isLocalScore()) {
+	if ((course != "CM") && isLocalScore()) {
 		var oRaceCount = document.createElement("div");
 		var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
 		oRaceCount.innerHTML = sRaceLabel + " " + (iRaceCount+1);
