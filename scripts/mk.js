@@ -20528,7 +20528,6 @@ function cycle() {
 var decorPos = [];
 var lastErrorTs = 0;
 function runOneFrame() {
-	console.log(oPlayers[0].frminv)
 	try {
 		handleGamepadEvents();
 		if (!timeTrialMode()) {
