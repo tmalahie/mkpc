@@ -16764,6 +16764,7 @@ function move(getId, triggered) {
 						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
 							stopDrifting(getId);
 							loseBall(getId);
+							loseUsingItems(oKart);
 							oKart.spin(20);
 						}
 						stopped = false;
@@ -16773,6 +16774,7 @@ function move(getId, triggered) {
 						if (hittable) {
 							stopDrifting(getId);
 							loseBall(getId);
+							loseUsingItems(oKart);
 							oKart.spin(42);
 							if (oKart.cpu)
 								oKart.frminv = 16;
@@ -16784,6 +16786,7 @@ function move(getId, triggered) {
 						if (hittable) {
 							stopDrifting(getId);
 							loseBall(getId);
+							loseUsingItems(oKart);
 							oKart.spin(42);
 						}
 						oKart.speed *= -1;
