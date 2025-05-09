@@ -17771,9 +17771,20 @@ function move(getId, triggered) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(collisionSpin);
-				oKart.frminv = 24;
 				oKart.speed = 2.5*Math.sign(oKart.speed);
-				loseUsingItems(oKart);
+
+				// cancel movement to prevent loseUsingItems dropping ahead of the player (transparent decors only)
+				if (decorBehaviors[collisionDecor].transparent) {
+					const posBackup = {x: oKart.x, y: oKart.y};
+
+					oKart.x = fNewPosX - fMoveX/2;
+					oKart.y = fNewPosY - fMoveY/2;
+					loseUsingItems(oKart);
+					oKart.x = posBackup.x;
+					oKart.y = posBackup.y;
+				}
+				else
+					loseUsingItems(oKart);
 			}
 		}
 	}
@@ -20517,6 +20528,7 @@ function cycle() {
 var decorPos = [];
 var lastErrorTs = 0;
 function runOneFrame() {
+	console.log(oPlayers[0].frminv)
 	try {
 		handleGamepadEvents();
 		if (!timeTrialMode()) {
