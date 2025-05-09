@@ -1218,7 +1218,7 @@ function setPlanPos(frameState, lMap) {
 	}
 
 	function setBobombPos(iPlanBobOmbs, iObjWidth,iPlanCtn, iPlanSize, iExpWidth) {
-		syncObjects(iPlanBobOmbs,frameItems["bobomb"],"bob-omb", iObjWidth,iPlanCtn);
+		syncObjects(iPlanBobOmbs,frameItems["bobomb"],"bobomb", iObjWidth,iPlanCtn);
 		for (var i=0;i<frameItems["bobomb"].length;i++) {
 			var bobomb = frameItems["bobomb"][i];
 			if (bobomb.ref.cooldown <= 0) {
