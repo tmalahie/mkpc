@@ -1911,10 +1911,12 @@ function initMap() {
 				if (nMap.decor !== lMap.decor) continue;
 				f(nMap, pMaps[k]);
 			}
-			subDecorOverrides.push({
-				decor: lMap.decor,
-				callback: f
-			});
+			if (oMap.conditionOverrides.length) {
+				subDecorOverrides.push({
+					decor: lMap.decor,
+					callback: f
+				});
+			}
 		}
 		getCurrentLMap = function(l) {
 			if (l >= lMaps.length) l = lMaps.length-1;
@@ -1935,18 +1937,22 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
-		function initSubOverrides(lapId, conditionOverrides) {
-			var res = lMaps.length;
+		function initSubOverrides(lapId, conditionOverrides, conditionOverridesHash, warmup) {
+			var prevLap = getCurrentLMap(lapId);
+			if (!prevLap.subOverrides)
+				prevLap.subOverrides = {};
+			var res = prevLap.subOverrides[conditionOverridesHash];
+			if (res !== undefined) return res;
+
+			res = lMaps.length;
 			var lMap = Object.assign({ parentOverrideId: lapId }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
 				var oId = conditionOverrides[i];
 				var lapOverride = oMap.conditionOverrides[oId];
 				Object.assign(lMap, lapOverride);
-				for (var key in lapOverride) {
-					if (!pMaps.some(function(pMap2) { return pMap2[key] === lapOverride[key] }))
-						pMap[key] = lapOverride[key];
-				}
+				if (warmup)
+					Object.assign(pMap, lapOverride);
 			}
 			for (var i=0;i<subOverridesCallbacks.length;i++)
 				subOverridesCallbacks[i](lMap,pMap, res);
@@ -1957,6 +1963,8 @@ function initMap() {
 			}
 			lMaps.push(lMap);
 			pMaps.push(pMap);
+
+			prevLap.subOverrides[conditionOverridesHash] = res;
 			return res;
 		}
 		getCurrentLapId = function(oKart) {
@@ -1964,12 +1972,7 @@ function initMap() {
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
 			if (oKart.conditionOverridesHash) {
-				var lMap = getCurrentLMap(lapId);
-				if (!lMap.subOverrides)
-					lMap.subOverrides = {};
-				if (!lMap.subOverrides[oKart.conditionOverridesHash])
-					lMap.subOverrides[oKart.conditionOverridesHash] = initSubOverrides(lapId, oKart.conditionOverrides);
-				lapId = lMap.subOverrides[oKart.conditionOverridesHash];
+				lapId = initSubOverrides(lapId, oKart.conditionOverrides,oKart.conditionOverridesHash);
 				return lapId;
 			}
 			if (oKart.sprite) {
@@ -2011,6 +2014,11 @@ function initMap() {
 				return oBox.lapId;
 			}
 		}
+
+		if (oMap.conditionOverrides.length) {
+			for (var i=0;i<oMap.conditionOverrides.length;i++)
+				initSubOverrides(0, [i],i.toString(), true);
+		}
 	}
 	if (clSelected) {
 		var challengeData = clSelected.data;
@@ -2029,24 +2037,27 @@ function initMap() {
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
 		if (lMap.parentOverrideId !== undefined) {
 			var olMap = lMaps.find(function(lMap2) {
-				if (!lMap2.mapImg) return false;
+				if (!lMap2.mapImgPromise) return false;
 				var mapSrc2 = isCup ? (complete ? lMap2.img:"mapcreate.php"+ lMap2.map):"images/maps/map"+lMap2.map+"."+lMap2.ext;
 				return mapSrc === mapSrc2;
 			});
 			if (olMap) {
-				lMap.mapImg = olMap.mapImg;
+				olMap.mapImgPromise.then(function(mapImg) {
+					lMap.mapImg = mapImg;
+				});
 				return;
 			}
 		}
 		if (!isMain && !pMap.img)
 			return;
 		var oMapImg;
-		function handleMapLoad() {
+		function handleMapLoad(callback) {
 			assignMapImg(lMap);
 			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
 				if (pMaps[nLapId].img) return;
 				assignMapImg(lMaps[nLapId]);
 			}
+			callback(oMapImg);
 		}
 		function assignMapImg(nlMap) {
 			nlMap.mapImg = oMapImg;
@@ -2058,60 +2069,71 @@ function initMap() {
 				}
 			}
 		}
-		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
-			if (gameSettings.nogif) {
-				var oGif = new Image();
-				if (isMain) {
-					lMap.mapImg = oGif;
-					oGif.onload = function() {
-						oMapImg = document.createElement("canvas");
-						oMapImg.width = oGif.naturalWidth;
-						oMapImg.height = oGif.naturalHeight;
+		lMap.mapImgPromise = new Promise(function(resolve) {
+			if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
+				if (gameSettings.nogif) {
+					var oGif = new Image();
+					if (isMain) {
+						lMap.mapImg = oGif;
+						oGif.onload = function() {
+							oMapImg = document.createElement("canvas");
+							oMapImg.width = oGif.naturalWidth;
+							oMapImg.height = oGif.naturalHeight;
+							lMap.mapImg = oMapImg;
+							var oMapCtx = oMapImg.getContext("2d");
+							oMapCtx.drawImage(oGif, 0,0);
+							resolve(oMapImg);
+							startGame();
+						};
+					}
+					else {
+						oGif.onload = function() {
+							oMapImg = document.createElement("canvas");
+							oMapImg.width = oGif.naturalWidth;
+							oMapImg.height = oGif.naturalHeight;
+							var oMapCtx = oMapImg.getContext("2d");
+							oMapCtx.drawImage(oGif, 0,0);
+							handleMapLoad(resolve);
+						};
+					}
+					oGif.src = mapSrc;
+				}
+				else {
+					oMapImg = GIF();
+					if (isMain) {
 						lMap.mapImg = oMapImg;
-						var oMapCtx = oMapImg.getContext("2d");
-						oMapCtx.drawImage(oGif, 0,0);
+						oMapImg.onloadone = startGame;
+						oMapImg.onloadall = function() {
+							if (oPlanImg) oPlanImg.src = mapSrc;
+							if (oPlanImg2) oPlanImg2.src = mapSrc;
+						}
+						resolve(oMapImg);
+					}
+					else {
+						oMapImg.onloadone = function() {
+							handleMapLoad(resolve);
+						};
+					}
+					oMapImg.load(mapSrc);
+				}
+			}
+			else {
+				oMapImg = new Image();
+				if (isMain) {
+					lMap.mapImg = oMapImg;
+					oMapImg.onload = function() {
+						resolve(oMapImg);
 						startGame();
 					};
 				}
 				else {
-					oGif.onload = function() {
-						oMapImg = document.createElement("canvas");
-						oMapImg.width = oGif.naturalWidth;
-						oMapImg.height = oGif.naturalHeight;
-						var oMapCtx = oMapImg.getContext("2d");
-						oMapCtx.drawImage(oGif, 0,0);
-						handleMapLoad();
+					oMapImg.onload = function() {
+						handleMapLoad(resolve);
 					};
 				}
-				oGif.src = mapSrc;
+				oMapImg.src = mapSrc;
 			}
-			else {
-				oMapImg = GIF();
-				if (isMain) {
-					lMap.mapImg = oMapImg;
-					oMapImg.onloadone = startGame;
-					oMapImg.onloadall = function() {
-						if (oPlanImg) oPlanImg.src = mapSrc;
-						if (oPlanImg2) oPlanImg2.src = mapSrc;
-					}
-				}
-				else {
-					oMapImg.onloadone = handleMapLoad;
-				}
-				oMapImg.load(mapSrc);
-			}
-		}
-		else {
-			oMapImg = new Image();
-			if (isMain) {
-				lMap.mapImg = oMapImg;
-				oMapImg.onload = startGame;
-			}
-			else {
-				oMapImg.onload = handleMapLoad;
-			}
-			oMapImg.src = mapSrc;
-		}
+		});
 	});
 	foreachLMap(function(lMap) {
 		if (lMap.collision) {
@@ -4244,14 +4266,6 @@ function startGame() {
 			}
 		}
 	});
-
-	if (oMap.conditionOverrides.length) {
-		setTimeout(function() {
-			for (var i=0;i<oMap.conditionOverrides.length;i++) {
-				getCurrentLapId({ tours: 1, demitours: 0, conditionOverrides: [i], conditionOverridesHash: i.toString() })
-			}
-		});
-	}
 
 	if ((strPlayer.length == 1) && !gameSettings.nomap && !clLocalVars.noMap) {
 		initPlan(oMap);
