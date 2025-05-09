@@ -3907,6 +3907,7 @@ function startGame() {
 						oKart.demitours = getNextCp(oKart);
 					}
 					handleCpChange(aTours,aDemitours, getId);
+					handleConditionalOverrides(aX,aY, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -10677,10 +10678,13 @@ function handleLapChange(prevLapId,lapId, getId) {
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
-function handleCpChange(prevLap,prevCP, getId) {
+function handleCpChange(prevLap,prevCP, getId,prevId) {
 	if (!oMap.lapOverrides) return collisionLap;
+	if (prevId === undefined)
+		prevId = getId;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP, conditionOverrides: oKart.conditionOverrides });
+	var prevKart = aKarts[prevId];
+	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP, conditionOverrides: prevKart.conditionOverrides, conditionOverridesHash: prevKart.conditionOverridesHash });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
@@ -20105,16 +20109,16 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours, prevId = oSpecCam.playerId;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours, prevId = oSpecCam.playerId;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "quit":
 		document.location.reload();
