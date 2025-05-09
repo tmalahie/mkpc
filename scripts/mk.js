@@ -1945,7 +1945,7 @@ function initMap() {
 			if (res !== undefined) return res;
 
 			res = lMaps.length;
-			var lMap = Object.assign({ parentOverrideId: lapId }, sMaps[lapId]);
+			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
 				var oId = conditionOverrides[i];
@@ -7892,7 +7892,7 @@ var itemBehaviors = {
 					if (!i)
 						tendsToSpeed(fSprite, 12, 0.2);
 					if (isMoving)
-						checkItemLap(fSprite, { aPos: [roundX1, roundX2] });
+						checkItemLap(fSprite, { aPos: [roundX1, roundY1] });
 				}
 				else {
 					fSprite.lives--;
@@ -10874,13 +10874,45 @@ function loadBgLayer(strImages) {
 function checkItemLap(fSprite, opts) {
 	var lapId = (fSprite.ailap >= 0) ? fSprite.ailap : fSprite.lapId;
 	var nextOverride = oMap.lapOverrides && oMap.lapOverrides[lapId];
-	if (!nextOverride) return;
-	var tours = fSprite.ailapt;
-	if (!tours) {
-		var currentOverride = oMap.lapOverrides[lapId-1];
-		tours = currentOverride ? currentOverride.tours : 1;
-	}
+	if (!nextOverride && !oMap.conditionOverrides.length) return;
 	var lMap = getCurrentLMap(lapId);
+	var conditionOverrides = lMap.conditionOverrideIds || [];
+	var tours = fSprite.ailapt, demitours;
+	var parentLapId = lMap.parentOverrideId;
+	if (parentLapId === undefined) parentLapId = lapId;
+	else nextOverride = oMap.lapOverrides[parentLapId];
+	var currentOverride = oMap.lapOverrides[parentLapId-1];
+	if (!tours)
+		tours = currentOverride ? currentOverride.lap : 1;
+	demitours = (currentOverride && currentOverride.cp) || 0;
+	for (var i=0;i<oMap.conditionOverrides.length;i++) {
+		var oOverride = oMap.conditionOverrides[i];
+		var aX = opts.aPos[0], aY = opts.aPos[1];
+		var isChanged = false;
+		if (conditionOverrides.includes(i)) {
+			if (shouldUntriggerOverride(oOverride, aX,aY,fSprite)) {
+				conditionOverrides = conditionOverrides.filter(function(j) {
+					return j !== i;
+				});
+				isChanged = true;
+			}
+		}
+		else {
+			if (shouldTriggerOverride(oOverride, aX,aY,fSprite)) {
+				conditionOverrides = conditionOverrides.concat(i);
+				isChanged = true;
+			}
+		}
+		if (isChanged) {
+			var conditionOverridesHash = conditionOverrides.join(",");
+			var nLapId = getCurrentLapId({ tours: tours, demitours: demitours, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash });
+			if (nLapId !== lapId) {
+				setItemLap(lMap, fSprite, nLapId);
+				return;
+			}
+		}
+	}
+	if (!nextOverride) return;
 	var nextCp = getNextCp({ tours: tours });
 	if (!fSprite.ailapc && !(fSprite.aipoint < lMap.checkpoint.length/2))
 		fSprite.ailapc = 1;
@@ -10890,20 +10922,39 @@ function checkItemLap(fSprite, opts) {
 	}
 	var lapCount = tours-1;
 	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
-		incItemLap(lMap, fSprite);
+		incItemLap(lMap,fSprite,nextOverride);
 		return;
 	}
 	if (fSprite.ailap < nextOverride.lap) return;
 	if (!nextOverride.cp) return;
 	if (enteredCheckpoint(lMap.checkpointCoords[nextOverride.cp], fSprite, opts))
-		incItemLap(lMap, fSprite);
+		incItemLap(lMap,fSprite,nextOverride);
 }
-function incItemLap(lMap, fSprite) {
+function incItemLap(lMap,fSprite,nextOverride) {
+	var conditionOverrides = lMap.conditionOverrideIds;
+	if (conditionOverrides) {
+		var conditionOverridesHash = conditionOverrides.join(",");
+		updateItemLap(lMap,fSprite, function() {
+			return getCurrentLapId({ tours: nextOverride.lap+1, demitours: nextOverride.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash });
+		});
+	}
+	else {
+		updateItemLap(lMap,fSprite, function(l) {
+			return l+1;
+		});
+	}
+}
+function setItemLap(lMap, fSprite, val) {
+	updateItemLap(lMap,fSprite, function() {
+		return val;
+	});
+}
+function updateItemLap(lMap, fSprite, callback) {
 	if (fSprite.ailap >= 0)
-		fSprite.ailap++;
+		fSprite.ailap = callback(fSprite.ailap);
 	else {
 		if (fSprite.lapId >= 0)
-			fSprite.lapId++;
+			fSprite.lapId = callback(fSprite.lapId);
 		return;
 	}
 	var nMap = getCurrentLMap(fSprite.ailap);
