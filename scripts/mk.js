@@ -1871,7 +1871,7 @@ function initMap() {
 		var lapOverrides = [];
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
-			if (lapOverride.lap) {
+			if (lapOverride.lap !== undefined) {
 				var prevId = lMaps.length-1;
 				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
 				pMaps.push(Object.assign({}, lapOverride));
@@ -1886,6 +1886,7 @@ function initMap() {
 			}
 		}
 		oMap.lapOverrides = lapOverrides;
+		console.log(lMaps);
 		var sMaps = [];
 		for (var i=0;i<lMaps.length;i++)
 			sMaps.push(Object.assign({}, lMaps[i]));
