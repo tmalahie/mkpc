@@ -2052,22 +2052,12 @@ function initMap() {
 			return;
 		var oMapImg;
 		function handleMapLoad(callback) {
-			assignMapImg(lMap);
+			lMap.mapImg = oMapImg;
 			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
-				if (pMaps[nLapId].img) return;
-				assignMapImg(lMaps[nLapId]);
+				if (pMaps[nLapId].img) break;
+				lMaps[nLapId].mapImg = oMapImg;
 			}
 			callback(oMapImg);
-		}
-		function assignMapImg(nlMap) {
-			nlMap.mapImg = oMapImg;
-			if (nlMap.subOverrides) {
-				for (var i=0;i<nlMap.subOverrides.length;i++) {
-					var nsMap = lMaps[nlMap.subOverrides[i]];
-					if (nsMap && !nsMap.img)
-						nsMap.mapImg = oMapImg;
-				}
-			}
 		}
 		lMap.mapImgPromise = new Promise(function(resolve) {
 			if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
