@@ -1886,7 +1886,6 @@ function initMap() {
 			}
 		}
 		oMap.lapOverrides = lapOverrides;
-		console.log(lMaps);
 		var sMaps = [];
 		for (var i=0;i<lMaps.length;i++)
 			sMaps.push(Object.assign({}, lMaps[i]));
@@ -2043,6 +2042,7 @@ function initMap() {
 				return mapSrc === mapSrc2;
 			});
 			if (olMap) {
+				lMap.mapImg = olMap.mapImg;
 				olMap.mapImgPromise.then(function(mapImg) {
 					lMap.mapImg = mapImg;
 				});
@@ -10693,7 +10693,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 	for (var i=0;i<oMap.conditionOverrides.length;i++) {
 		var oOverride = oMap.conditionOverrides[i];
 		if (oKart.conditionOverrides.includes(i)) {
-			if (shouldUntriggerOverride(oOverride, aX,aY, oKart)) {
+			if (shouldUntriggerOverride(oOverride, aX,aY,oKart)) {
 				if (prevLapId === undefined)
 					prevLapId = getCurrentLapId(oKart);
 				var deleteIndex = oKart.conditionOverrides.indexOf(i);
@@ -10702,7 +10702,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 			}
 		}
 		else {
-			if (shouldTriggerOverride(oOverride, aX,aY, oKart)) {
+			if (shouldTriggerOverride(oOverride, aX,aY,oKart)) {
 				if (prevLapId === undefined)
 					prevLapId = getCurrentLapId(oKart);
 				oKart.conditionOverrides.push(i);
@@ -10726,16 +10726,14 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 			return true;
 	}
 	else if (oOverride.zone) {
-		var posX = oKart.x, posY = oKart.y;
-		if (pointInZone(posX,posY, oOverride.zone))
+		if (pointCrossZone(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone))
 			return true;
 	}
 	return false;
 }
 function shouldUntriggerOverride(oOverride, aX,aY, oKart) {
 	if (oOverride.endZone) {
-		var posX = oKart.x, posY = oKart.y;
-		if (pointInZone(posX,posY, oOverride.endZone))
+		if (pointCrossZone(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone))
 			return true;
 	}
 	if (oOverride.endTime) {
@@ -12003,6 +12001,24 @@ function pointInZone(x,y, zones) {
 	}
 	return false;
 }
+function pointCrossZone(iX,iY,iI,iJ, zones) {
+	var nX = iX+iI, nY = iY+iJ;
+	var oRectangles = zones.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(nX,nY, oBox))
+			return true;
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return true;
+	}
+	var oPolygons = zones.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(nX,nY, oPolygons[i]))
+			return true;
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
+			return true;
+	}
+}
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
 	if ((l > 0) && (l <= 1)) {
@@ -12590,23 +12606,7 @@ function getOffroadProps(oKart,hpType) {
 function accelere(iX, iY, iI, iJ) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (!lMap.accelerateurs) return false;
-	var nX = iX+iI, nY = iY+iJ;
-	var oRectangles = lMap.accelerateurs.rectangle;
-	for (var i=0;i<oRectangles.length;i++) {
-		var oBox = oRectangles[i];
-		if (pointInRectangle(nX,nY, oBox))
-			return true;
-		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
-			return true;
-	}
-	var oPolygons = lMap.accelerateurs.polygon;
-	for (var i=0;i<oPolygons.length;i++) {
-		if (pointInPolygon(nX,nY, oPolygons[i]))
-			return true;
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
-			return true;
-	}
-	return false;
+	return pointCrossZone(iX,iY, iI,iJ, lMap.accelerateurs);
 }
 
 function flowShift(iX,iY) {
@@ -17402,6 +17402,7 @@ function move(getId, triggered) {
 				oKart.figstate = 0;
 				oKart.fell = true;
 				oKart.champi = 0;
+				kartReplaced = true;
 				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
@@ -17479,7 +17480,7 @@ function move(getId, triggered) {
 		else
 			delete oKart.shift;
 	}
-	if (!oKart.cpu && !kartReplaced)
+	if (!oKart.cpu && (!kartReplaced || oKart.tombe))
 		updateSpeedometer(getId, aPosX,aPosY);
 
 	moveUsingItems(oKart, triggered);
@@ -18259,7 +18260,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	handleConditionalOverrides(aPosX,aPosY, getId);
+	if (!kartReplaced)
+		handleConditionalOverrides(aPosX,aPosY, getId);
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
 		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
