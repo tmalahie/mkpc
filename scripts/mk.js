@@ -10717,7 +10717,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 	if (oOverride.time) {
 		var gameTime = getActualGameTimeMS();
-		if ((gameTime >= oOverride.time) && (gameTime < oOverride.endTime))
+		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
 			return true;
 	}
 	else if (oOverride.zone) {
