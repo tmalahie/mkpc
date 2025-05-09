@@ -4164,7 +4164,7 @@ function startGame() {
 			nMap.assets = lMap.assets;
 		});
 		for (var i=0;i<assetKeys.length;i++) {
-			var key = assetKeys[i];
+			let key = assetKeys[i];
 			if (pMap[key]) {
 				function redrawAsset(asset) {
 					var ctx = this.canvas.getContext("2d");
@@ -13746,7 +13746,7 @@ var challengeRules = {
 					}
 					var isAsset = actualType.startsWith("assets/");
 					if (isAsset) {
-						var assetParams, assetKey;
+						let assetParams, assetKey;
 						switch (actualType) {
 							case "assets/pivothand":
 								assetParams = ["hand",[decorData.pos[0],decorData.pos[1],47,8,0.5,0.5],[0,0.5,0,-0.038]];
