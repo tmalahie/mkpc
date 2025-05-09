@@ -1839,6 +1839,10 @@ var foreachLMap = function(callback) {
 	// Can be overriden, see lapOverrides
 	callback(oMap,oMap,0);
 }
+var foreachDMap = function(_lMap,pMap,f) {
+	// Can be overriden, see lapOverrides
+	f(pMap);
+}
 var getCurrentLMap = function() {
 	// Can be overriden, see lapOverrides
 	return oMap;
@@ -1886,6 +1890,7 @@ function initMap() {
 		for (var i=0;i<lMaps.length;i++)
 			sMaps.push(Object.assign({}, lMaps[i]));
 		var subOverridesCallbacks = [];
+		var subDecorOverrides = [];
 		foreachLMap = function(callback, opts) {
 			for (var i=0;i<lMaps.length;i++)
 				callback(lMaps[i],pMaps[i],i);
@@ -1896,6 +1901,20 @@ function initMap() {
 			}
 			if (opts.subOverrides && oMap.conditionOverrides.length)
 				subOverridesCallbacks.push(callback);
+		}
+		foreachDMap = function(lMap,pMap,f) {
+			f(pMap);
+			var lapId = lMaps.indexOf(lMap);
+			for (var k=lapId+1;k<lMaps.length;k++) {
+				var nMap = lMaps[k];
+				if (nMap === lMap) continue;
+				if (nMap.decor !== lMap.decor) continue;
+				f(nMap, pMaps[k]);
+			}
+			subDecorOverrides.push({
+				decor: lMap.decor,
+				callback: f
+			});
 		}
 		getCurrentLMap = function(l) {
 			if (l >= lMaps.length) l = lMaps.length-1;
@@ -1916,19 +1935,26 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
-		function initSubOverrides(lapId, conditionOverrides,prevConditionOverrides) {
+		function initSubOverrides(lapId, conditionOverrides) {
 			var res = lMaps.length;
 			var lMap = Object.assign({ parentOverrideId: lapId }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
 				var oId = conditionOverrides[i];
-				var lapOverride = JSON.parse(JSON.stringify(oMap.conditionOverrides[oId]));
+				var lapOverride = oMap.conditionOverrides[oId];
 				Object.assign(lMap, lapOverride);
-				//if (prevConditionOverrides && !prevConditionOverrides.includes(oId))
-				Object.assign(pMap, lapOverride);
+				for (var key in lapOverride) {
+					if (!pMaps.some(function(pMap2) { return pMap2[key] === lapOverride[key] }))
+						pMap[key] = lapOverride[key];
+				}
 			}
 			for (var i=0;i<subOverridesCallbacks.length;i++)
 				subOverridesCallbacks[i](lMap,pMap, res);
+			for (var i=0;i<subDecorOverrides.length;i++) {
+				var dOverride = subDecorOverrides[i];
+				if (dOverride.decor === lMap.decor)
+					dOverride.callback(lMap,pMap);
+			}
 			lMaps.push(lMap);
 			pMaps.push(pMap);
 			return res;
@@ -1942,7 +1968,7 @@ function initMap() {
 				if (!lMap.subOverrides)
 					lMap.subOverrides = {};
 				if (!lMap.subOverrides[oKart.conditionOverridesHash])
-					lMap.subOverrides[oKart.conditionOverridesHash] = initSubOverrides(lapId, oKart.conditionOverrides,oKart.prevConditionOverrides);
+					lMap.subOverrides[oKart.conditionOverridesHash] = initSubOverrides(lapId, oKart.conditionOverrides);
 				lapId = lMap.subOverrides[oKart.conditionOverridesHash];
 				return lapId;
 			}
@@ -2000,14 +2026,6 @@ function initMap() {
 	foreachLMap(function(lMap,pMap, lapId) {
 		var isMain = (lMap === oMap);
 		lMap.mapImg = oMap.mapImg;
-		if (!isMain && !pMap.img) {
-			if (lMap.parentOverrideId !== undefined) {
-				var olMap = lMaps[lMap.parentOverrideId];
-				if (olMap && olMap.mapImg)
-					lMap.mapImg = olMap.mapImg;
-			}
-			return;
-		}
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
 		if (lMap.parentOverrideId !== undefined) {
 			var olMap = lMaps.find(function(lMap2) {
@@ -2020,6 +2038,8 @@ function initMap() {
 				return;
 			}
 		}
+		if (!isMain && !pMap.img)
+			return;
 		var oMapImg;
 		function handleMapLoad() {
 			assignMapImg(lMap);
@@ -3276,7 +3296,7 @@ function updateMapMusic(lMap,nMap) {
 	bufferMusic(mapMusic);
 	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
 	var isLastLap = (nMap.lap === oMap.tours-1);
-	if (isLastLap && !nMap.cp) {
+	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
 		removeIfExists(lastMapMusic);
 		if (nMap.yt)
 			oMap.lastMapSpeed = 1;
@@ -4228,7 +4248,7 @@ function startGame() {
 	if (oMap.conditionOverrides.length) {
 		setTimeout(function() {
 			for (var i=0;i<oMap.conditionOverrides.length;i++) {
-				getCurrentLapId({ tours: 1, demitours: 0, conditionOverrides: [i], prevConditionOverrides: [], conditionOverridesHash: i.toString() })
+				getCurrentLapId({ tours: 1, demitours: 0, conditionOverrides: [i], conditionOverridesHash: i.toString() })
 			}
 		});
 	}
@@ -10669,10 +10689,8 @@ function handleConditionalOverrides(aX,aY, getId) {
 		var oOverride = oMap.conditionOverrides[i];
 		if (oKart.conditionOverrides.includes(i)) {
 			if (shouldUntriggerOverride(oOverride, aX,aY, oKart)) {
-				if (prevLapId === undefined) {
+				if (prevLapId === undefined)
 					prevLapId = getCurrentLapId(oKart);
-					oKart.prevConditionOverrides = oKart.conditionOverrides.slice();
-				}
 				var deleteIndex = oKart.conditionOverrides.indexOf(i);
 				oKart.conditionOverrides.splice(deleteIndex, 1);
 				isChanged = true;
@@ -10680,10 +10698,8 @@ function handleConditionalOverrides(aX,aY, getId) {
 		}
 		else {
 			if (shouldTriggerOverride(oOverride, aX,aY, oKart)) {
-				if (prevLapId === undefined) {
+				if (prevLapId === undefined)
 					prevLapId = getCurrentLapId(oKart);
-					oKart.prevConditionOverrides = oKart.conditionOverrides.slice();
-				}
 				oKart.conditionOverrides.push(i);
 				isChanged = true;
 			}
@@ -10694,7 +10710,6 @@ function handleConditionalOverrides(aX,aY, getId) {
 		if (!oKart.conditionOverridesHash)
 			delete oKart.conditionOverridesHash;
 		var lapId = getCurrentLapId(oKart);
-		oKart.prevConditionOverrides = oKart.conditionOverrides;
 		if (prevLapId === lapId) return lapId;
 		handleLapChange(prevLapId,lapId, getId);
 	}
@@ -13990,16 +14005,6 @@ function countInLMap(callback) {
 		subOverrides: false
 	});
 	return res;
-}
-function foreachDMap(lMap,pMap,f) {
-	f(pMap);
-	var lapId = lMaps.indexOf(lMap);
-	for (var k=lapId+1;k<lMaps.length;k++) {
-		var nMap = lMaps[k];
-		if (nMap === lMap) continue;
-		if (nMap.decor !== lMap.decor) continue;
-		f(nMap, pMaps[k]);
-	}
 }
 function isSameDistrib(d1,d2) {
 	if (d1.length !== d2.length)
