@@ -321,19 +321,21 @@ include('../includes/menu.php');
 				$pts = $getInfos['pts_vs'];
 				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs!=5000) AND (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
 				$place = 1+$place['cnt'];
+				$vsrk = get_league_rank($pts);
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
 					echo '<strong>'. $pts . ' pts</strong> ';
-					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
+					echo '- <strong style="color:'.$vsrk['color'].'">'.$vsrk['name'].'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_battle'];
 				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle!=5000) AND (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
 				$place = 1+$place['cnt'];
+				$bbrk = get_league_rank($pts);
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';
 					echo '<strong>'. $pts . ' pts</strong> ';
-					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
+					echo '- <strong style="color:'.$bbrk['color'].'">'.$bbrk['name'].'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_challenge'];
@@ -374,13 +376,13 @@ include('../includes/menu.php');
 						echo '</div>';
 					}
 				}
-				$rkname = get_forum_rkname($getProfile['nbmessages']);
-				$rkimg = get_forum_rkimg($getProfile['nbmessages']);
+				
+				$vsrk = get_forum_rank($getProfile['nbmessages']);
 				echo '<div class="player-rank">';
 					echo '<img src="images/messages.png" alt="Forum messages" title="Forum" />';
 					echo '<strong>'. $getProfile['nbmessages'] . ' message'. ($getProfile['nbmessages']>=2?'s':'') .'</strong> ';
-					echo ' - <span><img src="images/ranks/'. $rkimg .'.gif" alt="'. $rkname .'" class="mNbmsgsRk" /></span>';
-					echo $rkname.'</strong><sup><a href="javascript:helpRanks()">[?]</a></sup>';
+					echo ' - <span><img src="images/ranks/'. $vsrk['img'] .'.gif" alt="'. $vsrk['name'] .'" class="mNbmsgsRk" /></span>';
+					echo $vsrk['name'].'</strong><sup><a href="javascript:helpRanks()">[?]</a></sup>';
 				echo '</div>';
 				$getNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mknews` WHERE author="'. $profileId .'" AND status="accepted"'));
 				if ($getNews['nb']) {
@@ -629,7 +631,7 @@ include('../includes/menu.php');
 				require_once('../includes/reactions.php');
 				printReactionUI();
 				populateReactionsData('topic', $lastMessages);
-				foreach ($lastMessages as $message)
+				foreach ($lastMessages as $message) // btw, OP info is hidden by the css
 					print_forum_msg($message);
 				?>
 				<h3><a href="forum-search.php?author=<?php echo $getInfos['nom']; ?>#search-results"><?php echo $language ? 'See all their messages':'Voir tous ses messages'; ?></a></h3>

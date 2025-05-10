@@ -6,9 +6,32 @@ includes:
  - menu
  - warn messages
  - flag counter
+ - profile 'superstar' gradient
 */
 
 @use 'mixins' as *;
+
+.superstar_grad {
+	background: linear-gradient(to right,
+        #400080, /* S */
+        #993399, /* u */
+        #3366FF, /* p */
+        #0E9D4E, /* e */
+        #55C43D, /* r */
+        #EEEE00, /* s */
+        #FF8800, /* t */
+        #E53A35, /* a */
+        #A24E24  /* r */
+    );
+
+	background-clip: text;
+
+	/*
+	  This feature is well established and works across many devices and browser versions.
+	  It’s been available across browsers since September 2016.
+	*/
+    -webkit-text-fill-color: transparent;
+}
 
 #menu_center a {
 	display: inline-block;
@@ -66,10 +89,6 @@ includes:
 	text-align: center;
 	max-width: 100%;
 	overflow: hidden;
-}
-#partners {
-	text-align: center;
-	margin: 10px;
 }
 #toBegin {
 	text-align: center;

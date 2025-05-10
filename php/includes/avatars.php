@@ -6,7 +6,7 @@ define('AVATAR_MINW', 200);
 define('AVATAR_MINH', 200);
 define('AVATAR_DIR', 'images/avatars/');
 define('AVATAR_REL_DIR', '../../images/avatars/');
-$AVATAR_COLORS = array(
+$AVATAR_COLORS = [
 	'#E15B05',
 	'#9C2D02',
 	'#43D23A',
@@ -17,7 +17,7 @@ $AVATAR_COLORS = array(
 	'#ACC2AC',
 	'#88F987',
 	'#EACE98'
-);
+];
 define('AVATAR_NCOLORS', count($AVATAR_COLORS));
 function get_avatar_color($pseudo) {
 	global $AVATAR_COLORS;
@@ -112,124 +112,77 @@ function print_flag($id) {
 	if ($flagData)
 		echo '<div class="mCountry"><div class="country-ic" style="background-image:url(\'images/flags/'. $flagData['code'] .'.png\')"></div> '. htmlspecialchars($flagData['name']) .'</div>';
 }
-$LEAGUES_SCORES = array(4000,5000,6000,8000,10000,15000,20000,40000,100000);
-function get_league_name($pts) {
-	global $language;
-	static $league_names;
-	if (!isset($league_names)) {
-		$league_names = array(
-			$language ? 'Unlicensed':'Sans permis',
-			$language ? 'Budding pilot':'Pilote en herbe',
-			$language ? 'Novice':'Novice',
-			$language ? 'Racer':'Coureur',
-			$language ? 'Expert':'Expert',
-			$language ? 'Champion':'Champion',
-			$language ? 'Master':'Maître',
-			$language ? 'Legend':'Légende',
-			$language ? 'Titan':'Titan',
-			'<span style="color:#400080">S</span>'.
-			'<span style="color:#993399">u</span>'.
-			'<span style="color:#3366FF">p</span>'.
-			'<span style="color:#0E9D4E">e</span>'.
-			'<span style="color:#55C43D">r</span>'.
-			'<span style="color:#CCEE00;color:rgba(128,128,0,0.5)">s</span>'.
-			'<span style="color:#FF8800">t</span>'.
-			'<span style="color:#E53A35">a</span>'.
-			'<span style="color:#A24E24">r</span>'
-		);
-	}
-	return $league_names[get_league_rank($pts)];
-}
-function get_league_color($pts) {
-	static $league_colors;
-	if (!isset($league_colors)) {
-		$league_colors = array(
-			'#000000',
-			'#A24E24',
-			'#E53A35',
-			'#993399',
-			'#400080',
-			'#3366FF',
-			'#55C43D',
-			'#0E9D4E',
-			'#FF6600',
-			'#300060'
-		);
-	}
-	return $league_colors[get_league_rank($pts)];
-}
+
+$LEAGUES = [
+    0      => ['name' => _('Unlicensed'),                                    'color' => '#000000'],
+    4000   => ['name' => _('Budding pilot'),                                 'color' => '#A24E24'],
+    5000   => ['name' =>   'Novice',                                         'color' => '#E53A35'],
+    6000   => ['name' => _('Racer'),                                         'color' => '#993399'],
+    8000   => ['name' =>   'Expert',                                         'color' => '#400080'],
+    10000  => ['name' =>   'Champion',                                       'color' => '#3366FF'],
+    15000  => ['name' => _('Master'),                                        'color' => '#55C43D'],
+    20000  => ['name' => _('Legend'),                                        'color' => '#0E9D4E'],
+    40000  => ['name' =>   'Titan',                                          'color' => '#FF6600'],
+    100000 => ['name' =>   '<span class="superstar_grad">Superstar</span>',  'color' => ''       ]
+];
+
 function get_league_rank($pts) {
-	global $LEAGUES_SCORES;
-	$i = 0;
-	while (isset($LEAGUES_SCORES[$i]) && ($pts >= $LEAGUES_SCORES[$i]))
-		$i++;
-	return $i;
+    global $LEAGUES;
+    $rank = $LEAGUES[0];
+    foreach ($LEAGUES as $key => $league) {
+        if ($pts >= $key) {
+            $rank = $league;
+        } else {
+            break;
+        }
+    }
+    return $rank;
 }
-$FORUM_RANKS = array(10,50,100,150,200,250,300,350,400,500,1000,2500);
+
+$FORUM_RANKS = [
+	0    => ['name' => 'Goomba',         'img' => 'goomba'     ],
+	10   => ['name' => 'Koopa',          'img' => 'koopa'      ],
+	50   => ['name' => 'Boo',            'img' => 'boo'        ],
+	100  => ['name' => 'Buzzy Beetle',   'img' => 'buzzybeetle'],
+	150  => ['name' => 'Bowser',         'img' => 'bowser'     ],
+	200  => ['name' => 'Toad',           'img' => 'toad'       ],
+	250  => ['name' => _('Toadsworth'),  'img' => 'toadsworth' ],
+	300  => ['name' => 'Peach',          'img' => 'peach'      ],
+	350  => ['name' => 'Luigi',          'img' => 'luigi'      ],
+	400  => ['name' => _('Metal Luigi'), 'img' => 'metalluigi' ],
+	500  => ['name' => 'Mario',          'img' => 'mario'      ],
+	1000 => ['name' => _('Golden Mario'),'img' => 'goldenmario'],
+	2500 => ['name' => _('King Mario'),  'img' => 'kingmario'  ],
+];
+
 function get_forum_rank($msgs) {
 	global $FORUM_RANKS;
-	$i = 0;
-	while (isset($FORUM_RANKS[$i]) && ($msgs >= $FORUM_RANKS[$i]))
-		$i++;
-	return $i;
-}
-function get_forum_rkname($msgs) {
-	global $language;
-	static $rank_names;
-	if (!isset($rank_names)) {
-		$rank_names = array(
-			'Goomba',
-			'Koopa',
-			'Boo',
-			'Buzzy Beetle',
-			'Bowser',
-			'Toad',
-			$language ? 'Toadsworth':'Papy champi',
-			'Peach',
-			'Luigi',
-			$language ? 'Metal Luigi':'Luigi d\'argent',
-			'Mario',
-			$language ? 'Golden Mario':'Mario doré',
-			$language ? 'King Mario':'Roi Mario'
-		);
+	$rank = $FORUM_RANKS[0];
+	foreach ($FORUM_RANKS as $threshold => $info) {
+		if ($msgs >= $threshold) {
+			$rank = $info;
+		} else {
+			break;
+		}
 	}
-	return $rank_names[get_forum_rank($msgs)];
+	return $rank;
 }
-function get_forum_rkimg($msgs) {
-	global $language;
-	static $rank_names;
-	if (!isset($rank_names)) {
-		$rank_names = array(
-			'goomba',
-			'koopa',
-			'boo',
-			'buzzybeetle',
-			'bowser',
-			'toad',
-			'toadsworth',
-			'peach',
-			'luigi',
-			'luigiargent',
-			'mario',
-			'marioor',
-			'roimario'
-		);
-	}
-	return $rank_names[get_forum_rank($msgs)];
-}
+
 function print_nb_msgs($id) {
-	$nb = get_nb_msgs($id);
-	$rank = get_forum_rkname($nb);
-	$img = get_forum_rkimg($nb);
-	echo '<div class="mNbmsgs"><img src="images/messages.png" alt="Messages" class="mNbmsgsIc" /> '.$nb.' - <span><img src="images/ranks/'. $img .'.gif" alt="'. $rank .'" class="mNbmsgsRk" /></span> '. $rank .'</div>';
+	$nb = get_msg_count($id);
+	$rank = get_forum_rank($nb);
+	$rankname = $rank['name'];
+	$img = $rank['img'];
+	echo '<div class="mNbmsgs"><img src="images/messages.png" alt="Messages" class="mNbmsgsIc" /> '.$nb.' - <span><img src="images/ranks/'. $img .'.gif" alt="'. $rankname .'" class="mNbmsgsRk" /></span> '. $rankname .'</div>';
 }
-function get_nb_msgs($id) {
+
+function get_msg_count($id) {
 	global $msgsCache;
 	if (isset($msgsCache['i'.$id]))
 		return $msgsCache['i'.$id];
 	if ($getAvatar = mysql_fetch_array(mysql_query('SELECT nbmessages FROM `mkprofiles` WHERE id="'. $id .'"'))) {
 		if ($getAvatar['nbmessages'])
-			return ($avatarsCache['i'.$id]=$getAvatar['nbmessages']);
+			return ($msgsCache['i'.$id]=$getAvatar['nbmessages']);
 	}
 	return ($msgsCache['i'.$id]=0);
 }

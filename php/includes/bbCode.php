@@ -1,5 +1,6 @@
 <?php
 require_once('utils-date.php');
+require_once('language.php');
 function bbcode($msg) {
 	global $language, $isNews;
 	static $smileyDict = null;
@@ -31,16 +32,17 @@ function bbcode($msg) {
 
 	$msg = htmlspecialchars($msg);
 
-	$tag('center', '<div style="text-align: center;">$1</div>');
-	$tag('right',  '<div style="text-align: right;">$1</div>');
-	$tag('left',   '<div style="text-align: left;">$1</div>');
-	$tag('b',      '<strong>$1</strong>');
-	$tag('i',      '<em>$1</em>');
-	$tag('u',      '<u>$1</u>');
-	$tag('s',      '<s>$1</s>');
-	$tag('url', '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>', 'http[^\[]*');
-	$tag('img', '<img src="$1" alt="$1" />', 'http[^\[]*');
-	$tag('video', '<video controls src="$1">'._('Your browser does not support the video tag.').'</video>', 'http[^\[]*');
+	$tag('center',   '<div style="text-align: center;">$1</div>');
+	$tag('right',    '<div style="text-align: right;">$1</div>');
+	$tag('left',     '<div style="text-align: left;">$1</div>');
+	$tag('b',        '<strong>$1</strong>');
+	$tag('i',        '<em>$1</em>');
+	$tag('u',        '<u>$1</u>');
+	$tag('s',        '<s>$1</s>');
+	$tag('url',      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>', 'http[^\[]*');
+	$tag('img',      '<img src="$1" alt="$1" />', 'http[^\[]*');
+	$tag('video',    '<video controls src="$1">' . F_('Your browser does not support the {t} element.', t: 'video') . '</video>', 'http[^\[]*');
+	$tag('audio',    '<audio controls src="$1">' . F_('Your browser does not support the {t} element.', t: 'audio') . '</audio>', 'http[^\[]*');
 
 	$tagopt('url',   '<a href="$1" class="type1" target="_blank" rel="noopener noreferrer">$2</a>');
 	$tagopt('color', '<span style="color: $1">$2</span>');
@@ -95,11 +97,13 @@ function bbcode($msg) {
 }
 
 function print_league($pts, $icon) {
-	echo '<div class="player-league" style="color:'.get_league_color($pts).'">';
-	echo '<img src="images/'.$icon.'_pts.png" alt="'.$icon.'" class="mPtsIc" />';
-		echo "$pts pts ";
-		echo '&#9733;&nbsp;'.get_league_name($pts);
-	echo '</div>';
+	$rk = get_league_rank($pts);
+	echo <<<HTML
+		<div class="player-league" style="color:{$rk['color']}">
+			<img src="images/{$icon}_pts.png" alt="{$icon}" class="mPtsIc" />
+			{$pts} pts &#9733;&nbsp;{$rk['name']}
+		</div>
+	HTML;
 }
 
 function print_forum_msg($message, $options=array()) {
@@ -159,14 +163,14 @@ function print_forum_msg($message, $options=array()) {
 				
 				// edit button
 				if ($mayEdit) {
-					if ($message['id'] != 1) { // topic edit
+					if ($message['id'] != 1) { // message edit
 						echo '<a href="edit.php?id='. $message['id'] .'&amp;topic='. $topicId .'" class="mEdit" title="'. ($language ? 'Edit':'Modifier') .'">';
 						echo '<img src="images/forum/edit.png" alt="'. ($language ? 'Edit':'Modifier') .'" />';
 						echo '</a>';
 						echo '<a href="delete.php?id='. $message['id'] .'&amp;topic='. $topicId .'&amp;token='. $_SESSION['csrf'] .'" onclick="return confirmSuppr()" class="mDelete" title="'. ($language ? 'Delete':'Supprimer') .'">';
 						echo '<img src="images/forum/delete.png" alt="'. ($language ? 'Delete':'Supprimer') .'" />';
 						echo '</a>';
-					} else { // message edit
+					} else { // topic edit
 						echo '<a href="edittopic.php?topic='. $topicId .'" class="mEdit" title="'. ($language ? 'Edit':'Modifier') .'">';
 						echo '<img src="images/forum/edit.png" alt="'. ($language ? 'Edit':'Modifier') .'" />';
 						echo '</a>';

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-13 11:34+0200\n"
-"PO-Revision-Date: 2025-04-13 11:42+0200\n"
+"POT-Creation-Date: 2025-05-08 17:12+0200\n"
+"PO-Revision-Date: 2025-05-08 17:12+0200\n"
 "Last-Translator: Pianta <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -19,13 +19,46 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 25.07.70\n"
 
-#: php/includes/bbCode.php
-msgid "en"
-msgstr "fr"
+#: php/includes/avatars.php
+msgid "Unlicensed"
+msgstr "Sans permis"
 
-#: php/includes/bbCode.php php/pages/admin-logs.php
-msgid "Deleted account"
-msgstr "Compte supprimé"
+#: php/includes/avatars.php
+msgid "Budding pilot"
+msgstr "Pilote en herbe"
+
+#: php/includes/avatars.php
+msgid "Racer"
+msgstr "Coureur"
+
+#: php/includes/avatars.php
+msgid "Master"
+msgstr "Maître"
+
+#: php/includes/avatars.php
+msgid "Legend"
+msgstr "Légende"
+
+#: php/includes/avatars.php
+msgid "Toadsworth"
+msgstr "Papy champi"
+
+#: php/includes/avatars.php
+msgid "Metal Luigi"
+msgstr "Métal Luigi"
+
+#: php/includes/avatars.php
+msgid "Golden Mario"
+msgstr "Mario d'or"
+
+#: php/includes/avatars.php
+#, fuzzy
+msgid "King Mario"
+msgstr "Bébé Mario"
+
+#: php/includes/bbCode.php
+msgid "Your browser does not support the {t} element."
+msgstr "Votre navigateur ne prend pas en charge l'élément {t}."
 
 #: php/includes/handle_sub.php
 msgid "Please enter a username"
@@ -48,9 +81,9 @@ msgid ""
 "You username mustn't contain special chars.<br />Allowed chars are : "
 "letters, numbers, the dash - and the underscore _"
 msgstr ""
-"Votre pseudo ne doit pas contenir de caract&egrave;res spéciaux.<br />Les cara"
-"ct&egrave;res autoris&eacute;s sont les lettres sans accents, les chiffres, le"
-" tiret - et le underscore _"
+"Votre pseudo ne doit pas contenir de caract&egrave;res spéciaux.<br />Les "
+"caract&egrave;res autoris&eacute;s sont les lettres sans accents, les "
+"chiffres, le tiret - et le underscore _"
 
 #: php/includes/handle_sub.php
 msgid "Please enter a valid email address"
@@ -61,9 +94,9 @@ msgid ""
 "This account is already used and deleted. If you want to recover it, simply "
 "relog-in."
 msgstr ""
-"Ce pseudo est déjà utilisé par un compte supprimé. S'il s'agit du vôtre et que"
-" vous souhaitez le récupérer, reconnectez-vous simplement avec vos identifiant"
-"s."
+"Ce pseudo est déjà utilisé par un compte supprimé. S'il s'agit du vôtre et "
+"que vous souhaitez le récupérer, reconnectez-vous simplement avec vos "
+"identifiants."
 
 #: php/includes/handle_sub.php
 msgid "This username is already used. Please choose another one."
@@ -86,7 +119,8 @@ msgstr ""
 #: php/pages/addNews.php php/pages/admin-logs.php php/pages/admin.php
 #: php/pages/adminPersos.php php/pages/adminReports.php
 #: php/pages/bestscores.php php/pages/challengeRanking.php
-#: php/pages/classement.global.php php/pages/forum.php php/pages/index.php
+#: php/pages/classement.global.php php/pages/doublecomptes.php
+#: php/pages/forum.php php/pages/index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -212,6 +246,10 @@ msgstr "Titre supprimé"
 #: php/pages/admin-logs.php php/pages/index.php
 msgid "Untitled"
 msgstr "Sans titre"
+
+#: php/pages/admin-logs.php
+msgid "Deleted account"
+msgstr "Compte supprimé"
 
 #: php/pages/admin-logs.php
 msgid "Deleted topic"
@@ -520,22 +558,19 @@ msgid "Filter"
 msgstr "Filtrer"
 
 #: php/pages/admin-logs.php php/pages/admin.php php/pages/adminReports.php
+#: php/pages/doublecomptes.php
 msgid "Back to the forum"
 msgstr "Retour au forum"
 
 #: php/pages/admin-logs.php php/pages/admin.php php/pages/adminPersos.php
 #: php/pages/bestscores.php php/pages/challengeRanking.php
-#: php/pages/classement.global.php
+#: php/pages/classement.global.php php/pages/doublecomptes.php
 msgid "Back to Mario Kart PC"
 msgstr "Retour à Mario Kart PC"
 
 #: php/pages/admin.php
 msgid "You aren't logged in"
 msgstr "Vous n'êtes pas connecté"
-
-#: php/pages/admin.php
-msgid "You aren't admin"
-msgstr "Vous n'êtes pas administrateur"
 
 #: php/pages/admin.php
 msgid "administrator rank"
@@ -599,12 +634,15 @@ msgid "Following an official event (oscars, festival, ...)"
 msgstr "Suite à un événement officiel (oscars, festival, ...)"
 
 #: php/pages/admin.php
-msgid "See <strong>double accounts</strong>"
+#, fuzzy
+msgid "See <strong>alternate accounts</strong>"
 msgstr "Voir les <strong>double comptes</strong>"
 
 #: php/pages/admin.php
+#, fuzzy
 msgid ""
-"If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)"
+"If a &quot;new&quot; member seems suspicious... <strong>(not 100% reliable)</"
+"strong>"
 msgstr ""
 "Si un &quot;nouveau&quot; membre vous parait louche... (outil pas 100% "
 "fiable)"
@@ -755,6 +793,15 @@ msgstr "Voir les <strong>messages signalés</strong> sur le forum"
 #: php/pages/admin.php
 msgid "To quickly perform actions on what members reported"
 msgstr "Pour prendre des actions rapides sur ce que les membres ont remonté"
+
+#: php/pages/admin.php
+#, fuzzy
+msgid "Declare a temporary <strong>quarantine</strong>"
+msgstr "Supprimer un <strong>perso</strong>"
+
+#: php/pages/admin.php
+msgid "To limit chaos during a spam attack"
+msgstr ""
 
 #: php/pages/admin.php
 msgid "See <strong>admin logs</strong>"
@@ -932,6 +979,21 @@ msgstr "Cylindrée:"
 #: php/pages/classement.global.php
 msgid "Ranking circuit by circuit"
 msgstr "Classement circuit par circuit"
+
+#: php/pages/doublecomptes.php
+#, fuzzy
+msgid "Alternate accounts"
+msgstr "Compte supprimé"
+
+#: php/pages/doublecomptes.php
+#, fuzzy
+msgid "See alternate accounts"
+msgstr "Compte supprimé"
+
+#: php/pages/doublecomptes.php
+#, fuzzy
+msgid "Enter the username"
+msgstr "Veuillez entrer un pseudo"
 
 #: php/pages/forum.php
 msgid "Automatic IP ban"
@@ -1572,6 +1634,12 @@ msgstr "Chargement"
 #: php/pages/topic.php
 msgid "MKPC Forum"
 msgstr "Forum MKPC"
+
+#~ msgid "en"
+#~ msgstr "fr"
+
+#~ msgid "You aren't admin"
+#~ msgstr "Vous n'êtes pas administrateur"
 
 #~ msgid "Search"
 #~ msgstr "Recherche"
