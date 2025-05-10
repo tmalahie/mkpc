@@ -3093,32 +3093,36 @@ function showLapOverrideEdit() {
 function renderLapOverrideAdd() {
 	document.getElementById("lapoverride-more").style.display = "block";
 	var $select = document.getElementById("lapoverride-laps-list");
-	$select.innerHTML = "";
-	var nbLaps = lapOverrides[0].modesData.checkpoints.data.nb;
-	var minOverride;
-	for (var i=0;i<nbLaps;i++) {
-		var $option = document.createElement("option");
-		$option.value = i;
-		$option.innerHTML = formatLapOverride({lap:i});
-		$select.appendChild($option);
+	var overrideType = "lap";
+	if ($select) {
+		$select.innerHTML = "";
+		var nbLaps = lapOverrides[0].modesData.checkpoints.data.nb;
+		var minOverride;
+		for (var i=0;i<nbLaps;i++) {
+			var $option = document.createElement("option");
+			$option.value = i;
+			$option.innerHTML = formatLapOverride({lap:i});
+			$select.appendChild($option);
+		}
+		var minOverride = 0;
+		for (var i=0;i<lapOverrides.length;i++) {
+			var lapOverride = lapOverrides[i];
+			if ((lapOverride.lap === minOverride) & !lapOverride.checkpoint)
+				minOverride++;
+		}
+		if (minOverride >= nbLaps)
+			minOverride = 0;
+		if (editingLapOverride && editingLapOverride.lap !== undefined)
+			$select.selectedIndex = editingLapOverride.lap;
+		else
+			$select.selectedIndex = minOverride;
 	}
-	var minOverride = 0;
-	for (var i=0;i<lapOverrides.length;i++) {
-		var lapOverride = lapOverrides[i];
-		if ((lapOverride.lap === minOverride) & !lapOverride.checkpoint)
-			minOverride++;
-	}
-	if (minOverride >= nbLaps)
-		minOverride = 0;
-	if (editingLapOverride && editingLapOverride.lap !== undefined)
-		$select.selectedIndex = editingLapOverride.lap;
 	else
-		$select.selectedIndex = minOverride;
+		overrideType = "zone";
 	var $overrideTime = document.getElementById("lapoverride-time");
 	var $overrideEndTime = document.getElementById("lapoverride-end-time");
 	var $overrideZone = document.getElementById("lapoverride-zone-data");
 	var $overrideEndZone = document.getElementById("lapoverride-end-zone-data");
-	var overrideType = "lap";
 	if (editingLapOverride && editingLapOverride.time !== undefined) {
 		overrideType = "time";
 		$overrideTime.value = formatTimer(editingLapOverride.time);
@@ -3140,7 +3144,8 @@ function renderLapOverrideAdd() {
 	else
 		$overrideEndZone.value = "";
 	setOverrideTrigger(overrideType);
-	handleLapOverrideSelect(+$select.value);
+	if ($select)
+		handleLapOverrideSelect(+$select.value);
 	handleLapInteractionsList();
 }
 function handleLapOverrideSelect(value) {
@@ -3251,7 +3256,7 @@ function loadZoneData(editorType,editorSource) {
 	return { data: data, meta: {} };
 }
 function showInteractionsHelp() {
-	alert(language ? "If checked, other players can't collide with you or hit you with items unless they are in same lap override as you." : "Si coché, les autres joueurs ne peuvent pas entrer en collision avec vous ou vous toucher avec des objets lorsqu'ils ne sont pas dans le même modificateur.");
+	alert(language ? "If checked, other players can't collide with you or hit you with items unless they are in same override as you." : "Si coché, les autres joueurs ne peuvent pas entrer en collision avec vous ou vous toucher avec des objets lorsqu'ils ne sont pas dans le même modificateur.");
 }
 function showLapOverrideChange() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-edit";
