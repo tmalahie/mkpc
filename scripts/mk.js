@@ -10803,15 +10803,25 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 			return true;
 	}
 	else if (oOverride.zone) {
-		if (pointCrossZone(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone))
+		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
+		if (inter1 < Infinity) {
+			if (oOverride.endZone) {
+				var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
+				if (inter2 < Infinity && inter1 <= inter2) return false;
+			}
 			return true;
+		}
 	}
 	return false;
 }
 function shouldUntriggerOverride(oOverride, aX,aY, oKart) {
 	if (oOverride.endZone) {
-		if (pointCrossZone(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone))
+		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
+		if (inter1 < Infinity) {
+			var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
+			if (inter2 < Infinity && inter1 <= inter2) return false;
 			return true;
+		}
 	}
 	if (oOverride.endTime) {
 		if (getActualGameTimeMS() >= oOverride.endTime)
@@ -12146,6 +12156,24 @@ function pointCrossZone(iX,iY,iI,iJ, zones) {
 			return true;
 	}
 }
+function zoneIntersect(iX,iY,iI,iJ, zones) {
+	var oRectangles = zones.rectangle;
+	var res = Infinity;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(iX,iY, oBox))
+			return 0;
+		res = Math.min(res, rectIntersect(iX,iY, iI,iJ, oBox));
+	}
+	var oPolygons = zones.polygon;
+	var nX = iX+iI, nY = iY+iJ;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(iX,iY, oPolygons[i]))
+			return 0;
+		res = Math.min(res, polygonIntersect(iX,iY, nX,nY, oPolygons[i]));
+	}
+	return res;
+}
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
 	if ((l > 0) && (l <= 1)) {
@@ -12180,6 +12208,22 @@ function pointCrossRectangle(iX,iY,iI,iJ, oBox) {
 	}
 	return false;
 }
+function rectIntersect(iX,iY,iI,iJ, oBox) {
+	var aPos = [iX,iY], aMove = [iI,iJ];
+	var dir = [(iI>0), (iJ>0)];
+	var res = Infinity;
+	for (var j=0;j<2;j++) {
+		var l = dir[j];
+		if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
+			var dim = 1-j;
+			var m = ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])/aMove[j];
+			var croiseJ = aPos[dim] + m*aMove[dim];
+			if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
+				res = Math.min(res, m);
+		}
+	}
+	return res;
+}
 function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 	for (var j=0;j<oPoints.length;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
@@ -12187,6 +12231,16 @@ function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 			return true;
 	}
 	return false;
+}
+function polygonIntersect(iX,iY,nX,nY, oPoints) {
+	var res = Infinity;
+	for (var j=0;j<oPoints.length;j++) {
+		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
+		var aIntersect = secants(iX,iY,nX,nY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		if (aIntersect)
+			res = Math.min(res, aIntersect[0]);
+	}
+	return res;
 }
 
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
