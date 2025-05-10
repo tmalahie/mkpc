@@ -3413,13 +3413,14 @@ function editLapOverride() {
 		return;
 	}
 	lapOverrides.splice(oldLapOverride, 1);
-	var newLapOverride = initLapOverride(opts);
+	var newLapOverride = initLapOverride(opts, oldLapOverride);
 	if (oldLapOverride === selectedLapOverride)
 		selectedLapOverride = newLapOverride;
 	else if (newLapOverride > selectedLapOverride && oldLapOverride < selectedLapOverride)
 		selectedLapOverride--;
 	else if (newLapOverride <= selectedLapOverride && oldLapOverride > selectedLapOverride)
 		selectedLapOverride++;
+	swapLapOverride(editingLapOverride, newLapOverride);
 	applyLapOverrideSelector();
 	assignLapOverrideSettings(newLapOverride);
 	closeLapOverrideOptions();
@@ -3672,7 +3673,7 @@ function restoreLapOverride(newLapOverride) {
 		editorTool.data = nextSelectedData[key].data;
 	}
 }
-function initLapOverride(meta) {
+function initLapOverride(meta, oldLapOverride) {
 	var newLapOverride = 0;
 	if (meta.lap !== undefined) {
 		while (newLapOverride < lapOverrides.length) {
@@ -3693,7 +3694,7 @@ function initLapOverride(meta) {
 		}
 	}
 	else if (meta.zone !== undefined)
-		newLapOverride = lapOverrides.length;
+		newLapOverride = (oldLapOverride === undefined) ? lapOverrides.length : oldLapOverride;
 	lapOverrides.splice(newLapOverride, 0, {
 		lap: meta.lap,
 		checkpoint: meta.cp,
@@ -4267,6 +4268,17 @@ function applyLapOverrideSelector() {
 	}
 	else {
 		document.getElementById("lapoverride-current").style.display = "none";
+	}
+}
+function swapLapOverride(oldLapOverride, newLapOverride) {
+	var createdLapOverride = lapOverrides[newLapOverride];
+	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
+		var lapOverride = lapOverrides[lapKey];
+		if (!lapOverride.interactions) continue;
+		for (var j=0;j<lapOverride.interactions.length;j++) {
+			if (lapOverride.interactions[j] === oldLapOverride)
+				lapOverride.interactions[j] = createdLapOverride;
+		}
 	}
 }
 function switchLapOverride($elt) {
