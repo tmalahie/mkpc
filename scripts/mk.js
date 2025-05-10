@@ -7644,7 +7644,7 @@ var itemBehaviors = {
 			}
 
 			if (!fSprite.sprites) {
-				// don't remove pow if previous pow is in its wait after despawn animation
+				// don't remove pow if previous pow is in its waiting animation
 				const shouldDelete = (items.pow.length > 1 && itemDistribution.powx2 != 1) ||
 									 (items.pow.length === 2 && items.pow[0].countstate < 9);
 
@@ -8148,7 +8148,7 @@ var itemBehaviors = {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY)) {
+				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, null, fSprite)) {
 					if (ctx && ctx.checkCollisions) {
 						ctx.checkCollisions(fSprite);
 						if (fSprite.deleted)
@@ -8531,7 +8531,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionFloor = null;
 				collisionLap = getItemCollisionLap(fSprite);
-				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, null, fSprite))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -12554,11 +12554,15 @@ function polygonIntersect(iX,iY,nX,nY, oPoints) {
 }
 
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
-function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
+function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0, obj) {
 	var nX = iX+iI, nY = iY+iJ;
 	var lMap = getCurrentLMap(collisionLap);
 
 	if (lMap.decor) {
+		const fromSelf = (obj == oPlayers[0] || obj.owner == oPlayers[0].id);
+		const clientSideDrop = !isOnline || (fromSelf && !onlineSpectatorId);
+		const dropPos = {x: nX + iI*2.5, y: nY+iJ*2.5};
+
 		for (var type in lMap.decor) {
 			var decorBehavior = decorBehaviors[type];
 			var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
@@ -12574,30 +12578,32 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 							if (decorBehavior.breaking || isBreakingItem(decorBehavior)) {
 								if (collisionPlayer.speed > 4) {
 									handleDecorHit(i,type, lMap);
+									if (clientSideDrop)
+										dropBoxDecorLoot(obj, dropPos);
 									if (collisionPlayer.turbodrift)
 										collisionPlayer.turbodrift = 0;
-									if (decorBehavior.bonus) {
-										if (!isOnline || (collisionPlayer == oPlayers[0] && !onlineSpectatorId)) {
-											var bonusType = "champi";
-											if (course != "CM" && Math.random() < 0.5)
-												bonusType = "banane";
-											addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
-										}
-									}
 								}
 							}
 						}
 						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
-							if (decorBehavior.damagingItems[collisionItem.type])
+							if (decorBehavior.damagingItems[collisionItem.type]) {
 								handleDecorHit(i,type, lMap);
+								if (clientSideDrop)
+									dropBoxDecorLoot(obj, dropPos);
+							}
 						}
 						if (decorBehavior.transparent)
 							continue;
 						return false;
 					}
 					else {
-						handleDecorHit(i,type, lMap);
-						break;
+						if ((iP && isBreakingItem(decorBehavior)) || decorBehavior.breaking) {
+							handleDecorHit(i,type, lMap);
+							if (clientSideDrop)
+								dropBoxDecorLoot(obj, dropPos);
+							break;
+						}
+						return false;
 					}
 				}
 			}
@@ -16021,6 +16027,47 @@ function playPow(i, oKart, oKartOwner, fSprite) {
     }
 }
 
+function dropBoxDecorLoot(obj, pos, distrib) {
+	// default drop distribution
+	if (!distrib)
+		distrib = course == "CM" ? {"champi": 1} : {"champi": 0.5, "banane": 0.5};
+
+	// get total probability
+	let total = 0;
+	for (const item in distrib)
+		total += distrib[item];
+
+	// pick random item in distrib
+	const rng = Math.random() * total;
+	let sum = 0;
+	let item;
+	
+	for (const itemType in distrib) {
+		sum += distrib[itemType];
+		if (rng < sum) {
+			// if obj is not a player, find it
+			if (!obj.personnage) {
+				obj = aKarts.find(oKart => oKart.id === obj.owner);
+			}
+
+			item = {
+				type: itemType,
+				owner: obj.id,
+				team: obj.team,
+				x: pos.x,
+				y: pos.y,
+				z: 0
+			};
+
+			if (itemType === "bobomb")
+				item.cooldown = 30;
+
+			dropNewItem(obj, item);
+			return;
+		}
+	}
+}
+
 function touche_asset(aPosX,aPosY,aPosZ, iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	var turningAssets = ["pointers", "flippers"];
@@ -17721,7 +17768,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0, oKart) || oKart.billball) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -17758,7 +17805,7 @@ function move(getId, triggered) {
 		for (var i=5;i>0;i--) {
 			oKart.x += horizontality[0]*s*i/5;
 			oKart.y += horizontality[1]*s*i/5;
-			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0||0))
+			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0||0, oKart))
 				break;
 			else {
 				oKart.x = aPosX;
