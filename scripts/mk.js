@@ -1862,6 +1862,10 @@ var itemInteractionsDisabled = function() {
 var getItemCollisionLap = function() {
 	return 0;
 }
+function getSubOverride(lMap, conditionOverrides) {
+	var conditionOverridesHash = conditionOverrides.join(",");
+	return getCurrentLapId({ tours: lMap.lap+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
+}
 function initMap() {
 	oMap.conditionOverrides = [];
 	lMaps = [oMap];
@@ -7250,6 +7254,45 @@ function floatType(key) {
 function intType(key) {
 	return {key:key,type:"int"};
 }
+function lapIdType(key) {
+	return {
+		key: key,
+		type: "custom",
+		encode: function(value) {
+			if (value < 0)
+				return "F";
+			var lMap = getCurrentLMap(value);
+			return value + (lMap.conditionOverrideIds ? ("A"+lMap.conditionOverrideIds.join("B")):"") + "F";
+		},
+		decode: function(value) {
+			var endPos = value.indexOf("F");
+			var curSize = endPos+1;
+			if (!endPos) {
+				return {
+					data: -1,
+					curSize: curSize
+				}
+			}
+			var lapParts = value.substring(0,endPos).split("A");
+			var lapId = +lapParts[0];
+			if (lapParts.length === 1) {
+				return {
+					data: lapId,
+					curSize: curSize
+				}
+			}
+			else {
+				var lMap = getCurrentLMap(lapId);
+				var conditionOverrides = lapParts[1].split("B").map(function(x) { return +x });
+				lapId = getSubOverride(lMap, conditionOverrides);
+				return {
+					data: lapId,
+					curSize: curSize
+				}
+			}
+		}
+	};
+}
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
 	"banane": {
@@ -8000,7 +8043,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt"),intType("target")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt"),intType("target")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
@@ -8276,7 +8319,7 @@ var itemBehaviors = {
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
@@ -10937,9 +10980,8 @@ function checkItemLap(fSprite, opts) {
 function incItemLap(lMap,fSprite,nextOverride) {
 	var conditionOverrides = lMap.conditionOverrideIds;
 	if (conditionOverrides) {
-		var conditionOverridesHash = conditionOverrides.join(",");
 		updateItemLap(lMap,fSprite, function() {
-			return getCurrentLapId({ tours: nextOverride.lap+1, demitours: nextOverride.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash });
+			return getSubOverride(nextOverride, conditionOverrides);
 		});
 	}
 	else {
@@ -16072,7 +16114,10 @@ function resetDatas() {
 				var itemBehavior = itemBehaviors[syncItem.type];
 				for (var j=0;j<itemBehavior.sync.length;j++) {
 					var syncParams = itemBehavior.sync[j];
-					itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
+					if (syncParams.type === "custom")
+						itemData += syncParams.encode(syncItem[syncParams.key]);
+					else
+						itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
 				}
 			}
 			var itemPayload = {
@@ -16307,12 +16352,20 @@ function resetDatas() {
 					var itemBehavior = itemBehaviors[uType];
 					for (var j=0;j<itemBehavior.sync.length;j++) {
 						var syncParams = itemBehavior.sync[j];
-						var dl = itemDataLength(syncParams.type);
-						var dc = uData.substr(cur,dl);
-						if (dc.length == dl) {
-							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+						if (syncParams.type === "custom") {
+							var dc = uData.substr(cur);
+							var decoded = syncParams.decode(dc);
+							if (decoded.data !== undefined)
+								uItem[syncParams.key] = decoded.data;
+							cur += decoded.curSize;
 						}
-						cur += dl;
+						else {
+							var dl = itemDataLength(syncParams.type);
+							var dc = uData.substr(cur,dl);
+							if (dc.length == dl)
+								uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+							cur += dl;
+						}
 					}
 					if (toAdd)
 						addNewItem(null,uItem);
@@ -20079,7 +20132,7 @@ function runOneFrame() {
 		console.error(e);
 		var errorTs = new Date().getTime();
 		if (errorTs - lastErrorTs > 10000) {
-			o_xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
+			xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
 				return true;
 			});
 			lastErrorTs = errorTs;
