@@ -5278,10 +5278,14 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
-				if ((i < data.length - 1) || iData.respawn)
-					self.state.respawnType = iData.respawn ? 'manual' : 'cp';
+				if (self._respawn_selector_id) {
+					if ((i < data.length - 1) || iData.respawn)
+						self.state.respawnType = iData.respawn ? 'manual' : 'cp';
+					else
+						self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
+				}
 				else
-					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
+					self.state.respawnType = 'manual';
 				if (undefined !== iData.orientation)
 					self.state.orientation = iData.orientation;
 				var extra = getExtraForResume(iData);
@@ -5301,10 +5305,12 @@ var commonTools = {
 			}
 			replaceNodeType(self);
 			document.getElementById(self._shape_selector_id).setValue(self.state.shape);
-			if (self.state.respawnType)
-				document.getElementById(self._respawn_selector_id).value = self.state.respawnType;
-			else
-				self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
+			if (self._respawn_selector_id) {
+				if (self.state.respawnType)
+					document.getElementById(self._respawn_selector_id).value = self.state.respawnType;
+				else
+					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
+			}
 			document.getElementById("checkpoint-respawn-reset").style.display = "";
 		},
 		"click" : function(self,point,extra) {
@@ -5497,7 +5503,7 @@ var commonTools = {
 			var lastData = data[data.length-1];
 			if (lastData && !lastData.respawn)
 				lastData = data[data.length-2];
-			if (lastData)
+			if (lastData && self._respawn_selector_id)
 				document.getElementById(self._respawn_selector_id).value = lastData.respawn ? 'manual' : 'cp';
 		},
 		"rescale" : function(self, scale) {
@@ -7265,6 +7271,7 @@ var commonTools = {
 	},
 	"teleports": {
 		"_shape_selector_id": "teleports-shape",
+		"_respawn_selector_id": null,
 		"save" : function(self,payload) {
 			if (!self.data.length)
 				return;
@@ -7926,7 +7933,7 @@ var commonTools = {
 	}
 };
 for (var key in commonTools["holes"]) {
-	if (!commonTools["teleports"][key]) {
+	if (commonTools["teleports"][key] === undefined) {
 		var v = commonTools["holes"][key];
 		if (typeof v === "function")
 			v = v.bind(commonTools["teleports"])
