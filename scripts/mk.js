@@ -4495,9 +4495,7 @@ function startGame() {
 								oPlayers[0].ctrl = true;
 								if (!oPlayers[0].z && !oPlayers[0].heightinc) {
 									if (!oPlayers[0].driftinc && !oPlayers[0].tourne) {
-										oPlayers[0].z = 1;
-										oPlayers[0].heightinc = 0.5;
-										oPlayers[0].jumped = true;
+										hopKart(oPlayers[0]);
 										if (oPlayers[0].rotincdir)
 											oPlayers[0].driftinc = (oPlayers[0].rotincdir>0) ? 1:-1;
 										if (oPlayers[0].driftinc)
@@ -4570,9 +4568,7 @@ function startGame() {
 								oPlayers[1].ctrl = true;
 								if (!oPlayers[1].z && !oPlayers[1].heightinc) {
 									if (!oPlayers[1].driftinc && !oPlayers[1].tourne) {
-										oPlayers[1].z = 1;
-										oPlayers[1].heightinc = 0.5;
-										oPlayers[1].jumped = true;
+										hopKart(oPlayers[1]);
 										if (oPlayers[1].rotincdir)
 											oPlayers[1].driftinc = (oPlayers[1].rotincdir>0) ? 1:-1;
 									}
@@ -7279,7 +7275,11 @@ var itemBehaviors = {
 			}
 
 			if (!fSprite.sprites) {
-				if (items.pow.length > 1 && itemDistribution.powx2 != 1) {
+				// don't remove pow if previous pow is in its wait after despawn animation
+				const shouldDelete = (items.pow.length > 1 && itemDistribution.powx2 != 1) ||
+									 (items.pow.length === 2 && items.pow[0].countstate < 9);
+
+				if (shouldDelete) {
 					detruit(fSprite);
 					return;
 				}
@@ -15327,12 +15327,10 @@ function powCpuDodge(oKart) {
 	}
 }
 
-function powJump(oKart) {
-	if (oKart.z === 0) {
-		oKart.z = 1;
-		oKart.heightinc = 0.5;
-		oKart.jumped = true;
-	}
+function hopKart(oKart, height = 1) {
+	oKart.z = height;
+	oKart.heightinc = height / 2;
+	oKart.jumped = true;
 }
 
 function powEffect(i, oKart, fSprite) {
@@ -15346,7 +15344,7 @@ function powEffect(i, oKart, fSprite) {
 	stopDrifting(i);
 
 	if (fullHit) {
-		powJump(oKart);
+		hopKart(oKart);
 		handleItemHit(oKart, "pow");
 
 		if (course === "BB") {
@@ -15358,19 +15356,30 @@ function powEffect(i, oKart, fSprite) {
 }
 
 function playPow(i, oKart, oKartOwner, fSprite) {
-	if (fSprite.countstate === 5 && fSprite.countdown === 10)
-		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
-			powCpuDodge(oKart);
+    const isOwner = oKart === oKartOwner,
+          isCpu = oKart.cpu,
+          isInAir = oKart.z >= 1.2,
+          isSpinning = oKart.tourne,
+          isInv = oKart.protect,
+          isIFrames = oKart.frminv;
 
-	if (fSprite.countstate === 6 && fSprite.countdown === 1) {
-		if (oKart != oKartOwner && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant)) {
-			loseUsingItems(oKart);
-			dropCurrentItem(oKart);
-			if (!oKart.protect && !oKart.frminv)
-				powEffect(i, oKart, fSprite);
-			powJump(oKart);
-		}
-	}
+	if (isOwner || isInAir || isInv || friendlyFire(oKart, oKartOwner))
+		return;
+
+    if (fSprite.countstate === 5 && fSprite.countdown === 10)
+        if (isCpu && !isSpinning)
+            powCpuDodge(oKart);
+
+    if (fSprite.countstate === 6 && fSprite.countdown === 1) {
+        if ((!isOnline || !i || oKart.controller == identifiant)) {
+            if (!isIFrames) {
+                loseUsingItems(oKart);
+                dropCurrentItem(oKart);
+                powEffect(i, oKart, fSprite);
+            }
+            hopKart(oKart);
+        }
+    }
 }
 
 function touche_asset(aPosX,aPosY,aPosZ, iX,iY) {
@@ -16693,9 +16702,7 @@ function move(getId, triggered) {
 			var hpType, hpProps;
 			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && !oKart.protect && !oKart.champi))) {
 			//if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)))) {
-				oKart.z = 1;
-				oKart.heightinc = 0.5;
-				oKart.jumped = true;
+				hopKart(oKart);
 			}
 		}
 	}
