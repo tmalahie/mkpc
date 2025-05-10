@@ -30,7 +30,7 @@ if (isset($_GET['i'])) {
 			require_once('../includes/circuitImgUtils.php');
 			$circuitImgSrc = getCircuitImgUrl($circuitImg);
 			$circuitImgPayload = array(
-				'src' => getCircuitImgUrl($circuitImg)
+				'src' => $circuitImgSrc
 			);
 			if (isset($circuitImg->lapOverrides)) {
 				$circuitImgPayload['lapOverrides'] = array(

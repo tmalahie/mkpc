@@ -34,9 +34,33 @@ if (isset($_GET['i'])) {
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
+			$circuitImgSrc = getCircuitImgUrl($circuitImg);
 			$circuitImgPayload = array(
-				'src' => getCircuitImgUrl($circuitImg)
+				'src' => $circuitImgSrc
 			);
+			if (isset($circuitImg->lapOverrides)) {
+				$circuitImgPayload['lapOverrides'] = array(
+					'0' => array(
+						'src' => $circuitImgPayload['src'],
+						'data' => array(
+							'url' => $circuitImg->url,
+							'local' => $circuitImg->local
+						)
+					)
+				);
+				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
+					$imgOverrideData = isset($lapImg->override) ? array(
+						'override' => $lapImg->override
+					) : array(
+						'url' => $lapImg->url,
+						'local' => $lapImg->local
+					);
+					$circuitImgPayload['lapOverrides'][$lap] = array(
+						'src' => getCircuitImgUrl(getRefCircuitImg($lapImg,$circuitImg)),
+						'data' => $imgOverrideData
+					);
+				}
+			}
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -66,7 +90,7 @@ if (isset($_GET['i'])) {
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?>  oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
-				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Arene" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
+				<img id="editor-img" src="<?php echo $circuitImgSrc; ?>" alt="Arene" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
 			</div>
 		</div>
@@ -94,6 +118,10 @@ if (isset($_GET['i'])) {
 		require_once('../includes/circuitUiUtils.php');
 		?>
 		<div id="toolbox">
+			<div id="lapoverride-current">
+				<?php echo $language ? 'Overriding:':'Modificateur'; ?>
+				<select id="lapoverride-current-value" onchange="switchLapOverride(this)">1</select>
+			</div>
 			<div id="mode-selection">
 				<button id="mode-decr" class="toolbox-button" onclick="navigateMode(-1)">←</button>
 				<select id="mode" name="mode" onchange="selectMode(this.value)">
@@ -110,6 +138,21 @@ if (isset($_GET['i'])) {
 					?>
 				</select>
 				<button id="mode-incr" class="toolbox-button" onclick="navigateMode(+1)">→</button>
+			</div>
+			<div id="mode-override-options">
+				<div id="mode-onoverride-options">
+					<div id="mode-onoverride-option-options">
+						<?php echo $language ? 'Image:':'Image :'; ?>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+					</div>
+				</div>
+				<div id="mode-override-disabled">
+					<span id="mode-override-disabled-reason"></span>
+				</div>
+				<div id="mode-override-enabled">
+					<a class="mode-override-activate" href="javascript:enableLapOverride()">+ <?php echo $language ? 'Enable override...' : 'Activer modificateur...'; ?></a>
+					<a class="mode-override-deactivate" href="javascript:disableLapOverride()">&times; <?php echo $language ? 'Reset override' : 'Réinit. modificateur'; ?></a>
+				</div>
 			</div>
 			<div id="mode-options">
 				<div id="mode-option-walls">
@@ -203,17 +246,23 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div class="mode-option-unoverridable">
+					<div>
 						<?php echo $language ? 'Music:':'Musique :'; ?>
-						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
+						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button>
+						<a class="mode-option-onoverride" id="button-music-reset" href="javascript:resetMusicOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
+						<br />
 					</div>
 					<div>
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
 						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button><br />
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Image:':'Image :'; ?>
 						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+					</div>
+					<div id="lapoverride-opener" class="mode-option-unoverridable">
+						<?php echo $language ? 'Course overrides:':'Modificateurs :'; ?>
+						<button class="button-lapoptions toolbox-button" onclick="showLapOverrideOptions()"><?php echo $language ? 'Manage...':'Gérer...'; ?></button>
 					</div>
 				</div>
 			</div>
@@ -313,6 +362,133 @@ if (isset($_GET['i'])) {
 							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options" onclick="removeTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="lapoverride-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeLapOverrideOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="lapoverride-info">
+				<div id="lapoverride-menu">
+					<div class="lapoverride-explain">
+					<?php
+					echo $language ? 'This menu allows you to override the course parameters on certain conditions.<br />
+									  It allows you to give more diversity to your arena (decors appearing progressively, falling platforms...)
+									  These changes will be triggered either after a specific time, or when the player enters a specific zone.'
+								   : 'Ce menu vous permet de modifier les paramètres de l\'arène dans certaines conditions.<br />
+								   	  Vous pouvez ainsi ajouter de la diversité à votre arène (décors qui apparaissent au fur et à mesure, plateformes qui tombent...)
+									  Ces modifications se déclencheront au choix après un temps spécifique, ou lorsque le joueur entre dans une zone spécifique.';
+					?>
+					</div>
+					<?php
+					echo '<div class="lapoverride-manage">';
+					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a course override':'Ajouter un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a course override':'Changer un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-copy" href="javascript:showLapOverrideCopy()">'. ($language ? 'Copy an override':'Copier un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
+					echo '</div>';
+					?>
+				</div>
+				<div id="lapoverride-more">
+					<h1 class="lapoverride-more-add"><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
+					<h1 class="lapoverride-more-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
+					<div>
+						<div id="lapoverride-triggers" data-value="lap">
+							<?php echo $language ? 'Override trigger':'Déclencheur'; ?>:
+							<span class="lapoverride-trigger selected" data-value="zone" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Zone':'Zone' ?></span>
+							<span class="lapoverride-trigger" data-value="time" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Time':'Temps' ?></span>
+						</div>
+						<div class="lapoverride-type-options selected" id="lapoverride-type-options-zone">
+							<input type="hidden" id="lapoverride-zone-data" value="[]" />
+							<input type="hidden" id="lapoverride-end-zone-data" value="[]" />
+							<div class="lapoverride-triggers">
+								<label>
+									<span><?php echo $language ? "Trigger zone":"Zone d'activation"; ?></span>
+									<span><button class="toolbox-button" onclick="openZoneEditor('override_start')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+								</label>
+								<label>
+									<span><?php echo $language ? "(Optional) Untrigger zone":"(Optionnel) Zone de désactivation"; ?></span>
+									<span><button class="toolbox-button" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+								</label>
+							</div>
+						</div>
+						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
+							<div class="lapoverride-triggers">
+								<label>
+									<span><?php echo $language ? "Enable at time":"Activer au temps"; ?></span>
+									<span><input type="text" id="lapoverride-time" size="7" placeholder="1:30" /></button></span>
+								</label>
+								<label>
+									<span><?php echo $language ? "(Optional) Disable at time":"(Optionnel) Désactiver au temps"; ?></span>
+									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></button></span>
+								</label>
+							</div>
+						</div>
+						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php
+						echo $language ? 'Disable interactions with other overrides' : 'Désactiver les interactions avec les autres modificateurs';
+						?> <a href="javascript:showInteractionsHelp()">[?]</a></label>
+						<div id="lapoverride-interactions-ctn">
+							<?php echo $language ? 'Exceptions - enable interactions for:' : 'Exceptions - activer les intéractions pour&nbsp;:'; ?>
+							<div id="lapoverride-interactions-list"></div>
+						</div>
+						<div class="popup-buttons">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options lapoverride-more-add" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options lapoverride-more-edit" onclick="editLapOverride()"><?php echo $language ? 'Apply':'Appliquer'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-copy" class="lapoverride-copy-invalid">
+					<h1><?php echo $language ? 'Copy an override':'Copier un modificateur'; ?></h1>
+					<div>
+						<div class="lapoverride-copy-options">
+							<?php echo $language ? 'Copy from:' : 'Copier depuis :'; ?>
+							<select id="lapoverride-copy-from" onchange="handleLapCopySelect()"></select>
+							<?php echo $language ? 'to:' : 'vers :'; ?>
+							<select id="lapoverride-copy-to" onchange="handleLapCopySelect()"></select>
+						</div>
+						<div class="lapoverride-copy-hide-on-invalid">
+							<h2><?php echo $language ? 'Components to copy:' : 'Copier les composants :'; ?></h2>
+							<div id="lapoverride-copy-components"></div>
+							<label id="lapoverride-copy-components-all-wrapper"><input type="checkbox" checked="checked" id="lapoverride-copy-components-all" onchange="handleLapCopyComponentsAll(this.checked)" /> <?php echo $language ? 'Select/Unselect all' : 'Tout sélectionne/Désélectionner'; ?></label>
+						</div>
+						<div class="popup-buttons lapoverride-copy-hide-on-invalid">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="copyLapOverride()" id="lapoverride-copy-submit"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options" id="lapoverride-copy-success" disabled="disabled"><?php echo $language ? 'Copied':'Copié'; ?> ✓</button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-less">
+					<h1 class="lapoverride-less-delete"><?php echo $language ? 'Delete an override':'Supprimer un modificateur'; ?></h1>
+					<h1 class="lapoverride-less-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
+					<div>
+						<span class="lapoverride-less-delete"><?php echo $language ? 'Delete given override:' : 'Supprimer le modificateur :'; ?></span>
+						<span class="lapoverride-less-edit"><?php echo $language ? 'Select override:' : 'Sélectionner le modificateur :'; ?></span>
+						<select id="lapoverride-less-list"></select>
+						<div class="popup-buttons">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options lapoverride-less-edit" onclick="showLapOverrideEdit()"><?php echo $language ? 'Next':'Suivant'; ?> &gt;</button>
+							<button class="options lapoverride-less-delete" onclick="removeLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="modeoverride-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeModeOverrideOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div id="modeoverride-more">
+				<h1><?php echo $language ? 'Enable override for ':'Modificateur pour '; ?><strong id="modeoverride-label"></strong></h1>
+				<div>
+					<?php echo $language ? 'Create override from:':'Créer le modificateur à partir de :'; ?>
+					<select id="modeoverride-lap-list"></select>
+					<div class="popup-buttons">
+						<button class="options" onclick="closeModeOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+						<button class="options" id="modeoverride-submit" onclick="addModeOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 					</div>
 				</div>
 			</div>

@@ -188,7 +188,7 @@ if (!empty($circuitPayload->decorparams)) {
 		echo '"decorparams":undefined,';
 }
 if (!empty($circuitPayload->assets)) {
-	$assetTypes = array('pointers', 'flippers', 'bumpers','oils');
+	$assetTypes = array('pointers', 'flippers', 'bumpers', 'oils');
 	foreach ($assetTypes as $assetType) {
 		if (!empty($circuitPayload->assets->{$assetType})) {
 			?>
@@ -212,13 +212,11 @@ if (!empty($circuitPayload->flows)) {
 }
 if (!empty($circuitPayload->spinners)) {
 	?>,
-"spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
-	<?php
+"spinners" : <?php echo json_encode($circuitPayload->spinners);
 }
 if (!empty($circuitPayload->elevators)) {
 	?>,
-"elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
-	<?php
+"elevators" : <?php echo json_encode($circuitPayload->elevators);
 }
 }
 }
