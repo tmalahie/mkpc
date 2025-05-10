@@ -54,26 +54,27 @@ function hasRight($key) {
 
 /**
  * Check if the user has the required rank to access the page.
- * Exits the script if the user does not have the required rank.
+ * Exits the script if the user does not have the requested rank.
  * @param string $rank The required rank.
- * @return void Echoes an error message.
+ * @return void Echoes an error message if the user does not have the requested rank.
  */
 function requireRank($rank) {
+	$rankf = $rank;
     switch ($rank) {
         case 'manager':
-            $rank = 'moderator';
+            $rankf = 'moderator';
             break;
         case 'organizer':
-            $rank = 'event host';
+            $rankf = 'event host';
             break;
         case 'clvalidator':
-            $rank = 'challenge validator';
+            $rankf = 'challenge validator';
             break;
         case 'admin':
-            $rank = 'administrator';
+            $rankf = 'administrator';
             break;
         case 'publisher':
-            $rank = 'news publisher';
+            $rankf = 'news publisher';
             break;
     }
 
@@ -83,7 +84,7 @@ function requireRank($rank) {
 		exit;
 	}
 	if (!hasRight($rank)) {
-		echo F_("You do not have the {rankName} rank!", rankName: $rank);
+		echo F_("You do not have the {rankName} rank!", rankName: $rankf);
 		exit;
 	}
 }
