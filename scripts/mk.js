@@ -1967,6 +1967,7 @@ function initMap() {
 			}
 			lMaps.push(lMap);
 			pMaps.push(pMap);
+			initDisabledInteractions();
 
 			prevLap.subOverrides[conditionOverridesHash] = res;
 			return res;
@@ -1989,35 +1990,64 @@ function initMap() {
 			}
 			return lapId;
 		}
-		var _disabledLapsInteractions = {};
-		for (var i=0;i<pMaps.length;i++) {
-			var disabledLapInteractions = {};
-			var lapInteractions = pMaps[i].lapInteractions;
-			if (lapInteractions) {
-				for (var j=0;j<pMaps.length;j++)
-					disabledLapInteractions[j] = true;
-				delete disabledLapInteractions[i];
-				for (var j=0;j<lapInteractions.length;j++)
-					delete disabledLapInteractions[lapInteractions[j]];
+		function initDisabledInteractions() {
+			var _disabledLapsInteractions = {};
+			var allOverrides = [{}].concat(mapOverrides);
+			var nbLapOverrides = 1 + oMap.lapOverrides.length;
+			function getAllOverridesIds(i) {
+				var lMap = lMaps[i];
+				var lapIds = [];
+				if (lMap.parentOverrideId !== undefined) {
+					lapIds.push(lMap.parentOverrideId);
+					for (var j=0;j<lMap.conditionOverrideIds.length;j++)
+						lapIds.push(nbLapOverrides + lMap.conditionOverrideIds[j]);
+				}
+				else
+					lapIds.push(i);
+				return lapIds;
 			}
-			_disabledLapsInteractions[i] = disabledLapInteractions;
-		}
-		for (var i=0;i<pMaps.length;i++) {
-			for (var j in _disabledLapsInteractions[i])
-				_disabledLapsInteractions[j][i] = true;
-		}
-		if (Object.keys(_disabledLapsInteractions).length) {
-			lapInteractionsDisabled = function(lap1,lap2) {
-				return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
-			};
-			itemInteractionsDisabled = function(oBox) {
-				return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
+			for (var i=0;i<lMaps.length;i++) {
+				var disabledLapInteractions = {};
+				var lapIds = getAllOverridesIds(i);
+				for (var k=0;k<lapIds.length;k++) {
+					var lapId = lapIds[k];
+					var lapInteractions = allOverrides[lapId].lapInteractions;
+					if (lapInteractions) {
+						for (var j=0;j<lMaps.length;j++) {
+							var disabled = true;
+							var lapIds2 = getAllOverridesIds(j);
+							for (var l=0;l<lapIds2.length;l++) {
+								var lapId2 = lapIds2[l];
+								if ((lapId === lapId2) || lapInteractions.includes(lapId2)) {
+									disabled = false;
+									break;
+								}
+							}
+							if (disabled)
+								disabledLapInteractions[j] = true;
+						}
+					}
+				}
+				_disabledLapsInteractions[i] = disabledLapInteractions;
 			}
-			getItemCollisionLap = function(oBox) {
-				if (oBox.ailap >= 0) return oBox.ailap;
-				return oBox.lapId;
+			for (var i=0;i<pMaps.length;i++) {
+				for (var j in _disabledLapsInteractions[i])
+					_disabledLapsInteractions[j][i] = true;
+			}
+			if (Object.keys(_disabledLapsInteractions).length) {
+				lapInteractionsDisabled = function(lap1,lap2) {
+					return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
+				};
+				itemInteractionsDisabled = function(oBox) {
+					return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
+				}
+				getItemCollisionLap = function(oBox) {
+					if (oBox.ailap >= 0) return oBox.ailap;
+					return oBox.lapId;
+				}
 			}
 		}
+		initDisabledInteractions();
 
 		if (oMap.conditionOverrides.length) {
 			for (var i=0;i<oMap.conditionOverrides.length;i++)
@@ -16235,6 +16265,7 @@ function resetDatas() {
 								updateLapHud(sID);
 							handleCpChange(aTours,aDemitours, j);
 						}
+						handleConditionalOverrides(aX,aY, j);
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
 						if (aReserve !== oKart.reserve) {
