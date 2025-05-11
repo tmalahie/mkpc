@@ -21,7 +21,7 @@ lint:
 
 # PO template file, from which all PO files are built
 po/mkpc.pot: $(PHP_SOURCES) Makefile
-	xgettext $(GETTEXT_KEYWORDS) --add-location=file -c -o po/mkpc.pot $(PHP_SOURCES)
+	xgettext $(GETTEXT_KEYWORDS) --verbose --add-location=file -c -o po/mkpc.pot $(PHP_SOURCES)
 
 # PO file, one per locale.
 # Ensure that PO file is always updated by this step.
@@ -39,7 +39,7 @@ po/fr_FR/LC_MESSAGES:
 
 # Additional checks on PO files for validation
 msgcheck:
-	msgcheck $(PO_FILES)
+	msgfmt --check $(PO_FILES)
 
 # gettext has an internal cache.
 # If the .mo files are changed, the web server needs to be restarted
