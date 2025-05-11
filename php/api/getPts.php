@@ -1,15 +1,28 @@
 <?php
-header('Content-Type: text/plain');
+header('Content-Type: application/json');
 $res = -1;
-if (isset($_POST['id'])) {
-	include('../includes/session.php');
-	if ($id) {
-		include('../includes/initdb.php');
-		if ($getPts = mysql_fetch_array(mysql_query('SELECT j.pts_vs,j.pts_battle FROM `mkjoueurs` j WHERE j.id="'. $_POST['id'] .'"'))) {
-			echo '['.$getPts['pts_vs'].','.$getPts['pts_battle'].']';
-		}
-		mysql_close();
-	} else echo '[]';
+
+if (!isset($_POST['id'])) {
+	echo json_encode([]);
+	exit;
 }
-else echo '[]';
+
+include('../includes/session.php');
+if (!$id) {
+	echo json_encode([]);
+	exit;
+}
+
+include('../includes/initdb.php');
+$query = <<<SQL
+	SELECT j.pts_vs, j.pts_battle FROM `mkjoueurs` j WHERE j.id="{$_POST['id']}"
+SQL;
+
+if ($getPts = mysql_fetch_array(mysql_query($query))) {
+	echo json_encode([$getPts['pts_vs'], $getPts['pts_battle']]);
+} else {
+	echo json_encode([]);
+}
+
+mysql_close();
 ?>
