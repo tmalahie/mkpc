@@ -11442,12 +11442,6 @@ function render() {
 						});
 					}
 				}
-				else if (!i && lastFrame) {
-					if (fItems.countdown)
-						fItems.countdown--;
-					else
-						fItems.active = true;
-				}
 			}
 
 			if (lMap.coins) {
@@ -19819,6 +19813,22 @@ function moveItems() {
 			}
 		}
 	}
+	foreachLMap(function(lMap,pMap) {
+		if (pMap.arme) {
+			for (var j=0;j<pMap.arme.length;j++) {
+				var fSprite = pMap.arme[j];
+				var fItems = fSprite[2];
+				if (!fItems.active) {
+					if (fItems.countdown)
+						fItems.countdown--;
+					else
+						fItems.active = true;
+				}
+			}
+		}
+	}, {
+		subOverrides: false
+	});
 }
 function moveDecor() {
 	decorPos = [];
