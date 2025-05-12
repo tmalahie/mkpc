@@ -14259,12 +14259,18 @@ var challengeRules = {
 						const key = remKeys[i];
 	
 						if (key in lMap)
-						 	delete lMap[key];
+							delete lMap[key];
 					}
 	
 					Object.keys(lMap.decor).forEach(function(key) {
 						delete lMap.decor[key];
 					});
+
+					if (pMap.decorparams) {
+						Object.keys(lMap.decorparams).forEach(function(key) {
+							delete lMap.decorparams[key];
+						});
+					}
 				}
 
 				for (var i=0;i<scope.value.length;i++) {
