@@ -306,9 +306,9 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'description_lambda' => function($language,&$scope) {
 				if ($language)
-					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'').' class';
+					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'');
 				else
-					return 'en mode '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirroir':'');
+					return 'en '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirroir':'');
 				exit;
 			},
 			'parser' => function(&$scope) {
