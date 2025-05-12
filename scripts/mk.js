@@ -14250,17 +14250,21 @@ var challengeRules = {
 			var customDecors = scope.custom_decors || {};
 
 			foreachLMap(function(lMap,pMap) {
+				if (!pMap.decor)
+					return;
+
 				if (scope.clear_other) {
 					const remKeys = ["oils", "pointers", "flippers", "bumpers"];
 					for (let i = 0; i < remKeys.length; i++) {
 						const key = remKeys[i];
 	
 						if (key in lMap)
-							delete lMap[key];
+						 	delete lMap[key];
 					}
 	
-					lMap.decor = {};
-					lMap.decorparams = {};
+					Object.keys(lMap.decor).forEach(function(key) {
+						delete lMap.decor[key];
+					});
 				}
 
 				for (var i=0;i<scope.value.length;i++) {
