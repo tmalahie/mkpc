@@ -15957,18 +15957,17 @@ function powCpuDodge(oKart) {
 
 	if (!oKart.jumped) {
 		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
-		if (Math.random() < n) {
+
+		if (Math.random() < n)
 			return;
-		}
+
 		else {
 			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
 			if (dodgeZ < 0) dodgeZ = 0.1;
 			else if (dodgeZ > 1) dodgeZ = 1;
 		}
 
-		oKart.z = dodgeZ;
-		oKart.heightinc = dodgeZ / 2;
-		oKart.jumped = true;
+		hopKart(oKart, dodgeZ);
 	}
 }
 
@@ -16022,7 +16021,8 @@ function playPow(i, oKart, oKartOwner, fSprite) {
                 dropCurrentItem(oKart);
                 powEffect(i, oKart, fSprite);
             }
-            hopKart(oKart);
+			if (oKart.z === 0)
+	            hopKart(oKart);
         }
     }
 }
