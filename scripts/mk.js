@@ -26769,18 +26769,24 @@ function selectChallengesScreen() {
 			}
 
 			var oIcons = document.createElement("div");
+			oIcons.style.display = "flex";
+			oIcons.style.alignItems = "center";
+			oIcons.style.justifyContent = "center";
+			oIcons.style.marginBottom = Math.round(iScreenScale/3)+"px";
+
 			var oIconDifficulty = document.createElement("img");
 			oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";
 			oIconDifficulty.alt = "D";
 			oIconDifficulty.style.width = (iScreenScale*2) +"px";
 			oIcons.appendChild(oIconDifficulty);
+
 			var oSpan = document.createElement("span");
 			oSpan.style.color = challenge.difficulty.color;
 			oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-			oSpan.style.position = "relative";
-			oSpan.style.top = "-1px";
+			oSpan.style.marginLeft = Math.round(iScreenScale*0.4)+"px";
 			oSpan.innerHTML = " "+ challenge.difficulty.name;
 			oIcons.appendChild(oSpan);
+			
 			oTd.appendChild(oIcons);
 
 			if (challenge.winners.length) {
