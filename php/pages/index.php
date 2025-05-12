@@ -309,16 +309,16 @@ $placeholderPath = 'images/pages/pixel.png';
 		if ($id) {
 			//$today = time();
 			//if (($today > 1607310000) && ($today < 1607914800)) {
-			$getMkwcVotes = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkwcbets WHERE player = ' . $id .' AND console="mkt"'));
+			$getMkwcVotes = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkwcbets WHERE player = ' . $id .' AND console="mkw"'));
 			$alreadyVoted = ($getMkwcVotes['nb'] >= 1);
 			if (!$alreadyVoted) {
 				if ($language) {
 				?>
 				<div class="subsection">
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						The <strong>Mario Kart Tour</strong> World Cup 2023 has begun!<br />
+						The <strong>2025 Mario Kart World Cup</strong> has begun!<br />
 						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
-						For more information, read the related <a href="news.php?id=15109">news</a>.
+						For more information, read the related <a href="news.php?id=15275">news</a>.
 					</div>
 				</div>
 				<?php
@@ -327,9 +327,9 @@ $placeholderPath = 'images/pages/pixel.png';
 				?>
 				<div class="subsection">
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						La Coupe Du Monde de <strong>Mario Kart Tour</strong> 2023 à débuté !<br />
+						La <strong>Coupe Du Monde 2025 de Mario Kart</strong> à débuté !<br />
 						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
-						Pour plus d'information, consultez la <a href="news.php?id=15109">news</a> associée.
+						Pour plus d'information, consultez la <a href="news.php?id=15275">news</a> associée.
 					</div>
 				</div>
 				<?php

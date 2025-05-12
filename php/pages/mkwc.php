@@ -9,6 +9,7 @@ $console = 'mkw';
 $multiConsole = false;
 $year = 2025;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
+$toBeDetermined = $language ? 'Pending selection' : 'En attente de sélection';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $lowerStage = $language ? 'Lower Group Stage':'Phase de Groupe inférieure';
 $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
@@ -23,39 +24,53 @@ case 'mkw':
     $teams = array(
         $playInStage => array(
             "$group I" => array(
-                'header' => $language ? "Asia: all of Asia except Japan and India" : "Asie: toute l'Asie sauf Japon et Inde.",
-                'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkwii/2023.html',
+                'single' => true,
+                'header' => $language ? 'The 2 best teams will qualify for the group stage!' : 'Les 2 meilleures équipes seront qualifiées pour la phase de groupe !',
                 'list' => array(
-                    'asi'=> $language ? 'Asia':'Asie',
-                    'ita'=> $language ? 'Italy':'Italie',
-                    'mag'=> $language ? 'Maghreb':'Maghreb',
+                    'asi'=> $language ? 'Asia':'Asie', 
+                    'nrd'=> $language ? 'Nordic':'Nordique',
+                    'lus'=> $language ? 'Luso Alliance':'Alliance Luso',
                     'spa'=> $language ? 'Spain':'Espagne'
                 )
             )
         ),
-        $swissStage => array(
-            array(
+        $groupStage => array(
+            "$group A" => array(
+                'list' => array(
+                    'eng'=> $language ? 'England':'Angleterre',
+                    'fra'=> $language ? 'France':'France',
+                    'ita'=> $language ? 'Italy':'Italie'
+                )
+            ),
+            "$group B" => array(
+                'list' => array(
+                    'usn'=> $language ? 'United States North':'Etats-Unis du Nord',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'lta'=> $language ? 'Latin America':'Amérique Latine'
+                )
+            ),
+            "$group C" => array(
+                'list' => array(
+                    'ind'=> $language ? 'India':'Inde',
+                    'bnl'=> $language ? 'Benelux':'Benelux',
+                    'ire'=> $language ? 'Ireland':'Irlande'
+                )
+            ),
+            "$group D" => array(
+                'list' => array(
+                    'uss'=> $language ? 'United States South':'Etats-Unis du Sud',
+                    'can'=> $language ? 'Canada':'Canada',
+                    'aus'=> $language ? 'Australia':'Australie'
+                )
+            )
+        ),
+        "$toBeDetermined" => array(
+            'Group I' => array(
+                'header' => $language ? "This teams will be randomly affected to one of the 4 groups after the play-in stage" : "Ces équipes seront affectées aléatoirement à l'un des 4 groupes après le tour préliminaire",
                 'single' => true,
                 'list' => array(
                     'afr'=> $language ? 'Africa':'Afrique',
-                    'asi'=> $language ? 'Asia':'Asie', 
-                    'aus'=> $language ? 'Australia':'Australie',
-                    'bnl'=> $language ? 'Benelux':'Benelux',
-                    'can'=> $language ? 'Canada':'Canada',
-                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
-                    'eng'=> $language ? 'England':'Angleterre',
-                    'spa'=> $language ? 'Spain':'Espagne',
-                    'fra'=> $language ? 'France':'France',
-                    'ger'=> $language ? 'Germany':'Allemagne',
-                    'ind'=> $language ? 'India':'Inde',
-                    'ire'=> $language ? 'Ireland':'Irlande',
-                    'ita'=> $language ? 'Italy':'Italie',
-                    'lta'=> $language ? 'Latin America':'Amérique Latine',
-                    'lus'=> $language ? 'Luso Alliance':'Alliance Luso',
-                    'nor'=> $language ? 'Nordic Countries':'Pays Nordiques',
-                    'sco'=> $language ? 'Scotland':'Ecosse',
-                    'usn'=> $language ? 'United States North':'Etats-Unis du Nord',
-                    'uss'=> $language ? 'United States South':'Etats-Unis du Sud'
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est'
                 )
             )
         )
@@ -219,7 +234,7 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
                 $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
                 $success .= '<br />';
             }
-            $success .= '<a href="news.php?id=15138">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
+            $success .= '<a href="news.php?id=15275">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
         else {
@@ -735,10 +750,6 @@ if ($id) {
                                 }
                                 ?>
                                 </div>
-                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
-                                <div id="mBracket">
-                                    <img src="https://media.discordapp.net/attachments/1137158268653928618/1143299765686243451/Bracket.png" alt="Bracket" />
-                                </div>
                                 <?php
                             }
                             if ($tournamentWinner) {
@@ -832,7 +843,7 @@ if ($id) {
                             <?php
                             if ($language) {
                                 ?>
-                                Welcome to the 2023 Mario Kart World Cup's predictor page!!!<br />
+                                Welcome to the 2025 Mario Kart World Cup's predictor page!!!<br />
                                 Here, you can predict a total of 3 teams (1 for each game), to win the World Cup.<br />
                                 In case of a correct prediction, you will earn an unique role on the forum!!!
                                 <img src="images/forum/reactions/laugh.png" alt="laugh" />
@@ -840,7 +851,7 @@ if ($id) {
                             }
                             else {
                                 ?>
-                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2023 !!!<br />
+                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2025 !!!<br />
                                 Ici, vous pourrez-voter pour un total de 3 équipes (1 par jeu) que vous aller pronostiquer comme vainqueur de la Coupe Du Monde!<br />
                                 En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
                                 <img src="images/forum/reactions/laugh.png" alt="laugh" />
@@ -886,7 +897,7 @@ if ($id) {
             if (isset($console) && $multiConsole)
                 echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour à la liste des tournois') .'</a><br />';
             ?>
-            <a href="news.php?id=15138"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
+            <a href="news.php?id=15275"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
             <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
         </p>
     </main>
