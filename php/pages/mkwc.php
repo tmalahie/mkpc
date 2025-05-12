@@ -22,45 +22,37 @@ switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
-        $playInStage => array(
-            "$group I" => array(
-                'single' => true,
-                'header' => $language ? 'The 2 best teams will qualify for the group stage!' : 'Les 2 meilleures équipes seront qualifiées pour la phase de groupe !',
-                'list' => array(
-                    'asi'=> $language ? 'Asia':'Asie', 
-                    'nrd'=> $language ? 'Nordic':'Nordique',
-                    'lus'=> $language ? 'Luso Alliance':'Alliance Luso',
-                    'spa'=> $language ? 'Spain':'Espagne'
-                )
-            )
-        ),
         $groupStage => array(
             "$group A" => array(
                 'list' => array(
                     'eng'=> $language ? 'England':'Angleterre',
                     'fra'=> $language ? 'France':'France',
-                    'ita'=> $language ? 'Italy':'Italie'
+                    'ita'=> $language ? 'Italy':'Italie',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
                 )
             ),
             "$group B" => array(
                 'list' => array(
                     'usn'=> $language ? 'United States North':'Etats-Unis du Nord',
                     'ger'=> $language ? 'Germany':'Allemagne',
-                    'lta'=> $language ? 'Latin America':'Amérique Latine'
+                    'lta'=> $language ? 'Latin America':'Amérique Latine',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
                 )
             ),
             "$group C" => array(
                 'list' => array(
                     'ind'=> $language ? 'India':'Inde',
                     'bnl'=> $language ? 'Benelux':'Benelux',
-                    'ire'=> $language ? 'Ireland':'Irlande'
+                    'ire'=> $language ? 'Ireland':'Irlande',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
                 )
             ),
             "$group D" => array(
                 'list' => array(
                     'uss'=> $language ? 'United States South':'Etats-Unis du Sud',
                     'can'=> $language ? 'Canada':'Canada',
-                    'aus'=> $language ? 'Australia':'Australie'
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
                 )
             )
         ),
@@ -71,6 +63,18 @@ case 'mkw':
                 'list' => array(
                     'afr'=> $language ? 'Africa':'Afrique',
                     'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est'
+                )
+            )
+        ),
+        $playInStage => array(
+            "$group I" => array(
+                'single' => true,
+                'header' => $language ? 'The 2 best teams will qualify for the group stage!' : 'Les 2 meilleures équipes seront qualifiées pour la phase de groupe !',
+                'list' => array(
+                    'asi'=> $language ? 'Asia':'Asie', 
+                    'nrd'=> $language ? 'Nordic':'Nordique',
+                    'lus'=> $language ? 'Luso Alliance':'Alliance Luso',
+                    'spa'=> $language ? 'Spain':'Espagne'
                 )
             )
         )
@@ -208,7 +212,7 @@ default:
     $console = null;
 }
 function isNormalTeam($code) {
-    return !preg_match('#^pin\d+$#', $code);
+    return !preg_match('#^pin\d*$#', $code);
 }
 if (isset($teams)) {
     $teamsDict = array();
