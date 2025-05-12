@@ -8148,7 +8148,7 @@ var itemBehaviors = {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, null, fSprite)) {
+				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY)) {
 					if (ctx && ctx.checkCollisions) {
 						ctx.checkCollisions(fSprite);
 						if (fSprite.deleted)
@@ -12554,15 +12554,11 @@ function polygonIntersect(iX,iY,nX,nY, oPoints) {
 }
 
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
-function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0, obj) {
+function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	var nX = iX+iI, nY = iY+iJ;
 	var lMap = getCurrentLMap(collisionLap);
 
 	if (lMap.decor) {
-		const fromSelf = (obj == oPlayers[0] || obj.owner == oPlayers[0].id);
-		const clientSideDrop = !isOnline || (fromSelf && !onlineSpectatorId);
-		const dropPos = {x: nX + iI*2.5, y: nY+iJ*2.5};
-
 		for (var type in lMap.decor) {
 			var decorBehavior = decorBehaviors[type];
 			var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
@@ -12572,39 +12568,54 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0, obj) {
 				if (nX > oBox[0]-hitboxSize && nX < oBox[0]+hitboxSize && nY > oBox[1]-hitboxSize && nY < oBox[1]+hitboxSize && (Math.abs((oBox[3]?oBox[3]:0)-iZ)<hitboxHeight)) {
 					if ((oBox[3] == undefined) && (iX > oBox[0]-hitboxSize) && (iX < oBox[0]+hitboxSize) && (iY > oBox[1]-hitboxSize) && (iY < oBox[1]+hitboxSize))
 						continue;
-					if (!iP || decorBehavior.unbreaking) {
-						collisionDecor = type;
-						if (collisionTest == COL_KART) {
-							if (decorBehavior.breaking || isBreakingItem(decorBehavior)) {
-								if (collisionPlayer.speed > 4) {
-									handleDecorHit(i,type, lMap);
-									if (clientSideDrop)
-										dropBoxDecorLoot(obj, dropPos);
-									if (collisionPlayer.turbodrift)
-										collisionPlayer.turbodrift = 0;
-								}
-							}
-						}
-						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
-							if (decorBehavior.damagingItems[collisionItem.type]) {
-								handleDecorHit(i,type, lMap);
-								if (clientSideDrop)
-									dropBoxDecorLoot(obj, dropPos);
-							}
-						}
-						if (decorBehavior.transparent)
-							continue;
+
+					if (decorBehavior.unbreaking)
 						return false;
-					}
-					else {
-						if ((iP && isBreakingItem(decorBehavior)) || decorBehavior.breaking) {
+
+					let fromSelf;
+					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
+						fromSelf = true;
+					else if (collisionTest === COL_OBJ && collisionItem.owner === oPlayers[0].id)
+						fromSelf = true;
+					
+					const collisionFrom = collisionTest === COL_KART ? collisionPlayer : collisionItem;
+					const clientSideDrop = !isOnline || (fromSelf && !onlineSpectatorId);
+					const dropPos = {x: nX + iI*2.5, y: nY+iJ*2.5};
+
+					collisionDecor = type;
+
+					// player collision
+					if (collisionTest == COL_KART) {
+						const canBreak = decorBehavior.breaking ||
+						(iP && isBreakingItem(decorBehavior) ||
+						(!iP && collisionPlayer.champi && isBreakingItem(decorBehavior)));
+
+						if (!canBreak)
+							return false;
+
+						if (collisionPlayer.speed > 4 || iP) {
 							handleDecorHit(i,type, lMap);
-							if (clientSideDrop)
-								dropBoxDecorLoot(obj, dropPos);
-							break;
+							if (decorBehavior.bonus && clientSideDrop)
+								dropBoxDecorLoot(collisionFrom, dropPos);
+							if (collisionPlayer.turbodrift && !decorBehavior.transparent)
+								collisionPlayer.turbodrift = 0;
 						}
-						return false;
 					}
+
+					// item collision
+					else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
+						if (decorBehavior.damagingItems[collisionItem.type]) {
+							handleDecorHit(i,type, lMap);
+							if (decorBehavior.bonus && clientSideDrop)
+								dropBoxDecorLoot(collisionFrom, dropPos);
+						}
+					}
+
+					if (decorBehavior.transparent)
+						continue;
+
+					if (!iP)
+						return false;
 				}
 			}
 		}
@@ -12699,7 +12710,7 @@ function getFloorHeight(lMap, iX,iY,iZ0) {
 	return zH;
 }
 function isBreakingItem(decorBehavior) {
-	if (!decorBehavior.damagingItems) return false;
+	if (!decorBehavior.damagingItems) return true;
 	if (decorBehavior.damagingItems.megachampi && collisionPlayer.megachampi) return true;
 	if (decorBehavior.damagingItems.billball && collisionPlayer.billball) return true;
 	if (decorBehavior.damagingItems.etoile && collisionPlayer.etoile) return true;
@@ -17769,7 +17780,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0, oKart) || oKart.billball) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -17806,7 +17817,7 @@ function move(getId, triggered) {
 		for (var i=5;i>0;i--) {
 			oKart.x += horizontality[0]*s*i/5;
 			oKart.y += horizontality[1]*s*i/5;
-			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0||0, oKart))
+			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0||0))
 				break;
 			else {
 				oKart.x = aPosX;
@@ -19130,6 +19141,10 @@ function handleDecorExplosions(fSprite, callback) {
 		if (!pMap.decor) return;
 		for (var type in lMap.decor) {
 			var decorBehavior = decorBehaviors[type];
+
+			if (decorBehavior.unbreaking)
+				return false;
+
 			if (decorBehavior.damagingItems && decorBehavior.damagingItems[fSprite.type]) {
 				for (var i=0;i<lMap.decor[type].length;i++) {
 					var oBox = lMap.decor[type][i];
