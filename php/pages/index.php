@@ -318,7 +318,7 @@ $placeholderPath = 'images/pages/pixel.png';
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
 						The <strong>2025 Mario Kart World Cup</strong> has begun!<br />
 						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
-						For more information, read the related <a href="news.php?id=15275">news</a>.
+						For more information, read the related <a href="news.php?id=15280">news</a>.
 					</div>
 				</div>
 				<?php
@@ -329,7 +329,7 @@ $placeholderPath = 'images/pages/pixel.png';
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
 						La <strong>Coupe Du Monde 2025 de Mario Kart</strong> à débuté !<br />
 						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
-						Pour plus d'information, consultez la <a href="news.php?id=15275">news</a> associée.
+						Pour plus d'information, consultez la <a href="news.php?id=15280">news</a> associée.
 					</div>
 				</div>
 				<?php
