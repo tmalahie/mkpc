@@ -484,10 +484,13 @@ if ($id) {
             background-color: #dfc;
             border-color: #0a0;
         }
-        .mVotesList {
+        .mVotesList, .mCustomTeams {
             color: #f83;
             font-size: 1.2em;
             text-align: center;
+        }
+        .mCustomTeams {
+            margin-top: 0.5em;
         }
         .mBracket {
             color: #f83;
@@ -499,7 +502,28 @@ if ($id) {
             display: none;
             margin-top: 0.5em;
         }
+        #mCustomTeams {
+            display: none;
+            margin-top: 0.5em;
+            max-width: 470px;
+            margin: 0.5em auto 0 auto;
+            border: solid 1px rgba(142,99,15, 0.4);
+            padding: 4px 6px;
+            background-color: #FFE30C;
+            background-color: rgba(220,204,78, 0.6);
+            color: #820;
+        }
+        #mCustomTeams p {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        #mCustomTeams img {
+            width: 100%;
+        }
         #mVotesList.mVotesListShow {
+            display: block;
+        }
+        #mCustomTeams.mCustomTeamsShow {
             display: block;
         }
         #mVotesList > div {
@@ -607,6 +631,13 @@ if ($id) {
             $mVotesList.classList.remove("mVotesListShow");
         else
             $mVotesList.classList.add("mVotesListShow");
+    }
+    function toggleCustomTeams() {
+        var $mCustomTeams = document.getElementById("mCustomTeams");
+        if ($mCustomTeams.classList.contains("mCustomTeamsShow"))
+            $mCustomTeams.classList.remove("mCustomTeamsShow");
+        else
+            $mCustomTeams.classList.add("mCustomTeamsShow");
     }
     function toggleBracket() {
         var $mVotesList = document.getElementById("mBracket");
@@ -838,6 +869,30 @@ if ($id) {
                                     <?php
                                 }
                                 ?>
+                                <div class="mCustomTeams"><a href="javascript:toggleCustomTeams()"><?php echo $language ? 'Custom teams explanation' : 'Explication des équipes custom'; ?></a></div>
+                                <div id="mCustomTeams">
+                                <?php if ($language) { ?>
+                                    <div>
+                                        <p><strong>Benelux:</strong> Belgium, Netherlands and Luxembourg</p>
+                                        <p><strong>Luso Alliance:</strong> Brazil and Portugal</p>
+                                        <p><strong>Nordic:</strong> All Nordic countries</p>
+                                        <p><strong>United States North/South:</strong><br/>
+                                        <img src="images/mkwc/usa-segregation.png" alt="USA regions map" style="max-width:100%" /></p>
+                                        <p><strong>Africa:</strong> African continent</p>
+                                        <p><strong>Asia:</strong> Asian continent (except India)</p>
+                                    </div>
+                                <?php } else { ?>
+                                    <div>
+                                        <p><strong>Benelux :</strong> Belgique, Pays-Bas et Luxembourg</p>
+                                        <p><strong>Alliance Luso :</strong> Brésil et Portugal</p>
+                                        <p><strong>Nordique :</strong> Ensemble des pays nordiques</p>
+                                        <p><strong>États-Unis du Nord/Sud :</strong><br/>
+                                        <img src="images/mkwc/usa-segregation.png" alt="Carte des régions USA" style="max-width:100%" /></p>
+                                        <p><strong>Afrique :</strong> Continent africain</p>
+                                        <p><strong>Asie :</strong> Continent asiatique (sauf Inde)</p>
+                                    </div>
+                                <?php } ?>
+                                </div>
                             </form>
                             <?php
                         }
