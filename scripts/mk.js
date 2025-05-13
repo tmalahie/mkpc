@@ -587,6 +587,8 @@ function removeMapMusics() {
 	removeIfExists(mapMusic);
 	foreachLMap(function(lMap) {
 		removeIfExists(lMap.mapMusic);
+	}, {
+		subOverrides: false
 	});
 	removeIfExists(lastMapMusic);
 }
@@ -594,6 +596,8 @@ function listMapMusics() {
 	var res = [mapMusic];
 	foreachLMap(function(lMap) {
 		res.push(lMap.mapMusic);
+	}, {
+		subOverrides: false
 	});
 	res.push(lastMapMusic);
 	return res;
@@ -629,6 +633,8 @@ function clearResources() {
 		oMapImg = lMap.mapImg;
 		if (oMapImg.clear)
 			oMapImg.clear();
+	}, {
+		subOverrides: false
 	});
 }
 function resetEvents() {
@@ -1833,6 +1839,10 @@ var foreachLMap = function(callback) {
 	// Can be overriden, see lapOverrides
 	callback(oMap,oMap,0);
 }
+var foreachDMap = function(_lMap,pMap,f) {
+	// Can be overriden, see lapOverrides
+	f(pMap);
+}
 var getCurrentLMap = function() {
 	// Can be overriden, see lapOverrides
 	return oMap;
@@ -1852,18 +1862,65 @@ var itemInteractionsDisabled = function() {
 var getItemCollisionLap = function() {
 	return 0;
 }
+function getSubOverride(lMap, conditionOverrides) {
+	var conditionOverridesHash = conditionOverrides.join(",");
+	return getCurrentLapId({ tours: lMap.lap+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
+}
 function initMap() {
+	oMap.conditionOverrides = [];
 	lMaps = [oMap];
 	pMaps = [oMap];
 	if (oMap.lapOverrides) {
-		var lapOverrides = oMap.lapOverrides;
-		for (var i=0;i<lapOverrides.length;i++) {
-			lMaps.push(Object.assign({}, lMaps[i], lapOverrides[i]));
-			pMaps.push(Object.assign({}, lapOverrides[i]));
+		var mapOverrides = oMap.lapOverrides;
+		var lapOverrides = [];
+		for (var i=0;i<mapOverrides.length;i++) {
+			var lapOverride = mapOverrides[i];
+			if (lapOverride.lap !== undefined) {
+				var prevId = lMaps.length-1;
+				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
+				pMaps.push(Object.assign({}, lapOverride));
+				lapOverrides.push(lapOverride);
+			}
+			else {
+				if (lapOverride.zone)
+					lapOverride.zone = classifyByShape(lapOverride.zone);
+				if (lapOverride.endZone)
+					lapOverride.endZone = classifyByShape(lapOverride.endZone);
+				oMap.conditionOverrides.push(lapOverride);
+			}
 		}
-		foreachLMap = function(callback) {
+		oMap.lapOverrides = lapOverrides;
+		var sMaps = [];
+		for (var i=0;i<lMaps.length;i++)
+			sMaps.push(Object.assign({}, lMaps[i]));
+		var subOverridesCallbacks = [];
+		var subDecorOverrides = [];
+		foreachLMap = function(callback, opts) {
 			for (var i=0;i<lMaps.length;i++)
 				callback(lMaps[i],pMaps[i],i);
+			if (!opts) {
+				opts = {
+					subOverrides: true
+				}
+			}
+			if (opts.subOverrides && oMap.conditionOverrides.length)
+				subOverridesCallbacks.push(callback);
+		}
+		foreachDMap = function(lMap,pMap,f) {
+			f(pMap);
+			var lapId = lMaps.indexOf(lMap);
+			for (var k=lapId+1;k<lMaps.length;k++) {
+				var nMap = lMaps[k];
+				if (nMap === lMap) continue;
+				if (nMap.decor !== lMap.decor) continue;
+				f(nMap, pMaps[k]);
+			}
+			if (oMap.conditionOverrides.length) {
+				subDecorOverrides.push({
+					decor: lMap.decor,
+					callback: f
+				});
+			}
 		}
 		getCurrentLMap = function(l) {
 			if (l >= lMaps.length) l = lMaps.length-1;
@@ -1884,47 +1941,117 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
+		function initSubOverrides(lapId, conditionOverrides, conditionOverridesHash, warmup) {
+			var prevLap = getCurrentLMap(lapId);
+			if (!prevLap.subOverrides)
+				prevLap.subOverrides = {};
+			var res = prevLap.subOverrides[conditionOverridesHash];
+			if (res !== undefined) return res;
+
+			res = lMaps.length;
+			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides }, sMaps[lapId]);
+			var pMap = {};
+			for (var i=0;i<conditionOverrides.length;i++) {
+				var oId = conditionOverrides[i];
+				var lapOverride = oMap.conditionOverrides[oId];
+				Object.assign(lMap, lapOverride);
+				if (warmup)
+					Object.assign(pMap, lapOverride);
+			}
+			for (var i=0;i<subOverridesCallbacks.length;i++)
+				subOverridesCallbacks[i](lMap,pMap, res);
+			for (var i=0;i<subDecorOverrides.length;i++) {
+				var dOverride = subDecorOverrides[i];
+				if (dOverride.decor === lMap.decor)
+					dOverride.callback(lMap,pMap);
+			}
+			lMaps.push(lMap);
+			pMaps.push(pMap);
+			initDisabledInteractions();
+
+			prevLap.subOverrides[conditionOverridesHash] = res;
+			return res;
+		}
 		getCurrentLapId = function(oKart) {
-			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours)
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours && oKart._lapOverrideCache.coh === oKart.conditionOverridesHash)
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
+			if (oKart.conditionOverridesHash) {
+				lapId = initSubOverrides(lapId, oKart.conditionOverrides,oKart.conditionOverridesHash);
+				return lapId;
+			}
 			if (oKart.sprite) {
 				oKart._lapOverrideCache = {
 					tours: oKart.tours,
 					cp: oKart.demitours,
+					coh: oKart.conditionOverridesHash,
 					lapId: lapId
 				};
 			}
 			return lapId;
 		}
-		var _disabledLapsInteractions = {};
-		for (var i=0;i<pMaps.length;i++) {
-			var disabledLapInteractions = {};
-			var lapInteractions = pMaps[i].lapInteractions;
-			if (lapInteractions) {
-				for (var j=0;j<pMaps.length;j++)
-					disabledLapInteractions[j] = true;
-				delete disabledLapInteractions[i];
-				for (var j=0;j<lapInteractions.length;j++)
-					delete disabledLapInteractions[lapInteractions[j]];
+		function initDisabledInteractions() {
+			var _disabledLapsInteractions = {};
+			var allOverrides = [{}].concat(mapOverrides);
+			var nbLapOverrides = 1 + oMap.lapOverrides.length;
+			function getAllOverridesIds(i) {
+				var lMap = lMaps[i];
+				var lapIds = [];
+				if (lMap.parentOverrideId !== undefined) {
+					lapIds.push(lMap.parentOverrideId);
+					for (var j=0;j<lMap.conditionOverrideIds.length;j++)
+						lapIds.push(nbLapOverrides + lMap.conditionOverrideIds[j]);
+				}
+				else
+					lapIds.push(i);
+				return lapIds;
 			}
-			_disabledLapsInteractions[i] = disabledLapInteractions;
+			for (var i=0;i<lMaps.length;i++) {
+				var disabledLapInteractions = {};
+				var lapIds = getAllOverridesIds(i);
+				for (var k=0;k<lapIds.length;k++) {
+					var lapId = lapIds[k];
+					var lapInteractions = allOverrides[lapId].lapInteractions;
+					if (lapInteractions) {
+						for (var j=0;j<lMaps.length;j++) {
+							var disabled = true;
+							var lapIds2 = getAllOverridesIds(j);
+							for (var l=0;l<lapIds2.length;l++) {
+								var lapId2 = lapIds2[l];
+								if ((lapId === lapId2) || lapInteractions.includes(lapId2)) {
+									disabled = false;
+									break;
+								}
+							}
+							if (disabled)
+								disabledLapInteractions[j] = true;
+						}
+					}
+				}
+				_disabledLapsInteractions[i] = disabledLapInteractions;
+			}
+			for (var i=0;i<pMaps.length;i++) {
+				for (var j in _disabledLapsInteractions[i])
+					_disabledLapsInteractions[j][i] = true;
+			}
+			if (Object.keys(_disabledLapsInteractions).length) {
+				lapInteractionsDisabled = function(lap1,lap2) {
+					return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
+				};
+				itemInteractionsDisabled = function(oBox) {
+					return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
+				}
+				getItemCollisionLap = function(oBox) {
+					if (oBox.ailap >= 0) return oBox.ailap;
+					return oBox.lapId;
+				}
+			}
 		}
-		for (var i=0;i<pMaps.length;i++) {
-			for (var j in _disabledLapsInteractions[i])
-				_disabledLapsInteractions[j][i] = true;
-		}
-		if (Object.keys(_disabledLapsInteractions).length) {
-			lapInteractionsDisabled = function(lap1,lap2) {
-				return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
-			};
-			itemInteractionsDisabled = function(oBox) {
-				return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
-			}
-			getItemCollisionLap = function(oBox) {
-				if (oBox.ailap >= 0) return oBox.ailap;
-				return oBox.lapId;
-			}
+		initDisabledInteractions();
+
+		if (oMap.conditionOverrides.length) {
+			for (var i=0;i<oMap.conditionOverrides.length;i++)
+				initSubOverrides(0, [i],i.toString(), true);
 		}
 	}
 	if (clSelected) {
@@ -1936,77 +2063,103 @@ function initMap() {
 				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
+	oMap.maxCheckpoints = 0;
+	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap,pMap, lapId) {
 		var isMain = (lMap === oMap);
 		lMap.mapImg = oMap.mapImg;
-		if (!isMain && !pMap.img)
-			return;
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
-		var oMapImg;
-		function handleMapLoad() {
-			lMap.mapImg = oMapImg;
-			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
-				if (pMaps[nLapId].img) return;
-				lMaps[nLapId].mapImg = oMapImg;
+		if (lMap.parentOverrideId !== undefined) {
+			var olMap = lMaps.find(function(lMap2) {
+				if (!lMap2.mapImgPromise) return false;
+				var mapSrc2 = isCup ? (complete ? lMap2.img:"mapcreate.php"+ lMap2.map):"images/maps/map"+lMap2.map+"."+lMap2.ext;
+				return mapSrc === mapSrc2;
+			});
+			if (olMap) {
+				lMap.mapImg = olMap.mapImg;
+				olMap.mapImgPromise.then(function(mapImg) {
+					lMap.mapImg = mapImg;
+				});
+				return;
 			}
 		}
-		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
-			if (gameSettings.nogif) {
-				var oGif = new Image();
-				if (isMain) {
-					lMap.mapImg = oGif;
-					oGif.onload = function() {
-						oMapImg = document.createElement("canvas");
-						oMapImg.width = oGif.naturalWidth;
-						oMapImg.height = oGif.naturalHeight;
+		if (!isMain && !pMap.img)
+			return;
+		var oMapImg;
+		function handleMapLoad(callback) {
+			lMap.mapImg = oMapImg;
+			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
+				if (pMaps[nLapId].img) break;
+				lMaps[nLapId].mapImg = oMapImg;
+			}
+			callback(oMapImg);
+		}
+		lMap.mapImgPromise = new Promise(function(resolve) {
+			if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
+				if (gameSettings.nogif) {
+					var oGif = new Image();
+					if (isMain) {
+						lMap.mapImg = oGif;
+						oGif.onload = function() {
+							oMapImg = document.createElement("canvas");
+							oMapImg.width = oGif.naturalWidth;
+							oMapImg.height = oGif.naturalHeight;
+							lMap.mapImg = oMapImg;
+							var oMapCtx = oMapImg.getContext("2d");
+							oMapCtx.drawImage(oGif, 0,0);
+							resolve(oMapImg);
+							startGame();
+						};
+					}
+					else {
+						oGif.onload = function() {
+							oMapImg = document.createElement("canvas");
+							oMapImg.width = oGif.naturalWidth;
+							oMapImg.height = oGif.naturalHeight;
+							var oMapCtx = oMapImg.getContext("2d");
+							oMapCtx.drawImage(oGif, 0,0);
+							handleMapLoad(resolve);
+						};
+					}
+					oGif.src = mapSrc;
+				}
+				else {
+					oMapImg = GIF();
+					if (isMain) {
 						lMap.mapImg = oMapImg;
-						var oMapCtx = oMapImg.getContext("2d");
-						oMapCtx.drawImage(oGif, 0,0);
+						oMapImg.onloadone = startGame;
+						oMapImg.onloadall = function() {
+							if (oPlanImg) oPlanImg.src = mapSrc;
+							if (oPlanImg2) oPlanImg2.src = mapSrc;
+						}
+						resolve(oMapImg);
+					}
+					else {
+						oMapImg.onloadone = function() {
+							handleMapLoad(resolve);
+						};
+					}
+					oMapImg.load(mapSrc);
+				}
+			}
+			else {
+				oMapImg = new Image();
+				if (isMain) {
+					lMap.mapImg = oMapImg;
+					oMapImg.onload = function() {
+						resolve(oMapImg);
 						startGame();
 					};
 				}
 				else {
-					oGif.onload = function() {
-						oMapImg = document.createElement("canvas");
-						oMapImg.width = oGif.naturalWidth;
-						oMapImg.height = oGif.naturalHeight;
-						var oMapCtx = oMapImg.getContext("2d");
-						oMapCtx.drawImage(oGif, 0,0);
-						handleMapLoad();
+					oMapImg.onload = function() {
+						handleMapLoad(resolve);
 					};
 				}
-				oGif.src = mapSrc;
+				oMapImg.src = mapSrc;
 			}
-			else {
-				oMapImg = GIF();
-				if (isMain) {
-					lMap.mapImg = oMapImg;
-					oMapImg.onloadone = startGame;
-					oMapImg.onloadall = function() {
-						if (oPlanImg) oPlanImg.src = mapSrc;
-						if (oPlanImg2) oPlanImg2.src = mapSrc;
-					}
-				}
-				else {
-					oMapImg.onloadone = handleMapLoad;
-				}
-				oMapImg.load(mapSrc);
-			}
-		}
-		else {
-			oMapImg = new Image();
-			if (isMain) {
-				lMap.mapImg = oMapImg;
-				oMapImg.onload = startGame;
-			}
-			else {
-				oMapImg.onload = handleMapLoad;
-			}
-			oMapImg.src = mapSrc;
-		}
+		});
 	});
-	oMap.maxCheckpoints = 0;
-	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap) {
 		if (lMap.collision) {
 			var collisionProps = {rectangle:{},polygon:{}};
@@ -3141,7 +3294,22 @@ function startMapMusic(lastlap) {
 	}
 	else {
 		foreachLMap(function(lMap,pMap, i) {
-			if (pMap.music === undefined && pMap.yt === undefined) return;
+			if (pMap.music === undefined && pMap.yt === undefined) {
+				var prevMap;
+				if (lMap.music !== undefined) {
+					prevMap = lMaps.findLast(function(lMap2) {
+						return lMap2.mapMusic && lMap2.music === lMap.music;
+					});
+				}
+				if (lMap.yt !== undefined) {
+					prevMap = lMaps.findLast(function(lMap2) {
+						return lMap2.mapMusic && lMap2.yt === lMap.yt && lMap2.yt_opts === lMap.yt_opts;
+					});
+				}
+				if (prevMap)
+					lMap.mapMusic = prevMap.mapMusic;
+				return;
+			}
 			var opts = pMap.yt_opts || {};
 			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
 			lMap.mapMusic.permanent = 1;
@@ -3165,24 +3333,26 @@ function loadEndingMusic() {
 	endingMusic = startMusic(endingSrc);
 	endingMusic.permanent = 1;
 }
-function updateMapMusic(pMap) {
-	if (!pMap) return;
-	if (!pMap.mapMusic) return;
-	if (pMap.mapMusic === mapMusic) return;
+function updateMapMusic(lMap,nMap) {
+	if (!nMap.mapMusic) return;
+	if (nMap.mapMusic === mapMusic) return;
+	if (nMap.mapMusic === lMap.mapMusic) return;
+	if (!document.body.contains(nMap.mapMusic)) return;
 	var lastMapMusic = mapMusic;
-	mapMusic = pMap.mapMusic;
+	mapMusic = nMap.mapMusic;
 	bufferMusic(mapMusic);
 	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
-	var isLastLap = (pMap.lap === oMap.tours-1);
-	if (isLastLap && !pMap.cp) {
+	var isLastLap = (nMap.lap === oMap.tours-1);
+	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
 		removeIfExists(lastMapMusic);
-		if (pMap.yt)
+		if (nMap.yt)
 			oMap.lastMapSpeed = 1;
 		return;
 	}
 	setTimeout(function() {
-		removeIfExists(lastMapMusic);
-		var fast = isLastLap && !pMap.yt_opts;
+		if (nMap.parentOverrideId === undefined)
+			removeIfExists(lastMapMusic);
+		var fast = isLastLap && !nMap.yt_opts;
 		updateMusic(mapMusic, fast);
 	}, 1000);
 }
@@ -3351,6 +3521,7 @@ function startGame() {
 			sprite : new Sprite(joueur),
 			cpu : false,
 			aipoints : oMap.aipoints[0],
+			conditionOverrides : [],
 
 			tourne : 0,
 			tombe : 0,
@@ -3467,7 +3638,8 @@ function startGame() {
 			lastAItime : 0,
 			aipoints : oMap.aipoints[0],
 			maxspeed : 5.7,
-			maxspeed0: 5.7
+			maxspeed0: 5.7,
+			conditionOverrides: []
 		};
 		if (isOnline) {
 			oEnemy.id = aIDs[i];
@@ -3696,6 +3868,7 @@ function startGame() {
 					aipoints : oMap.aipoints[0],
 					maxspeed : 5.7,
 					maxspeed0 : 5.7,
+					conditionOverrides: [],
 
 					place : 1
 				});
@@ -3768,6 +3941,7 @@ function startGame() {
 						oKart.demitours = getNextCp(oKart);
 					}
 					handleCpChange(aTours,aDemitours, getId);
+					handleConditionalOverrides(aX,aY, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -4038,7 +4212,7 @@ function startGame() {
 			nMap.assets = lMap.assets;
 		});
 		for (var i=0;i<assetKeys.length;i++) {
-			var key = assetKeys[i];
+			let key = assetKeys[i];
 			if (pMap[key]) {
 				function redrawAsset(asset) {
 					var ctx = this.canvas.getContext("2d");
@@ -5552,8 +5726,8 @@ function resetScreen() {
 			fLastZ = iPointZ;
 		}
 	}
-	foreachLMap(function(lMap,pMap) {
-		updateBgLayers(pMap, function(strImages, fixedScale) {
+	foreachLMap(function(lMap) {
+		updateBgLayers({},lMap, function(strImages, fixedScale) {
 			if (lMap === oMap)
 				setupBgLayer(strImages, fixedScale, true);
 			else
@@ -7110,6 +7284,45 @@ function floatType(key) {
 function intType(key) {
 	return {key:key,type:"int"};
 }
+function lapIdType(key) {
+	return {
+		key: key,
+		type: "custom",
+		encode: function(value) {
+			if (value < 0)
+				return "F";
+			var lMap = getCurrentLMap(value);
+			return value + (lMap.conditionOverrideIds ? ("A"+lMap.conditionOverrideIds.join("B")):"") + "F";
+		},
+		decode: function(value) {
+			var endPos = value.indexOf("F");
+			var curSize = endPos+1;
+			if (!endPos) {
+				return {
+					data: -1,
+					curSize: curSize
+				}
+			}
+			var lapParts = value.substring(0,endPos).split("A");
+			var lapId = +lapParts[0];
+			if (lapParts.length === 1) {
+				return {
+					data: lapId,
+					curSize: curSize
+				}
+			}
+			else {
+				var lMap = getCurrentLMap(lapId);
+				var conditionOverrides = lapParts[1].split("B").map(function(x) { return +x });
+				lapId = getSubOverride(lMap, conditionOverrides);
+				return {
+					data: lapId,
+					curSize: curSize
+				}
+			}
+		}
+	};
+}
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
 	"banane": {
@@ -7753,7 +7966,7 @@ var itemBehaviors = {
 					if (!i)
 						tendsToSpeed(fSprite, 12, 0.2);
 					if (isMoving)
-						checkItemLap(fSprite, { aPos: [roundX1, roundX2] });
+						checkItemLap(fSprite, { aPos: [roundX1, roundY1] });
 				}
 				else {
 					fSprite.lives--;
@@ -7860,7 +8073,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt"),intType("target")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt"),intType("target")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
@@ -8136,7 +8349,7 @@ var itemBehaviors = {
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
@@ -10527,23 +10740,94 @@ function handleLapChange(prevLapId,lapId, getId) {
 	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
-	updateBgLayers(pMap, function(strImages, fixedScale) {
-		resetBgLayers();
-		setupBgLayer(strImages, fixedScale, false);
-	});
-	if (!onlineSpectatorId && !oKart.cpu && (lapId > prevLapId))
-		updateMapMusic(pMap);
+	if (pMap) {
+		updateBgLayers(lMap,nMap, function(strImages, fixedScale) {
+			resetBgLayers();
+			setupBgLayer(strImages, fixedScale, false);
+		});
+		if (!onlineSpectatorId && !oKart.cpu && ((lapId > prevLapId) || (nMap.parentOverrideId !== undefined) || (lMap.parentOverrideId !== undefined)))
+			updateMapMusic(lMap,nMap);
+	}
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
-function handleCpChange(prevLap,prevCP, getId) {
+function handleCpChange(prevLap,prevCP, getId,prevId) {
 	if (!oMap.lapOverrides) return collisionLap;
+	if (prevId === undefined)
+		prevId = getId;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var prevKart = aKarts[prevId];
+	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP, conditionOverrides: prevKart.conditionOverrides, conditionOverridesHash: prevKart.conditionOverridesHash });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
 	return lapId
+}
+function handleConditionalOverrides(aX,aY, getId) {
+	var oKart = aKarts[getId];
+	var isChanged = false;
+	var prevLapId;
+	for (var i=0;i<oMap.conditionOverrides.length;i++) {
+		var oOverride = oMap.conditionOverrides[i];
+		if (oKart.conditionOverrides.includes(i)) {
+			if (shouldUntriggerOverride(oOverride, aX,aY,oKart)) {
+				if (prevLapId === undefined)
+					prevLapId = getCurrentLapId(oKart);
+				var deleteIndex = oKart.conditionOverrides.indexOf(i);
+				oKart.conditionOverrides.splice(deleteIndex, 1);
+				isChanged = true;
+			}
+		}
+		else {
+			if (shouldTriggerOverride(oOverride, aX,aY,oKart)) {
+				if (prevLapId === undefined)
+					prevLapId = getCurrentLapId(oKart);
+				oKart.conditionOverrides.push(i);
+				isChanged = true;
+			}
+		}
+	}
+	if (isChanged) {
+		oKart.conditionOverridesHash = oKart.conditionOverrides.join(",");
+		if (!oKart.conditionOverridesHash)
+			delete oKart.conditionOverridesHash;
+		var lapId = getCurrentLapId(oKart);
+		if (prevLapId === lapId) return lapId;
+		handleLapChange(prevLapId,lapId, getId);
+	}
+}
+function shouldTriggerOverride(oOverride, aX,aY, oKart) {
+	if (oOverride.time) {
+		var gameTime = getActualGameTimeMS();
+		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
+			return true;
+	}
+	else if (oOverride.zone) {
+		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
+		if (inter1 < Infinity) {
+			if (oOverride.endZone) {
+				var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
+				if (inter2 < Infinity && inter1 <= inter2) return false;
+			}
+			return true;
+		}
+	}
+	return false;
+}
+function shouldUntriggerOverride(oOverride, aX,aY, oKart) {
+	if (oOverride.endZone) {
+		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
+		if (inter1 < Infinity) {
+			var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
+			if (inter2 < Infinity && inter1 <= inter2) return false;
+			return true;
+		}
+	}
+	if (oOverride.endTime) {
+		if (getActualGameTimeMS() >= oOverride.endTime)
+			return true;
+	}
+	return false;
 }
 function resetRenderState() {
 	lastState = undefined;
@@ -10619,41 +10903,42 @@ function resetBgLayers() {
 		}
 	}
 }
-function updateBgLayers(pMap, callback) {
-	if (!pMap) return;
-	if (pMap.custombg) {
-		if (customBgData[pMap.custombg]) {
-			if (customBgData[pMap.custombg].data !== undefined)
-				callback(customBgData[pMap.custombg].data, false);
+function updateBgLayers(lMap,nMap, callback) {
+	if (nMap.custombg) {
+		if (lMap.custombg === nMap.custombg) return;
+		if (customBgData[nMap.custombg]) {
+			if (customBgData[nMap.custombg].data !== undefined)
+				callback(customBgData[nMap.custombg].data, false);
 			else
-				customBgData[pMap.custombg].callbacks.push(callback);
+				customBgData[nMap.custombg].callbacks.push(callback);
 		}
 		else {
-			customBgData[pMap.custombg] = {
+			customBgData[nMap.custombg] = {
 				callbacks: [callback]
 			};
-			xhr("getBgData.php", "id="+pMap.custombg, function(res) {
-				if (customBgData[pMap.custombg].data) return true;
+			xhr("getBgData.php", "id="+nMap.custombg, function(res) {
+				if (customBgData[nMap.custombg].data) return true;
 				if (!res) {
-					delete customBgData[pMap.custombg];
+					delete customBgData[nMap.custombg];
 					return true;
 				}
 				res = JSON.parse(res);
-				customBgData[pMap.custombg].data = res.layers.map(function(layer) {
+				customBgData[nMap.custombg].data = res.layers.map(function(layer) {
 					return layer.path;
 				});
-				var callbacks = customBgData[pMap.custombg].callbacks;
+				var callbacks = customBgData[nMap.custombg].callbacks;
 				for (var i=0;i<callbacks.length;i++)
-					callbacks[i](customBgData[pMap.custombg].data, false);
+					callbacks[i](customBgData[nMap.custombg].data, false);
 				callbacks.length = 0;
 				return true;
 			});
 		}
 	}
-	else if (pMap.fond) {
-		callback(pMap.fond.map(function(layer) {
+	else if (nMap.fond) {
+		if (lMap.fond === nMap.fond) return;
+		callback(nMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
-		}), pMap.fond.length===2);
+		}), nMap.fond.length===2);
 	}
 }
 function setupBgLayer(strImages, fixedScale, isDelay) {
@@ -10676,13 +10961,45 @@ function loadBgLayer(strImages) {
 function checkItemLap(fSprite, opts) {
 	var lapId = (fSprite.ailap >= 0) ? fSprite.ailap : fSprite.lapId;
 	var nextOverride = oMap.lapOverrides && oMap.lapOverrides[lapId];
-	if (!nextOverride) return;
-	var tours = fSprite.ailapt;
-	if (!tours) {
-		var currentOverride = oMap.lapOverrides[lapId-1];
-		tours = currentOverride ? currentOverride.tours : 1;
-	}
+	if (!nextOverride && !oMap.conditionOverrides.length) return;
 	var lMap = getCurrentLMap(lapId);
+	var conditionOverrides = lMap.conditionOverrideIds || [];
+	var tours = fSprite.ailapt, demitours;
+	var parentLapId = lMap.parentOverrideId;
+	if (parentLapId === undefined) parentLapId = lapId;
+	else nextOverride = oMap.lapOverrides[parentLapId];
+	var currentOverride = oMap.lapOverrides[parentLapId-1];
+	if (!tours)
+		tours = currentOverride ? currentOverride.lap : 1;
+	demitours = (currentOverride && currentOverride.cp) || 0;
+	for (var i=0;i<oMap.conditionOverrides.length;i++) {
+		var oOverride = oMap.conditionOverrides[i];
+		var aX = opts.aPos[0], aY = opts.aPos[1];
+		var isChanged = false;
+		if (conditionOverrides.includes(i)) {
+			if (shouldUntriggerOverride(oOverride, aX,aY,fSprite)) {
+				conditionOverrides = conditionOverrides.filter(function(j) {
+					return j !== i;
+				});
+				isChanged = true;
+			}
+		}
+		else {
+			if (shouldTriggerOverride(oOverride, aX,aY,fSprite)) {
+				conditionOverrides = conditionOverrides.concat(i);
+				isChanged = true;
+			}
+		}
+		if (isChanged) {
+			var conditionOverridesHash = conditionOverrides.join(",");
+			var nLapId = getCurrentLapId({ tours: tours, demitours: demitours, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash });
+			if (nLapId !== lapId) {
+				setItemLap(lMap, fSprite, nLapId);
+				return;
+			}
+		}
+	}
+	if (!nextOverride) return;
 	var nextCp = getNextCp({ tours: tours });
 	if (!fSprite.ailapc && !(fSprite.aipoint < lMap.checkpoint.length/2))
 		fSprite.ailapc = 1;
@@ -10692,20 +11009,38 @@ function checkItemLap(fSprite, opts) {
 	}
 	var lapCount = tours-1;
 	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
-		incItemLap(lMap, fSprite);
+		incItemLap(lMap,fSprite,nextOverride);
 		return;
 	}
 	if (fSprite.ailap < nextOverride.lap) return;
 	if (!nextOverride.cp) return;
 	if (enteredCheckpoint(lMap.checkpointCoords[nextOverride.cp], fSprite, opts))
-		incItemLap(lMap, fSprite);
+		incItemLap(lMap,fSprite,nextOverride);
 }
-function incItemLap(lMap, fSprite) {
+function incItemLap(lMap,fSprite,nextOverride) {
+	var conditionOverrides = lMap.conditionOverrideIds;
+	if (conditionOverrides) {
+		updateItemLap(lMap,fSprite, function() {
+			return getSubOverride(nextOverride, conditionOverrides);
+		});
+	}
+	else {
+		updateItemLap(lMap,fSprite, function(l) {
+			return l+1;
+		});
+	}
+}
+function setItemLap(lMap, fSprite, val) {
+	updateItemLap(lMap,fSprite, function() {
+		return val;
+	});
+}
+function updateItemLap(lMap, fSprite, callback) {
 	if (fSprite.ailap >= 0)
-		fSprite.ailap++;
+		fSprite.ailap = callback(fSprite.ailap);
 	else {
 		if (fSprite.lapId >= 0)
-			fSprite.lapId++;
+			fSprite.lapId = callback(fSprite.lapId);
 		return;
 	}
 	var nMap = getCurrentLMap(fSprite.ailap);
@@ -11106,12 +11441,6 @@ function render() {
 							z: k*4.5
 						});
 					}
-				}
-				else if (!i && lastFrame) {
-					if (fItems.countdown)
-						fItems.countdown--;
-					else
-						fItems.active = true;
 				}
 			}
 
@@ -11803,6 +12132,42 @@ function pointInZone(x,y, zones) {
 	}
 	return false;
 }
+function pointCrossZone(iX,iY,iI,iJ, zones) {
+	var nX = iX+iI, nY = iY+iJ;
+	var oRectangles = zones.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(nX,nY, oBox))
+			return true;
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return true;
+	}
+	var oPolygons = zones.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(nX,nY, oPolygons[i]))
+			return true;
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
+			return true;
+	}
+}
+function zoneIntersect(iX,iY,iI,iJ, zones) {
+	var oRectangles = zones.rectangle;
+	var res = Infinity;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(iX,iY, oBox))
+			return 0;
+		res = Math.min(res, rectIntersect(iX,iY, iI,iJ, oBox));
+	}
+	var oPolygons = zones.polygon;
+	var nX = iX+iI, nY = iY+iJ;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(iX,iY, oPolygons[i]))
+			return 0;
+		res = Math.min(res, polygonIntersect(iX,iY, nX,nY, oPolygons[i]));
+	}
+	return res;
+}
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
 	if ((l > 0) && (l <= 1)) {
@@ -11837,6 +12202,22 @@ function pointCrossRectangle(iX,iY,iI,iJ, oBox) {
 	}
 	return false;
 }
+function rectIntersect(iX,iY,iI,iJ, oBox) {
+	var aPos = [iX,iY], aMove = [iI,iJ];
+	var dir = [(iI>0), (iJ>0)];
+	var res = Infinity;
+	for (var j=0;j<2;j++) {
+		var l = dir[j];
+		if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
+			var dim = 1-j;
+			var m = ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])/aMove[j];
+			var croiseJ = aPos[dim] + m*aMove[dim];
+			if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
+				res = Math.min(res, m);
+		}
+	}
+	return res;
+}
 function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 	for (var j=0;j<oPoints.length;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
@@ -11844,6 +12225,16 @@ function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 			return true;
 	}
 	return false;
+}
+function polygonIntersect(iX,iY,nX,nY, oPoints) {
+	var res = Infinity;
+	for (var j=0;j<oPoints.length;j++) {
+		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
+		var aIntersect = secants(iX,iY,nX,nY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		if (aIntersect)
+			res = Math.min(res, aIntersect[0]);
+	}
+	return res;
 }
 
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
@@ -12390,23 +12781,7 @@ function getOffroadProps(oKart,hpType) {
 function accelere(iX, iY, iI, iJ) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (!lMap.accelerateurs) return false;
-	var nX = iX+iI, nY = iY+iJ;
-	var oRectangles = lMap.accelerateurs.rectangle;
-	for (var i=0;i<oRectangles.length;i++) {
-		var oBox = oRectangles[i];
-		if (pointInRectangle(nX,nY, oBox))
-			return true;
-		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
-			return true;
-	}
-	var oPolygons = lMap.accelerateurs.polygon;
-	for (var i=0;i<oPolygons.length;i++) {
-		if (pointInPolygon(nX,nY, oPolygons[i]))
-			return true;
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
-			return true;
-	}
-	return false;
+	return pointCrossZone(iX,iY, iI,iJ, lMap.accelerateurs);
 }
 
 function flowShift(iX,iY) {
@@ -13551,7 +13926,7 @@ var challengeRules = {
 					}
 					var isAsset = actualType.startsWith("assets/");
 					if (isAsset) {
-						var assetParams, assetKey;
+						let assetParams, assetKey;
 						switch (actualType) {
 							case "assets/pivothand":
 								assetParams = ["hand",[decorData.pos[0],decorData.pos[1],47,8,0.5,0.5],[0,0.5,0,-0.038]];
@@ -13806,19 +14181,10 @@ function countInLMap(callback) {
 	foreachLMap(function(lMap,pMap) {
 		const nb = callback(pMap);
 		if (nb) res += nb;
+	}, {
+		subOverrides: false
 	});
 	return res;
-}
-function foreachDMap(lMap,pMap,f) {
-	f(pMap);
-	var lapId = lMaps.indexOf(lMap);
-	for (var k=lapId+1;k<lMaps.length;k++) {
-		var nMap = lMaps[k];
-		if (nMap === lMap) continue;
-		var qMap = pMaps[k];
-		if (qMap.decor) break;
-		f(nMap, qMap);
-	}
 }
 function isSameDistrib(d1,d2) {
 	if (d1.length !== d2.length)
@@ -15826,7 +16192,10 @@ function resetDatas() {
 				var itemBehavior = itemBehaviors[syncItem.type];
 				for (var j=0;j<itemBehavior.sync.length;j++) {
 					var syncParams = itemBehavior.sync[j];
-					itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
+					if (syncParams.type === "custom")
+						itemData += syncParams.encode(syncItem[syncParams.key]);
+					else
+						itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
 				}
 			}
 			var itemPayload = {
@@ -15944,6 +16313,7 @@ function resetDatas() {
 								updateLapHud(sID);
 							handleCpChange(aTours,aDemitours, j);
 						}
+						handleConditionalOverrides(aX,aY, j);
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
 						if (aReserve !== oKart.reserve) {
@@ -16061,12 +16431,20 @@ function resetDatas() {
 					var itemBehavior = itemBehaviors[uType];
 					for (var j=0;j<itemBehavior.sync.length;j++) {
 						var syncParams = itemBehavior.sync[j];
-						var dl = itemDataLength(syncParams.type);
-						var dc = uData.substr(cur,dl);
-						if (dc.length == dl) {
-							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+						if (syncParams.type === "custom") {
+							var dc = uData.substr(cur);
+							var decoded = syncParams.decode(dc);
+							if (decoded.data !== undefined)
+								uItem[syncParams.key] = decoded.data;
+							cur += decoded.curSize;
 						}
-						cur += dl;
+						else {
+							var dl = itemDataLength(syncParams.type);
+							var dc = uData.substr(cur,dl);
+							if (dc.length == dl)
+								uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+							cur += dl;
+						}
 					}
 					if (toAdd)
 						addNewItem(null,uItem);
@@ -17211,6 +17589,7 @@ function move(getId, triggered) {
 				oKart.figstate = 0;
 				oKart.fell = true;
 				oKart.champi = 0;
+				kartReplaced = true;
 				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
@@ -17288,7 +17667,7 @@ function move(getId, triggered) {
 		else
 			delete oKart.shift;
 	}
-	if (!oKart.cpu && !kartReplaced)
+	if (!oKart.cpu && (!kartReplaced || oKart.tombe))
 		updateSpeedometer(getId, aPosX,aPosY);
 
 	moveUsingItems(oKart, triggered);
@@ -18068,6 +18447,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	if (!kartReplaced)
+		handleConditionalOverrides(aPosX,aPosY, getId);
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
 		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
@@ -18314,6 +18695,8 @@ function handleDecorExplosions(fSprite, callback) {
 				}
 			}
 		}
+	}, {
+		subOverrides: false
 	});
 }
 
@@ -19430,6 +19813,22 @@ function moveItems() {
 			}
 		}
 	}
+	foreachLMap(function(lMap,pMap) {
+		if (pMap.arme) {
+			for (var j=0;j<pMap.arme.length;j++) {
+				var fSprite = pMap.arme[j];
+				var fItems = fSprite[2];
+				if (!fItems.active) {
+					if (fItems.countdown)
+						fItems.countdown--;
+					else
+						fItems.active = true;
+				}
+			}
+		}
+	}, {
+		subOverrides: false
+	});
 }
 function moveDecor() {
 	decorPos = [];
@@ -19557,6 +19956,8 @@ function moveDecor() {
 				}
 			}
 		}
+	}, {
+		subOverrides: false
 	});
 	if (oMap.coins) {
 		for (var i=0;i<oMap.coins.length;i++) {
@@ -19826,7 +20227,7 @@ function runOneFrame() {
 		console.error(e);
 		var errorTs = new Date().getTime();
 		if (errorTs - lastErrorTs > 10000) {
-			o_xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
+			xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
 				return true;
 			});
 			lastErrorTs = errorTs;
@@ -19856,16 +20257,16 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours, prevId = oSpecCam.playerId;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours, prevId = oSpecCam.playerId;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "quit":
 		document.location.reload();

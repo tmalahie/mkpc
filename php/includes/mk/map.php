@@ -43,9 +43,18 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	<?php
 }
 if ($lapId) {
-	echo '"lap":'.$circuitPayload->meta->lap.',';
+	if (isset($circuitPayload->meta->lap))
+		echo '"lap":'.$circuitPayload->meta->lap.',';
 	if (isset($circuitPayload->meta->cp))
 		echo '"cp":'.$circuitPayload->meta->cp.',';
+	if (isset($circuitPayload->meta->time))
+		echo '"time":'.$circuitPayload->meta->time.',';
+	if (isset($circuitPayload->meta->endTime))
+		echo '"endTime":'.$circuitPayload->meta->endTime.',';
+	if (isset($circuitPayload->meta->zone))
+		echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
+	if (isset($circuitPayload->meta->endZone))
+		echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
 	if (isset($circuitPayload->meta->interactions))
 		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }
@@ -179,7 +188,7 @@ if (!empty($circuitPayload->decorparams)) {
 		echo '"decorparams":undefined,';
 }
 if (!empty($circuitPayload->assets)) {
-	$assetTypes = array('pointers', 'flippers', 'bumpers','oils');
+	$assetTypes = array('pointers', 'flippers', 'bumpers', 'oils');
 	foreach ($assetTypes as $assetType) {
 		if (!empty($circuitPayload->assets->{$assetType})) {
 			?>
@@ -203,13 +212,11 @@ if (!empty($circuitPayload->flows)) {
 }
 if (!empty($circuitPayload->spinners)) {
 	?>,
-"spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
-	<?php
+"spinners" : <?php echo json_encode($circuitPayload->spinners);
 }
 if (!empty($circuitPayload->elevators)) {
 	?>,
-"elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
-	<?php
+"elevators" : <?php echo json_encode($circuitPayload->elevators);
 }
 }
 }

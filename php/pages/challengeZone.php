@@ -36,6 +36,7 @@ else
 	$circuitUrl = 'mapcreate.php?'.$_SERVER["QUERY_STRING"];
 $type = isset($_GET['type']) ? $_GET['type'] : null;
 $editorSource = isset($_GET['source']) ? $_GET['source'] : null;
+$defaultTheme = isset($_GET['theme']) ? $_GET['theme'] : null;
 $editorContext = array();
 switch ($type) {
 	case 'zones':
@@ -313,6 +314,7 @@ var language = <?php echo $language ? 1:0; ?>;
 var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
 var editorContext = <?php echo json_encode($editorContext); ?>;
 var editorSource = <?php echo json_encode($editorSource); ?>;
+var defaultTheme = <?php echo json_encode($defaultTheme); ?>;
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -975,6 +977,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			delete oImg.dataset.data;
 		}
 	}
+	if (defaultTheme === 'dark')
+		selectTheme(document.getElementById("zone-editor-theme-dark"), true);
 });
 function showCollabImportPopup(e) {
 	var $collabPopup = document.getElementById("collab-popup");
@@ -1182,8 +1186,8 @@ window.onload = function() {
 				?>
 			<div id="zone-editor-theme">
 				<span><?php echo $language ? 'Theme:':'Thème :'; ?></span>
-				<input type="button" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
-				<input type="button" style="background-color:black" onclick="selectTheme(this,true)" />
+				<input type="button" id="zone-editor-theme-light" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
+				<input type="button" id="zone-editor-theme-dark" style="background-color:black" onclick="selectTheme(this,true)" />
 			</div>
 				<?php
 			}
