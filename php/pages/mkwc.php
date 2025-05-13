@@ -5,58 +5,77 @@ include('../includes/session.php');
 include('../includes/initdb.php');
 //$console = isset($_GET['console']) ? $_GET['console'] : null;
 //$multiConsole = true;
-$console = 'mkt';
+$console = 'mkw';
 $multiConsole = false;
-$year = 2023;
+$year = 2025;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
+$toBeDetermined = $language ? 'Pending selection' : 'En attente de sélection';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $lowerStage = $language ? 'Lower Group Stage':'Phase de Groupe inférieure';
 $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = true;
+$isPollClosed = false;
 $tournamentWinner = null;
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
-    $bracketImg = 'bracket-mkw.png';
     $teams = array(
-        $playInStage => array(
-            "$group I" => array(
-                'header' => $language ? "Asia: all of Asia except Japan and India" : "Asie: toute l'Asie sauf Japon et Inde.",
-                'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkwii/2023.html',
+        $groupStage => array(
+            "$group A" => array(
                 'list' => array(
-                    'asi'=> $language ? 'Asia':'Asie',
-                    'ita'=> $language ? 'Italy':'Italie',
-                    'mag'=> $language ? 'Maghreb':'Maghreb',
-                    'spa'=> $language ? 'Spain':'Espagne'
-                ),
-                'eliminated' => array('mag', 'spa', 'asi')
-            )
-        ),
-        $swissStage => array(
-            array(
-                'single' => true,
-                'list' => array(
-                    'aus'=> $language ? 'Australia':'Australie',
-                    'bnl'=> $language ? 'Benelux':'Benelux',
-                    'can'=> $language ? 'Canada':'Canada',
                     'eng'=> $language ? 'England':'Angleterre',
                     'fra'=> $language ? 'France':'France',
+                    'ita'=> $language ? 'Italy':'Italie',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
+                )
+            ),
+            "$group B" => array(
+                'list' => array(
+                    'usn'=> $language ? 'United States North':'Etats-Unis du Nord',
                     'ger'=> $language ? 'Germany':'Allemagne',
-                    'ind'=> $language ? 'India':'Inde',
-                    'ire'=> $language ? 'Ireland':'Irlande',
-                    'jap'=> $language ? 'Japan':'Japon',
                     'lta'=> $language ? 'Latin America':'Amérique Latine',
-                    'nor'=> $language ? 'Norway':'Norvège',
-                    'sco'=> $language ? 'Scotland':'Écosse',
-                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
-                    'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                    'asi'=> $language ? 'Asia':'Asie',
-                    'ita'=> $language ? 'Italy':'Italie'
-                ),
-                'eliminated' => array('asi', 'nor')
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
+                )
+            ),
+            "$group C" => array(
+                'list' => array(
+                    'ind'=> $language ? 'India':'Inde',
+                    'bnl'=> $language ? 'Benelux':'Benelux',
+                    'ire'=> $language ? 'Ireland':'Irlande',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
+                )
+            ),
+            "$group D" => array(
+                'list' => array(
+                    'uss'=> $language ? 'United States South':'Etats-Unis du Sud',
+                    'can'=> $language ? 'Canada':'Canada',
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'pin' => $language ? 'To be determined' : 'À déterminer'
+                )
+            )
+        ),
+        "$toBeDetermined" => array(
+            'Group I' => array(
+                'header' => $language ? "This teams will be randomly affected to one of the 4 groups after the play-in stage" : "Ces équipes seront affectées aléatoirement à l'un des 4 groupes après le tour préliminaire",
+                'single' => true,
+                'list' => array(
+                    'afr'=> $language ? 'Africa':'Afrique',
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est'
+                )
+            )
+        ),
+        $playInStage => array(
+            "$group I" => array(
+                'single' => true,
+                'header' => $language ? 'The 2 best teams will qualify for the group stage!' : 'Les 2 meilleures équipes seront qualifiées pour la phase de groupe !',
+                'list' => array(
+                    'asi'=> $language ? 'Asia':'Asie', 
+                    'nrd'=> $language ? 'Nordic':'Nordique',
+                    'lus'=> $language ? 'Luso Alliance':'Alliance Luso',
+                    'spa'=> $language ? 'Spain':'Espagne'
+                )
             )
         )
     );
@@ -71,8 +90,7 @@ case 'mkt':
                     'spa'=> $language ? 'Spain':'Espagne',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'net'=> $language ? 'Netherlands':'Pays-Bas'
-                ),
-                'eliminated' => array('bra', 'net')
+                )
             ),
             "$group 2" => array(
                 'list' => array(
@@ -80,8 +98,7 @@ case 'mkt':
                     'col'=> $language ? 'Colombia':'Colombie',
                     'gau'=> $language ? 'Germany-Austria':'Allemagne-Autriche',
                     'aus'=> $language ? 'Australia':'Australie'
-                ),
-                'eliminated' => array('gau', 'aus')
+                )
             ),
             "$group 3" => array(
                 'list' => array(
@@ -89,8 +106,7 @@ case 'mkt':
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
                     'swi'=> $language ? 'Switzerland':'Suisse',
                     'gua'=> $language ? 'Guatemala':'Guatemala'
-                ),
-                'eliminated' => array('swi', 'gua')
+                )
             ),
             "$group 4" => array(
                 'list' => array(
@@ -98,8 +114,7 @@ case 'mkt':
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'ven'=> $language ? 'Venezuela':'Venezuela',
                     'pan'=> $language ? 'Panama':'Panama'
-                ),
-                'eliminated' => array('ven', 'pan')
+                )
             )
         )
     );
@@ -118,8 +133,7 @@ case 'mk8d':
                     'lux'=> $language ? 'Luxembourg':'Luxembourg',
                     'cal'=> $language ? 'Caledonbria':'Caledonbria',
                     'pri'=> $language ? 'Puerto Rico':'Puerto Rico'
-                ),
-                'eliminated' => array('cal', 'pri', 'cri', 'lux')
+                )
             ),
             "$group II" => array(
                 'list' => array(
@@ -127,8 +141,7 @@ case 'mk8d':
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
                     'por'=> $language ? 'Portugal':'Portugal'
-                ),
-                'eliminated' => array('eue', 'por', 'kor', 'mag')
+                )
             ),
             "$group III" => array(
                 'list' => array(
@@ -136,8 +149,7 @@ case 'mk8d':
                     'chn'=> $language ? 'China':'Chine',
                     'hkt'=> $language ? 'Hong Kong-Taiwan':'Hong Kong-Taiwan',
                     'aru'=> $language ? 'Argentina-Uruguay':'Argentine-Uruguay'
-                ),
-                'eliminated' => array('aru', 'hkt', 'col', 'chn')
+                )
             )
         ),
         $upperStage => array(
@@ -148,8 +160,7 @@ case 'mk8d':
                     'eng'=> $language ? 'England':'Angleterre',
                     'usa'=> $language ? 'United States':'États-Unis',
                     'mex'=> $language ? 'Mexico':'Mexique',
-                ),
-                'eliminated' => array('fra', 'eng', 'usa', 'mex')
+                )
             ),
             "$group B" => array(
                 'list' => array(
@@ -157,8 +168,7 @@ case 'mk8d':
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'spa'=> $language ? 'Spain':'Espagne',
                     'can'=> $language ? 'Canada':'Canada',
-                ),
-                'eliminated' => array('ger', 'spa', 'can')
+                )
             )
         ),
         $lowerStage => array(
@@ -169,8 +179,7 @@ case 'mk8d':
                     'aus'=> $language ? 'Australia':'Australie',
                     'nrd'=> $language ? 'Nordic':'Nordique',
                     'lux'=> $language ? 'Luxembourg':'Luxembourg'
-                ),
-                'eliminated' => array('bel', 'aus', 'nrd', 'lux')
+                )
             ),
             "$group 2" => array(
                 'list' => array(
@@ -178,8 +187,7 @@ case 'mk8d':
                     'per'=> $language ? 'Peru':'Pérou',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'chn'=> $language ? 'China':'Chine',
-                ),
-                'eliminated' => array('per', 'bra', 'chn', 'swi')
+                )
             ),
             "$group 3" => array(
                 'list' => array(
@@ -187,8 +195,7 @@ case 'mk8d':
                     'ire'=> $language ? 'Ireland':'Irlande',
                     'col'=> $language ? 'Colombia':'Colombie',
                     'kor'=> $language ? 'South Korea':'Corée du Sud'
-                ),
-                'eliminated' => array('ire', 'col', 'kor', 'net')
+                )
             ),
             "$group 4" => array(
                 'list' => array(
@@ -196,8 +203,7 @@ case 'mk8d':
                     'aut'=> $language ? 'Austria':'Autriche',
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'cri'=> $language ? 'Costa Rica':'Costa Rica'
-                ),
-                'eliminated' => array('aut', 'mag', 'cri', 'chi')
+                )
             )
         )
     );
@@ -206,7 +212,7 @@ default:
     $console = null;
 }
 function isNormalTeam($code) {
-    return !preg_match('#^pin\d+$#', $code);
+    return !preg_match('#^pin\d*$#', $code);
 }
 if (isset($teams)) {
     $teamsDict = array();
@@ -232,7 +238,7 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
                 $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
                 $success .= '<br />';
             }
-            $success .= '<a href="news.php?id=15138">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
+            $success .= '<a href="news.php?id=15275">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
         else {
@@ -748,10 +754,6 @@ if ($id) {
                                 }
                                 ?>
                                 </div>
-                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
-                                <div id="mBracket">
-                                    <img src="https://media.discordapp.net/attachments/1137158268653928618/1143299765686243451/Bracket.png" alt="Bracket" />
-                                </div>
                                 <?php
                             }
                             if ($tournamentWinner) {
@@ -845,7 +847,7 @@ if ($id) {
                             <?php
                             if ($language) {
                                 ?>
-                                Welcome to the 2023 Mario Kart World Cup's predictor page!!!<br />
+                                Welcome to the 2025 Mario Kart World Cup's predictor page!!!<br />
                                 Here, you can predict a total of 3 teams (1 for each game), to win the World Cup.<br />
                                 In case of a correct prediction, you will earn an unique role on the forum!!!
                                 <img src="images/forum/reactions/laugh.png" alt="laugh" />
@@ -853,7 +855,7 @@ if ($id) {
                             }
                             else {
                                 ?>
-                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2023 !!!<br />
+                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2025 !!!<br />
                                 Ici, vous pourrez-voter pour un total de 3 équipes (1 par jeu) que vous aller pronostiquer comme vainqueur de la Coupe Du Monde!<br />
                                 En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
                                 <img src="images/forum/reactions/laugh.png" alt="laugh" />
@@ -899,7 +901,7 @@ if ($id) {
             if (isset($console) && $multiConsole)
                 echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour à la liste des tournois') .'</a><br />';
             ?>
-            <a href="news.php?id=15138"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
+            <a href="news.php?id=15275"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
             <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
         </p>
     </main>
