@@ -5363,16 +5363,18 @@ function setupCommonMobileControls() {
 	}
 }
 
-function vibration() {
+function vibration(ms) {
+	let vfunc;
 	if (ctrlSettings.vibration) {
-		navigator.vibrate = navigator.vibrate
+		vfunc = navigator.vibrate
 		|| navigator.webkitVibrate /* old versions of Chrome/Opera */
 		|| navigator.mozVibrate    /* old versions of Firefox */
 		|| navigator.msVibrate	   /* IE */
 		|| function(){};           /* fallback, no vibration */
 	} else {
-		navigator.vibrate = function(){};
+		vfunc = function(){};      /* vibration disabled */
 	}
+	return vfunc(ms);
 }
 
 function showSpectatorKeyboard() {
