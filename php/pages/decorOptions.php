@@ -130,12 +130,10 @@ include('../includes/o_online.php');
 						<div class="option-form-items-types">
 						<?php
 						$itemTypes = array('carapace', 'carapace-rouge', 'bobomb', 'carapace-bleue', 'champi', 'etoile', 'megachampi', 'billball');
-						$itemSrcs = array('bobomb' => 'bob-omb');
 						foreach ($itemTypes as $key) {
 							$itemOptionSelected = ($selectedItems === null) || in_array($key,$selectedItems);
-							$itemSrc = isset($itemSrcs[$key]) ? $itemSrcs[$key] : $key;
 							?>
-							<input type="button" data-key="<?php echo $key; ?>"<?php if ($itemOptionSelected) echo 'data-selected="1"'; ?> style="background-image:url('images/map_icons/<?php echo $itemSrc; ?>.png')" onclick="selectItem(this)" />
+							<input type="button" data-key="<?php echo $key; ?>"<?php if ($itemOptionSelected) echo 'data-selected="1"'; ?> style="background-image:url('images/map_icons/<?php echo $key; ?>.png')" onclick="selectItem(this)" />
 							<?php
 						}
 						?>
