@@ -6060,12 +6060,9 @@ function continuer() {
 										perso: strPlayer[0],
 										time: getActualGameTimeMS(),
 										times: JSON.stringify(lapTimers),
-										cc: getActualCc()
+										cc: getActualCc(),
+										trajet: JSON.stringify(iTrajet),
 									});
-							
-									for (let i = 0; i < iTrajet.length; i++) {
-										params.append(`p${i}`, iTrajet[i].toString().replace(/,/g, "_"));
-									}
 							
 									xhr("saveghost.php", params.toString(), function (reponse) {
 										if (reponse == 1) {
@@ -19916,7 +19913,12 @@ function runOneFrame() {
 					ai(oKart);
 				move(i);
 				if (course == "CM" && !oKart.cpu) {
-					var trajetplus = [Math.round(oKart.x),Math.round(oKart.y),oKart.z,Math.round(oKart.rotation)];
+					var trajetplus = [
+						Math.round(oKart.x),
+						Math.round(oKart.y),
+						+oKart.z.toFixed(3), // account for floating-point precision errors
+						Math.round(oKart.rotation)
+					];
 					var trajetflags = "0000".split("");
 					if (oKart.tombe == 20)
 						trajetflags[0] = "1";
