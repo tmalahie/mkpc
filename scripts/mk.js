@@ -12569,9 +12569,6 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if ((oBox[3] == undefined) && (iX > oBox[0]-hitboxSize) && (iX < oBox[0]+hitboxSize) && (iY > oBox[1]-hitboxSize) && (iY < oBox[1]+hitboxSize))
 						continue;
 
-					if (decorBehavior.unbreaking)
-						return false;
-
 					let fromSelf;
 					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
 						fromSelf = true;
@@ -12588,12 +12585,10 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (collisionTest == COL_KART) {
 						const canBreak = decorBehavior.breaking ||
 						(iP && isBreakingItem(decorBehavior) ||
-						(!iP && collisionPlayer.champi && isBreakingItem(decorBehavior)));
+						(!iP && collisionPlayer.champi && decorBehavior.damagingItems && decorBehavior.damagingItems.champi));
 
-						if (!canBreak)
-							return false;
-
-						if (collisionPlayer.speed > 4 || iP) {
+						// break decor
+						if ((collisionPlayer.speed > 4 || iP) && canBreak) {
 							handleDecorHit(i,type, lMap);
 							if (decorBehavior.bonus && clientSideDrop)
 								dropBoxDecorLoot(collisionFrom, dropPos);
