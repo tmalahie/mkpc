@@ -3121,28 +3121,55 @@ function renderLapOverrideAdd() {
 		overrideType = "zone";
 	var $overrideTime = document.getElementById("lapoverride-time");
 	var $overrideEndTime = document.getElementById("lapoverride-end-time");
+	var $overrideEndTimeCheck = document.getElementById("lapoverride-end-time-check");
 	var $overrideZone = document.getElementById("lapoverride-zone-data");
 	var $overrideEndZone = document.getElementById("lapoverride-end-zone-data");
+	var $overrideEndZoneCheck = document.getElementById("lapoverride-end-zone-check");
+	var $overrideEndZoneOptions = document.getElementById("lapoverride-triggers-untrigger");
+	var $overrideEndZoneType = [...document.querySelectorAll('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]')];
+	var $overrideEndZoneTypeSet = document.getElementById("lapoverride-end-zone-set");
 	if (editingLapOverride && editingLapOverride.time !== undefined) {
 		overrideType = "time";
 		$overrideTime.value = formatTimer(editingLapOverride.time);
 	}
 	else
 		$overrideTime.value = "";
-	if (editingLapOverride && editingLapOverride.endTime !== undefined)
+	if (editingLapOverride && editingLapOverride.endTime !== undefined) {
+		$overrideEndTimeCheck.checked = true;
 		$overrideEndTime.value = formatTimer(editingLapOverride.endTime);
-	else
+	}
+	else {
+		$overrideEndTimeCheck.checked = false;
 		$overrideEndTime.value = "";
+		$overrideEndTime.disabled = true;
+	}
 	if (editingLapOverride && editingLapOverride.zone !== undefined) {
 		overrideType = "zone";
 		$overrideZone.value = JSON.stringify(editingLapOverride.zone);
 	}
 	else
 		$overrideZone.value = "[]";
-	if (editingLapOverride && editingLapOverride.endZone !== undefined)
+	if (editingLapOverride && editingLapOverride.endZone !== undefined) {
+		$overrideEndZoneCheck.checked = true;
 		$overrideEndZone.value = JSON.stringify(editingLapOverride.endZone);
-	else
+		$overrideEndZoneOptions.style.display = "";
+		$overrideEndZoneType.find(type => type.value === "end-zone").checked = true;
+		$overrideEndZoneTypeSet.disabled = false;
+	}
+	else if (editingLapOverride && editingLapOverride.endOnExit) {
+		$overrideEndZoneCheck.checked = true;
 		$overrideEndZone.value = "";
+		$overrideEndZoneOptions.style.display = "";
+		$overrideEndZoneType.find(type => type.value === "zone-exit").checked = true;
+		$overrideEndZoneTypeSet.disabled = true;
+	}
+	else {
+		$overrideEndZoneCheck.checked = false;
+		$overrideEndZone.value = "";
+		$overrideEndZoneOptions.style.display = "none";
+		$overrideEndZoneType.forEach(type => type.checked = false);
+		$overrideEndZoneTypeSet.disabled = true;
+	}
 	setOverrideTrigger(overrideType);
 	if ($select)
 		handleLapOverrideSelect(+$select.value);
@@ -3234,6 +3261,17 @@ function handleLapInteractionsList() {
 }
 function handleLapInteractionsCheck(checked) {
 	document.getElementById("lapoverride-interactions-ctn").style.display = checked ? "block" : "none";
+}
+function handleEndZoneCheck(checked) {
+	document.getElementById("lapoverride-triggers-untrigger").style.display = checked ? "" : "none";
+}
+function handleUntriggerTypeSelect(value) {
+	document.getElementById("lapoverride-end-zone-set").disabled = value !== "end-zone";
+}
+function handleEndTimeCheck(checked) {
+	document.getElementById("lapoverride-end-time").disabled = !checked;
+	if (checked)
+		document.getElementById("lapoverride-end-time").focus();
 }
 function openZoneEditor(source) {
 	var theme = document.getElementById("theme-selector").getValue();
@@ -3446,14 +3484,26 @@ function assignLapOverrideOpts(opts) {
 		break;
 	case "zone":
 		opts.zone = JSON.parse(document.getElementById("lapoverride-zone-data").value);
-		var endZoneData = document.getElementById("lapoverride-end-zone-data").value;
-		if (endZoneData)
-			opts.endZone = JSON.parse(endZoneData);
+		var endZoneCheck = document.getElementById("lapoverride-end-zone-check").checked;
+		if (endZoneCheck) {
+			var endZoneType = document.querySelector('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]:checked').value;
+			switch (endZoneType) {
+			case "zone-exit":
+				opts.endOnExit = true;
+				break;
+			case "end-zone":
+				var endZoneData = document.getElementById("lapoverride-end-zone-data").value;
+				if (endZoneData)
+					opts.endZone = JSON.parse(document.getElementById("lapoverride-end-zone-data").value);
+				break;
+			}
+		}
 		break;
 	case "time":
 		opts.time = parseTimer(document.getElementById("lapoverride-time").value);
 		var endTime = document.getElementById("lapoverride-end-time").value;
-		if (endTime)
+		var endTimeCheck = document.getElementById("lapoverride-end-time-check").checked;
+		if (endTime && endTimeCheck)
 			opts.endTime = parseTimer(endTime);
 	}
 }
@@ -3707,6 +3757,7 @@ function initLapOverride(meta, oldLapOverride) {
 		endTime: meta.endTime,
 		zone: meta.zone,
 		endZone: meta.endZone,
+		endOnExit: meta.endOnExit,
 		imgData: meta.imgData,
 		modesData: meta.modesData || {}
 	});
@@ -4279,6 +4330,8 @@ function swapLapOverride(oldLapOverride, newLapOverride) {
 	var createdLapOverride = lapOverrides[newLapOverride];
 	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
 		var lapOverride = lapOverrides[lapKey];
+		if (lapOverride.imgData && lapOverride.imgData.data.overrideRef === oldLapOverride)
+			lapOverride.imgData.data.overrideRef = createdLapOverride;
 		if (!lapOverride.interactions) continue;
 		for (var j=0;j<lapOverride.interactions.length;j++) {
 			if (lapOverride.interactions[j] === oldLapOverride)
@@ -4536,7 +4589,7 @@ function saveData() {
 			enabledModes.push(key);
 		}
 		if (!enabledModes.length && !lapOverride.imgData && !lapOverride.interactions && !lapOverride.time && !lapOverride.zone) continue;
-		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, time: lapOverride.time, endTime: lapOverride.endTime, zone: lapOverride.zone, endZone: lapOverride.endZone, modes: enabledModes };
+		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, time: lapOverride.time, endTime: lapOverride.endTime, zone: lapOverride.zone, endZone: lapOverride.endZone, endOnExit: lapOverride.endOnExit, modes: enabledModes };
 		if (!payload.lapOverrides) payload.lapOverrides = [];
 		payload.lapOverrides.push(lapPayload);
 		lapPayloadIds[lapKey] = payload.lapOverrides.length;

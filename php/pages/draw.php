@@ -476,15 +476,26 @@ if (isset($_GET['i'])) {
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-zone">
 							<input type="hidden" id="lapoverride-zone-data" value="[]" />
-							<input type="hidden" id="lapoverride-end-zone-data" value="[]" />
 							<div class="lapoverride-triggers">
 								<label>
 									<span><?php echo $language ? "Trigger zone":"Zone d'activation"; ?></span>
 									<span><button class="toolbox-button" onclick="openZoneEditor('override_start')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
 								</label>
 								<label>
-									<span><?php echo $language ? "(Optional) Untrigger zone":"(Optionnel) Zone de désactivation"; ?></span>
-									<span><button class="toolbox-button" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+									<span>
+										<input type="checkbox" id="lapoverride-end-zone-check" onclick="handleEndZoneCheck(this.checked)" />
+										<?php echo $language ? "Untrigger condition...":"Condition de désactivation..."; ?>
+									</span>
+								</label>
+							</div>
+							<div id="lapoverride-triggers-untrigger">
+								<label>
+									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="zone-exit" /> <?php echo $language ? "When leaving trigger zone" : "À la sortie de la zone d'activation"; ?>
+								</label>
+								<label>
+									<input type="hidden" id="lapoverride-end-zone-data" value="[]" />
+									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="end-zone" /> <?php echo $language ? "At untrigger zone" : "À la zone de désactivation"; ?>
+									<span><button class="toolbox-button" id="lapoverride-end-zone-set" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
 								</label>
 							</div>
 						</div>
@@ -495,7 +506,10 @@ if (isset($_GET['i'])) {
 									<span><input type="text" id="lapoverride-time" size="7" placeholder="1:30" /></button></span>
 								</label>
 								<label>
-									<span><?php echo $language ? "(Optional) Disable at time":"(Optionnel) Désactiver au temps"; ?></span>
+									<span>
+										<input type="checkbox" id="lapoverride-end-time-check" onclick="handleEndTimeCheck(this.checked)" />
+										<?php echo $language ? "Disable at time":"Désactiver au temps"; ?>
+									</span>
 									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></button></span>
 								</label>
 							</div>

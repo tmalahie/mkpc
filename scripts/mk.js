@@ -10809,6 +10809,10 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 				var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
 				if (inter2 < Infinity && inter1 <= inter2) return false;
 			}
+			else if (oOverride.endOnExit) {
+				if (!pointInZone(oKart.x,oKart.y, oOverride.zone))
+					return false;
+			}
 			return true;
 		}
 	}
@@ -10823,7 +10827,11 @@ function shouldUntriggerOverride(oOverride, aX,aY, oKart) {
 			return true;
 		}
 	}
-	if (oOverride.endTime) {
+	else if (oOverride.endOnExit) {
+		if (!pointInZone(oKart.x,oKart.y, oOverride.zone))
+			return true;
+	}
+	else if (oOverride.endTime) {
 		if (getActualGameTimeMS() >= oOverride.endTime)
 			return true;
 	}
