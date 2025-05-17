@@ -491,7 +491,8 @@ function addConstraintRule(clClass) {
 				'<div style="margin:10px 0"><label>'+ (language ? 'Extra decors: ':'Decors ajoutés : ') +
 				'<input type="hidden" name="scope[extra_decors][value]" value="[]" />'+
 				'<input type="hidden" name="scope[extra_decors][custom_decors]" value="{}" />'+
-				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</button></label><br />'+
+				'<label style="font-size: 0.8em; display: block; text-align: right"><input type="checkbox" name="scope[extra_decors][clear_other]" />&nbsp;'+ (language?'Remove other decors':'Retirer les autres décors')+'</label></div>'
 			);
 			break;
 		case 'extra_walls':
@@ -1491,6 +1492,8 @@ $(function() {
 					case "extra_decors":
 						var customDecorsElt = mainForm.elements["scope["+constraint.type+"][custom_decors]"];
 						if (customDecorsElt) customDecorsElt.value = JSON.stringify(constraint.custom_decors);
+						let remOtherDecElt = mainForm.elements["scope["+constraint.type+"][clear_other]"];
+						if (remOtherDecElt) remOtherDecElt.checked = constraint.clear_other;
 						break;
 					}
 				}
