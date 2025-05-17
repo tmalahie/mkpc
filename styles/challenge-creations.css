@@ -270,8 +270,11 @@
 }
 .challenges-item-difficulty {
 	font-size: 0.8em;
-	margin-bottom: 1px;
 	margin-top: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
 }
 .challenges-list-item-moderate .challenges-item-difficulty {
 	line-height: 1.05em;
@@ -355,6 +358,12 @@
 }
 .challenges-list-item-rate .challenges-item-action {
 	cursor: default;
+}
+.challenges-item-difficulty-value {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
 }
 .challenges-list-ctn .challenges-item-try {
 	display: inline-block;
