@@ -308,7 +308,7 @@ $clRulesByType = array(
 				if ($language)
 					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'');
 				else
-					return 'en '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirroir':'');
+					return 'en '.$scope->value.'cc'.(isset($scope->mirror) ? ' miroir':'');
 				exit;
 			},
 			'parser' => function(&$scope) {
