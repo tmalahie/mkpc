@@ -150,9 +150,9 @@ var SPF = 67;
 var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
-var bMusic = localStorage.getItem("bMusic") === null || localStorage.getItem("bMusic") === "1";
-var iSfx = localStorage.getItem("iSfx") === null || localStorage.getItem("iSfx") === "1";
-var iFps = +localStorage.getItem("nbFrames") || 4;
+var bMusic = !!optionOf("music");
+var iSfx = !!optionOf("sfx");
+var iFps = +localStorage.getItem("nbFrames") || 2;
 var vSfx = 1, vMusic = 1;
 {
 	var vSettings = localStorage.getItem("settings.vol");
@@ -27987,7 +27987,7 @@ function exitCircuit() {
 
 // race counter in track selection
 function showRaceCountIfRelevant(oScr) {
-	if ((course != "CM") && isLocalScore()) {
+	if ((course != "CM") && isLocalScore() && iRaceCount > 0) {
 		var oRaceCount = document.createElement("div");
 		var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
 		oRaceCount.innerHTML = sRaceLabel + " " + (iRaceCount+1);
