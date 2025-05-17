@@ -11933,9 +11933,9 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 
 					// player collision
 					if (collisionTest == COL_KART) {
-						const canBreak = decorBehavior.breaking ||
+						const canBreak = !decorBehavior.unbreaking && (decorBehavior.breaking ||
 						(iP && isBreakingItem(decorBehavior) ||
-						(!iP && collisionPlayer.champi && decorBehavior.damagingItems && decorBehavior.damagingItems.champi));
+						(!iP && collisionPlayer.champi && decorBehavior.damagingItems && decorBehavior.damagingItems.champi)));
 
 						// break decor
 						if ((collisionPlayer.speed > 4 || iP) && canBreak) {
@@ -11959,7 +11959,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (decorBehavior.transparent)
 						continue;
 
-					if (!iP)
+					if (!iP || decorBehavior.unbreaking)
 						return false;
 				}
 			}
