@@ -55,6 +55,8 @@ if ($lapId) {
 		echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
 	if (isset($circuitPayload->meta->endZone))
 		echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
+	if (isset($circuitPayload->meta->endOnExit))
+		echo '"endOnExit":'.json_encode($circuitPayload->meta->endOnExit).',';
 	if (isset($circuitPayload->meta->interactions))
 		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }
