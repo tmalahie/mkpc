@@ -7253,7 +7253,7 @@ var commonTools = {
 			return (selectedType == "polygon");
 		},
 		"save" : function(self,payload) {
-			if (self.data.length) {
+			if (self.data.length || selectedLapOverride) {
 				payload.cannons = [];
 				for (var i=0;i<self.data.length;i++) {
 					var iData = self.data[i];
@@ -7326,7 +7326,7 @@ var commonTools = {
 		"_shape_selector_id": "teleports-shape",
 		"_respawn_selector_id": null,
 		"save" : function(self,payload) {
-			if (!self.data.length)
+			if (!self.data.length && !selectedLapOverride)
 				return;
 			payload.teleports = [];
 			for (var i=0;i<self.data.length;i++) {
@@ -7667,6 +7667,10 @@ var commonTools = {
 						payload.spinners.push(shape);
 					}
 				}
+			}
+			else if (selectedLapOverride) {
+				payload.flows = [];
+				payload.spinners = [];
 			}
 		},
 		"restore" : function(self,payload) {

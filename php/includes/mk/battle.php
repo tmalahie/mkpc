@@ -160,23 +160,23 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 		}
 	}
 	echo '"_":0';
-	if (!empty($circuitPayload->cannons)) {
+	if (isset($circuitPayload->cannons)) {
 		?>,
 	"cannons" : <?php echo json_encode($circuitPayload->cannons);
 	}
-	if (!empty($circuitPayload->teleports)) {
+	if (isset($circuitPayload->teleports)) {
 		?>,
 	"teleports" : <?php echo json_encode($circuitPayload->teleports);
 	}
-	if (!empty($circuitPayload->flows)) {
+	if (isset($circuitPayload->flows)) {
 		?>,
 	"flows" : <?php echo json_encode($circuitPayload->flows);
 	}
-	if (!empty($circuitPayload->spinners)) {
+	if (isset($circuitPayload->spinners)) {
 		?>,
 	"spinners" : <?php echo json_encode($circuitPayload->spinners);
 	}
-	if (!empty($circuitPayload->elevators)) {
+	if (isset($circuitPayload->elevators)) {
 		?>,
 	"elevators" : <?php echo json_encode($circuitPayload->elevators);
 	}
