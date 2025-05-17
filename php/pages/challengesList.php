@@ -290,13 +290,13 @@ include('../includes/menu.php');
 							<li>Spam (12 times the same challenge, or simillar challenges posted by the same person)</li>
 							<li>Challenge name with insults or inappropriate words.</li>
 						</ul>
-						You can also change the difficulty if you find it unsuitable for the challenge. Try to make it consistent with the reference scale:
+						You can also change the difficulty if you find it unsuitable for the challenge. Try to stick to these rules:
 						<ul>
-							<li>A challenge <span class="challenges-item-difficulty-0">easy</span> has to be feasible for a beginner (&quot;Complete Mario Circuit 1 in Time Trial in less than 55s&quot;)</li>
-							<li>A challenge <span class="challenges-item-difficulty-1">medium</span> is typically difficult for a beginner but easy for an experimented player (&quot;Complete Mario Circuit 1 in TT in less than 45s&quot;)</li>
-							<li>A challenge <span class="challenges-item-difficulty-2">difficult</span> would be difficult for an experimented player but completable in several trials (&quot;Complete Mario Circuit 1 in TT in less than 39s&quot;)</li>
-							<li>A challenge <span class="challenges-item-difficulty-3">extreme</span> will require to try-hard even for an experimented player (&quot;Complete Mario Circuit 1 in TT in less than 38s&quot;)</li>
-							<li>A challenge <span class="challenges-item-difficulty-4">impossible</span> will require to try-hard and may typically take several hours (or even days) before succeeding (&quot;Complete Mario Circuit 1 in TT in less than 37s&quot;)</li>
+							<li>An <span class="challenges-item-difficulty-0">easy</span> challenge has to be doable for an absolute beginner.</li>
+							<li>A <span class="challenges-item-difficulty-1">medium</span> challenge is typically difficult for a beginner but easy for an experimented player.</li>
+							<li>A <span class="challenges-item-difficulty-2">difficult</span> challenge would be challenging for an experimented player but doable in several trials.</li>
+							<li>An <span class="challenges-item-difficulty-3">extreme</span> challenge will require an experimented player to try-hard.</li>
+							<li>An <span class="challenges-item-difficulty-4">impossible</span> challenge will require experimented players to try for several hours, or even days before succeeding.</li>
 						</ul>
 						Finally, you can edit the challenge if you want to make some adjustments without having it revalidated by the creator:
 						<ul>
@@ -327,13 +327,13 @@ include('../includes/menu.php');
 							<li>Spam (12 fois le même défi, ou des défis simillaires publiées par la même personne)</li>
 							<li>Nom de défi avec des insultes ou des mots obscènes</li>
 						</ul>
-						Vous pouvez également modifier la difficulté si vous la jugez inadaptée au défi. Essayez de vous confortez à cette échelle de référence&nbsp;:
+						Voici à peu près une échelle de référence pour la difficulté. Essayez de vous y conformer au mieux pour vos défis :
 						<ul>
-							<li>Un défi <span class="challenges-item-difficulty-0">facile</span> doit être faisable par un débutant (&quot;Finir le Circuit Mario 1 en Contre-La-Montre en moins de 55s&quot;)</li>
-							<li>Un défi <span class="challenges-item-difficulty-1">moyen</span> est typiquement difficile pour un débutant mais facile pour un joueur expérimenté (&quot;Finir le Circuit Mario 1 en CLM en moins de 45s&quot;)</li>
-							<li>Un défi <span class="challenges-item-difficulty-2">difficile</span> sera difficile pour un joueur expérimenté mais réussissable en plusieurs essais (&quot;Finir le Circuit Mario 1 en CLM en moins de 39s&quot;)</li>
-							<li>Un défi <span class="challenges-item-difficulty-3">extrême</span> nécessitera de try-harder même pour un joueur expérimenté (&quot;Finir le Circuit Mario 1 en CLM en moins de 38s&quot;)</li>
-							<li>Un défi <span class="challenges-item-difficulty-4">impossible</span> nécessite de try-harder et peut typiquement prendre plusieurs heures (voire jours) avant de réussir (&quot;Finir le Circuit Mario 1 en CLM en moins de 37s&quot;)</li>
+							<li>Un défi <span class="challenges-item-difficulty-0">facile</span> doit être faisable aisément par un débutant.</li>
+							<li>Un défi <span class="challenges-item-difficulty-1">moyen</span> est typiquement difficile pour un débutant mais facile pour un joueur expérimenté.</li>
+							<li>Un défi <span class="challenges-item-difficulty-2">difficile</span> sera dur pour un joueur expérimenté mais faisable en quelques essais.</li>
+							<li>Un défi <span class="challenges-item-difficulty-3">extrême</span> nécessitera de try-harder même pour un joueur expérimenté.</li>
+							<li>Un défi <span class="challenges-item-difficulty-4">impossible</span> nécessitera les meilleurs joueurs du jeu de jouer pendant des heures voir plusieurs jours avant de pouvoir le réussir.</li>
 						</ul>
 						Enfin, vous pouvez modifier le défi si vous souhaitez faire quelques ajustements sans pour autant le faire revalider par le créateur&nbsp;:
 						<ul>
