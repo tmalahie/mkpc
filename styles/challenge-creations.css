@@ -342,7 +342,7 @@
 .challenges-item-difficulty img {
 	position: relative;
 	top: 1px;
-	width: 16px;
+	height: 16px;
 }
 .challenges-item-action {
 	display: table-cell;
