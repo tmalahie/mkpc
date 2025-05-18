@@ -1835,6 +1835,13 @@ function classifyByShape(shapes, callback) {
 	}
 	return res;
 }
+function processZoneMeta(zoneMeta) {
+	if (!zoneMeta) return;
+	if (zoneMeta.minHeight)
+		zoneMeta.minHeight = zoneMeta.minHeight * jumpHeight0;
+	if (zoneMeta.maxHeight)
+		zoneMeta.maxHeight = zoneMeta.maxHeight * jumpHeight0;
+}
 var foreachLMap = function(callback) {
 	// Can be overriden, see lapOverrides
 	callback(oMap,oMap,0);
@@ -1882,10 +1889,14 @@ function initMap() {
 				lapOverrides.push(lapOverride);
 			}
 			else {
-				if (lapOverride.zone)
+				if (lapOverride.zone) {
 					lapOverride.zone = classifyByShape(lapOverride.zone);
-				if (lapOverride.endZone)
+					processZoneMeta(lapOverride.zoneMeta);
+				}
+				if (lapOverride.endZone) {
 					lapOverride.endZone = classifyByShape(lapOverride.endZone);
+					processZoneMeta(lapOverride.endZoneMeta);
+				}
 				oMap.conditionOverrides.push(lapOverride);
 			}
 		}
@@ -10764,13 +10775,15 @@ function handleCpChange(prevLap,prevCP, getId,prevId) {
 	return lapId
 }
 function handleConditionalOverrides(aX,aY, getId) {
+	if (!oMap.conditionOverrides.length) return;
 	var oKart = aKarts[getId];
 	var isChanged = false;
 	var prevLapId;
+	var lMap = getCurrentLMap(getCurrentLapId(oKart));
 	for (var i=0;i<oMap.conditionOverrides.length;i++) {
 		var oOverride = oMap.conditionOverrides[i];
 		if (oKart.conditionOverrides.includes(i)) {
-			if (shouldUntriggerOverride(oOverride, aX,aY,oKart)) {
+			if (shouldUntriggerOverride(lMap,oOverride, aX,aY,oKart)) {
 				if (prevLapId === undefined)
 					prevLapId = getCurrentLapId(oKart);
 				var deleteIndex = oKart.conditionOverrides.indexOf(i);
@@ -10779,7 +10792,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 			}
 		}
 		else {
-			if (shouldTriggerOverride(oOverride, aX,aY,oKart)) {
+			if (shouldTriggerOverride(lMap,oOverride, aX,aY,oKart)) {
 				if (prevLapId === undefined)
 					prevLapId = getCurrentLapId(oKart);
 				oKart.conditionOverrides.push(i);
@@ -10796,7 +10809,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 		handleLapChange(prevLapId,lapId, getId);
 	}
 }
-function shouldTriggerOverride(oOverride, aX,aY, oKart) {
+function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
 	if (oOverride.time) {
 		var gameTime = getActualGameTimeMS();
 		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
@@ -10805,14 +10818,14 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 	else if (oOverride.zone) {
 		if (oOverride.activatedForAll)
 			return true;
-		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
+		var inter1 = zoneIntersect(aX,aY,oKart, lMap,oOverride.zone,oOverride.zoneMeta);
 		if (inter1 < Infinity) {
 			if (oOverride.endZone) {
-				var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
+				var inter2 = zoneIntersect(aX,aY,oKart, lMap,oOverride.endZone,oOverride.endZoneMeta);
 				if (inter2 < Infinity && inter1 <= inter2) return false;
 			}
 			else if (oOverride.endOnExit) {
-				if (!pointInZone(oKart.x,oKart.y, oOverride.zone))
+				if (!pointInZone(oKart.x,oKart.y, oOverride.zone) || !satisfyZonesMeta(oKart, lMap,oOverride.zoneMeta))
 					return false;
 			}
 			else if (oOverride.impactAll)
@@ -10822,17 +10835,17 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 	}
 	return false;
 }
-function shouldUntriggerOverride(oOverride, aX,aY, oKart) {
+function shouldUntriggerOverride(lMap,oOverride, aX,aY, oKart) {
 	if (oOverride.endZone) {
-		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.endZone);
+		var inter1 = zoneIntersect(aX,aY,oKart, lMap,oOverride.endZone,oOverride.endZoneMeta);
 		if (inter1 < Infinity) {
-			var inter2 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
+			var inter2 = zoneIntersect(aX,aY,oKart, lMap,oOverride.zone,oOverride.zoneMeta);
 			if (inter2 < Infinity && inter1 <= inter2) return false;
 			return true;
 		}
 	}
 	else if (oOverride.endOnExit) {
-		if (!pointInZone(oKart.x,oKart.y, oOverride.zone))
+		if (!pointInZone(oKart.x,oKart.y, oOverride.zone) || !satisfyZonesMeta(oKart, lMap,oOverride.zoneMeta))
 			return true;
 	}
 	else if (oOverride.endTime) {
@@ -10989,7 +11002,7 @@ function checkItemLap(fSprite, opts) {
 		var aX = opts.aPos[0], aY = opts.aPos[1];
 		var isChanged = false;
 		if (conditionOverrides.includes(i)) {
-			if (shouldUntriggerOverride(oOverride, aX,aY,fSprite)) {
+			if (shouldUntriggerOverride(lMap,oOverride, aX,aY,fSprite)) {
 				conditionOverrides = conditionOverrides.filter(function(j) {
 					return j !== i;
 				});
@@ -10997,7 +11010,7 @@ function checkItemLap(fSprite, opts) {
 			}
 		}
 		else {
-			if (shouldTriggerOverride(oOverride, aX,aY,fSprite)) {
+			if (shouldTriggerOverride(lMap,oOverride, aX,aY,fSprite)) {
 				conditionOverrides = conditionOverrides.concat(i);
 				isChanged = true;
 			}
@@ -12162,7 +12175,13 @@ function pointCrossZone(iX,iY,iI,iJ, zones) {
 			return true;
 	}
 }
-function zoneIntersect(iX,iY,iI,iJ, zones) {
+function zoneIntersect(iX,iY,oKart, lMap,zones,zonesMeta) {
+	var res = zoneIntersectAux(iX,iY,oKart.x-iX,oKart.y-iY, zones);
+	if (res < Infinity && !satisfyZonesMeta(oKart, lMap,zonesMeta))
+		return Infinity;
+	return res;
+}
+function zoneIntersectAux(iX,iY,iI,iJ, zones) {
 	var oRectangles = zones.rectangle;
 	var res = Infinity;
 	for (var i=0;i<oRectangles.length;i++) {
@@ -12179,6 +12198,17 @@ function zoneIntersect(iX,iY,iI,iJ, zones) {
 		res = Math.min(res, polygonIntersect(iX,iY, nX,nY, oPolygons[i]));
 	}
 	return res;
+}
+function satisfyZonesMeta(oKart, lMap,zonesMeta) {
+	if (!zonesMeta) return true;
+	var zH = oKart.z0;
+	if (zH == null)
+		zH = getFloorHeight(lMap, oKart.x,oKart.y,oKart.z0||0);
+	if (zH < zonesMeta.minHeight)
+		return false;
+	if (zH >= zonesMeta.maxHeight)
+		return false;
+	return true;
 }
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
@@ -12313,6 +12343,54 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 		}
 	}
 
+	var zH = getFloorHeight(lMap, iX,iY,iZ0);
+
+	if (iZ0) iZ += iZ0;
+	if (zH) {
+		if (!lMap.collisionProps) return true;
+		if (zH > iZ)
+			iZ = zH;
+		collisionFloor = { z: zH };
+	}
+
+	if (!isCup && (iZ <= jumpHeight0)) {
+		if ((course == "BB") || (lMap.map <= 20)) {
+			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
+		}
+		else {
+			if (nX >= lMap.w || nY >= lMap.h || nX < 0 || nY < 0) return false;
+		}
+	}
+
+	var oRectangles = lMap.collision.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(lMap.collisionProps.rectangle, i,iZ))
+			return false;
+	}
+	var oPolygons = lMap.collision.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(lMap.collisionProps.polygon, i,iZ))
+			return false;
+	}
+	return true;
+}
+
+function getLineHorizontality(iX,iY, nX,nY, lines) {
+	var res = null, minT = 1;
+	for (var i=0;i<lines.length;i++) {
+		var line = lines[i];
+		var cross = secants(iX,iY,nX,nY,line.x1,line.y1,line.x2,line.y2);
+		if (cross && (cross[0] < minT)) {
+			minT = cross[0];
+			res = {
+				"dir" : [line.x2-line.x1,line.y2-line.y1],
+				"t" : minT
+			};
+		}
+	}
+	return res;
+}
+function getFloorHeight(lMap, iX,iY,iZ0) {
 	var zH = 0;
 	var oRectangles = lMap.collision.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
@@ -12338,49 +12416,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 				zH = Math.max(zH, getPointHeight(oPolygon[1][1]));
 		}
 	}
-
-	if (iZ0) iZ += iZ0;
-	if (zH) {
-		if (!lMap.collisionProps) return true;
-		if (zH > iZ)
-			iZ = zH;
-		collisionFloor = { z: zH };
-	}
-
-	if (!isCup && (iZ <= jumpHeight0)) {
-		if ((course == "BB") || (lMap.map <= 20)) {
-			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
-		}
-		else {
-			if (nX >= lMap.w || nY >= lMap.h || nX < 0 || nY < 0) return false;
-		}
-	}
-
-	for (var i=0;i<oRectangles.length;i++) {
-		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(lMap.collisionProps.rectangle, i,iZ))
-			return false;
-	}
-	for (var i=0;i<oPolygons.length;i++) {
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(lMap.collisionProps.polygon, i,iZ))
-			return false;
-	}
-	return true;
-}
-
-function getLineHorizontality(iX,iY, nX,nY, lines) {
-	var res = null, minT = 1;
-	for (var i=0;i<lines.length;i++) {
-		var line = lines[i];
-		var cross = secants(iX,iY,nX,nY,line.x1,line.y1,line.x2,line.y2);
-		if (cross && (cross[0] < minT)) {
-			minT = cross[0];
-			res = {
-				"dir" : [line.x2-line.x1,line.y2-line.y1],
-				"t" : minT
-			};
-		}
-	}
-	return res;
+	return zH;
 }
 function isBreakingItem(decorBehavior) {
 	if (!decorBehavior.damagingItems) return false;

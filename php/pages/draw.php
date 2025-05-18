@@ -476,6 +476,7 @@ if (isset($_GET['i'])) {
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-zone">
 							<input type="hidden" id="lapoverride-zone-data" value="[]" />
+							<input type="hidden" id="lapoverride-zone-meta" />
 							<div class="lapoverride-triggers">
 								<label>
 									<span><?php echo $language ? "Trigger zone":"Zone d'activation"; ?></span>
@@ -500,7 +501,8 @@ if (isset($_GET['i'])) {
 									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="zone-exit" /> <?php echo $language ? "When leaving trigger zone" : "À la sortie de la zone d'activation"; ?>
 								</label>
 								<label>
-									<input type="hidden" id="lapoverride-end-zone-data" value="[]" />
+									<input type="hidden" id="lapoverride-end-zone-data" />
+									<input type="hidden" id="lapoverride-end-zone-meta" />
 									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="end-zone" /> <?php echo $language ? "At untrigger zone" : "À la zone de désactivation"; ?>
 									<span><button class="toolbox-button" id="lapoverride-end-zone-set" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
 								</label>
