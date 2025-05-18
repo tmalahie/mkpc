@@ -10803,6 +10803,8 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 			return true;
 	}
 	else if (oOverride.zone) {
+		if (oOverride.activatedForAll)
+			return true;
 		var inter1 = zoneIntersect(aX,aY,oKart.x-aX,oKart.y-aY, oOverride.zone);
 		if (inter1 < Infinity) {
 			if (oOverride.endZone) {
@@ -10813,6 +10815,8 @@ function shouldTriggerOverride(oOverride, aX,aY, oKart) {
 				if (!pointInZone(oKart.x,oKart.y, oOverride.zone))
 					return false;
 			}
+			else if (oOverride.impactAll)
+				oOverride.activatedForAll = true;
 			return true;
 		}
 	}
