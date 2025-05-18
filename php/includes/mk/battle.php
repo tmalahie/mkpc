@@ -53,6 +53,8 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 			echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
 		if (isset($circuitPayload->meta->endOnExit))
 			echo '"endOnExit":'.json_encode($circuitPayload->meta->endOnExit).',';
+		if (isset($circuitPayload->meta->impactAll))
+			echo '"impactAll":'.json_encode($circuitPayload->meta->impactAll).',';
 		if (isset($circuitPayload->meta->interactions))
 			echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 	}

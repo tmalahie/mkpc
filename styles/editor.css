@@ -1308,10 +1308,8 @@ embed,#ytplayer {
 .lapoverride-type-options.selected {
 	display: block;
 }
-#lapoverride-type-options-time .lapoverride-triggers {
-	width: 225px;
-}
 .lapoverride-triggers {
+	width: 225px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -1334,7 +1332,6 @@ embed,#ytplayer {
 	width: 200px;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 35px;
     text-align: left;
 	display: flex;
 	flex-direction: column;

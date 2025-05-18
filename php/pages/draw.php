@@ -487,6 +487,13 @@ if (isset($_GET['i'])) {
 										<?php echo $language ? "Untrigger condition...":"Condition de désactivation..."; ?>
 									</span>
 								</label>
+								<label id="lapoverride-triggers-impact-all">
+									<span>
+										<input type="checkbox" id="lapoverride-impact-all-check" onclick="handleImpactAllsCheck(this.checked)" />
+										<?php echo $language ? "Trigger for everyone":"Affecte les autres joueurs"; ?>
+										<a href="javascript:showImpactAllHelp()">[?]</a>
+									</span>
+								</label>
 							</div>
 							<div id="lapoverride-triggers-untrigger">
 								<label>
