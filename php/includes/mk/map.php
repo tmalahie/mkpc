@@ -55,6 +55,10 @@ if ($lapId) {
 		echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
 	if (isset($circuitPayload->meta->endZone))
 		echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
+	if (isset($circuitPayload->meta->zoneMeta))
+		echo '"zoneMeta":'.json_encode($circuitPayload->meta->zoneMeta).',';
+	if (isset($circuitPayload->meta->endZoneMeta))
+		echo '"endZoneMeta":'.json_encode($circuitPayload->meta->endZoneMeta).',';
 	if (isset($circuitPayload->meta->endOnExit))
 		echo '"endOnExit":'.json_encode($circuitPayload->meta->endOnExit).',';
 	if (isset($circuitPayload->meta->impactAll))

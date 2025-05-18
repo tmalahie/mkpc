@@ -2907,6 +2907,8 @@ function getLapOverrideLabel(lapId) {
 function formatLapOverride(lapOverride) {
 	var lapNumber = lapOverride.lap, lapCheckpoint = lapOverride.checkpoint;
 	if (lapNumber !== undefined) {
+		if (isBattle)
+			return language ? "Default" : "Défaut";
 		lapNumber++;
 		if (lapCheckpoint !== undefined) {
 			lapCheckpoint++;
@@ -3123,7 +3125,9 @@ function renderLapOverrideAdd() {
 	var $overrideEndTime = document.getElementById("lapoverride-end-time");
 	var $overrideEndTimeCheck = document.getElementById("lapoverride-end-time-check");
 	var $overrideZone = document.getElementById("lapoverride-zone-data");
+	var $overrideZoneMeta = document.getElementById("lapoverride-zone-meta");
 	var $overrideEndZone = document.getElementById("lapoverride-end-zone-data");
+	var $overrideEndZoneMeta = document.getElementById("lapoverride-end-zone-meta");
 	var $overrideEndZoneCheck = document.getElementById("lapoverride-end-zone-check");
 	var $overrideEndZoneOptions = document.getElementById("lapoverride-triggers-untrigger");
 	var $overrideEndZoneType = [...document.querySelectorAll('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]')];
@@ -3151,6 +3155,10 @@ function renderLapOverrideAdd() {
 	}
 	else
 		$overrideZone.value = "[]";
+	if (editingLapOverride && editingLapOverride.zoneMeta !== undefined)
+		$overrideZoneMeta.value = JSON.stringify(editingLapOverride.zoneMeta);
+	else
+		$overrideZoneMeta.value = "";
 	if (editingLapOverride && editingLapOverride.endZone !== undefined) {
 		$overrideEndZoneCheck.checked = true;
 		$overrideEndZone.value = JSON.stringify(editingLapOverride.endZone);
@@ -3176,6 +3184,10 @@ function renderLapOverrideAdd() {
 		$overrideEndZoneType.forEach(type => type.checked = false);
 		$overrideEndZoneTypeSet.disabled = true;
 	}
+	if (editingLapOverride && editingLapOverride.endZoneMeta !== undefined)
+		$overrideEndZoneMeta.value = JSON.stringify(editingLapOverride.endZoneMeta);
+	else
+		$overrideEndZoneMeta.value = "";
 	setOverrideTrigger(overrideType);
 	if ($select)
 		handleLapOverrideSelect(+$select.value);
@@ -3298,13 +3310,25 @@ function getZoneDataInput(editorSource) {
 		return document.getElementById("lapoverride-end-zone-data");
 	}
 }
-function storeZoneData(data,_meta, _editorType,editorSource) {
+function getZoneMetadataInput(editorSource) {
+	switch (editorSource) {
+	case "override_start":
+		return document.getElementById("lapoverride-zone-meta");
+	case "override_end":
+		return document.getElementById("lapoverride-end-zone-meta");
+	}
+}
+function storeZoneData(data,meta, _editorType,editorSource) {
 	getZoneDataInput(editorSource).value = JSON.stringify(data);
+	var metaStr = JSON.stringify(meta);
+	getZoneMetadataInput(editorSource).value = metaStr === "{}" ? "" : metaStr;
 }
 function loadZoneData(editorType,editorSource) {
 	var zoneDataRaw = getZoneDataInput(editorSource).value;
+	var zoneMetaRaw = getZoneMetadataInput(editorSource).value;
 	var data = zoneDataRaw ? JSON.parse(zoneDataRaw) : [];
-	return { data: data, meta: {} };
+	var meta = zoneMetaRaw ? JSON.parse(zoneMetaRaw) : {};
+	return { data: data, meta: meta };
 }
 function showInteractionsHelp() {
 	alert(language ? "If checked, other players can't collide with you or hit you with items unless they are in same override as you." : "Si coché, les autres joueurs ne peuvent pas entrer en collision avec vous ou vous toucher avec des objets lorsqu'ils ne sont pas dans le même modificateur.");
@@ -3497,6 +3521,9 @@ function assignLapOverrideOpts(opts) {
 		break;
 	case "zone":
 		opts.zone = JSON.parse(document.getElementById("lapoverride-zone-data").value);
+		var zoneMeta = document.getElementById("lapoverride-zone-meta").value;
+		if (zoneMeta)
+			opts.zoneMeta = JSON.parse(zoneMeta);
 		var endZoneCheck = document.getElementById("lapoverride-end-zone-check").checked;
 		if (endZoneCheck) {
 			var endZoneType = document.querySelector('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]:checked').value;
@@ -3508,6 +3535,9 @@ function assignLapOverrideOpts(opts) {
 				var endZoneData = document.getElementById("lapoverride-end-zone-data").value;
 				if (endZoneData)
 					opts.endZone = JSON.parse(document.getElementById("lapoverride-end-zone-data").value);
+				var endZoneMeta = document.getElementById("lapoverride-end-zone-meta").value;
+				if (endZoneMeta)
+					opts.endZoneMeta = JSON.parse(endZoneMeta);
 				break;
 			}
 		}
@@ -3775,6 +3805,8 @@ function initLapOverride(meta, oldLapOverride) {
 		endTime: meta.endTime,
 		zone: meta.zone,
 		endZone: meta.endZone,
+		zoneMeta: meta.zoneMeta,
+		endZoneMeta: meta.endZoneMeta,
 		endOnExit: meta.endOnExit,
 		impactAll: meta.impactAll,
 		imgData: meta.imgData,
@@ -4608,7 +4640,14 @@ function saveData() {
 			enabledModes.push(key);
 		}
 		if (!enabledModes.length && !lapOverride.imgData && !lapOverride.interactions && !lapOverride.time && !lapOverride.zone) continue;
-		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, time: lapOverride.time, endTime: lapOverride.endTime, zone: lapOverride.zone, endZone: lapOverride.endZone, endOnExit: lapOverride.endOnExit, impactAll: lapOverride.impactAll, modes: enabledModes };
+		lapPayload.meta = {
+			lap: lapOverride.lap, cp: lapOverride.checkpoint,
+			time: lapOverride.time, endTime: lapOverride.endTime,
+			zone: lapOverride.zone, endZone: lapOverride.endZone,
+			zoneMeta: lapOverride.zoneMeta, endZoneMeta: lapOverride.endZoneMeta,
+			endOnExit: lapOverride.endOnExit, impactAll: lapOverride.impactAll,
+			modes: enabledModes
+		};
 		if (!payload.lapOverrides) payload.lapOverrides = [];
 		payload.lapOverrides.push(lapPayload);
 		lapPayloadIds[lapKey] = payload.lapOverrides.length;
