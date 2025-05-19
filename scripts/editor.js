@@ -3745,10 +3745,14 @@ function formatTimer(ms) {
 function updateEditorImg(callback) {
 	var $editorImg = document.getElementById("editor-img");
 	var imgOverride;
-	for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
-		imgOverride = lapOverrides[lapId].imgData;
-		if (imgOverride) break;
+	if (lapOverrides[selectedLapOverride].lap !== undefined) {
+		for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
+			imgOverride = lapOverrides[lapId].imgData;
+			if (imgOverride) break;
+		}
 	}
+	else
+		imgOverride = lapOverrides[selectedLapOverride].imgData || lapOverrides[0].imgData;
 	var newSrc = imgOverride.src;
 	if (newSrc === $editorImg.src) return;
 	
