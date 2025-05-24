@@ -139,6 +139,9 @@ var editorTools = {
 				if ((iData.orientation%2) == (axis.coord=="x" ? 1:0))
 					iData.orientation = (iData.orientation+2)%4;
 			}
+		},
+		"disableOverride": function() {
+			return language ? "Start positions can only be defined at default override" : "Les positions de départ ne peuvent être definies qu'au modificateur par défaut";
 		}
 	},
 	"aipoints": {
