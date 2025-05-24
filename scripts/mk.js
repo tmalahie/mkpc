@@ -10868,7 +10868,10 @@ function resetAiPoints(oKart) {
 		delete oKart.aishortcuts;
 		var lMap = getCurrentLMap(getCurrentLapId(oKart));
 		initAiPoints(lMap, oKart, aKarts.indexOf(oKart));
-		oKart.aipoint = 0;
+		if (course != 'BB')
+			oKart.aipoint = 0;
+		else
+			delete oKart.aipoint;
 	}
 	else
 		delete oKart.aipoint;

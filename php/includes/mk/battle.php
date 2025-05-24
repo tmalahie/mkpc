@@ -94,6 +94,8 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 	elseif (!$lapId)
 		echo '"startposition":[[-1,-1,0]],';
 	if (isset($circuitPayload->aipoints)) {
+		if ($lapId)
+			$circuitPayload->aipoints = array($circuitPayload->aipoints);
 		echo '"aipoints":'.json_encode($circuitPayload->aipoints).',';
 	}
 	if (isset($circuitPayload->collision)) {
