@@ -73,6 +73,7 @@ if (!$lapId && isset($circuit['icon']))
 if (isset($circuitMainData->bgcustom))
 	echo '"custombg":'.$circuitMainData->bgimg.',';
 elseif (isset($circuitMainData->bgimg)) {
+	echo '"custombg":undefined,';
 	echo '"fond":["';
 	include(__DIR__.'/../circuitEnums.php');
 	$getInfos = $bgImgs[$circuitMainData->bgimg];

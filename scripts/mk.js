@@ -6691,9 +6691,6 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 				drawCurrentState : function() {
 					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
 				},
-				fadeout: function() {
-					this.suppr();
-				},
 				suppr: function() {
 					container.removeChild(oLayer2);
 				}
@@ -6711,8 +6708,12 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 				oLayers[i].style.zIndex = 1;
 			function removeProgressively() {
 				x -= dt / fadedelay;
-				if (x <= 0)
+				if (x <= 0) {
 					that.suppr();
+					fadingBgLayers = fadingBgLayers.filter(function(oLayer) {
+						return oLayer !== that;
+					});
+				}
 				else {
 					for (var i=0;i<strPlayer.length;i++)
 						oLayers[i].style.opacity = x;
@@ -7247,7 +7248,24 @@ function clonePreviousScreen(i, oPlayer) {
 }
 function redrawCanvas(i, fCamera, lMap) {
 	var oViewContext = oViewCanvas.getContext("2d");
-	oViewContext.fillStyle = "rgb("+ lMap.bgcolor +")";
+	var oPlayer = fCamera.ref;
+	var bgcolor = lMap.bgcolor;
+	var lapTransitionOpacity, lapTransitionMap;
+	if (oPlayer && oPlayer.lastOverride) {
+		oPlayer.lastOverride.since += SPF / nbFrames;
+		lapTransitionOpacity = 1 - oPlayer.lastOverride.since / 300;
+		if (lapTransitionOpacity > 0) {
+			lapTransitionMap = oPlayer.lastOverride.lMap;
+			if (lapTransitionMap.bgcolor !== bgcolor) {
+				bgcolor = bgcolor.map(function(rgbVal, i) {
+					return Math.round(lapTransitionMap.bgcolor[i] * lapTransitionOpacity + rgbVal * (1 - lapTransitionOpacity));
+				});
+			}
+		}
+		else
+			delete oPlayer.lastOverride;
+	}
+	oViewContext.fillStyle = "rgb("+ bgcolor +")";
 	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
 	oViewContext.save();
@@ -7258,17 +7276,10 @@ function redrawCanvas(i, fCamera, lMap) {
 
 	var posX = fCamera.x, posY = fCamera.y;
 	drawMapImg(oViewContext, lMap, posX, posY);
-	var oPlayer = fCamera.ref;
-	if (oPlayer && oPlayer.lastOverride) {
-		oPlayer.lastOverride.since += SPF / nbFrames;
-		var opacity = 1 - oPlayer.lastOverride.since / 300;
-		if (opacity > 0) {
-			oViewContext.globalAlpha = opacity;
-			drawMapImg(oViewContext, oPlayer.lastOverride.lMap, posX, posY);
-			oViewContext.globalAlpha = 1;
-		}
-		else
-			delete oPlayer.lastOverride;
+	if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
+		oViewContext.globalAlpha = lapTransitionOpacity;
+		drawMapImg(oViewContext, lapTransitionMap, posX, posY);
+		oViewContext.globalAlpha = 1;
 	}
 	oViewContext.restore();
 
@@ -10786,12 +10797,10 @@ function handleLapChange(prevLapId,lapId, getId) {
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
 	lastStateChange = true;
-	if (lMap.mapImg !== nMap.mapImg) {
-		oKart.lastOverride = {
-			lMap: lMap,
-			since: 0
-		};
-	}
+	oKart.lastOverride = {
+		lMap: lMap,
+		since: 0
+	};
 	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
@@ -10967,10 +10976,11 @@ function resetBgLayers() {
 	oBgLayers.length = 0;
 	resetPrevLayers();
 }
+var fadingBgLayers = [];
 function fadeBgLayers() {
-	var fadeDelay = 300;
 	for (var i=0;i<oBgLayers.length;i++)
-		oBgLayers[i].fadeout(fadeDelay);
+		oBgLayers[i].fadeout(300);
+	fadingBgLayers = oBgLayers.slice(0);
 	oBgLayers.length = 0;
 	resetPrevLayers();
 }
@@ -11018,6 +11028,7 @@ function updateBgLayers(lMap,nMap, callback) {
 	}
 	else if (nMap.fond) {
 		if (lMap.fond === nMap.fond) return;
+		if (JSON.stringify(lMap.fond) === JSON.stringify(nMap.fond)) return;
 		callback(nMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
 		}), nMap.fond.length===2);
@@ -11604,6 +11615,8 @@ function render() {
 
 			for (var j=0;j<oBgLayers.length;j++)
 				oBgLayers[j].draw(fRotation, i);
+			for (var j=0;j<fadingBgLayers.length;j++)
+				fadingBgLayers[j].draw(fRotation, i);
 
 			if (oPlanCtn)
 				setPlanPos(frameState, lMap);
