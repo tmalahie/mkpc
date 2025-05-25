@@ -2099,7 +2099,7 @@ function initMap() {
 		var oMapImg;
 		function handleMapLoad(callback) {
 			lMap.mapImg = oMapImg;
-			if (lMaps[lapId].lap !== undefined) {
+			if (lMaps[lapId].parentOverrideId === undefined) {
 				for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
 					if (pMaps[nLapId].img) break;
 					if (lMaps[nLapId].lap === undefined) break;
@@ -10792,7 +10792,7 @@ function handleLapChange(prevLapId,lapId, getId,prevId) {
 	var lMap = getCurrentLMap(prevLapId);
 	var nMap = getCurrentLMap(lapId);
 	if (lMap.aipoints !== nMap.aipoints)
-		resetAiPoints(oKart);
+		resetAiPoints(oKart, lMap,nMap);
 	refreshUsingItems(oKart, lapId);
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
@@ -10921,19 +10921,23 @@ function clearPendingFrames() {
 	for (var i=0;i<frameHandlers.length;i++)
 		clearTimeout(frameHandlers[i]);
 }
-function resetAiPoints(oKart) {
+function resetAiPoints(oKart, lMap,nMap) {
 	if (oKart.cpu) {
 		delete oKart.aishortcut;
 		delete oKart.aishortcuts;
-		var lMap = getCurrentLMap(getCurrentLapId(oKart));
-		initAiPoints(lMap, oKart, aKarts.indexOf(oKart));
-		if (course != 'BB')
-			oKart.aipoint = 0;
-		else
+		initAiPoints(nMap, oKart, aKarts.indexOf(oKart));
+		if (isConditionalAiOverride(lMap) || isConditionalAiOverride(nMap))
 			delete oKart.aipoint;
+		else
+			oKart.aipoint = 0;
 	}
 	else
 		delete oKart.aipoint;
+}
+function isConditionalAiOverride(lMap) {
+	if (lMap.parentOverrideId === undefined) return false;
+	var lapOverride = getCurrentLMap(lMap.parentOverrideId);
+	return (lapOverride.aipoints !== lMap.aipoints);
 }
 function initAiPoints(lMap, oKart, inc) {
 	var iPt = inc%lMap.airoutesmeta.cpu;
