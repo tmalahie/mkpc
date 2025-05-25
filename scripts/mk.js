@@ -14104,7 +14104,8 @@ var challengeRules = {
 		},
 		"preinitSelected": function(scope, ruleVars) {
 			foreachLMap(function(lMap) {
-				if (!lMap.collision) lMap.collision = [];
+				if (lMap.collision) lMap.collision = lMap.collision.slice(0);
+				else lMap.collision = [];
 				if (!lMap.collisionProps) lMap.collisionProps = {};
 				var wallHeight = scope.height || 1000;
 				for (var i=0;i<scope.value.length;i++) {
