@@ -306,6 +306,11 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 			</div>
+			<label id="bg-transition-label" class="mode-option-hidden">
+				<input type="checkbox" id="bg-transition" onchange="bgTransitionChange(this.checked)" />
+				<span><?php echo $language ? 'Smooth transitions':'Transition continue'; ?></span>
+				<a href="javascript:showBgTransitionHelp()">[?]</a>
+			</label>
 			<div id="zoom-ctrl">
 				Zoom:<div><img src="images/editor/zoom-less.png" class="fancy-title" onclick="zoomLess()" title="<?php echo $language ? 'Unzoom':'Dézoomer'; ?> (Ctrl+↓)" /><span id="zoom-value">100</span>%<img src="images/editor/zoom-more.png" class="fancy-title" onclick="zoomMore()" title="<?php echo $language ? 'Zoom':'Zoomer'; ?> (Ctrl+↑)" /></div>
 			</div>

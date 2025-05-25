@@ -80,6 +80,8 @@ elseif (isset($circuitMainData->bgimg)) {
 	echo implode('","',$getInfos);
 	echo '"],';
 }
+if (!empty($circuitMainData->bgtransition))
+	echo '"bgtransition":1,';
 if (isset($circuitMainData->tours))
 	echo '"tours":'.$circuitMainData->tours.',';
 if (isset($circuitMainData->sections)) {

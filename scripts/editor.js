@@ -1130,6 +1130,9 @@ function selectMode(mode) {
 		if (nextOption)
 			nextOption.className = "mode-option-selected";
 	}
+	var $hiddenOptions = document.getElementsByClassName("mode-option-hidden");
+	for (var i=0;i<$hiddenOptions.length;i++)
+		$hiddenOptions[i].classList.remove("shown");
 	var editorTool = editorTools[currentMode];
 	if (editorTool.resume) {
 		var aChanges = changes;
@@ -4226,6 +4229,10 @@ function applyMusicSelector() {
 		if ($btnReset) $btnReset.style.display = "none";
 	}
 }
+function applyBgTransitionSelector() {
+	if (lapOverrides.length > 1)
+		document.getElementById("bg-transition-label").classList.add("shown");
+}
 var oMusic;
 var musicSelected;
 function selectMusic(m) {
@@ -4428,6 +4435,14 @@ function closeHelp() {
 }
 function showBillBallHelp() {
 	alert(language ? "If checked, this route is specific to bullet bills. When a player uses a bullet bill item, it will follow this routes instead of the default ones" : "Si coché, ce trajet s'applique uniquement aux Bill Balls : Lorsqu'un joueur utilise un Bill Ball, il suivra ce trajet au lieu des trajets par défaut");
+}
+function showBgTransitionHelp() {
+	alert(language ? "If checked, the map image and background will transition smoothly from the previous to the next one" : "Si coché, les images de la map et de l'arrière-plan changeront progressivement du précédent au suivant");
+}
+function bgTransitionChange(checked) {
+	var editorTool = editorTools[currentMode];
+	storeHistoryData(editorTool.data);
+	editorTool.data.bg_transition = checked;
 }
 function showColorSelector() {
 	var $mask = createMask();
@@ -4661,6 +4676,8 @@ function saveData() {
 	storeCurrentLapOverride();
 	restoreLapOverride(0);
 	var payload = {main:{theme:document.getElementById("theme-selector").getValue()}};
+	if (document.getElementById("bg-transition").checked)
+		payload.main.bgtransition = 1;
 	var prevLapOverride = selectedLapOverride;
 	selectedLapOverride = 0;
 	for (var key in editorTools) {
@@ -7062,6 +7079,7 @@ var commonTools = {
 			applyBgSelector();
 			applyMusicSelector();
 			document.body.classList.add("setting-preview");
+			applyBgTransitionSelector();
 			applyColorSelector();
 		},
 		"click" : function() {
@@ -7099,6 +7117,8 @@ var commonTools = {
 			else
 				self.data.music = 1;
 			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+			if (payload.main.bgtransition)
+				document.getElementById("bg-transition").checked = true;
 		},
 		"postcopy" : function(self, copyFrom) {
 			if (!copyFrom)

@@ -406,6 +406,25 @@ body.theme-dark {
 #button-music-reset:hover {
 	text-decoration: underline;
 }
+.mode-option-hidden {
+	display: none;
+}
+#bg-transition-label.shown {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75em;
+	gap: 0.2em;
+	margin-bottom: 0.5em;
+	padding-bottom: 0.35em;
+	border-bottom: solid 1px #678db4;
+	cursor: default;
+}
+#bg-transition-label a {
+	font-size: 0.9em;
+	position: relative;
+	top: -0.5em;
+}
 #toolbox #decor-selector-more {
 	cursor: pointer;
 	width: 22px;

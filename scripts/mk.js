@@ -10787,7 +10787,7 @@ function interpolateStateRound(x1,x2,tFrame) {
 var nbFrames = 1;
 var frameHandlers;
 var oSpecCam;
-function handleLapChange(prevLapId,lapId, getId) {
+function handleLapChange(prevLapId,lapId, getId,prevId) {
 	var oKart = aKarts[getId];
 	var lMap = getCurrentLMap(prevLapId);
 	var nMap = getCurrentLMap(lapId);
@@ -10797,16 +10797,22 @@ function handleLapChange(prevLapId,lapId, getId) {
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
 	lastStateChange = true;
-	oKart.lastOverride = {
-		lMap: lMap,
-		since: 0
-	};
+	var smoothTransition = oMap.bgtransition && (prevId === getId);
+	if (smoothTransition) {
+		oKart.lastOverride = {
+			lMap: lMap,
+			since: 0
+		};
+	}
 	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
 	if (pMap) {
 		updateBgLayers(lMap,nMap, function(strImages, fixedScale) {
-			fadeBgLayers();
+			if (smoothTransition)
+				fadeBgLayers();
+			else
+				resetBgLayers();
 			setupBgLayer(strImages, fixedScale, false);
 		});
 		if (!onlineSpectatorId && !oKart.cpu && ((lapId > prevLapId) || (nMap.parentOverrideId !== undefined) || (lMap.parentOverrideId !== undefined)))
@@ -10824,7 +10830,7 @@ function handleCpChange(prevLap,prevCP, getId,prevId) {
 	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP, conditionOverrides: prevKart.conditionOverrides, conditionOverridesHash: prevKart.conditionOverridesHash });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
-	handleLapChange(prevLapId,lapId, getId);
+	handleLapChange(prevLapId,lapId, getId,prevId);
 	return lapId
 }
 function handleConditionalOverrides(aX,aY, getId) {
@@ -10859,7 +10865,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 			delete oKart.conditionOverridesHash;
 		var lapId = getCurrentLapId(oKart);
 		if (prevLapId === lapId) return lapId;
-		handleLapChange(prevLapId,lapId, getId);
+		handleLapChange(prevLapId,lapId, getId,getId);
 	}
 }
 function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {

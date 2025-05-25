@@ -76,6 +76,8 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 		echo implode('","',$getInfos);
 		echo '"],';
 	}
+	if (!empty($circuitMainData->bgtransition))
+		echo '"bgtransition":1,';
 	if (!empty($circuitMainData->music))
 		echo '"music":'.$circuitMainData->music.',';
 	elseif (isset($circuitMainData->youtube)) {
