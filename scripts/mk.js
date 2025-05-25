@@ -2099,9 +2099,12 @@ function initMap() {
 		var oMapImg;
 		function handleMapLoad(callback) {
 			lMap.mapImg = oMapImg;
-			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
-				if (pMaps[nLapId].img) break;
-				lMaps[nLapId].mapImg = oMapImg;
+			if (lMaps[lapId].lap !== undefined) {
+				for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
+					if (pMaps[nLapId].img) break;
+					if (lMaps[nLapId].lap === undefined) break;
+					lMaps[nLapId].mapImg = oMapImg;
+				}
 			}
 			callback(oMapImg);
 		}
