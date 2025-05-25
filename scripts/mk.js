@@ -13224,18 +13224,23 @@ var challengeRules = {
 			});
 			setTimeout(function() {
 				var totalItems = 0;
-				var lapItemsHit = [];
-				for (var lapId=0;lapId<lMaps.length;lapId++) {
-					var pMap = pMaps[lapId];
+				foreachLMap(function(lMap,pMap, lapId) {
+					var lapItemsHit = [];
 					if (pMap.arme) {
-						lapItemsHit = [];
 						lapItemsHit.length = pMap.arme.length;
-						clLocalVars.itemsHit[lapId] = lapItemsHit;
 						totalItems += pMap.arme.length;
 					}
-					else
-						clLocalVars.itemsHit[lapId] = lapItemsHit;
-				}
+					else {
+						var pArme = lMap.arme;
+						for (var i=0;i<lapId;i++) {
+							if (lMaps[i].arme === pArme) {
+								lapItemsHit = clLocalVars.itemsHit[i];
+								break;
+							}
+						}
+					}
+					clLocalVars.itemsHit[lapId] = lapItemsHit;
+				});
 				clLocalVars.totalItems = totalItems;
 			});
 		},
@@ -13973,7 +13978,8 @@ var challengeRules = {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
 			foreachLMap(function(lMap,pMap) {
-				if (!pMap.arme) return;
+				var pArme = pMap.arme;
+				if ((lMap !== oMap) && (lMap.arme === oMap.arme)) return;
 				if (scope.clear_other) {
 					if (lMap !== oMap) {
 						delete pMap.arme;
@@ -13989,6 +13995,7 @@ var challengeRules = {
 					}
 					lMap.arme.length = 0;
 				}
+				if (!pArme) return;
 				for (var i=0;i<scope.value.length;i++) {
 					var oArme = scope.value[i].slice(0);
 					initItemSprite(oArme);
