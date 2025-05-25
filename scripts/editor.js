@@ -4340,7 +4340,7 @@ function submitMusic(e) {
 	hideMusicSelector();
 }
 function resetMusicOverride() {
-	if (!confirm(language ? "Reset music lap override?" : "Désactiver la modification de la musique pour ce tour ?"))
+	if (!confirm(language ? "Reset music lap override?" : "Annuler le changement de musique pour ce modificateur ?"))
 		return;
 	var editorTool = editorTools[currentMode];
 	editorTool.data.music_override = false;
@@ -4536,7 +4536,8 @@ function resizeImg(scaleX,scaleY) {
 	changes = true;
 }
 function foreachCurrentImg(callback) {
-	var modesData = lapOverrides[selectedLapOverride].modesData;
+	var currentLapOverride = lapOverrides[selectedLapOverride];
+	var modesData = currentLapOverride.modesData;
 	for (var key in editorTools) {
 		if (!modesData[key].isSet) continue;
 		var editorTool = editorTools[key];
@@ -4545,17 +4546,31 @@ function foreachCurrentImg(callback) {
 
 	storeCurrentLapOverride();
 	var clonedLapOverrides = {};
-	for (var lapId=selectedLapOverride+1;lapId<lapOverrides.length;lapId++) {
-		var lapOverride = lapOverrides[lapId];
-		if (lapOverride.imgData) break;
-		clonedLapOverrides[lapId] = lapOverride;
+	if (currentLapOverride.lap !== undefined) {
+		for (var lapId=selectedLapOverride+1;lapId<lapOverrides.length;lapId++) {
+			var lapOverride = lapOverrides[lapId];
+			if (lapOverride.imgData) break;
+			if (lapOverride.lap === undefined) break;
+			clonedLapOverrides[lapId] = lapOverride;
+		}
 	}
-	var currentLapOverride = lapOverrides[selectedLapOverride];
 	for (var i=1;i<lapOverrides.length;i++) {
 		var lapOverride = lapOverrides[i];
 		if (lapOverride.imgData && lapOverride.imgData.data.overrideRef === currentLapOverride) {
 			lapOverride.imgData.src = currentLapOverride.imgData.src;
 			clonedLapOverrides[i] = lapOverride;
+		}
+	}
+	if (!selectedLapOverride) {
+		for (var lapId=1;lapId<lapOverrides.length;lapId++) {
+			var lapOverride = lapOverrides[lapId];
+			if (lapOverride.lap !== undefined) continue;
+			if (!lapOverride.imgData)
+				clonedLapOverrides[lapId] = lapOverride;
+			if (lapOverride.zone)
+				handleZoneRescale(lapOverride.zone, callback);
+			if (lapOverride.endZone)
+				handleZoneRescale(lapOverride.endZone, callback);
 		}
 	}
 	Object.entries(clonedLapOverrides).forEach((entry) => {
@@ -4616,6 +4631,31 @@ function getImgOverridePayload(imgData) {
 		local: 0,
 		override: overrideKey,
 	}
+}
+function handleZoneRescale(zones, callback) {
+	return callback({
+		rescale: function(self, scale) {
+			for (var i=0;i<zones.length;i++) {
+				var shape = dataToShape(zones[i]);
+				rescaleShape(shape, scale);
+				zones[i] = shapeToData(shape);
+			}
+		},
+		rotate: function(self, orientation) {
+			for (var i=0;i<zones.length;i++) {
+				var shape = dataToShape(zones[i]);
+				rotateShape(shape, imgSize, orientation);
+				zones[i] = shapeToData(shape);
+			}
+		},
+		flip: function(self, axis) {
+			for (var i=0;i<zones.length;i++) {
+				var shape = dataToShape(zones[i]);
+				flipShape(shape, imgSize,axis);
+				zones[i] = shapeToData(shape);
+			}
+		}
+	});
 }
 function saveData() {
 	storeCurrentLapOverride();

@@ -259,7 +259,7 @@ function updateImportFields(elt) {
 	$field.focus();
 }
 function confirmRemoveOverride() {
-	return confirm("<?php echo $language ? "Remove image lap override?":"Supprimer la modification d'image pour ce tour ?"; ?>");
+	return confirm("<?php echo $language ? "Remove image lap override?":"Annuler le changement d'image pour ce modificateur ?"; ?>");
 }
 </script>
 </head>
