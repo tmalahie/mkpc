@@ -6688,6 +6688,9 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 				drawCurrentState : function() {
 					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
 				},
+				fadeout: function() {
+					this.suppr();
+				},
 				suppr: function() {
 					container.removeChild(oLayer2);
 				}
@@ -6696,6 +6699,24 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
 				oContainers[i].removeChild(oLayers[i]);
+		},
+		fadeout: function(fadedelay) {
+			var x = 1;
+			var dt = SPF/nbFrames;
+			var that = this;
+			for (var i=0;i<strPlayer.length;i++)
+				oLayers[i].style.zIndex = 1;
+			function removeProgressively() {
+				x -= dt / fadedelay;
+				if (x <= 0)
+					that.suppr();
+				else {
+					for (var i=0;i<strPlayer.length;i++)
+						oLayers[i].style.opacity = x;
+					setTimeout(removeProgressively, dt);
+				}
+			}
+			removeProgressively();
 		}
 	}
 }
@@ -7233,29 +7254,19 @@ function redrawCanvas(i, fCamera, lMap) {
 	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
 
 	var posX = fCamera.x, posY = fCamera.y;
-	var oMapImg = lMap.mapImg;
-	if (oMapImg.image) {
-		oViewContext.drawImage(
-			oMapImg.image,
-			-posX,-posY
-		);
+	drawMapImg(oViewContext, lMap, posX, posY);
+	var oPlayer = fCamera.ref;
+	if (oPlayer && oPlayer.lastOverride) {
+		oPlayer.lastOverride.since += SPF / nbFrames;
+		var opacity = 1 - oPlayer.lastOverride.since / 300;
+		if (opacity > 0) {
+			oViewContext.globalAlpha = opacity;
+			drawMapImg(oViewContext, oPlayer.lastOverride.lMap, posX, posY);
+			oViewContext.globalAlpha = 1;
+		}
+		else
+			delete oPlayer.lastOverride;
 	}
-	else {
-		oViewContext.drawImage(
-			oMapImg,
-			-posX,-posY
-		);
-	}
-	for (var j=0;j<lMap.assets.length;j++) {
-		var asset = lMap.assets[j];
-		oViewContext.drawImage(
-			asset.canvas,
-			asset.x-posX,asset.y-posY
-		);
-	}
-	if (lMap.sea)
-		lMap.sea.render(oViewContext,[posX,posY],1);
-
 	oViewContext.restore();
 
 	oScreens[i].getContext("2d").imageSmoothingEnabled = iSmooth;
@@ -7281,6 +7292,30 @@ function redrawCanvas(i, fCamera, lMap) {
 		}
 		catch (e) {}
 	}
+}
+function drawMapImg(oViewContext, lMap, posX, posY) {
+	var oMapImg = lMap.mapImg;
+	if (oMapImg.image) {
+		oViewContext.drawImage(
+			oMapImg.image,
+			-posX,-posY
+		);
+	}
+	else {
+		oViewContext.drawImage(
+			oMapImg,
+			-posX,-posY
+		);
+	}
+	for (var j=0;j<lMap.assets.length;j++) {
+		var asset = lMap.assets[j];
+		oViewContext.drawImage(
+			asset.canvas,
+			asset.x-posX,asset.y-posY
+		);
+	}
+	if (lMap.sea)
+		lMap.sea.render(oViewContext,[posX,posY],1);
 }
 
 function byteType(key) {
@@ -10748,12 +10783,18 @@ function handleLapChange(prevLapId,lapId, getId) {
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
 	lastStateChange = true;
+	if (lMap.mapImg !== nMap.mapImg) {
+		oKart.lastOverride = {
+			lMap: lMap,
+			since: 0
+		};
+	}
 	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
 	if (pMap) {
 		updateBgLayers(lMap,nMap, function(strImages, fixedScale) {
-			resetBgLayers();
+			fadeBgLayers();
 			setupBgLayer(strImages, fixedScale, false);
 		});
 		if (!onlineSpectatorId && !oKart.cpu && ((lapId > prevLapId) || (nMap.parentOverrideId !== undefined) || (lMap.parentOverrideId !== undefined)))
@@ -10921,6 +10962,16 @@ function resetBgLayers() {
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
 	oBgLayers.length = 0;
+	resetPrevLayers();
+}
+function fadeBgLayers() {
+	var fadeDelay = 300;
+	for (var i=0;i<oBgLayers.length;i++)
+		oBgLayers[i].fadeout(fadeDelay);
+	oBgLayers.length = 0;
+	resetPrevLayers();
+}
+function resetPrevLayers() {
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		var nbPrevFrames = oPrevFrameStates[i].length;
 		for (var j=0;j<nbPrevFrames;j++) {
@@ -11323,7 +11374,8 @@ function render() {
 			var fCamera = {
 				x: posX,
 				y: posY,
-				rotation: fRotation
+				rotation: fRotation,
+				ref: oPlayer.ref
 			};
 
       		clonePreviousScreen(i, oPlayer);
