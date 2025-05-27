@@ -10860,6 +10860,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 		}
 	}
 	if (isChanged) {
+		oKart.conditionOverrides.sort(function(a,b) { return a-b; });
 		oKart.conditionOverridesHash = oKart.conditionOverrides.join(",");
 		if (!oKart.conditionOverridesHash)
 			delete oKart.conditionOverridesHash;
@@ -11094,6 +11095,7 @@ function checkItemLap(fSprite, opts) {
 			}
 		}
 		if (isChanged) {
+			conditionOverrides.sort(function(a,b) { return a-b; });
 			var conditionOverridesHash = conditionOverrides.join(",");
 			var nLapId = getCurrentLapId({ tours: tours, demitours: demitours, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash });
 			if (nLapId !== lapId) {
