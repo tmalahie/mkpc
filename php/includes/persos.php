@@ -77,7 +77,7 @@ function handle_upload($file,$perso=null) {
 							if ($w%24 == 0) {
 								if (!$perso) {
 									mysql_query('INSERT INTO `mkchars` SET
-										identifiant="'. $identifiants[0] .'",identifiant2="'. $identifiants[1] .'",identifiant3="'. $identifiants[2] .'",identifiant4="'. $identifiants[3] .'"
+										identifiant="'. $identifiants[0] .'",identifiant2="'. $identifiants[1] .'",identifiant3="'. $identifiants[2] .'",identifiant4="'. $identifiants[3] .'",sprites="'. uniqid('tmp-') .'"
 									');
 									$id = mysql_insert_id();
 								}
