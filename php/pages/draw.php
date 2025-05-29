@@ -30,7 +30,7 @@ if (isset($_GET['i'])) {
 			require_once('../includes/circuitImgUtils.php');
 			$circuitImgSrc = getCircuitImgUrl($circuitImg);
 			$circuitImgPayload = array(
-				'src' => getCircuitImgUrl($circuitImg)
+				'src' => $circuitImgSrc
 			);
 			if (isset($circuitImg->lapOverrides)) {
 				$circuitImgPayload['lapOverrides'] = array(
@@ -306,6 +306,11 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 			</div>
+			<label id="bg-transition-label" class="mode-option-hidden">
+				<input type="checkbox" id="bg-transition" onchange="bgTransitionChange(this.checked)" />
+				<span><?php echo $language ? 'Smooth transitions':'Transition continue'; ?></span>
+				<a href="javascript:showBgTransitionHelp()">[?]</a>
+			</label>
 			<div id="zoom-ctrl">
 				Zoom:<div><img src="images/editor/zoom-less.png" class="fancy-title" onclick="zoomLess()" title="<?php echo $language ? 'Unzoom':'Dézoomer'; ?> (Ctrl+↓)" /><span id="zoom-value">100</span>%<img src="images/editor/zoom-more.png" class="fancy-title" onclick="zoomMore()" title="<?php echo $language ? 'Zoom':'Zoomer'; ?> (Ctrl+↑)" /></div>
 			</div>
@@ -455,17 +460,74 @@ if (isset($_GET['i'])) {
 					<h1 class="lapoverride-more-add"><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
 					<h1 class="lapoverride-more-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
 					<div>
-						<label>
-							<?php echo $language ? 'Create override for:':'Créer le modificateur pour le :'; ?>
-							<select id="lapoverride-laps-list" onchange="handleLapOverrideSelect(this.value)"></select><br />
-						</label>
-						<label id="lapoverride-checkpoints-checker"><input type="checkbox" id="lapoverride-checkpoints-check" onclick="handleCheckpointOverrideCheck(this.checked)" /> <?php
-						echo $language ? 'Activate override in the middle of the lap' : 'Activer le modificateur au milieu du tour';
-						?></label><br />
-						<label id="lapoverride-checkpoints-ctn">
-							<?php echo $language ? 'Checkpoint:' : 'Checkpoint :'; ?>
-							<select id="lapoverride-checkpoints-list"></select>
-						</label>
+						<div id="lapoverride-triggers" data-value="lap">
+							<?php echo $language ? 'Override trigger':'Déclencheur'; ?>:
+							<span class="lapoverride-trigger selected" data-value="lap" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Lap':'Tour' ?></span>
+							<span class="lapoverride-trigger" data-value="zone" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Zone':'Zone' ?></span>
+							<span class="lapoverride-trigger" data-value="time" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Time':'Temps' ?></span>
+						</div>
+						<div class="lapoverride-type-options selected" id="lapoverride-type-options-lap">
+							<label>
+								<?php echo $language ? 'Create override for:':'Créer le modificateur pour le :'; ?>
+								<select id="lapoverride-laps-list" onchange="handleLapOverrideSelect(this.value)"></select><br />
+							</label>
+							<label id="lapoverride-checkpoints-checker"><input type="checkbox" id="lapoverride-checkpoints-check" onclick="handleCheckpointOverrideCheck(this.checked)" /> <?php
+							echo $language ? 'Activate override in the middle of the lap' : 'Activer le modificateur au milieu du tour';
+							?></label><br />
+							<label id="lapoverride-checkpoints-ctn">
+								<?php echo $language ? 'Checkpoint:' : 'Checkpoint :'; ?>
+								<select id="lapoverride-checkpoints-list"></select>
+							</label>
+						</div>
+						<div class="lapoverride-type-options" id="lapoverride-type-options-zone">
+							<input type="hidden" id="lapoverride-zone-data" value="[]" />
+							<input type="hidden" id="lapoverride-zone-meta" />
+							<div class="lapoverride-triggers">
+								<label>
+									<span><?php echo $language ? "Trigger zone":"Zone d'activation"; ?></span>
+									<span><button class="toolbox-button" onclick="openZoneEditor('override_start')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+								</label>
+								<label>
+									<span>
+										<input type="checkbox" id="lapoverride-end-zone-check" onclick="handleEndZoneCheck(this.checked)" />
+										<?php echo $language ? "Untrigger condition...":"Condition de désactivation..."; ?>
+									</span>
+								</label>
+								<label id="lapoverride-triggers-impact-all">
+									<span>
+										<input type="checkbox" id="lapoverride-impact-all-check" onclick="handleImpactAllsCheck(this.checked)" />
+										<?php echo $language ? "Trigger for everyone":"Affecte les autres joueurs"; ?>
+										<a href="javascript:showImpactAllHelp()">[?]</a>
+									</span>
+								</label>
+							</div>
+							<div id="lapoverride-triggers-untrigger">
+								<label>
+									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="zone-exit" /> <?php echo $language ? "When leaving trigger zone" : "À la sortie de la zone d'activation"; ?>
+								</label>
+								<label>
+									<input type="hidden" id="lapoverride-end-zone-data" />
+									<input type="hidden" id="lapoverride-end-zone-meta" />
+									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="end-zone" /> <?php echo $language ? "At untrigger zone" : "À la zone de désactivation"; ?>
+									<span><button class="toolbox-button" id="lapoverride-end-zone-set" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
+								</label>
+							</div>
+						</div>
+						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
+							<div class="lapoverride-triggers">
+								<label>
+									<span><?php echo $language ? "Enable at time":"Activer au temps"; ?></span>
+									<span><input type="text" id="lapoverride-time" size="7" placeholder="1:30" /></button></span>
+								</label>
+								<label>
+									<span>
+										<input type="checkbox" id="lapoverride-end-time-check" onclick="handleEndTimeCheck(this.checked)" />
+										<?php echo $language ? "Disable at time":"Désactiver au temps"; ?>
+									</span>
+									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></button></span>
+								</label>
+							</div>
+						</div>
 						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php
 						echo $language ? 'Disable interactions with other overrides' : 'Désactiver les interactions avec les autres modificateurs';
 						?> <a href="javascript:showInteractionsHelp()">[?]</a></label>

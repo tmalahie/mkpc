@@ -587,6 +587,8 @@ function removeMapMusics() {
 	removeIfExists(mapMusic);
 	foreachLMap(function(lMap) {
 		removeIfExists(lMap.mapMusic);
+	}, {
+		subOverrides: false
 	});
 	removeIfExists(lastMapMusic);
 }
@@ -594,6 +596,8 @@ function listMapMusics() {
 	var res = [mapMusic];
 	foreachLMap(function(lMap) {
 		res.push(lMap.mapMusic);
+	}, {
+		subOverrides: false
 	});
 	res.push(lastMapMusic);
 	return res;
@@ -629,6 +633,8 @@ function clearResources() {
 		oMapImg = lMap.mapImg;
 		if (oMapImg.clear)
 			oMapImg.clear();
+	}, {
+		subOverrides: false
 	});
 }
 function resetEvents() {
@@ -1829,9 +1835,20 @@ function classifyByShape(shapes, callback) {
 	}
 	return res;
 }
+function processZoneMeta(zoneMeta) {
+	if (!zoneMeta) return;
+	if (zoneMeta.minHeight)
+		zoneMeta.minHeight = zoneMeta.minHeight * jumpHeight0;
+	if (zoneMeta.maxHeight)
+		zoneMeta.maxHeight = zoneMeta.maxHeight * jumpHeight0;
+}
 var foreachLMap = function(callback) {
 	// Can be overriden, see lapOverrides
 	callback(oMap,oMap,0);
+}
+var foreachDMap = function(_lMap,pMap,f) {
+	// Can be overriden, see lapOverrides
+	f(pMap);
 }
 var getCurrentLMap = function() {
 	// Can be overriden, see lapOverrides
@@ -1852,18 +1869,69 @@ var itemInteractionsDisabled = function() {
 var getItemCollisionLap = function() {
 	return 0;
 }
+function getSubOverride(lMap, conditionOverrides) {
+	var conditionOverridesHash = conditionOverrides.join(",");
+	return getCurrentLapId({ tours: lMap.lap+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
+}
 function initMap() {
+	oMap.conditionOverrides = [];
 	lMaps = [oMap];
 	pMaps = [oMap];
 	if (oMap.lapOverrides) {
-		var lapOverrides = oMap.lapOverrides;
-		for (var i=0;i<lapOverrides.length;i++) {
-			lMaps.push(Object.assign({}, lMaps[i], lapOverrides[i]));
-			pMaps.push(Object.assign({}, lapOverrides[i]));
+		var mapOverrides = oMap.lapOverrides;
+		var lapOverrides = [];
+		for (var i=0;i<mapOverrides.length;i++) {
+			var lapOverride = mapOverrides[i];
+			if (lapOverride.lap !== undefined) {
+				var prevId = lMaps.length-1;
+				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
+				pMaps.push(Object.assign({}, lapOverride));
+				lapOverrides.push(lapOverride);
+			}
+			else {
+				if (lapOverride.zone) {
+					lapOverride.zone = classifyByShape(lapOverride.zone);
+					processZoneMeta(lapOverride.zoneMeta);
+				}
+				if (lapOverride.endZone) {
+					lapOverride.endZone = classifyByShape(lapOverride.endZone);
+					processZoneMeta(lapOverride.endZoneMeta);
+				}
+				oMap.conditionOverrides.push(lapOverride);
+			}
 		}
-		foreachLMap = function(callback) {
+		oMap.lapOverrides = lapOverrides;
+		var sMaps = [];
+		for (var i=0;i<lMaps.length;i++)
+			sMaps.push(Object.assign({}, lMaps[i]));
+		var subOverridesCallbacks = [];
+		var subDecorOverrides = [];
+		foreachLMap = function(callback, opts) {
 			for (var i=0;i<lMaps.length;i++)
 				callback(lMaps[i],pMaps[i],i);
+			if (!opts) {
+				opts = {
+					subOverrides: true
+				}
+			}
+			if (opts.subOverrides && oMap.conditionOverrides.length)
+				subOverridesCallbacks.push(callback);
+		}
+		foreachDMap = function(lMap,pMap,f) {
+			f(pMap);
+			var lapId = lMaps.indexOf(lMap);
+			for (var k=lapId+1;k<lMaps.length;k++) {
+				var nMap = lMaps[k];
+				if (nMap === lMap) continue;
+				if (nMap.decor !== lMap.decor) continue;
+				f(nMap, pMaps[k]);
+			}
+			if (oMap.conditionOverrides.length) {
+				subDecorOverrides.push({
+					decor: lMap.decor,
+					callback: f
+				});
+			}
 		}
 		getCurrentLMap = function(l) {
 			if (l >= lMaps.length) l = lMaps.length-1;
@@ -1884,47 +1952,117 @@ function initMap() {
 			}
 			return lapOverrides.length;
 		}
+		function initSubOverrides(lapId, conditionOverrides, conditionOverridesHash, warmup) {
+			var prevLap = getCurrentLMap(lapId);
+			if (!prevLap.subOverrides)
+				prevLap.subOverrides = {};
+			var res = prevLap.subOverrides[conditionOverridesHash];
+			if (res !== undefined) return res;
+
+			res = lMaps.length;
+			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides }, sMaps[lapId]);
+			var pMap = {};
+			for (var i=0;i<conditionOverrides.length;i++) {
+				var oId = conditionOverrides[i];
+				var lapOverride = oMap.conditionOverrides[oId];
+				Object.assign(lMap, lapOverride);
+				if (warmup)
+					Object.assign(pMap, lapOverride);
+			}
+			for (var i=0;i<subOverridesCallbacks.length;i++)
+				subOverridesCallbacks[i](lMap,pMap, res);
+			for (var i=0;i<subDecorOverrides.length;i++) {
+				var dOverride = subDecorOverrides[i];
+				if (dOverride.decor === lMap.decor)
+					dOverride.callback(lMap,pMap);
+			}
+			lMaps.push(lMap);
+			pMaps.push(pMap);
+			initDisabledInteractions();
+
+			prevLap.subOverrides[conditionOverridesHash] = res;
+			return res;
+		}
 		getCurrentLapId = function(oKart) {
-			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours)
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours && oKart._lapOverrideCache.coh === oKart.conditionOverridesHash)
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
+			if (oKart.conditionOverridesHash) {
+				lapId = initSubOverrides(lapId, oKart.conditionOverrides,oKart.conditionOverridesHash);
+				return lapId;
+			}
 			if (oKart.sprite) {
 				oKart._lapOverrideCache = {
 					tours: oKart.tours,
 					cp: oKart.demitours,
+					coh: oKart.conditionOverridesHash,
 					lapId: lapId
 				};
 			}
 			return lapId;
 		}
-		var _disabledLapsInteractions = {};
-		for (var i=0;i<pMaps.length;i++) {
-			var disabledLapInteractions = {};
-			var lapInteractions = pMaps[i].lapInteractions;
-			if (lapInteractions) {
-				for (var j=0;j<pMaps.length;j++)
-					disabledLapInteractions[j] = true;
-				delete disabledLapInteractions[i];
-				for (var j=0;j<lapInteractions.length;j++)
-					delete disabledLapInteractions[lapInteractions[j]];
+		function initDisabledInteractions() {
+			var _disabledLapsInteractions = {};
+			var allOverrides = [{}].concat(mapOverrides);
+			var nbLapOverrides = 1 + oMap.lapOverrides.length;
+			function getAllOverridesIds(i) {
+				var lMap = lMaps[i];
+				var lapIds = [];
+				if (lMap.parentOverrideId !== undefined) {
+					lapIds.push(lMap.parentOverrideId);
+					for (var j=0;j<lMap.conditionOverrideIds.length;j++)
+						lapIds.push(nbLapOverrides + lMap.conditionOverrideIds[j]);
+				}
+				else
+					lapIds.push(i);
+				return lapIds;
 			}
-			_disabledLapsInteractions[i] = disabledLapInteractions;
+			for (var i=0;i<lMaps.length;i++) {
+				var disabledLapInteractions = {};
+				var lapIds = getAllOverridesIds(i);
+				for (var k=0;k<lapIds.length;k++) {
+					var lapId = lapIds[k];
+					var lapInteractions = allOverrides[lapId].lapInteractions;
+					if (lapInteractions) {
+						for (var j=0;j<lMaps.length;j++) {
+							var disabled = true;
+							var lapIds2 = getAllOverridesIds(j);
+							for (var l=0;l<lapIds2.length;l++) {
+								var lapId2 = lapIds2[l];
+								if ((lapId === lapId2) || lapInteractions.includes(lapId2)) {
+									disabled = false;
+									break;
+								}
+							}
+							if (disabled)
+								disabledLapInteractions[j] = true;
+						}
+					}
+				}
+				_disabledLapsInteractions[i] = disabledLapInteractions;
+			}
+			for (var i=0;i<pMaps.length;i++) {
+				for (var j in _disabledLapsInteractions[i])
+					_disabledLapsInteractions[j][i] = true;
+			}
+			if (Object.keys(_disabledLapsInteractions).length) {
+				lapInteractionsDisabled = function(lap1,lap2) {
+					return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
+				};
+				itemInteractionsDisabled = function(oBox) {
+					return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
+				}
+				getItemCollisionLap = function(oBox) {
+					if (oBox.ailap >= 0) return oBox.ailap;
+					return oBox.lapId;
+				}
+			}
 		}
-		for (var i=0;i<pMaps.length;i++) {
-			for (var j in _disabledLapsInteractions[i])
-				_disabledLapsInteractions[j][i] = true;
-		}
-		if (Object.keys(_disabledLapsInteractions).length) {
-			lapInteractionsDisabled = function(lap1,lap2) {
-				return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
-			};
-			itemInteractionsDisabled = function(oBox) {
-				return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
-			}
-			getItemCollisionLap = function(oBox) {
-				if (oBox.ailap >= 0) return oBox.ailap;
-				return oBox.lapId;
-			}
+		initDisabledInteractions();
+
+		if (oMap.conditionOverrides.length) {
+			for (var i=0;i<oMap.conditionOverrides.length;i++)
+				initSubOverrides(0, [i],i.toString(), true);
 		}
 	}
 	if (clSelected) {
@@ -1936,77 +2074,106 @@ function initMap() {
 				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
+	oMap.maxCheckpoints = 0;
+	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap,pMap, lapId) {
 		var isMain = (lMap === oMap);
 		lMap.mapImg = oMap.mapImg;
-		if (!isMain && !pMap.img)
-			return;
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
-		var oMapImg;
-		function handleMapLoad() {
-			lMap.mapImg = oMapImg;
-			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
-				if (pMaps[nLapId].img) return;
-				lMaps[nLapId].mapImg = oMapImg;
+		if (lMap.parentOverrideId !== undefined) {
+			var olMap = lMaps.find(function(lMap2) {
+				if (!lMap2.mapImgPromise) return false;
+				var mapSrc2 = isCup ? (complete ? lMap2.img:"mapcreate.php"+ lMap2.map):"images/maps/map"+lMap2.map+"."+lMap2.ext;
+				return mapSrc === mapSrc2;
+			});
+			if (olMap) {
+				lMap.mapImg = olMap.mapImg;
+				olMap.mapImgPromise.then(function(mapImg) {
+					lMap.mapImg = mapImg;
+				});
+				return;
 			}
 		}
-		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
-			if (gameSettings.nogif) {
-				var oGif = new Image();
-				if (isMain) {
-					lMap.mapImg = oGif;
-					oGif.onload = function() {
-						oMapImg = document.createElement("canvas");
-						oMapImg.width = oGif.naturalWidth;
-						oMapImg.height = oGif.naturalHeight;
+		if (!isMain && !pMap.img)
+			return;
+		var oMapImg;
+		function handleMapLoad(callback) {
+			lMap.mapImg = oMapImg;
+			if (lMaps[lapId].parentOverrideId === undefined) {
+				for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
+					if (pMaps[nLapId].img) break;
+					if (lMaps[nLapId].lap === undefined) break;
+					lMaps[nLapId].mapImg = oMapImg;
+				}
+			}
+			callback(oMapImg);
+		}
+		lMap.mapImgPromise = new Promise(function(resolve) {
+			if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
+				if (gameSettings.nogif) {
+					var oGif = new Image();
+					if (isMain) {
+						lMap.mapImg = oGif;
+						oGif.onload = function() {
+							oMapImg = document.createElement("canvas");
+							oMapImg.width = oGif.naturalWidth;
+							oMapImg.height = oGif.naturalHeight;
+							lMap.mapImg = oMapImg;
+							var oMapCtx = oMapImg.getContext("2d");
+							oMapCtx.drawImage(oGif, 0,0);
+							resolve(oMapImg);
+							startGame();
+						};
+					}
+					else {
+						oGif.onload = function() {
+							oMapImg = document.createElement("canvas");
+							oMapImg.width = oGif.naturalWidth;
+							oMapImg.height = oGif.naturalHeight;
+							var oMapCtx = oMapImg.getContext("2d");
+							oMapCtx.drawImage(oGif, 0,0);
+							handleMapLoad(resolve);
+						};
+					}
+					oGif.src = mapSrc;
+				}
+				else {
+					oMapImg = GIF();
+					if (isMain) {
 						lMap.mapImg = oMapImg;
-						var oMapCtx = oMapImg.getContext("2d");
-						oMapCtx.drawImage(oGif, 0,0);
+						oMapImg.onloadone = startGame;
+						oMapImg.onloadall = function() {
+							if (oPlanImg) oPlanImg.src = mapSrc;
+							if (oPlanImg2) oPlanImg2.src = mapSrc;
+						}
+						resolve(oMapImg);
+					}
+					else {
+						oMapImg.onloadone = function() {
+							handleMapLoad(resolve);
+						};
+					}
+					oMapImg.load(mapSrc);
+				}
+			}
+			else {
+				oMapImg = new Image();
+				if (isMain) {
+					lMap.mapImg = oMapImg;
+					oMapImg.onload = function() {
+						resolve(oMapImg);
 						startGame();
 					};
 				}
 				else {
-					oGif.onload = function() {
-						oMapImg = document.createElement("canvas");
-						oMapImg.width = oGif.naturalWidth;
-						oMapImg.height = oGif.naturalHeight;
-						var oMapCtx = oMapImg.getContext("2d");
-						oMapCtx.drawImage(oGif, 0,0);
-						handleMapLoad();
+					oMapImg.onload = function() {
+						handleMapLoad(resolve);
 					};
 				}
-				oGif.src = mapSrc;
+				oMapImg.src = mapSrc;
 			}
-			else {
-				oMapImg = GIF();
-				if (isMain) {
-					lMap.mapImg = oMapImg;
-					oMapImg.onloadone = startGame;
-					oMapImg.onloadall = function() {
-						if (oPlanImg) oPlanImg.src = mapSrc;
-						if (oPlanImg2) oPlanImg2.src = mapSrc;
-					}
-				}
-				else {
-					oMapImg.onloadone = handleMapLoad;
-				}
-				oMapImg.load(mapSrc);
-			}
-		}
-		else {
-			oMapImg = new Image();
-			if (isMain) {
-				lMap.mapImg = oMapImg;
-				oMapImg.onload = startGame;
-			}
-			else {
-				oMapImg.onload = handleMapLoad;
-			}
-			oMapImg.src = mapSrc;
-		}
+		});
 	});
-	oMap.maxCheckpoints = 0;
-	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap) {
 		if (lMap.collision) {
 			var collisionProps = {rectangle:{},polygon:{}};
@@ -3141,7 +3308,22 @@ function startMapMusic(lastlap) {
 	}
 	else {
 		foreachLMap(function(lMap,pMap, i) {
-			if (pMap.music === undefined && pMap.yt === undefined) return;
+			if (pMap.music === undefined && pMap.yt === undefined) {
+				var prevMap;
+				if (lMap.music !== undefined) {
+					prevMap = lMaps.findLast(function(lMap2) {
+						return lMap2.mapMusic && lMap2.music === lMap.music;
+					});
+				}
+				if (lMap.yt !== undefined) {
+					prevMap = lMaps.findLast(function(lMap2) {
+						return lMap2.mapMusic && lMap2.yt === lMap.yt && lMap2.yt_opts === lMap.yt_opts;
+					});
+				}
+				if (prevMap)
+					lMap.mapMusic = prevMap.mapMusic;
+				return;
+			}
 			var opts = pMap.yt_opts || {};
 			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
 			lMap.mapMusic.permanent = 1;
@@ -3165,24 +3347,26 @@ function loadEndingMusic() {
 	endingMusic = startMusic(endingSrc);
 	endingMusic.permanent = 1;
 }
-function updateMapMusic(pMap) {
-	if (!pMap) return;
-	if (!pMap.mapMusic) return;
-	if (pMap.mapMusic === mapMusic) return;
+function updateMapMusic(lMap,nMap) {
+	if (!nMap.mapMusic) return;
+	if (nMap.mapMusic === mapMusic) return;
+	if (nMap.mapMusic === lMap.mapMusic) return;
+	if (!document.body.contains(nMap.mapMusic)) return;
 	var lastMapMusic = mapMusic;
-	mapMusic = pMap.mapMusic;
+	mapMusic = nMap.mapMusic;
 	bufferMusic(mapMusic);
 	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
-	var isLastLap = (pMap.lap === oMap.tours-1);
-	if (isLastLap && !pMap.cp) {
+	var isLastLap = (nMap.lap === oMap.tours-1);
+	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
 		removeIfExists(lastMapMusic);
-		if (pMap.yt)
+		if (nMap.yt)
 			oMap.lastMapSpeed = 1;
 		return;
 	}
 	setTimeout(function() {
-		removeIfExists(lastMapMusic);
-		var fast = isLastLap && !pMap.yt_opts;
+		if (nMap.parentOverrideId === undefined)
+			removeIfExists(lastMapMusic);
+		var fast = isLastLap && !nMap.yt_opts;
 		updateMusic(mapMusic, fast);
 	}, 1000);
 }
@@ -3351,6 +3535,7 @@ function startGame() {
 			sprite : new Sprite(joueur),
 			cpu : false,
 			aipoints : oMap.aipoints[0],
+			conditionOverrides : [],
 
 			tourne : 0,
 			tombe : 0,
@@ -3467,7 +3652,8 @@ function startGame() {
 			lastAItime : 0,
 			aipoints : oMap.aipoints[0],
 			maxspeed : 5.7,
-			maxspeed0: 5.7
+			maxspeed0: 5.7,
+			conditionOverrides: []
 		};
 		if (isOnline) {
 			oEnemy.id = aIDs[i];
@@ -3696,6 +3882,7 @@ function startGame() {
 					aipoints : oMap.aipoints[0],
 					maxspeed : 5.7,
 					maxspeed0 : 5.7,
+					conditionOverrides: [],
 
 					place : 1
 				});
@@ -3768,6 +3955,7 @@ function startGame() {
 						oKart.demitours = getNextCp(oKart);
 					}
 					handleCpChange(aTours,aDemitours, getId);
+					handleConditionalOverrides(aX,aY, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -3935,6 +4123,7 @@ function startGame() {
 				if (decorBehaviors[customDecor.type]) {
 					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
 					decorBehavior.type = type;
+					decorBehavior.ctx = Object.assign({}, decorBehavior.ctx);
 				}
 				(function(decorBehavior) {
 					getCustomDecorData(customDecor, function(res) {
@@ -4038,7 +4227,7 @@ function startGame() {
 			nMap.assets = lMap.assets;
 		});
 		for (var i=0;i<assetKeys.length;i++) {
-			var key = assetKeys[i];
+			let key = assetKeys[i];
 			if (pMap[key]) {
 				function redrawAsset(asset) {
 					var ctx = this.canvas.getContext("2d");
@@ -5552,8 +5741,8 @@ function resetScreen() {
 			fLastZ = iPointZ;
 		}
 	}
-	foreachLMap(function(lMap,pMap) {
-		updateBgLayers(pMap, function(strImages, fixedScale) {
+	foreachLMap(function(lMap) {
+		updateBgLayers({},lMap, function(strImages, fixedScale) {
 			if (lMap === oMap)
 				setupBgLayer(strImages, fixedScale, true);
 			else
@@ -6511,6 +6700,28 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
 				oContainers[i].removeChild(oLayers[i]);
+		},
+		fadeout: function(fadedelay) {
+			var x = 1;
+			var dt = SPF/nbFrames;
+			var that = this;
+			for (var i=0;i<strPlayer.length;i++)
+				oLayers[i].style.zIndex = 1;
+			function removeProgressively() {
+				x -= dt / fadedelay;
+				if (x <= 0) {
+					that.suppr();
+					fadingBgLayers = fadingBgLayers.filter(function(oLayer) {
+						return oLayer !== that;
+					});
+				}
+				else {
+					for (var i=0;i<strPlayer.length;i++)
+						oLayers[i].style.opacity = x;
+					setTimeout(removeProgressively, dt);
+				}
+			}
+			removeProgressively();
 		}
 	}
 }
@@ -7038,7 +7249,24 @@ function clonePreviousScreen(i, oPlayer) {
 }
 function redrawCanvas(i, fCamera, lMap) {
 	var oViewContext = oViewCanvas.getContext("2d");
-	oViewContext.fillStyle = "rgb("+ lMap.bgcolor +")";
+	var oPlayer = fCamera.ref;
+	var bgcolor = lMap.bgcolor;
+	var lapTransitionOpacity, lapTransitionMap;
+	if (oPlayer && oPlayer.lastOverride) {
+		oPlayer.lastOverride.since += SPF / nbFrames;
+		lapTransitionOpacity = 1 - oPlayer.lastOverride.since / 300;
+		if (lapTransitionOpacity > 0) {
+			lapTransitionMap = oPlayer.lastOverride.lMap;
+			if (lapTransitionMap.bgcolor !== bgcolor) {
+				bgcolor = bgcolor.map(function(rgbVal, i) {
+					return Math.round(lapTransitionMap.bgcolor[i] * lapTransitionOpacity + rgbVal * (1 - lapTransitionOpacity));
+				});
+			}
+		}
+		else
+			delete oPlayer.lastOverride;
+	}
+	oViewContext.fillStyle = "rgb("+ bgcolor +")";
 	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
 	oViewContext.save();
@@ -7048,29 +7276,12 @@ function redrawCanvas(i, fCamera, lMap) {
 	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
 
 	var posX = fCamera.x, posY = fCamera.y;
-	var oMapImg = lMap.mapImg;
-	if (oMapImg.image) {
-		oViewContext.drawImage(
-			oMapImg.image,
-			-posX,-posY
-		);
+	drawMapImg(oViewContext, lMap, posX, posY);
+	if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
+		oViewContext.globalAlpha = lapTransitionOpacity;
+		drawMapImg(oViewContext, lapTransitionMap, posX, posY);
+		oViewContext.globalAlpha = 1;
 	}
-	else {
-		oViewContext.drawImage(
-			oMapImg,
-			-posX,-posY
-		);
-	}
-	for (var j=0;j<lMap.assets.length;j++) {
-		var asset = lMap.assets[j];
-		oViewContext.drawImage(
-			asset.canvas,
-			asset.x-posX,asset.y-posY
-		);
-	}
-	if (lMap.sea)
-		lMap.sea.render(oViewContext,[posX,posY],1);
-
 	oViewContext.restore();
 
 	oScreens[i].getContext("2d").imageSmoothingEnabled = iSmooth;
@@ -7097,6 +7308,30 @@ function redrawCanvas(i, fCamera, lMap) {
 		catch (e) {}
 	}
 }
+function drawMapImg(oViewContext, lMap, posX, posY) {
+	var oMapImg = lMap.mapImg;
+	if (oMapImg.image) {
+		oViewContext.drawImage(
+			oMapImg.image,
+			-posX,-posY
+		);
+	}
+	else {
+		oViewContext.drawImage(
+			oMapImg,
+			-posX,-posY
+		);
+	}
+	for (var j=0;j<lMap.assets.length;j++) {
+		var asset = lMap.assets[j];
+		oViewContext.drawImage(
+			asset.canvas,
+			asset.x-posX,asset.y-posY
+		);
+	}
+	if (lMap.sea)
+		lMap.sea.render(oViewContext,[posX,posY],1);
+}
 
 function byteType(key) {
 	return {key:key,type:"byte"};
@@ -7109,6 +7344,45 @@ function floatType(key) {
 }
 function intType(key) {
 	return {key:key,type:"int"};
+}
+function lapIdType(key) {
+	return {
+		key: key,
+		type: "custom",
+		encode: function(value) {
+			if (value < 0)
+				return "F";
+			var lMap = getCurrentLMap(value);
+			return value + (lMap.conditionOverrideIds ? ("A"+lMap.conditionOverrideIds.join("B")):"") + "F";
+		},
+		decode: function(value) {
+			var endPos = value.indexOf("F");
+			var curSize = endPos+1;
+			if (!endPos) {
+				return {
+					data: -1,
+					curSize: curSize
+				}
+			}
+			var lapParts = value.substring(0,endPos).split("A");
+			var lapId = +lapParts[0];
+			if (lapParts.length === 1) {
+				return {
+					data: lapId,
+					curSize: curSize
+				}
+			}
+			else {
+				var lMap = getCurrentLMap(lapId);
+				var conditionOverrides = lapParts[1].split("B").map(function(x) { return +x });
+				lapId = getSubOverride(lMap, conditionOverrides);
+				return {
+					data: lapId,
+					curSize: curSize
+				}
+			}
+		}
+	};
 }
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
@@ -7753,7 +8027,7 @@ var itemBehaviors = {
 					if (!i)
 						tendsToSpeed(fSprite, 12, 0.2);
 					if (isMoving)
-						checkItemLap(fSprite, { aPos: [roundX1, roundX2] });
+						checkItemLap(fSprite, { aPos: [roundX1, roundY1] });
 				}
 				else {
 					fSprite.lives--;
@@ -7860,7 +8134,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt"),intType("target")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt"),intType("target")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
@@ -8108,7 +8382,7 @@ var itemBehaviors = {
 				}
 				collisionItem = fSprite;
 				collisionFloor = null;
-				collisionLap = fSprite.ailap;
+				collisionLap = getItemCollisionLap(fSprite);
 				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
@@ -8136,7 +8410,7 @@ var itemBehaviors = {
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
@@ -8227,6 +8501,10 @@ var itemBehaviors = {
 						fSprite.y -= fMoveY;
 						fSprite.ailap = getCurrentLapId(oKart);
 					}
+					else if (cible == -1) {
+						cible = findFirstRacingPlayer(fSprite);
+						fSprite.target = aKarts[cible].id;
+					}
 				}
 				else {
 					fSprite.z = 0;
@@ -8269,20 +8547,8 @@ var itemBehaviors = {
 					}
 				}
 				checkItemLap(fSprite, { aPos: aPos, fast: true });
-				if (cible == -1) {
-					cible = aKarts.length-1;
-					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
-						for (var k=0;k<aKarts.length;k++) {
-							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team)) {
-									cible = k;
-									cPlace = aKarts.length;
-								}
-								break;
-							}
-						}
-					}
-				}
+				if (cible == -1)
+					cible = findFirstRacingPlayer(fSprite);
 				var oKart = aKarts[cible];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
@@ -10429,6 +10695,8 @@ function initCustomDecorSprites(self, lMap) {
 function updateCustomDecorSprites(decorData, res, sizeRatio) {
 	for (var j=0;j<oPlayers.length;j++) {
 		decorData[2][j].img.src = res.hd;
+		if (decorData[2][j]._initparams === res) continue;
+		decorData[2][j]._initparams = res;
 		if (res.size.nb_sprites)
 			decorData[2][j].nbSprites = res.size.nb_sprites;
 		if (bSelectedMirror && !(res.size.nb_sprites > 1))
@@ -10514,36 +10782,132 @@ function interpolateStateRound(x1,x2,tFrame) {
 var nbFrames = 1;
 var frameHandlers;
 var oSpecCam;
-function handleLapChange(prevLapId,lapId, getId) {
+function handleLapChange(prevLapId,lapId, getId,prevId) {
 	var oKart = aKarts[getId];
 	var lMap = getCurrentLMap(prevLapId);
 	var nMap = getCurrentLMap(lapId);
 	if (lMap.aipoints !== nMap.aipoints)
-		resetAiPoints(oKart);
+		resetAiPoints(oKart, lMap,nMap);
 	refreshUsingItems(oKart, lapId);
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
 	lastStateChange = true;
+	var smoothTransition = oMap.bgtransition && (prevId === getId);
+	if (smoothTransition) {
+		oKart.lastOverride = {
+			lMap: lMap,
+			since: 0
+		};
+	}
 	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
-	updateBgLayers(pMap, function(strImages, fixedScale) {
-		resetBgLayers();
-		setupBgLayer(strImages, fixedScale, false);
-	});
-	if (!onlineSpectatorId && !oKart.cpu && (lapId > prevLapId))
-		updateMapMusic(pMap);
+	if (pMap) {
+		updateBgLayers(lMap,nMap, function(strImages, fixedScale) {
+			if (smoothTransition)
+				fadeBgLayers();
+			else
+				resetBgLayers();
+			setupBgLayer(strImages, fixedScale, false);
+		});
+		if (!onlineSpectatorId && !oKart.cpu && ((lapId > prevLapId) || (nMap.parentOverrideId !== undefined) || (lMap.parentOverrideId !== undefined)))
+			updateMapMusic(lMap,nMap);
+	}
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
-function handleCpChange(prevLap,prevCP, getId) {
+function handleCpChange(prevLap,prevCP, getId,prevId) {
 	if (!oMap.lapOverrides) return collisionLap;
+	if (prevId === undefined)
+		prevId = getId;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var prevKart = aKarts[prevId];
+	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP, conditionOverrides: prevKart.conditionOverrides, conditionOverridesHash: prevKart.conditionOverridesHash });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
-	handleLapChange(prevLapId,lapId, getId);
+	handleLapChange(prevLapId,lapId, getId,prevId);
 	return lapId
+}
+function handleConditionalOverrides(aX,aY, getId) {
+	if (!oMap.conditionOverrides.length) return;
+	var oKart = aKarts[getId];
+	var isChanged = false;
+	var prevLapId;
+	var lMap = getCurrentLMap(getCurrentLapId(oKart));
+	for (var i=0;i<oMap.conditionOverrides.length;i++) {
+		var oOverride = oMap.conditionOverrides[i];
+		if (oKart.conditionOverrides.includes(i)) {
+			if (shouldUntriggerOverride(lMap,oOverride, aX,aY,oKart)) {
+				if (prevLapId === undefined)
+					prevLapId = getCurrentLapId(oKart);
+				var deleteIndex = oKart.conditionOverrides.indexOf(i);
+				oKart.conditionOverrides.splice(deleteIndex, 1);
+				isChanged = true;
+			}
+		}
+		else {
+			if (shouldTriggerOverride(lMap,oOverride, aX,aY,oKart)) {
+				if (prevLapId === undefined)
+					prevLapId = getCurrentLapId(oKart);
+				oKart.conditionOverrides.push(i);
+				isChanged = true;
+			}
+		}
+	}
+	if (isChanged) {
+		oKart.conditionOverrides.sort(function(a,b) { return a-b; });
+		oKart.conditionOverridesHash = oKart.conditionOverrides.join(",");
+		if (!oKart.conditionOverridesHash)
+			delete oKart.conditionOverridesHash;
+		var lapId = getCurrentLapId(oKart);
+		if (prevLapId === lapId) return lapId;
+		handleLapChange(prevLapId,lapId, getId,getId);
+	}
+}
+function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
+	if (oOverride.time) {
+		var gameTime = getActualGameTimeMS();
+		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
+			return true;
+	}
+	else if (oOverride.zone) {
+		if (oOverride.activatedForAll)
+			return true;
+		var inter1 = zoneIntersect(aX,aY,oKart, lMap,oOverride.zone,oOverride.zoneMeta);
+		if (inter1 < Infinity) {
+			if (oOverride.endZone) {
+				var inter2 = zoneIntersect(aX,aY,oKart, lMap,oOverride.endZone,oOverride.endZoneMeta);
+				if (inter2 < Infinity && inter1 <= inter2) return false;
+			}
+			else if (oOverride.endOnExit) {
+				if (!pointInZone(oKart.x,oKart.y, oOverride.zone) || !satisfyZonesMeta(oKart, lMap,oOverride.zoneMeta))
+					return false;
+			}
+			else if (oOverride.impactAll)
+				oOverride.activatedForAll = true;
+			return true;
+		}
+	}
+	return false;
+}
+function shouldUntriggerOverride(lMap,oOverride, aX,aY, oKart) {
+	if (oOverride.endZone) {
+		var inter1 = zoneIntersect(aX,aY,oKart, lMap,oOverride.endZone,oOverride.endZoneMeta);
+		if (inter1 < Infinity) {
+			var inter2 = zoneIntersect(aX,aY,oKart, lMap,oOverride.zone,oOverride.zoneMeta);
+			if (inter2 < Infinity && inter1 <= inter2) return false;
+			return true;
+		}
+	}
+	else if (oOverride.endOnExit) {
+		if (!pointInZone(oKart.x,oKart.y, oOverride.zone) || !satisfyZonesMeta(oKart, lMap,oOverride.zoneMeta))
+			return true;
+	}
+	else if (oOverride.endTime) {
+		if (getActualGameTimeMS() >= oOverride.endTime)
+			return true;
+	}
+	return false;
 }
 function resetRenderState() {
 	lastState = undefined;
@@ -10553,16 +10917,23 @@ function clearPendingFrames() {
 	for (var i=0;i<frameHandlers.length;i++)
 		clearTimeout(frameHandlers[i]);
 }
-function resetAiPoints(oKart) {
+function resetAiPoints(oKart, lMap,nMap) {
 	if (oKart.cpu) {
 		delete oKart.aishortcut;
 		delete oKart.aishortcuts;
-		var lMap = getCurrentLMap(getCurrentLapId(oKart));
-		initAiPoints(lMap, oKart, aKarts.indexOf(oKart));
-		oKart.aipoint = 0;
+		initAiPoints(nMap, oKart, aKarts.indexOf(oKart));
+		if (isConditionalAiOverride(lMap) || isConditionalAiOverride(nMap))
+			delete oKart.aipoint;
+		else
+			oKart.aipoint = 0;
 	}
 	else
 		delete oKart.aipoint;
+}
+function isConditionalAiOverride(lMap) {
+	if (lMap.parentOverrideId === undefined) return false;
+	var lapOverride = getCurrentLMap(lMap.parentOverrideId);
+	return (lapOverride.aipoints !== lMap.aipoints);
 }
 function initAiPoints(lMap, oKart, inc) {
 	var iPt = inc%lMap.airoutesmeta.cpu;
@@ -10609,6 +10980,17 @@ function resetBgLayers() {
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
 	oBgLayers.length = 0;
+	resetPrevLayers();
+}
+var fadingBgLayers = [];
+function fadeBgLayers() {
+	for (var i=0;i<oBgLayers.length;i++)
+		oBgLayers[i].fadeout(300);
+	fadingBgLayers = oBgLayers.slice(0);
+	oBgLayers.length = 0;
+	resetPrevLayers();
+}
+function resetPrevLayers() {
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		var nbPrevFrames = oPrevFrameStates[i].length;
 		for (var j=0;j<nbPrevFrames;j++) {
@@ -10619,41 +11001,43 @@ function resetBgLayers() {
 		}
 	}
 }
-function updateBgLayers(pMap, callback) {
-	if (!pMap) return;
-	if (pMap.custombg) {
-		if (customBgData[pMap.custombg]) {
-			if (customBgData[pMap.custombg].data !== undefined)
-				callback(customBgData[pMap.custombg].data, false);
+function updateBgLayers(lMap,nMap, callback) {
+	if (nMap.custombg) {
+		if (lMap.custombg === nMap.custombg) return;
+		if (customBgData[nMap.custombg]) {
+			if (customBgData[nMap.custombg].data !== undefined)
+				callback(customBgData[nMap.custombg].data, false);
 			else
-				customBgData[pMap.custombg].callbacks.push(callback);
+				customBgData[nMap.custombg].callbacks.push(callback);
 		}
 		else {
-			customBgData[pMap.custombg] = {
+			customBgData[nMap.custombg] = {
 				callbacks: [callback]
 			};
-			xhr("getBgData.php", "id="+pMap.custombg, function(res) {
-				if (customBgData[pMap.custombg].data) return true;
+			xhr("getBgData.php", "id="+nMap.custombg, function(res) {
+				if (customBgData[nMap.custombg].data) return true;
 				if (!res) {
-					delete customBgData[pMap.custombg];
+					delete customBgData[nMap.custombg];
 					return true;
 				}
 				res = JSON.parse(res);
-				customBgData[pMap.custombg].data = res.layers.map(function(layer) {
+				customBgData[nMap.custombg].data = res.layers.map(function(layer) {
 					return layer.path;
 				});
-				var callbacks = customBgData[pMap.custombg].callbacks;
+				var callbacks = customBgData[nMap.custombg].callbacks;
 				for (var i=0;i<callbacks.length;i++)
-					callbacks[i](customBgData[pMap.custombg].data, false);
+					callbacks[i](customBgData[nMap.custombg].data, false);
 				callbacks.length = 0;
 				return true;
 			});
 		}
 	}
-	else if (pMap.fond) {
-		callback(pMap.fond.map(function(layer) {
+	else if (nMap.fond) {
+		if (lMap.fond === nMap.fond) return;
+		if (JSON.stringify(lMap.fond) === JSON.stringify(nMap.fond)) return;
+		callback(nMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
-		}), pMap.fond.length===2);
+		}), nMap.fond.length===2);
 	}
 }
 function setupBgLayer(strImages, fixedScale, isDelay) {
@@ -10676,13 +11060,46 @@ function loadBgLayer(strImages) {
 function checkItemLap(fSprite, opts) {
 	var lapId = (fSprite.ailap >= 0) ? fSprite.ailap : fSprite.lapId;
 	var nextOverride = oMap.lapOverrides && oMap.lapOverrides[lapId];
-	if (!nextOverride) return;
-	var tours = fSprite.ailapt;
-	if (!tours) {
-		var currentOverride = oMap.lapOverrides[lapId-1];
-		tours = currentOverride ? currentOverride.tours : 1;
-	}
+	if (!nextOverride && !oMap.conditionOverrides.length) return;
 	var lMap = getCurrentLMap(lapId);
+	var conditionOverrides = lMap.conditionOverrideIds || [];
+	var tours = fSprite.ailapt, demitours;
+	var parentLapId = lMap.parentOverrideId;
+	if (parentLapId === undefined) parentLapId = lapId;
+	else nextOverride = oMap.lapOverrides[parentLapId];
+	var currentOverride = oMap.lapOverrides[parentLapId-1];
+	if (!tours)
+		tours = currentOverride ? currentOverride.lap : 1;
+	demitours = (currentOverride && currentOverride.cp) || 0;
+	for (var i=0;i<oMap.conditionOverrides.length;i++) {
+		var oOverride = oMap.conditionOverrides[i];
+		var aX = opts.aPos[0], aY = opts.aPos[1];
+		var isChanged = false;
+		if (conditionOverrides.includes(i)) {
+			if (shouldUntriggerOverride(lMap,oOverride, aX,aY,fSprite)) {
+				conditionOverrides = conditionOverrides.filter(function(j) {
+					return j !== i;
+				});
+				isChanged = true;
+			}
+		}
+		else {
+			if (shouldTriggerOverride(lMap,oOverride, aX,aY,fSprite)) {
+				conditionOverrides = conditionOverrides.concat(i);
+				isChanged = true;
+			}
+		}
+		if (isChanged) {
+			conditionOverrides.sort(function(a,b) { return a-b; });
+			var conditionOverridesHash = conditionOverrides.join(",");
+			var nLapId = getCurrentLapId({ tours: tours, demitours: demitours, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash });
+			if (nLapId !== lapId) {
+				setItemLap(lMap, fSprite, nLapId);
+				return;
+			}
+		}
+	}
+	if (!nextOverride) return;
 	var nextCp = getNextCp({ tours: tours });
 	if (!fSprite.ailapc && !(fSprite.aipoint < lMap.checkpoint.length/2))
 		fSprite.ailapc = 1;
@@ -10692,20 +11109,38 @@ function checkItemLap(fSprite, opts) {
 	}
 	var lapCount = tours-1;
 	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
-		incItemLap(lMap, fSprite);
+		incItemLap(lMap,fSprite,nextOverride);
 		return;
 	}
 	if (fSprite.ailap < nextOverride.lap) return;
 	if (!nextOverride.cp) return;
 	if (enteredCheckpoint(lMap.checkpointCoords[nextOverride.cp], fSprite, opts))
-		incItemLap(lMap, fSprite);
+		incItemLap(lMap,fSprite,nextOverride);
 }
-function incItemLap(lMap, fSprite) {
+function incItemLap(lMap,fSprite,nextOverride) {
+	var conditionOverrides = lMap.conditionOverrideIds;
+	if (conditionOverrides) {
+		updateItemLap(lMap,fSprite, function() {
+			return getSubOverride(nextOverride, conditionOverrides);
+		});
+	}
+	else {
+		updateItemLap(lMap,fSprite, function(l) {
+			return l+1;
+		});
+	}
+}
+function setItemLap(lMap, fSprite, val) {
+	updateItemLap(lMap,fSprite, function() {
+		return val;
+	});
+}
+function updateItemLap(lMap, fSprite, callback) {
 	if (fSprite.ailap >= 0)
-		fSprite.ailap++;
+		fSprite.ailap = callback(fSprite.ailap);
 	else {
 		if (fSprite.lapId >= 0)
-			fSprite.lapId++;
+			fSprite.lapId = callback(fSprite.lapId);
 		return;
 	}
 	var nMap = getCurrentLMap(fSprite.ailap);
@@ -10713,7 +11148,10 @@ function incItemLap(lMap, fSprite) {
 	fSprite.ailapc = 0;
 	if (fSprite.aipoint >= 0 && fSprite.aimap >= 0) {
 		fSprite.aimap %= nMap.aipoints.length;
-		fSprite.aipoint = 0;
+		if (isConditionalAiOverride(lMap) || isConditionalAiOverride(nMap))
+			fSprite.aipoint = -1;
+		else
+			fSprite.aipoint = 0;
 		if (!nMap.aipoints.length || !nMap.aipoints[fSprite.aimap].length) fSprite.aipoint = -1;
 	}
 }
@@ -10960,7 +11398,8 @@ function render() {
 			var fCamera = {
 				x: posX,
 				y: posY,
-				rotation: fRotation
+				rotation: fRotation,
+				ref: oPlayer.ref
 			};
 
       		clonePreviousScreen(i, oPlayer);
@@ -11107,12 +11546,6 @@ function render() {
 						});
 					}
 				}
-				else if (!i && lastFrame) {
-					if (fItems.countdown)
-						fItems.countdown--;
-					else
-						fItems.active = true;
-				}
 			}
 
 			if (lMap.coins) {
@@ -11192,6 +11625,8 @@ function render() {
 
 			for (var j=0;j<oBgLayers.length;j++)
 				oBgLayers[j].draw(fRotation, i);
+			for (var j=0;j<fadingBgLayers.length;j++)
+				fadingBgLayers[j].draw(fRotation, i);
 
 			if (oPlanCtn)
 				setPlanPos(frameState, lMap);
@@ -11803,6 +12238,59 @@ function pointInZone(x,y, zones) {
 	}
 	return false;
 }
+function pointCrossZone(iX,iY,iI,iJ, zones) {
+	var nX = iX+iI, nY = iY+iJ;
+	var oRectangles = zones.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(nX,nY, oBox))
+			return true;
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return true;
+	}
+	var oPolygons = zones.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(nX,nY, oPolygons[i]))
+			return true;
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
+			return true;
+	}
+}
+function zoneIntersect(iX,iY,oKart, lMap,zones,zonesMeta) {
+	var res = zoneIntersectAux(iX,iY,oKart.x-iX,oKart.y-iY, zones);
+	if (res < Infinity && !satisfyZonesMeta(oKart, lMap,zonesMeta))
+		return Infinity;
+	return res;
+}
+function zoneIntersectAux(iX,iY,iI,iJ, zones) {
+	var oRectangles = zones.rectangle;
+	var res = Infinity;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(iX,iY, oBox))
+			return 0;
+		res = Math.min(res, rectIntersect(iX,iY, iI,iJ, oBox));
+	}
+	var oPolygons = zones.polygon;
+	var nX = iX+iI, nY = iY+iJ;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(iX,iY, oPolygons[i]))
+			return 0;
+		res = Math.min(res, polygonIntersect(iX,iY, nX,nY, oPolygons[i]));
+	}
+	return res;
+}
+function satisfyZonesMeta(oKart, lMap,zonesMeta) {
+	if (!zonesMeta) return true;
+	var zH = oKart.z0;
+	if (zH == null)
+		zH = getFloorHeight(lMap, oKart.x,oKart.y,oKart.z0||0);
+	if (zH < zonesMeta.minHeight)
+		return false;
+	if (zH >= zonesMeta.maxHeight)
+		return false;
+	return true;
+}
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
 	if ((l > 0) && (l <= 1)) {
@@ -11837,6 +12325,22 @@ function pointCrossRectangle(iX,iY,iI,iJ, oBox) {
 	}
 	return false;
 }
+function rectIntersect(iX,iY,iI,iJ, oBox) {
+	var aPos = [iX,iY], aMove = [iI,iJ];
+	var dir = [(iI>0), (iJ>0)];
+	var res = Infinity;
+	for (var j=0;j<2;j++) {
+		var l = dir[j];
+		if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
+			var dim = 1-j;
+			var m = ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])/aMove[j];
+			var croiseJ = aPos[dim] + m*aMove[dim];
+			if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
+				res = Math.min(res, m);
+		}
+	}
+	return res;
+}
 function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 	for (var j=0;j<oPoints.length;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
@@ -11844,6 +12348,16 @@ function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 			return true;
 	}
 	return false;
+}
+function polygonIntersect(iX,iY,nX,nY, oPoints) {
+	var res = Infinity;
+	for (var j=0;j<oPoints.length;j++) {
+		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
+		var aIntersect = secants(iX,iY,nX,nY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		if (aIntersect)
+			res = Math.min(res, aIntersect[0]);
+	}
+	return res;
 }
 
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
@@ -11910,6 +12424,54 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 		}
 	}
 
+	var zH = getFloorHeight(lMap, iX,iY,iZ0);
+
+	if (iZ0) iZ += iZ0;
+	if (zH) {
+		if (!lMap.collisionProps) return true;
+		if (zH > iZ)
+			iZ = zH;
+		collisionFloor = { z: zH };
+	}
+
+	if (!isCup && (iZ <= jumpHeight0)) {
+		if ((course == "BB") || (lMap.map <= 20)) {
+			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
+		}
+		else {
+			if (nX >= lMap.w || nY >= lMap.h || nX < 0 || nY < 0) return false;
+		}
+	}
+
+	var oRectangles = lMap.collision.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(lMap.collisionProps.rectangle, i,iZ))
+			return false;
+	}
+	var oPolygons = lMap.collision.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(lMap.collisionProps.polygon, i,iZ))
+			return false;
+	}
+	return true;
+}
+
+function getLineHorizontality(iX,iY, nX,nY, lines) {
+	var res = null, minT = 1;
+	for (var i=0;i<lines.length;i++) {
+		var line = lines[i];
+		var cross = secants(iX,iY,nX,nY,line.x1,line.y1,line.x2,line.y2);
+		if (cross && (cross[0] < minT)) {
+			minT = cross[0];
+			res = {
+				"dir" : [line.x2-line.x1,line.y2-line.y1],
+				"t" : minT
+			};
+		}
+	}
+	return res;
+}
+function getFloorHeight(lMap, iX,iY,iZ0) {
 	var zH = 0;
 	var oRectangles = lMap.collision.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
@@ -11935,49 +12497,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 				zH = Math.max(zH, getPointHeight(oPolygon[1][1]));
 		}
 	}
-
-	if (iZ0) iZ += iZ0;
-	if (zH) {
-		if (!lMap.collisionProps) return true;
-		if (zH > iZ)
-			iZ = zH;
-		collisionFloor = { z: zH };
-	}
-
-	if (!isCup && (iZ <= jumpHeight0)) {
-		if ((course == "BB") || (lMap.map <= 20)) {
-			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
-		}
-		else {
-			if (nX >= lMap.w || nY >= lMap.h || nX < 0 || nY < 0) return false;
-		}
-	}
-
-	for (var i=0;i<oRectangles.length;i++) {
-		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(lMap.collisionProps.rectangle, i,iZ))
-			return false;
-	}
-	for (var i=0;i<oPolygons.length;i++) {
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(lMap.collisionProps.polygon, i,iZ))
-			return false;
-	}
-	return true;
-}
-
-function getLineHorizontality(iX,iY, nX,nY, lines) {
-	var res = null, minT = 1;
-	for (var i=0;i<lines.length;i++) {
-		var line = lines[i];
-		var cross = secants(iX,iY,nX,nY,line.x1,line.y1,line.x2,line.y2);
-		if (cross && (cross[0] < minT)) {
-			minT = cross[0];
-			res = {
-				"dir" : [line.x2-line.x1,line.y2-line.y1],
-				"t" : minT
-			};
-		}
-	}
-	return res;
+	return zH;
 }
 function isBreakingItem(decorBehavior) {
 	if (!decorBehavior.damagingItems) return false;
@@ -12390,23 +12910,7 @@ function getOffroadProps(oKart,hpType) {
 function accelere(iX, iY, iI, iJ) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (!lMap.accelerateurs) return false;
-	var nX = iX+iI, nY = iY+iJ;
-	var oRectangles = lMap.accelerateurs.rectangle;
-	for (var i=0;i<oRectangles.length;i++) {
-		var oBox = oRectangles[i];
-		if (pointInRectangle(nX,nY, oBox))
-			return true;
-		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
-			return true;
-	}
-	var oPolygons = lMap.accelerateurs.polygon;
-	for (var i=0;i<oPolygons.length;i++) {
-		if (pointInPolygon(nX,nY, oPolygons[i]))
-			return true;
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
-			return true;
-	}
-	return false;
+	return pointCrossZone(iX,iY, iI,iJ, lMap.accelerateurs);
 }
 
 function flowShift(iX,iY) {
@@ -12743,18 +13247,23 @@ var challengeRules = {
 			});
 			setTimeout(function() {
 				var totalItems = 0;
-				var lapItemsHit = [];
-				for (var lapId=0;lapId<lMaps.length;lapId++) {
-					var pMap = pMaps[lapId];
+				foreachLMap(function(lMap,pMap, lapId) {
+					var lapItemsHit = [];
 					if (pMap.arme) {
-						lapItemsHit = [];
 						lapItemsHit.length = pMap.arme.length;
-						clLocalVars.itemsHit[lapId] = lapItemsHit;
 						totalItems += pMap.arme.length;
 					}
-					else
-						clLocalVars.itemsHit[lapId] = lapItemsHit;
-				}
+					else {
+						var pArme = lMap.arme;
+						for (var i=0;i<lapId;i++) {
+							if (lMaps[i].arme === pArme) {
+								lapItemsHit = clLocalVars.itemsHit[i];
+								break;
+							}
+						}
+					}
+					clLocalVars.itemsHit[lapId] = lapItemsHit;
+				});
 				clLocalVars.totalItems = totalItems;
 			});
 		},
@@ -13492,7 +14001,8 @@ var challengeRules = {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
 			foreachLMap(function(lMap,pMap) {
-				if (!pMap.arme) return;
+				var pArme = pMap.arme;
+				if ((lMap !== oMap) && (lMap.arme === oMap.arme)) return;
 				if (scope.clear_other) {
 					if (lMap !== oMap) {
 						delete pMap.arme;
@@ -13508,6 +14018,7 @@ var challengeRules = {
 					}
 					lMap.arme.length = 0;
 				}
+				if (!pArme) return;
 				for (var i=0;i<scope.value.length;i++) {
 					var oArme = scope.value[i].slice(0);
 					initItemSprite(oArme);
@@ -13551,7 +14062,7 @@ var challengeRules = {
 					}
 					var isAsset = actualType.startsWith("assets/");
 					if (isAsset) {
-						var assetParams, assetKey;
+						let assetParams, assetKey;
 						switch (actualType) {
 							case "assets/pivothand":
 								assetParams = ["hand",[decorData.pos[0],decorData.pos[1],47,8,0.5,0.5],[0,0.5,0,-0.038]];
@@ -13603,7 +14114,8 @@ var challengeRules = {
 		},
 		"preinitSelected": function(scope, ruleVars) {
 			foreachLMap(function(lMap) {
-				if (!lMap.collision) lMap.collision = [];
+				if (lMap.collision) lMap.collision = lMap.collision.slice(0);
+				else lMap.collision = [];
 				if (!lMap.collisionProps) lMap.collisionProps = {};
 				var wallHeight = scope.height || 1000;
 				for (var i=0;i<scope.value.length;i++) {
@@ -13806,19 +14318,10 @@ function countInLMap(callback) {
 	foreachLMap(function(lMap,pMap) {
 		const nb = callback(pMap);
 		if (nb) res += nb;
+	}, {
+		subOverrides: false
 	});
 	return res;
-}
-function foreachDMap(lMap,pMap,f) {
-	f(pMap);
-	var lapId = lMaps.indexOf(lMap);
-	for (var k=lapId+1;k<lMaps.length;k++) {
-		var nMap = lMaps[k];
-		if (nMap === lMap) continue;
-		var qMap = pMaps[k];
-		if (qMap.decor) break;
-		f(nMap, qMap);
-	}
 }
 function isSameDistrib(d1,d2) {
 	if (d1.length !== d2.length)
@@ -15697,6 +16200,17 @@ function getCpRespawn(lastCp, lMap) {
 	}
 	return [lastCp.x,lastCp.y, lastCp.rotation/90];
 }
+function findFirstRacingPlayer(fSprite) {
+	for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
+		for (var k=0;k<aKarts.length;k++) {
+			if (aKarts[k].place == cPlace) {
+				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team))
+					return k;
+			}
+		}
+	}
+	return aKarts.length-1;
+}
 
 function int8ToHexString(arr) {
 	return [].slice.call(arr).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
@@ -15826,7 +16340,10 @@ function resetDatas() {
 				var itemBehavior = itemBehaviors[syncItem.type];
 				for (var j=0;j<itemBehavior.sync.length;j++) {
 					var syncParams = itemBehavior.sync[j];
-					itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
+					if (syncParams.type === "custom")
+						itemData += syncParams.encode(syncItem[syncParams.key]);
+					else
+						itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
 				}
 			}
 			var itemPayload = {
@@ -15944,6 +16461,7 @@ function resetDatas() {
 								updateLapHud(sID);
 							handleCpChange(aTours,aDemitours, j);
 						}
+						handleConditionalOverrides(aX,aY, j);
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
 						if (aReserve !== oKart.reserve) {
@@ -16061,12 +16579,20 @@ function resetDatas() {
 					var itemBehavior = itemBehaviors[uType];
 					for (var j=0;j<itemBehavior.sync.length;j++) {
 						var syncParams = itemBehavior.sync[j];
-						var dl = itemDataLength(syncParams.type);
-						var dc = uData.substr(cur,dl);
-						if (dc.length == dl) {
-							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+						if (syncParams.type === "custom") {
+							var dc = uData.substr(cur);
+							var decoded = syncParams.decode(dc);
+							if (decoded.data !== undefined)
+								uItem[syncParams.key] = decoded.data;
+							cur += decoded.curSize;
 						}
-						cur += dl;
+						else {
+							var dl = itemDataLength(syncParams.type);
+							var dc = uData.substr(cur,dl);
+							if (dc.length == dl)
+								uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+							cur += dl;
+						}
 					}
 					if (toAdd)
 						addNewItem(null,uItem);
@@ -17211,6 +17737,7 @@ function move(getId, triggered) {
 				oKart.figstate = 0;
 				oKart.fell = true;
 				oKart.champi = 0;
+				kartReplaced = true;
 				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
@@ -17288,7 +17815,7 @@ function move(getId, triggered) {
 		else
 			delete oKart.shift;
 	}
-	if (!oKart.cpu && !kartReplaced)
+	if (!oKart.cpu && (!kartReplaced || oKart.tombe))
 		updateSpeedometer(getId, aPosX,aPosY);
 
 	moveUsingItems(oKart, triggered);
@@ -18068,6 +18595,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	if (!kartReplaced)
+		handleConditionalOverrides(aPosX,aPosY, getId);
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
 		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
@@ -18314,6 +18843,8 @@ function handleDecorExplosions(fSprite, callback) {
 				}
 			}
 		}
+	}, {
+		subOverrides: false
 	});
 }
 
@@ -19430,6 +19961,22 @@ function moveItems() {
 			}
 		}
 	}
+	foreachLMap(function(lMap,pMap) {
+		if (pMap.arme) {
+			for (var j=0;j<pMap.arme.length;j++) {
+				var fSprite = pMap.arme[j];
+				var fItems = fSprite[2];
+				if (!fItems.active) {
+					if (fItems.countdown)
+						fItems.countdown--;
+					else
+						fItems.active = true;
+				}
+			}
+		}
+	}, {
+		subOverrides: false
+	});
 }
 function moveDecor() {
 	decorPos = [];
@@ -19557,6 +20104,8 @@ function moveDecor() {
 				}
 			}
 		}
+	}, {
+		subOverrides: false
 	});
 	if (oMap.coins) {
 		for (var i=0;i<oMap.coins.length;i++) {
@@ -19826,7 +20375,7 @@ function runOneFrame() {
 		console.error(e);
 		var errorTs = new Date().getTime();
 		if (errorTs - lastErrorTs > 10000) {
-			o_xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
+			xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
 				return true;
 			});
 			lastErrorTs = errorTs;
@@ -19856,16 +20405,16 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours, prevId = oSpecCam.playerId;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours, prevId = oSpecCam.playerId;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "quit":
 		document.location.reload();

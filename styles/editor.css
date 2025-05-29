@@ -406,6 +406,25 @@ body.theme-dark {
 #button-music-reset:hover {
 	text-decoration: underline;
 }
+.mode-option-hidden {
+	display: none;
+}
+#bg-transition-label.shown {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75em;
+	gap: 0.2em;
+	margin-bottom: 0.5em;
+	padding-bottom: 0.35em;
+	border-bottom: solid 1px #678db4;
+	cursor: default;
+}
+#bg-transition-label a {
+	font-size: 0.9em;
+	position: relative;
+	top: -0.5em;
+}
 #toolbox #decor-selector-more {
 	cursor: pointer;
 	width: 22px;
@@ -1262,7 +1281,7 @@ embed,#ytplayer {
 }
 #lapoverride-more h1 {
 	margin-top: 10px;
-	margin-bottom: 15px;
+	margin-bottom: 5px;
 }
 #lapoverride-more h1.lapoverride-more-add {
 	color: #084;
@@ -1285,6 +1304,56 @@ embed,#ytplayer {
 }
 #lapoverride-less .popup-buttons {
 	margin-bottom: 10px;
+}
+.lapoverride-trigger {
+	margin-bottom: 0.5em;
+	border-radius: 0.5em;
+}
+.lapoverride-trigger {
+	cursor: pointer;
+	display: inline-block;
+	padding: 0.2em 0.5em;
+}
+.lapoverride-trigger:hover {
+	background-color: #ade;
+}
+.lapoverride-trigger.selected {
+	background-color: #28b;
+	color: white;
+}
+.lapoverride-type-options {
+	display: none;
+}
+.lapoverride-type-options.selected {
+	display: block;
+}
+.lapoverride-triggers {
+	width: 225px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.lapoverride-triggers > label {
+	display: flex;
+	align-items: center;
+	margin-top: 0.25em;
+}
+.lapoverride-triggers > label > span:first-of-type {
+	margin-right: 0.5em;
+}
+#lapoverride-type-options-zone .lapoverride-triggers > label {
+	justify-content: center;
+}
+#lapoverride-type-options-time .lapoverride-triggers > label > span:first-of-type {
+	flex: 1;
+	text-align: right;
+}
+#lapoverride-triggers-untrigger {
+	width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+	display: flex;
+	flex-direction: column;
 }
 #lapoverride-copy {
 	display: none;

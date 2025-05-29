@@ -36,6 +36,7 @@ else
 	$circuitUrl = 'mapcreate.php?'.$_SERVER["QUERY_STRING"];
 $type = isset($_GET['type']) ? $_GET['type'] : null;
 $editorSource = isset($_GET['source']) ? $_GET['source'] : null;
+$defaultTheme = isset($_GET['theme']) ? $_GET['theme'] : null;
 $editorContext = array();
 switch ($type) {
 	case 'zones':
@@ -115,7 +116,7 @@ body {
 .zone-editor-input input[type="number"] {
 	width: 50px;
 }
-.zone-editor-input input[type="number"]::placeholder {
+.zone-editor-input input.unicode-placeholder::placeholder {
 	font-size: 1.6em;
 	position: relative;
 	top: 0.16em;
@@ -223,6 +224,9 @@ body {
 .ordered-shape #editor-svg .shape-order {
 	display: block;
 }
+#zone-editor-options > #zone-editor-height-options {
+	display: none;
+}
 #apply {
 	margin-top: 8px;
 }
@@ -313,6 +317,7 @@ var language = <?php echo $language ? 1:0; ?>;
 var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
 var editorContext = <?php echo json_encode($editorContext); ?>;
 var editorSource = <?php echo json_encode($editorSource); ?>;
+var defaultTheme = <?php echo json_encode($defaultTheme); ?>;
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -399,6 +404,15 @@ function validateZone() {
 	var $height = document.getElementById("zone-editor-height");
 	if ($height)
 		meta.height = +$height.value;
+	var $zoneHeightCheck = document.getElementById("zone-editor-height-check");
+	if ($zoneHeightCheck && $zoneHeightCheck.checked) {
+		var $minHeight = document.getElementById("zone-editor-min-height");
+		var $maxHeight = document.getElementById("zone-editor-max-height");
+		if ($minHeight.value !== '')
+			meta.minHeight = +$minHeight.value;
+		if ($maxHeight.value !== '')
+			meta.maxHeight = +$maxHeight.value;
+	}
 	window.opener.storeZoneData(data,meta, editorType,editorSource);
 	window.close();
 };
@@ -436,6 +450,9 @@ function showFloorHelp() {
 }
 function showHeightHelp() {
 	alert(language ? "If specified, the player will be able to jump over the wall from a certain height. See help section of complete track builder for details." : "Si spécifié, le joueur pourra sauter par-dessus le mur à partir d'une certaine hauteur. Voir l'aide de l'éditeur complet pour plus de détails.")
+}
+function showZoneHeightHelp() {
+	alert(language ? "If specified, the zone will only activate if the player is at a certain height. See help section of Walls and Elevators for details." : "Si spécifié, la zone ne sera activée que si le joueur est à une certaine hauteur. Voir l'aide de la section Murs et Élévateurs pour plus de détails.")
 }
 var SVG = "http://www.w3.org/2000/svg";
 document.addEventListener("DOMContentLoaded", function() {
@@ -965,6 +982,16 @@ document.addEventListener("DOMContentLoaded", function() {
 		document.getElementById("zone-editor-floor").checked = true;
 	if (meta.height > 0)
 		document.getElementById("zone-editor-height").value = meta.height;
+	if (meta.minHeight > 0) {
+		document.getElementById("zone-editor-min-height").value = meta.minHeight;
+		document.getElementById("zone-editor-height-check").checked = true;
+		handleZoneHeightCheck(true);
+	}
+	if (meta.maxHeight >= 0) {
+		document.getElementById("zone-editor-max-height").value = meta.maxHeight;
+		document.getElementById("zone-editor-height-check").checked = true;
+		handleZoneHeightCheck(true);
+	}
 	if (meta.extra_decors && (editorType !== "decors")) {
 		var decors = meta.extra_decors;
 		for (var i=decors.length-1;i>=0;i--) {
@@ -975,6 +1002,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			delete oImg.dataset.data;
 		}
 	}
+	if (defaultTheme === 'dark')
+		selectTheme(document.getElementById("zone-editor-theme-dark"), true);
 });
 function showCollabImportPopup(e) {
 	var $collabPopup = document.getElementById("collab-popup");
@@ -1049,6 +1078,13 @@ function feedCustomDecorData(res) {
 	}
 
 	return res;
+}
+function handleZoneHeightCheck(checked) {
+	var $heightOptions = document.getElementById("zone-editor-height-options");
+	if (checked)
+		$heightOptions.style.display = "block";
+	else
+		$heightOptions.style.display = "";
 }
 window.onload = function() {
 	document.getElementById("editor-ctn").style.width = Math.max(200,document.getElementById("editor").scrollWidth) +"px";
@@ -1182,8 +1218,8 @@ window.onload = function() {
 				?>
 			<div id="zone-editor-theme">
 				<span><?php echo $language ? 'Theme:':'Thème :'; ?></span>
-				<input type="button" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
-				<input type="button" style="background-color:black" onclick="selectTheme(this,true)" />
+				<input type="button" id="zone-editor-theme-light" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
+				<input type="button" id="zone-editor-theme-dark" style="background-color:black" onclick="selectTheme(this,true)" />
 			</div>
 				<?php
 			}
@@ -1265,7 +1301,22 @@ window.onload = function() {
 					case 'extra_walls':
 						?>
 						<div class="zone-editor-input">
-							<label><?php echo $language ? 'Wall height (infinite if unspecified):':'Hauteur des murs (infini par defaut) :'; ?> <a class="pretty-link" href="javascript:showHeightHelp()">[?]</a> <input type="number" id="zone-editor-height" placeholder="∞" /></label>
+							<label><?php echo $language ? 'Wall height (infinite if unspecified):':'Hauteur des murs (infini par defaut) :'; ?> <a class="pretty-link" href="javascript:showHeightHelp()">[?]</a> <input type="number" id="zone-editor-height" placeholder="∞" class="unicode-placeholder" /></label>
+						</div>
+						<?php
+						break;
+					case 'override_start':
+					case 'override_end':
+						?>
+						<div class="zone-editor-input">
+							<label>
+								<input type="checkbox" id="zone-editor-height-check" onclick="handleZoneHeightCheck(this.checked)" /> <?php echo $language ? 'Zone height':'Hauteur des zones'; ?>
+							</label>
+							<a class="pretty-link" href="javascript:showZoneHeightHelp()">[?]</a>
+						</div>
+						<div class="zone-editor-input" id="zone-editor-height-options">
+							<label><?php echo $language ? 'Min:':'Min :'; ?> <input type="number" id="zone-editor-min-height" placeholder="0" /></label>
+							<label><?php echo $language ? 'Max:':'Max :'; ?> <input type="number" id="zone-editor-max-height" placeholder="∞" class="unicode-placeholder" /></label>
 						</div>
 						<?php
 						break;

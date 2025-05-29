@@ -43,9 +43,26 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	<?php
 }
 if ($lapId) {
-	echo '"lap":'.$circuitPayload->meta->lap.',';
+	if (isset($circuitPayload->meta->lap))
+		echo '"lap":'.$circuitPayload->meta->lap.',';
 	if (isset($circuitPayload->meta->cp))
 		echo '"cp":'.$circuitPayload->meta->cp.',';
+	if (isset($circuitPayload->meta->time))
+		echo '"time":'.$circuitPayload->meta->time.',';
+	if (isset($circuitPayload->meta->endTime))
+		echo '"endTime":'.$circuitPayload->meta->endTime.',';
+	if (isset($circuitPayload->meta->zone))
+		echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
+	if (isset($circuitPayload->meta->endZone))
+		echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
+	if (isset($circuitPayload->meta->zoneMeta))
+		echo '"zoneMeta":'.json_encode($circuitPayload->meta->zoneMeta).',';
+	if (isset($circuitPayload->meta->endZoneMeta))
+		echo '"endZoneMeta":'.json_encode($circuitPayload->meta->endZoneMeta).',';
+	if (isset($circuitPayload->meta->endOnExit))
+		echo '"endOnExit":'.json_encode($circuitPayload->meta->endOnExit).',';
+	if (isset($circuitPayload->meta->impactAll))
+		echo '"impactAll":'.json_encode($circuitPayload->meta->impactAll).',';
 	if (isset($circuitPayload->meta->interactions))
 		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }
@@ -56,12 +73,15 @@ if (!$lapId && isset($circuit['icon']))
 if (isset($circuitMainData->bgcustom))
 	echo '"custombg":'.$circuitMainData->bgimg.',';
 elseif (isset($circuitMainData->bgimg)) {
+	echo '"custombg":undefined,';
 	echo '"fond":["';
 	include(__DIR__.'/../circuitEnums.php');
 	$getInfos = $bgImgs[$circuitMainData->bgimg];
 	echo implode('","',$getInfos);
 	echo '"],';
 }
+if (!empty($circuitMainData->bgtransition))
+	echo '"bgtransition":1,';
 if (isset($circuitMainData->tours))
 	echo '"tours":'.$circuitMainData->tours.',';
 if (isset($circuitMainData->sections)) {
@@ -179,7 +199,7 @@ if (!empty($circuitPayload->decorparams)) {
 		echo '"decorparams":undefined,';
 }
 if (!empty($circuitPayload->assets)) {
-	$assetTypes = array('pointers', 'flippers', 'bumpers','oils');
+	$assetTypes = array('pointers', 'flippers', 'bumpers', 'oils');
 	foreach ($assetTypes as $assetType) {
 		if (!empty($circuitPayload->assets->{$assetType})) {
 			?>
@@ -189,27 +209,25 @@ if (!empty($circuitPayload->assets)) {
 	}
 }
 echo '"smartjump": 1';
-if (!empty($circuitPayload->cannons)) {
+if (isset($circuitPayload->cannons)) {
 	?>,
 "cannons" : <?php echo json_encode($circuitPayload->cannons);
 }
-if (!empty($circuitPayload->teleports)) {
+if (isset($circuitPayload->teleports)) {
 	?>,
 "teleports" : <?php echo json_encode($circuitPayload->teleports);
 }
-if (!empty($circuitPayload->flows)) {
+if (isset($circuitPayload->flows)) {
 	?>,
 "flows" : <?php echo json_encode($circuitPayload->flows);
 }
-if (!empty($circuitPayload->spinners)) {
+if (isset($circuitPayload->spinners)) {
 	?>,
-"spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
-	<?php
+"spinners" : <?php echo json_encode($circuitPayload->spinners);
 }
-if (!empty($circuitPayload->elevators)) {
+if (isset($circuitPayload->elevators)) {
 	?>,
-"elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
-	<?php
+"elevators" : <?php echo json_encode($circuitPayload->elevators);
 }
 }
 }

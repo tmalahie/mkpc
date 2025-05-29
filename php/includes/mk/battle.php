@@ -2,29 +2,87 @@
 require_once(__DIR__.'/../circuitImgUtils.php');
 $printCircuitData = function($arene) {
 	global $circuitMainData, $circuitPayload;
-	$id = $arene['ID'];
 	$circuitPayload = json_decode(gzuncompress($arene['data']));
 	if (!$circuitPayload)
 		return;
 	$circuitMainData = $circuitPayload->main;
-	$circuitImg = json_decode($arene['img_data']);
 	echo '{';
+	printCircuitPart($arene, 0,$circuitPayload);
+	if (isset($circuitPayload->lapOverrides)) {
+		echo ',"lapOverrides":[';
+		$v = '';
+		$lapKey = 1;
+		foreach ($circuitPayload->lapOverrides as $lapData) {
+			echo $v.'{';
+			printCircuitPart($arene, $lapKey,$lapData);
+			echo '}';
+			$v = ',';
+			$lapKey++;
+		}
+		echo ']';
+	}
+	echo '}';
+};
+if (!function_exists('printCircuitPart')) {
+function printCircuitPart($arene, $lapId,$circuitPayload) {
+	$circuitMainData = $circuitPayload->main;
+	$circuitImg = isset($arene['img_data']) ? json_decode($arene['img_data']) : null;
+	if ($lapId) {
+		if (isset($circuitImg->lapOverrides->$lapId))
+			$circuitImg = getRefCircuitImg($circuitImg->lapOverrides->$lapId, $circuitImg);
+		else
+			$circuitImg = null;
+	}
+	if (!$lapId && isset($arene['ID'])) echo '"map": '.$arene['ID'].',';
+	if ($circuitImg) {
 	?>
-	"map" : <?php echo $id; ?>,
 	"ext" : "<?php echo $circuitImg->ext; ?>",
 	"img" : "<?php echo getCircuitImgUrl($circuitImg); ?>",
-	"bgcolor" : [<?php echo implode(',',$circuitMainData->bgcolor) ?>],
 	"w" : <?php echo $circuitImg->w; ?>,
 	"h" : <?php echo $circuitImg->h; ?>,
-	<?php
-	if (isset($arene['icon']))
+		<?php
+	}
+	if ($lapId) {
+		if (isset($circuitPayload->meta->time))
+			echo '"time":'.$circuitPayload->meta->time.',';
+		if (isset($circuitPayload->meta->endTime))
+			echo '"endTime":'.$circuitPayload->meta->endTime.',';
+		if (isset($circuitPayload->meta->zone))
+			echo '"zone":'.json_encode($circuitPayload->meta->zone).',';
+		if (isset($circuitPayload->meta->endZone))
+			echo '"endZone":'.json_encode($circuitPayload->meta->endZone).',';
+		if (isset($circuitPayload->meta->zoneMeta))
+			echo '"zoneMeta":'.json_encode($circuitPayload->meta->zoneMeta).',';
+		if (isset($circuitPayload->meta->endZoneMeta))
+			echo '"endZoneMeta":'.json_encode($circuitPayload->meta->endZoneMeta).',';
+		if (isset($circuitPayload->meta->endOnExit))
+			echo '"endOnExit":'.json_encode($circuitPayload->meta->endOnExit).',';
+		if (isset($circuitPayload->meta->impactAll))
+			echo '"impactAll":'.json_encode($circuitPayload->meta->impactAll).',';
+		if (isset($circuitPayload->meta->interactions))
+			echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
+	}
+	if (isset($circuitMainData->bgcolor))
+		echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';
+	if (!$lapId && isset($arene['icon']))
 		echo '"icon":'.json_encode($arene['icon']).',';
-	?>
-	"music" : <?php echo $circuitMainData->music; ?>,
-	<?php
-	if (!$circuitMainData->music) {
+	if (isset($circuitMainData->bgcustom))
+		echo '"custombg":'.$circuitMainData->bgimg.',';
+	elseif (isset($circuitMainData->bgimg)) {
+		echo '"custombg":undefined,';
+		echo '"fond":["';
+		include(__DIR__.'/../circuitEnums.php');
+		$getInfos = $bgImgs[$circuitMainData->bgimg];
+		echo implode('","',$getInfos);
+		echo '"],';
+	}
+	if (!empty($circuitMainData->bgtransition))
+		echo '"bgtransition":1,';
+	if (!empty($circuitMainData->music))
+		echo '"music":'.$circuitMainData->music.',';
+	elseif (isset($circuitMainData->youtube)) {
 		?>
-		"yt" : "<?php if (isset($circuitMainData->youtube)) echo addslashes($circuitMainData->youtube); ?>",
+		"yt" : "<?php echo addslashes($circuitMainData->youtube); ?>",
 		<?php
 		if (isset($circuitMainData->youtube_opts)) {
 			?>
@@ -32,18 +90,19 @@ $printCircuitData = function($arene) {
 			<?php
 		}
 	}
-	if (isset($circuitMainData->bgcustom))
-		echo '"custombg":'.$circuitMainData->bgimg.',';
-	else {
-		echo '"fond":["';
-		include(__DIR__.'/../circuitEnums.php');
-		$getInfos = $bgImgs[$circuitMainData->bgimg];
-		echo implode('","',$getInfos);
-		echo '"],';
+	elseif (!$lapId)
+		echo '"music":9,';
+	if (isset($circuitMainData->startposition))
+		echo '"startposition":'.json_encode($circuitMainData->startposition).',';
+	elseif (!$lapId)
+		echo '"startposition":[[-1,-1,0]],';
+	if (isset($circuitPayload->aipoints)) {
+		if ($lapId)
+			$circuitPayload->aipoints = array($circuitPayload->aipoints);
+		echo '"aipoints":'.json_encode($circuitPayload->aipoints).',';
 	}
-	?>
-	"startposition" : <?php echo empty($circuitMainData->startposition) ? '[[-1,-1,0]]':json_encode($circuitMainData->startposition); ?>,
-	"aipoints" : <?php echo json_encode($circuitPayload->aipoints); ?>,
+	if (isset($circuitPayload->collision)) {
+		?>
 	"collision" : <?php
 		foreach ($circuitPayload->collision as &$collisionData) {
 			if (isset($collisionData[3]) && is_numeric($collisionData[3])) {
@@ -51,12 +110,31 @@ $printCircuitData = function($arene) {
 				$collisionData[3]++;
 			}
 		}
+		unset($collisionData);
 		echo json_encode($circuitPayload->collision);
 	?>,
-	<?php if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .','; ?>
-	"horspistes" : <?php echo json_encode($circuitPayload->horspistes); ?>,
-	"trous" : <?php echo json_encode($circuitPayload->trous); ?>,
-	"arme" : <?php echo json_encode($circuitPayload->arme); ?>,
+		<?php
+	if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .',';
+	elseif ($lapId) echo '"collisionProps":undefined,';
+	}
+	if (isset($circuitPayload->horspistes)) {
+		?>
+	"horspistes" : <?php
+		echo json_encode($circuitPayload->horspistes);
+	?>,
+		<?php
+	}
+	if (isset($circuitPayload->trous)) {
+		?>
+	"trous" : <?php
+		echo json_encode($circuitPayload->trous);
+	?>,
+		<?php
+	}
+	if (isset($circuitPayload->arme))
+		echo '"arme":'.json_encode($circuitPayload->arme).',';
+	if (isset($circuitPayload->sauts)) {
+		?>
 	"sauts" : <?php
 		foreach ($circuitPayload->sauts as &$sautsData) {
 			if (count($sautsData) > 3) {
@@ -66,43 +144,53 @@ $printCircuitData = function($arene) {
 					$sautsData[3]++;
 			}
 		}
+		unset($sautsData);
 		echo json_encode($circuitPayload->sauts);
 	?>,
-	"accelerateurs" : <?php echo json_encode($circuitPayload->accelerateurs); ?>,
-	"decor" : <?php echo json_encode($circuitPayload->decor);
+		<?php
+	}
+	if (isset($circuitPayload->accelerateurs))
+		echo '"accelerateurs":'.json_encode($circuitPayload->accelerateurs).',';
+	if (isset($circuitPayload->decor)) {
+		echo '"decor":'.json_encode($circuitPayload->decor).',';
 	if (!empty($circuitPayload->decorparams)) {
-		?>,
-	"decorparams" : <?php echo json_encode($circuitPayload->decorparams);
+		?>
+	"decorparams" : <?php echo json_encode($circuitPayload->decorparams).',';
+		}
+		elseif ($lapId)
+			echo '"decorparams":undefined,';
 	}
 	if (!empty($circuitPayload->assets)) {
 		$assetTypes = array('pointers', 'flippers', 'bumpers', 'oils');
 		foreach ($assetTypes as $assetType) {
 			if (!empty($circuitPayload->assets->{$assetType})) {
-				?>,
-				"<?php echo $assetType; ?>" : <?php echo json_encode($circuitPayload->assets->{$assetType});
+				?>
+				"<?php echo $assetType; ?>" : <?php echo json_encode($circuitPayload->assets->{$assetType}); ?>,
+				<?php
 			}
 		}
 	}
-	if (!empty($circuitPayload->cannons)) {
+	echo '"_":0';
+	if (isset($circuitPayload->cannons)) {
 		?>,
 	"cannons" : <?php echo json_encode($circuitPayload->cannons);
 	}
-	if (!empty($circuitPayload->teleports)) {
+	if (isset($circuitPayload->teleports)) {
 		?>,
 	"teleports" : <?php echo json_encode($circuitPayload->teleports);
 	}
-	if (!empty($circuitPayload->flows)) {
+	if (isset($circuitPayload->flows)) {
 		?>,
 	"flows" : <?php echo json_encode($circuitPayload->flows);
 	}
-	if (!empty($circuitPayload->spinners)) {
+	if (isset($circuitPayload->spinners)) {
 		?>,
 	"spinners" : <?php echo json_encode($circuitPayload->spinners);
 	}
-	if (!empty($circuitPayload->elevators)) {
+	if (isset($circuitPayload->elevators)) {
 		?>,
 	"elevators" : <?php echo json_encode($circuitPayload->elevators);
 	}
-	echo '}';
+}
 }
 ?>
