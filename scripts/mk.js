@@ -8501,6 +8501,10 @@ var itemBehaviors = {
 						fSprite.y -= fMoveY;
 						fSprite.ailap = getCurrentLapId(oKart);
 					}
+					else if (cible == -1) {
+						cible = findFirstRacingPlayer(fSprite);
+						fSprite.target = aKarts[cible].id;
+					}
 				}
 				else {
 					fSprite.z = 0;
@@ -8543,20 +8547,8 @@ var itemBehaviors = {
 					}
 				}
 				checkItemLap(fSprite, { aPos: aPos, fast: true });
-				if (cible == -1) {
-					cible = aKarts.length-1;
-					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
-						for (var k=0;k<aKarts.length;k++) {
-							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team)) {
-									cible = k;
-									cPlace = aKarts.length;
-								}
-								break;
-							}
-						}
-					}
-				}
+				if (cible == -1)
+					cible = findFirstRacingPlayer(fSprite);
 				var oKart = aKarts[cible];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
@@ -11156,7 +11148,10 @@ function updateItemLap(lMap, fSprite, callback) {
 	fSprite.ailapc = 0;
 	if (fSprite.aipoint >= 0 && fSprite.aimap >= 0) {
 		fSprite.aimap %= nMap.aipoints.length;
-		fSprite.aipoint = 0;
+		if (isConditionalAiOverride(lMap) || isConditionalAiOverride(nMap))
+			fSprite.aipoint = -1;
+		else
+			fSprite.aipoint = 0;
 		if (!nMap.aipoints.length || !nMap.aipoints[fSprite.aimap].length) fSprite.aipoint = -1;
 	}
 }
@@ -16204,6 +16199,17 @@ function getCpRespawn(lastCp, lMap) {
 		}
 	}
 	return [lastCp.x,lastCp.y, lastCp.rotation/90];
+}
+function findFirstRacingPlayer(fSprite) {
+	for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
+		for (var k=0;k<aKarts.length;k++) {
+			if (aKarts[k].place == cPlace) {
+				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team))
+					return k;
+			}
+		}
+	}
+	return aKarts.length-1;
 }
 
 function int8ToHexString(arr) {
