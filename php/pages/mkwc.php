@@ -16,7 +16,7 @@ $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = false;
+$isPollClosed = true;
 $tournamentWinner = null;
 switch ($console) {
 case 'mkw':

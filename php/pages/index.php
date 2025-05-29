@@ -306,7 +306,7 @@ $placeholderPath = 'images/pages/pixel.png';
 	<section id="right_section">
 		<?php
 		require_once('../includes/utils-date.php');
-		if ($id) {
+		/*if ($id) {
 			//$today = time();
 			//if (($today > 1607310000) && ($today < 1607914800)) {
 			$getMkwcVotes = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkwcbets WHERE player = ' . $id .' AND console="mkw"'));
@@ -335,7 +335,7 @@ $placeholderPath = 'images/pages/pixel.png';
 				<?php
 				}
 			}
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
