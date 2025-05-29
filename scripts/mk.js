@@ -4123,6 +4123,7 @@ function startGame() {
 				if (decorBehaviors[customDecor.type]) {
 					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
 					decorBehavior.type = type;
+					decorBehavior.ctx = Object.assign({}, decorBehavior.ctx);
 				}
 				(function(decorBehavior) {
 					getCustomDecorData(customDecor, function(res) {
@@ -8381,7 +8382,7 @@ var itemBehaviors = {
 				}
 				collisionItem = fSprite;
 				collisionFloor = null;
-				collisionLap = fSprite.ailap;
+				collisionLap = getItemCollisionLap(fSprite);
 				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
@@ -10702,6 +10703,8 @@ function initCustomDecorSprites(self, lMap) {
 function updateCustomDecorSprites(decorData, res, sizeRatio) {
 	for (var j=0;j<oPlayers.length;j++) {
 		decorData[2][j].img.src = res.hd;
+		if (decorData[2][j]._initparams === res) continue;
+		decorData[2][j]._initparams = res;
 		if (res.size.nb_sprites)
 			decorData[2][j].nbSprites = res.size.nb_sprites;
 		if (bSelectedMirror && !(res.size.nb_sprites > 1))
