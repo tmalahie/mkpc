@@ -12174,6 +12174,8 @@ function dropCurrentItem(oKart) {
 		case "carapacerouge":
 			itemType = "carapace-rouge";
 			break;
+		default:
+			continue;
 		}
 		if (itemType) {
 			for (var i=0;i<itemCount;i++) {
