@@ -3673,7 +3673,7 @@ function assignLapOverrideSettings(lapId) {
 function removeLapOverride() {
 	var $select = document.getElementById("lapoverride-less-list");
 	var lapKey = $select.value;
-	if (selectedLapOverride == lapKey)
+	if ((selectedLapOverride == lapKey) || (selectedLapOverride >= lapOverrides.length-1))
 		selectLapOverride(0);
 	lapOverrides.splice(lapKey,1);
 	applyLapOverrideSelector();
