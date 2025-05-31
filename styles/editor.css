@@ -537,8 +537,6 @@ body.theme-dark {
 }
 #lapoverride-interactions-list {
 	margin-left: 10px;
-	max-height: 90px;
-	overflow: auto;
 }
 #lapoverride-interactions-list label {
 	display: block;
@@ -1327,6 +1325,10 @@ embed,#ytplayer {
 .lapoverride-type-options.selected {
 	display: block;
 }
+#lapoverride-more-options {
+	overflow: auto;
+	max-height: calc(100vh - 100px);
+}
 .lapoverride-triggers {
 	width: 225px;
 	margin-left: auto;
@@ -1351,9 +1353,19 @@ embed,#ytplayer {
 	width: 200px;
     margin-left: auto;
     margin-right: auto;
+	margin-bottom: 0.3em;
     text-align: left;
 	display: flex;
 	flex-direction: column;
+}
+#lapoverride-triggers-impact-all {
+	margin-top: 0.25em;
+}
+#lapoverride-impact-all-check:disabled + * {
+	opacity: 0.5;
+}
+#lapoverride-end-delay {
+	margin-left: 0.2em;
 }
 #lapoverride-copy {
 	display: none;

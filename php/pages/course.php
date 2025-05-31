@@ -399,8 +399,8 @@ if (isset($_GET['i'])) {
 				<div id="lapoverride-more">
 					<h1 class="lapoverride-more-add"><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
 					<h1 class="lapoverride-more-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
-					<div>
-						<div id="lapoverride-triggers" data-value="lap">
+					<div id="lapoverride-more-options">
+						<div id="lapoverride-triggers" data-value="zone">
 							<?php echo $language ? 'Override trigger':'Déclencheur'; ?>:
 							<span class="lapoverride-trigger selected" data-value="zone" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Zone':'Zone' ?></span>
 							<span class="lapoverride-trigger" data-value="time" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Time':'Temps' ?></span>
@@ -419,13 +419,6 @@ if (isset($_GET['i'])) {
 										<?php echo $language ? "Untrigger condition...":"Condition de désactivation..."; ?>
 									</span>
 								</label>
-								<label id="lapoverride-triggers-impact-all">
-									<span>
-										<input type="checkbox" id="lapoverride-impact-all-check" onclick="handleImpactAllsCheck(this.checked)" />
-										<?php echo $language ? "Trigger for everyone":"Affecte les autres joueurs"; ?>
-										<a href="javascript:showImpactAllHelp()">[?]</a>
-									</span>
-								</label>
 							</div>
 							<div id="lapoverride-triggers-untrigger">
 								<label>
@@ -437,20 +430,33 @@ if (isset($_GET['i'])) {
 									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="end-zone" /> <?php echo $language ? "At untrigger zone" : "À la zone de désactivation"; ?>
 									<span><button class="toolbox-button" id="lapoverride-end-zone-set" onclick="openZoneEditor('override_end')"><?php echo $language ? 'Set...':'Définir...'; ?></button></span>
 								</label>
+								<label>
+									<input type="radio" name="lapoverride-zone-untrigger-type" onclick="handleUntriggerTypeSelect(this.value)" value="end-delay" /> <?php echo $language ? "After some time" : "Après un délai"; ?>
+									<span><input type="text" id="lapoverride-end-delay" size="7" placeholder="0:20" /></span>
+								</label>
+							</div>
+							<div id="lapoverride-triggers-impact-all">
+								<label>
+									<span>
+										<input type="checkbox" id="lapoverride-impact-all-check" />
+										<span><?php echo $language ? "Trigger for everyone":"Affecte les autres joueurs"; ?></span>
+										<a href="javascript:showImpactAllHelp()">[?]</a>
+									</span>
+								</label>
 							</div>
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
 							<div class="lapoverride-triggers">
 								<label>
 									<span><?php echo $language ? "Enable at time":"Activer au temps"; ?></span>
-									<span><input type="text" id="lapoverride-time" size="7" placeholder="1:30" /></button></span>
+									<span><input type="text" id="lapoverride-time" size="7" placeholder="1:30" /></span>
 								</label>
 								<label>
 									<span>
 										<input type="checkbox" id="lapoverride-end-time-check" onclick="handleEndTimeCheck(this.checked)" />
 										<?php echo $language ? "Disable at time":"Désactiver au temps"; ?>
 									</span>
-									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></button></span>
+									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></span>
 								</label>
 							</div>
 						</div>

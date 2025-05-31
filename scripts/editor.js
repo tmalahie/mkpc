@@ -3135,7 +3135,7 @@ function renderLapOverrideAdd() {
 	var $overrideEndZoneOptions = document.getElementById("lapoverride-triggers-untrigger");
 	var $overrideEndZoneType = [...document.querySelectorAll('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]')];
 	var $overrideEndZoneTypeSet = document.getElementById("lapoverride-end-zone-set");
-	var $overrideImpactAll = document.getElementById("lapoverride-triggers-impact-all");
+	var $overrideEndDelay = document.getElementById("lapoverride-end-delay");
 	var $overrideImpactAllCheck = document.getElementById("lapoverride-impact-all-check");
 	if (editingLapOverride && editingLapOverride.time !== undefined) {
 		overrideType = "time";
@@ -3146,6 +3146,7 @@ function renderLapOverrideAdd() {
 	if (editingLapOverride && editingLapOverride.endTime !== undefined) {
 		$overrideEndTimeCheck.checked = true;
 		$overrideEndTime.value = formatTimer(editingLapOverride.endTime);
+		$overrideEndTime.disabled = false;
 	}
 	else {
 		$overrideEndTimeCheck.checked = false;
@@ -3166,7 +3167,6 @@ function renderLapOverrideAdd() {
 		$overrideEndZoneCheck.checked = true;
 		$overrideEndZone.value = JSON.stringify(editingLapOverride.endZone);
 		$overrideEndZoneOptions.style.display = "";
-		$overrideImpactAll.style.display = "none";
 		$overrideEndZoneType.find(type => type.value === "end-zone").checked = true;
 		$overrideEndZoneTypeSet.disabled = false;
 	}
@@ -3174,16 +3174,20 @@ function renderLapOverrideAdd() {
 		$overrideEndZoneCheck.checked = true;
 		$overrideEndZone.value = "";
 		$overrideEndZoneOptions.style.display = "";
-		$overrideImpactAll.style.display = "none";
 		$overrideEndZoneType.find(type => type.value === "zone-exit").checked = true;
+		$overrideEndZoneTypeSet.disabled = true;
+	}
+	else if (editingLapOverride && editingLapOverride.endDelay !== undefined) {
+		$overrideEndZoneCheck.checked = true;
+		$overrideEndZone.value = "";
+		$overrideEndZoneOptions.style.display = "";
+		$overrideEndZoneType.find(type => type.value === "end-delay").checked = true;
 		$overrideEndZoneTypeSet.disabled = true;
 	}
 	else {
 		$overrideEndZoneCheck.checked = false;
 		$overrideEndZone.value = "";
 		$overrideEndZoneOptions.style.display = "none";
-		$overrideImpactAll.style.display = "";
-		$overrideImpactAllCheck.checked = !!(editingLapOverride && editingLapOverride.impactAll);
 		$overrideEndZoneType.forEach(type => type.checked = false);
 		$overrideEndZoneTypeSet.disabled = true;
 	}
@@ -3191,6 +3195,16 @@ function renderLapOverrideAdd() {
 		$overrideEndZoneMeta.value = JSON.stringify(editingLapOverride.endZoneMeta);
 	else
 		$overrideEndZoneMeta.value = "";
+	if (editingLapOverride && editingLapOverride.endDelay !== undefined) {
+		$overrideEndDelay.value = formatTimer(editingLapOverride.endDelay);
+		$overrideEndDelay.disabled = false;
+	}
+	else {
+		$overrideEndDelay.value = "";
+		$overrideEndDelay.disabled = true;
+	}
+	$overrideImpactAllCheck.checked = !!(editingLapOverride && editingLapOverride.impactAll);
+	handleImpactAllState();
 	setOverrideTrigger(overrideType);
 	if ($select)
 		handleLapOverrideSelect(+$select.value);
@@ -3285,7 +3299,18 @@ function handleLapInteractionsCheck(checked) {
 }
 function handleEndZoneCheck(checked) {
 	document.getElementById("lapoverride-triggers-untrigger").style.display = checked ? "" : "none";
-	document.getElementById("lapoverride-triggers-impact-all").style.display = checked ? "none" : "";
+	handleImpactAllState();
+}
+function handleImpactAllState() {
+	var checked = document.getElementById("lapoverride-end-zone-check").checked;
+	var endZoneType = checked && getEndZoneCheckedType();
+	var disableImpactAll = endZoneType === "zone-exit" || endZoneType === "end-zone";
+	var $disableAllCheck = document.getElementById("lapoverride-impact-all-check");
+	$disableAllCheck.disabled = disableImpactAll;
+}
+function getEndZoneCheckedType() {
+	var checkedInput = document.querySelector('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]:checked');
+	return checkedInput && checkedInput.value;
 }
 function showImpactAllHelp() {
 	alert(language
@@ -3295,6 +3320,10 @@ function showImpactAllHelp() {
 }
 function handleUntriggerTypeSelect(value) {
 	document.getElementById("lapoverride-end-zone-set").disabled = value !== "end-zone";
+	document.getElementById("lapoverride-end-delay").disabled = value !== "end-delay";
+	handleImpactAllState();
+	if (value === "end-delay")
+		document.getElementById("lapoverride-end-delay").focus();
 }
 function handleEndTimeCheck(checked) {
 	document.getElementById("lapoverride-end-time").disabled = !checked;
@@ -3529,7 +3558,7 @@ function assignLapOverrideOpts(opts) {
 			opts.zoneMeta = JSON.parse(zoneMeta);
 		var endZoneCheck = document.getElementById("lapoverride-end-zone-check").checked;
 		if (endZoneCheck) {
-			var endZoneType = document.querySelector('#lapoverride-triggers-untrigger input[name="lapoverride-zone-untrigger-type"]:checked').value;
+			var endZoneType = getEndZoneCheckedType();
 			switch (endZoneType) {
 			case "zone-exit":
 				opts.endOnExit = true;
@@ -3542,13 +3571,14 @@ function assignLapOverrideOpts(opts) {
 				if (endZoneMeta)
 					opts.endZoneMeta = JSON.parse(endZoneMeta);
 				break;
+			case "end-delay":
+				opts.endDelay = parseTimer(document.getElementById("lapoverride-end-delay").value);
+				break;
 			}
 		}
-		else {
-			var impactAllCheck = document.getElementById("lapoverride-impact-all-check").checked;
-			if (impactAllCheck)
-				opts.impactAll = true;
-		}
+		var $impactAllCheck = document.getElementById("lapoverride-impact-all-check");
+		if ($impactAllCheck.checked && !$impactAllCheck.disabled)
+			opts.impactAll = true;
 		break;
 	case "time":
 		opts.time = parseTimer(document.getElementById("lapoverride-time").value);
@@ -3799,7 +3829,7 @@ function initLapOverride(meta, oldLapOverride) {
 		while (newLapOverride < lapOverrides.length) {
 			var lapOverride = lapOverrides[newLapOverride];
 			if (lapOverride.time > meta.time) break;
-			if (lapOverride.time === meta.time && lapOverride.endTime > (meta.endTime || 0)) break;
+			if (lapOverride.time === meta.time && lapOverride.endTime < (meta.endTime || Infinity)) break;
 			newLapOverride++;
 		}
 	}
@@ -3815,6 +3845,7 @@ function initLapOverride(meta, oldLapOverride) {
 		zoneMeta: meta.zoneMeta,
 		endZoneMeta: meta.endZoneMeta,
 		endOnExit: meta.endOnExit,
+		endDelay: meta.endDelay,
 		impactAll: meta.impactAll,
 		imgData: meta.imgData,
 		modesData: meta.modesData || {}
@@ -4706,7 +4737,7 @@ function saveData() {
 			time: lapOverride.time, endTime: lapOverride.endTime,
 			zone: lapOverride.zone, endZone: lapOverride.endZone,
 			zoneMeta: lapOverride.zoneMeta, endZoneMeta: lapOverride.endZoneMeta,
-			endOnExit: lapOverride.endOnExit, impactAll: lapOverride.impactAll,
+			endOnExit: lapOverride.endOnExit, endDelay: lapOverride.endDelay, impactAll: lapOverride.impactAll,
 			modes: enabledModes
 		};
 		if (!payload.lapOverrides) payload.lapOverrides = [];

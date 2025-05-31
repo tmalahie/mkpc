@@ -10792,7 +10792,7 @@ function handleLapChange(prevLapId,lapId, getId,prevId) {
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
 	lastStateChange = true;
-	var smoothTransition = oMap.bgtransition && (prevId === getId);
+	var smoothTransition = oMap.bgtransition && (prevId === getId) && (!oKart.lastOverride || oKart.lastOverride.since > 135);
 	if (smoothTransition) {
 		oKart.lastOverride = {
 			lMap: lMap,
@@ -10865,7 +10865,7 @@ function handleConditionalOverrides(aX,aY, getId) {
 	}
 }
 function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
-	if (oOverride.time) {
+	if (oOverride.time != null) {
 		var gameTime = getActualGameTimeMS();
 		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
 			return true;
@@ -10883,8 +10883,17 @@ function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
 				if (!pointInZone(oKart.x,oKart.y, oOverride.zone) || !satisfyZonesMeta(oKart, lMap,oOverride.zoneMeta))
 					return false;
 			}
-			else if (oOverride.impactAll)
+			else if (oOverride.impactAll) {
 				oOverride.activatedForAll = true;
+				if (oOverride.endDelay != null)
+					oOverride.endTime = getActualGameTimeMS() + oOverride.endDelay;
+			}
+			else if (oOverride.endDelay != null) {
+				if (oOverride.endTimers)
+					oOverride.endTimers.delete(oKart);
+				else
+					oOverride.endTimers = new Map();
+			}
 			return true;
 		}
 	}
@@ -10903,9 +10912,27 @@ function shouldUntriggerOverride(lMap,oOverride, aX,aY, oKart) {
 		if (!pointInZone(oKart.x,oKart.y, oOverride.zone) || !satisfyZonesMeta(oKart, lMap,oOverride.zoneMeta))
 			return true;
 	}
-	else if (oOverride.endTime) {
-		if (getActualGameTimeMS() >= oOverride.endTime)
+	else if (oOverride.endTime != null) {
+		if (getActualGameTimeMS() >= oOverride.endTime) {
+			delete oOverride.activatedForAll;
 			return true;
+		}
+	}
+	else if (oOverride.endTimers) {
+		if (oOverride.endTimers.has(oKart)) {
+			var endTimer = oOverride.endTimers.get(oKart);
+			return (getActualGameTimeMS() >= endTimer);
+		}
+		else {
+			oOverride.endTimers.set(oKart, getActualGameTimeMS() + oOverride.endDelay);
+			if (oKart.owner >= 0) {
+				var ownerVal = aKarts.find(function(iKart) {
+					return iKart.id === oKart.owner;
+				});
+				if (oOverride.endTimers.has(ownerVal))
+					oOverride.endTimers.set(oKart, oOverride.endTimers.get(ownerVal));
+			}
+		}
 	}
 	return false;
 }

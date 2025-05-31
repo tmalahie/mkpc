@@ -57,6 +57,8 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 			echo '"endZoneMeta":'.json_encode($circuitPayload->meta->endZoneMeta).',';
 		if (isset($circuitPayload->meta->endOnExit))
 			echo '"endOnExit":'.json_encode($circuitPayload->meta->endOnExit).',';
+		if (isset($circuitPayload->meta->endDelay))
+			echo '"endDelay":'.$circuitPayload->meta->endDelay.',';
 		if (isset($circuitPayload->meta->impactAll))
 			echo '"impactAll":'.json_encode($circuitPayload->meta->impactAll).',';
 		if (isset($circuitPayload->meta->interactions))
