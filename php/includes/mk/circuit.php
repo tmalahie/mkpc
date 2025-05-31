@@ -1971,6 +1971,11 @@ $printCircuitData = function($circuit) {
 						$def = false;
 					}
 					break;
+				case 41:
+					if ($circuit["p$i"] == 0 || $circuit["p$i"] == 2)
+						$def = false;
+						echo "[".($x+85).",$y,15,100],";
+					break;
 				}
 				if ($def && $l)
 					echo "[".($x+4).",$y,$l,100],[".($x+96-$l).",$y,$l,100],";
@@ -2013,6 +2018,16 @@ $printCircuitData = function($circuit) {
 					}
 					break;
 				case 41:
+					switch ($circuit["p$i"]) {
+						case 1:
+							$def = false;
+							echo "[$x,".($y+85).",100,15],[$x,".($y+17).",9,12],[$x,".($y+71).",9,12],";
+							break;
+						case 3:
+							$def = false;
+							echo "[$x,".($y+85).",100,15],[".($x+91).",".($y+17).",9,12],[".($x+91).",".($y+71).",9,12],";
+							break;
+					}
 					$l += 2;
 					break;
 				}
