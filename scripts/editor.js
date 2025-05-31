@@ -4671,7 +4671,7 @@ function getImgOverridePayload(imgData) {
 	if (!selectedData) return null;
 	if (selectedData.overrideKey == null) return selectedData;
 	var overrideKey = lapOverrides.indexOf(selectedData.overrideRef);
-	if ((overrideKey === -1) || (lapOverrides[overrideKey].imgData.data && !lapOverrides[overrideKey].imgData.data.url))
+	if ((overrideKey === -1) || !lapOverrides[overrideKey].imgData || (lapOverrides[overrideKey].imgData.data && !lapOverrides[overrideKey].imgData.data.url))
 		return null;
 	return {
 		local: 0,
@@ -4704,6 +4704,24 @@ function handleZoneRescale(zones, callback) {
 	});
 }
 function saveData() {
+	try {
+		_saveData();
+	}
+	catch (e) {
+		console.error(e);
+		fetch("api/logGameCrash.php", {
+			method: "POST",
+			body: new URLSearchParams({
+				'error': e.stack
+			})
+		});
+		alert(language
+			? "A technical error occured while saving data\nThis incident has been reported and we'll work on fixing it.\nSorry for the inconvenience"
+			: "Une erreur technique est survenue lors de la sauvegarde du circuit.\nCet incident a été signalé et nous allons travailler à sa correction.\nDésolé pour le désagrément"
+		);
+	}
+}
+function _saveData() {
 	storeCurrentLapOverride();
 	restoreLapOverride(0);
 	var payload = {main:{theme:document.getElementById("theme-selector").getValue()}};
@@ -4764,7 +4782,11 @@ function saveData() {
 	}
 	for (var lapKey in imgOverrides) {
 		var imgOverride = imgOverrides[lapKey];
-		if (imgOverride && imgOverride.override) {
+		if (!imgOverride) {
+			delete imgOverrides[lapKey];
+			continue;
+		}
+		if (imgOverride.override) {
 			imgOverride.override = lapPayloadIds[imgOverride.override];
 			if (!imgOverride.override)
 				delete imgOverrides[lapKey];
