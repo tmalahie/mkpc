@@ -4764,7 +4764,7 @@ function saveData() {
 	}
 	for (var lapKey in imgOverrides) {
 		var imgOverride = imgOverrides[lapKey];
-		if (imgOverride.override) {
+		if (imgOverride && imgOverride.override) {
 			imgOverride.override = lapPayloadIds[imgOverride.override];
 			if (!imgOverride.override)
 				delete imgOverrides[lapKey];
