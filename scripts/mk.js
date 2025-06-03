@@ -8225,11 +8225,14 @@ var itemBehaviors = {
 						}
 					}
 					else {
-						var fMoveX, fMoveY;
+						var fMoveX, fMoveY, oBox;
 						if (fSprite.aipoint >= 0) {
 							var lMap = getCurrentLMap(fSprite.ailap);
 							var iLocal = lMap.aipoints[fSprite.aimap];
-							var oBox = iLocal[fSprite.aipoint];
+							oBox = iLocal[fSprite.aipoint];
+							if (!oBox) fSprite.aipoint = -1;
+						}
+						if (fSprite.aipoint >= 0) {
 							fMoveX = oBox[0] - fSprite.x;
 							fMoveY = oBox[1] - fSprite.y;
 							var fDist2 = fMoveX*fMoveX + fMoveY*fMoveY;
