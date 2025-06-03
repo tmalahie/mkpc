@@ -120,12 +120,12 @@ if ($clMsg)
             <div class="challenge-order-item-zone" ondragenter="previewDrop(this,event)" ontouchstart="checkUnsupportedDrag()" ondragover="followDrop(event)" ondragleave="unpreviewDrop(this)" ondrop="handleDrop(this)" onclick="handleUnsupportedDrag(this)" data-challenge="<?php echo $challenge['id']; ?>">
                 <div class="challenge-order-item" draggable="true" ondragstart="handleDrag(this)" ondragend="handleUnDrag(this)">
                     <?php
-                    if (isset($challenge['circuit']))
+                    if (isset($challenge['circuit']) && isset($clRace) && $challenge['circuit']['type'] !== $clRace['type'])
                         echo '<strong>'. $challenge['circuit']['name'] .'</strong> - ';
                     if ($challenge['name'])
                         echo htmlspecialchars($challenge['name']);
                     else
-                        echo $challenge['description']['main'];
+                        echo htmlspecialchars($challenge['description']['main']);
                     ?>
                 </div>
             </div>
