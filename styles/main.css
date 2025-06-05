@@ -1178,3 +1178,6 @@ footer a {
 	font-weight: bold;
 	text-decoration: none;
 }
+#final_call_to_action {
+	display: none;
+}

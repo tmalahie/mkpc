@@ -57,3 +57,34 @@ header, nav, main, footer {
 #creations_section, #comments_section, #challenges_section, #top10 {
 	margin-bottom: 15px;
 }
+#final_call_to_action {
+	display: block;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	margin-left: auto;
+	margin-right: auto;
+	padding-top: 0.75em;
+	border-top: solid 1px black;
+	font-size: 1.1em;
+	text-align: center;
+}
+#final_call_to_action a {
+	display: inline-flex;
+	background-color: #F60;
+	color: white;
+	text-decoration: none;
+	border: solid 1px #FB0;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5em 1em;
+	border-radius: 0.5em;
+	gap: 0.5em;
+}
+#final_call_to_action a:hover {
+	background-color: #FB0;
+}
+#final_call_to_action img {
+	height: 20px;
+	position: relative;
+	top: -0.1em;
+}

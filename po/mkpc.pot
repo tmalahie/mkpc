@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 19:04+0200\n"
+"POT-Creation-Date: 2025-06-05 19:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: php/includes/moderate-player.php php/pages/challengesBan.php
+#: php/pages/edit.php php/pages/edittopic.php php/pages/newtopic.php
+#: php/pages/repondre.php
+msgid "Message:"
+msgstr ""
 
 #: php/pages/addNews.php php/pages/admin-logs.php php/pages/admin.php
 #: php/pages/adminPersos.php php/pages/adminReports.php php/pages/forum.php
@@ -745,11 +751,6 @@ msgstr ""
 msgid "See archived reports"
 msgstr ""
 
-#: php/pages/edit.php php/pages/edittopic.php php/pages/newtopic.php
-#: php/pages/repondre.php
-msgid "Message:"
-msgstr ""
-
 #: php/pages/forum.php
 msgid "Auto-ban by IP"
 msgstr ""
@@ -1321,6 +1322,11 @@ msgstr ""
 
 #: php/pages/index.php
 msgid "Learn more"
+msgstr ""
+
+#. if (!$id) {
+#: php/pages/index.php
+msgid "Click here to start playing"
 msgstr ""
 
 #: php/pages/index.php

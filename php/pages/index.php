@@ -1123,6 +1123,18 @@ $placeholderPath = 'images/pages/pixel.png';
 			</div>
 		</div>
 	</section>
+	<?php
+	if (!$id) {
+		?>
+		<div id="final_call_to_action">
+			<a href="mariokart.php">
+				<img src="images/gamepad.png" alt="Play" />
+				<span><?= _("Click here to start playing") ?></span>
+			</a>
+		</div>
+		<?php
+	}
+	?>
 	<div id="gallery" class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="pswp__bg"></div>
 		<div class="pswp__scroll-wrap">

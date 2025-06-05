@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 19:04+0200\n"
+"POT-Creation-Date: 2025-06-05 19:17+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -17,6 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
+
+#: php/includes/moderate-player.php php/pages/challengesBan.php
+#: php/pages/edit.php php/pages/edittopic.php php/pages/newtopic.php
+#: php/pages/repondre.php
+msgid "Message:"
+msgstr "Message :"
 
 #: php/pages/addNews.php php/pages/admin-logs.php php/pages/admin.php
 #: php/pages/adminPersos.php php/pages/adminReports.php php/pages/forum.php
@@ -778,11 +784,6 @@ msgstr "Retour aux signalements en cours"
 msgid "See archived reports"
 msgstr "Voir les signalements archivés"
 
-#: php/pages/edit.php php/pages/edittopic.php php/pages/newtopic.php
-#: php/pages/repondre.php
-msgid "Message:"
-msgstr "Message :"
-
 #: php/pages/forum.php
 msgid "Auto-ban by IP"
 msgstr "Auto-ban par IP"
@@ -1436,6 +1437,11 @@ msgstr "Visiteurs"
 #: php/pages/index.php
 msgid "Learn more"
 msgstr "En savoir plus"
+
+#. if (!$id) {
+#: php/pages/index.php
+msgid "Click here to start playing"
+msgstr "Commencez à jouer ici"
 
 #: php/pages/index.php
 msgid "Loading"
