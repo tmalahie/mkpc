@@ -6627,7 +6627,11 @@ function Sprite(strSprite) {
 			function removeProgressively() {
 				x -= dx;
 				if (x <= 0) {
-					that[0].suppr();
+					try {
+						that[0].suppr();
+					} catch (e) {
+						console.error(e);
+					}
 					return;
 				}
 				for (var i=0;i<strPlayer.length;i++)
