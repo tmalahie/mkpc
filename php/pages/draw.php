@@ -285,6 +285,7 @@ if (isset($_GET['i'])) {
 						<?php echo $language ? 'Background image:':'Arrière-plan :'; ?>
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
+						<a class="mode-option-onoverride" id="button-bgimg-reset" href="javascript:resetBgOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
 					</div>
 					<div>
 						<?php echo $language ? 'Music:':'Musique :'; ?>

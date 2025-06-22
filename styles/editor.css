@@ -399,11 +399,11 @@ body.theme-dark {
 .mode-option-selected:not(.mode-option-override) .mode-option-onoverride {
 	display: none;
 }
-#button-music-reset {
+#button-music-reset, #button-bgimg-reset {
 	color: #912;
 	text-decoration: none;
 }
-#button-music-reset:hover {
+#button-music-reset:hover, #button-bgimg-reset:hover {
 	text-decoration: underline;
 }
 .mode-option-hidden {
@@ -817,6 +817,9 @@ div.hover-toggle:hover {
 }
 #mode-option-options, #mode-option-options button {
 	font-size: 0.8em;
+}
+#mode-option-options #button-bgimg {
+	font-size: 0.9em;
 }
 #mode-option-options > div {
 	margin-top: 0.4em;
