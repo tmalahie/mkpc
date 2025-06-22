@@ -399,11 +399,11 @@ body.theme-dark {
 .mode-option-selected:not(.mode-option-override) .mode-option-onoverride {
 	display: none;
 }
-#button-music-reset, #button-bgimg-reset {
+#button-music-reset, #button-bgimg-reset, #button-bgcolor-reset {
 	color: #912;
 	text-decoration: none;
 }
-#button-music-reset:hover, #button-bgimg-reset:hover {
+#button-music-reset:hover, #button-bgimg-reset:hover, #button-bgcolor-reset:hover {
 	text-decoration: underline;
 }
 .mode-option-hidden {
@@ -1058,6 +1058,12 @@ embed,#ytplayer {
 #button-bgcolor {
 	width: 30px;
 	height: 18px;
+}
+#mode-option-options #button-bgcolor:not(:empty) {
+	width: auto;
+	font-size: 0.7em;
+	position: relative;
+	top: -0.1em;
 }
 .editor-mask .picker_wrapper {
 	position: fixed;

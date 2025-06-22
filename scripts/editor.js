@@ -4170,10 +4170,22 @@ function selectBgSelectorCollab(e) {
 	});
 }
 function applyColorSelector() {
+	var $btnReset = document.getElementById("button-bgcolor-reset");
+	var $btnBgcolor = document.getElementById("button-bgcolor");
 	var editorTool = editorTools[currentMode];
-	var bgColor = editorTool.data.out_color;
-	document.getElementById("button-bgcolor").style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
-	document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+	if (!selectedLapOverride || editorTool.data.out_color_override) {
+		var bgColor = editorTool.data.out_color;
+		$btnBgcolor.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+		$btnBgcolor.innerHTML = "";
+		document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+		if ($btnReset) $btnReset.style.display = "";
+	}
+	else {
+		$btnBgcolor.style.backgroundColor = "";
+		$btnBgcolor.innerHTML = language ? "Override..." : "Modifier...";
+		document.body.style.backgroundColor = "";
+		if ($btnReset) $btnReset.style.display = "none";
+	}
 }
 function showMusicSelector() {
 	var $music = document.getElementById("music-selector");
@@ -4418,6 +4430,14 @@ function resetBgOverride() {
 	editorTool.data.bg_custom = false;
 	applyBgSelector();
 }
+function resetOutColorOverride() {
+	if (!confirm(language ? "Reset out color override?" : "Annuler le changement de couleur de fond pour ce modificateur ?"))
+		return;
+	var editorTool = editorTools[currentMode];
+	editorTool.data.out_color_override = false;
+	editorTool.data.out_color = {r:255,g:255,b:255};
+	applyColorSelector();
+}
 function undoMusic() {
 	hideMusicSelector();
 }
@@ -4529,6 +4549,8 @@ function showColorSelector() {
 			bgColor.r = rgb[0];
 			bgColor.g = rgb[1];
 			bgColor.b = rgb[2];
+			if (selectedLapOverride)
+				editorTool.data.out_color_override = true;
 			$mask.close();
 		},
 		onClose: function() {
@@ -7191,7 +7213,8 @@ var commonTools = {
 						payload.main.youtube_opts = self.data.youtube_opts;
 				}
 			}
-			payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
+			if (!selectedLapOverride || self.data.out_color_override)
+				payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
 		},
 		"restore" : function(self,payload) {
 			self.data.bg_img = payload.main.bgimg;
@@ -7209,7 +7232,13 @@ var commonTools = {
 				self.data.music_override = true;
 			else
 				self.data.music = 1;
-			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+			if (payload.main.bgcolor) {
+				self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+				self.data.out_color_override = true;
+			} else {
+				self.data.out_color = {r:255,g:255,b:255};
+				self.data.out_color_override = false;
+			}
 			if (payload.main.bgtransition)
 				document.getElementById("bg-transition").checked = true;
 		},
@@ -7217,6 +7246,7 @@ var commonTools = {
 			if (!copyFrom) {
 				self.data.music_override = false;
 				self.data.bg_override = false;
+				self.data.out_color_override = false;
 			}
 		},
 		"hasPartialOverride": true

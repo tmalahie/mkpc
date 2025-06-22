@@ -255,7 +255,9 @@ if (isset($_GET['i'])) {
 					</div>
 					<div>
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
-						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button><br />
+						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button>
+						<a class="mode-option-onoverride" id="button-bgcolor-reset" href="javascript:resetOutColorOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
+						<br />
 					</div>
 					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Image:':'Image :'; ?>
