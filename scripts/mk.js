@@ -11067,8 +11067,10 @@ function updateBgLayers(lMap,nMap, callback) {
 		}
 	}
 	else if (nMap.fond) {
-		if (lMap.fond === nMap.fond) return;
-		if (JSON.stringify(lMap.fond) === JSON.stringify(nMap.fond)) return;
+		if (!lMap.custombg) {
+			if (lMap.fond === nMap.fond) return;
+			if (JSON.stringify(lMap.fond) === JSON.stringify(nMap.fond)) return;
+		}
 		callback(nMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
 		}), nMap.fond.length===2);
