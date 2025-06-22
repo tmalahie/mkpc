@@ -7219,7 +7219,7 @@ var commonTools = {
 		"restore" : function(self,payload) {
 			self.data.bg_img = payload.main.bgimg;
 			self.data.bg_custom = payload.main.bgcustom;
-			if (self.data.bg_img || self.data.bg_custom)
+			if (self.data.bg_img!=null || self.data.bg_custom)
 				self.data.bg_override = true;
 			else
 				self.data.bg_override = false;
