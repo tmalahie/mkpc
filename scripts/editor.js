@@ -4205,6 +4205,11 @@ function showMusicSelector() {
 	var mChoices = document.getElementsByClassName("music-selected");
 	while (mChoices.length)
 		mChoices[0].className = "";
+	
+	var $continuousCheckbox = document.getElementById("youtube-continuous");
+	if ($continuousCheckbox)
+		$continuousCheckbox.checked = false;
+	
 	var editorTool = editorTools[currentMode];
 	var editorData = editorTool.data;
 	musicSelected = editorData.music;
@@ -4233,6 +4238,8 @@ function showMusicSelector() {
 			if (youtubeOpts.end != null)
 				document.getElementById("youtube-end").value = timeToStr(youtubeOpts.end);
 			ytSpeed = youtubeOpts.speed;
+			if ($continuousCheckbox && youtubeOpts.continuous)
+				$continuousCheckbox.checked = true;
 			var youtubeOptsLast = youtubeOpts.last;
 			if (youtubeOptsLast) {
 				if (youtubeOptsLast.url != null)
@@ -4269,6 +4276,10 @@ function showMusicSelector() {
 	}
 	initYtSelect(document.getElementById("youtube-speed"), ytSpeed);
 	initYtSelect(document.getElementById("youtube-last-speed"), ytSpeedLast);
+	
+	var $continuousOption = document.getElementById("youtube-continuous-option");
+	if ($continuousOption)
+		$continuousOption.style.display = selectedLapOverride ? "" : "none";
 }
 function addOptionIfNotExist($select, value) {
 	var options = $select.options;
@@ -4397,6 +4408,9 @@ function submitMusic(e) {
 		ytOptions.end = strToTime(document.getElementById("youtube-end").value);
 	if (document.getElementById("youtube-speed").value != 1)
 		ytOptions.speed = +document.getElementById("youtube-speed").value;
+	var $continuousCheckbox = document.getElementById("youtube-continuous");
+	if ($continuousCheckbox && $continuousCheckbox.checked)
+		ytOptions.continuous = true;
 	if (document.getElementById("youtube-last-url").value) {
 		ytOptions.last = {url:document.getElementById("youtube-last-url").value};
 		if (document.getElementById("youtube-last-start").value)
@@ -4523,6 +4537,9 @@ function showBillBallHelp() {
 }
 function showBgTransitionHelp() {
 	alert(language ? "If checked, the map image and background will transition smoothly from the previous to the next one" : "Si coché, les images de la map et de l'arrière-plan changeront progressivement du précédent au suivant");
+}
+function showContinuousTimerHelp() {
+	alert(language ? "If checked, the music will start at the same time point as the previous music, ensuring continuity between overrides" : "Si coché, la musique commencera au même moment que la musique précédente, permettant ainsi une continuité entre les modificateurs");
 }
 function bgTransitionChange(checked) {
 	var editorTool = editorTools[currentMode];
@@ -7231,7 +7248,7 @@ var commonTools = {
 			if (self.data.youtube || self.data.music)
 				self.data.music_override = true;
 			else
-				self.data.music = 1;
+				self.data.music = isBattle ? 9:1;
 			if (payload.main.bgcolor) {
 				self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
 				self.data.out_color_override = true;

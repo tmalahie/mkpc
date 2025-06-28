@@ -612,6 +612,13 @@ if (isset($_GET['i'])) {
 									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select><br />
+								<div id="youtube-continuous-option">
+									<label>
+										<input type="checkbox" name="youtube-continuous" id="youtube-continuous" />
+										<?php echo $language ? 'Resume from previous time' : 'Reprendre au temps précédent'; ?>
+										<a href="javascript:showContinuousTimerHelp()">[?]</a>
+									</label>
+								</div>
 								<input type="hidden" name="youtube-last" id="youtube-last-url" />
 								<input type="hidden" name="youtube-last-start" id="youtube-last-start" />
 								<input type="hidden" name="youtube-last-end" id="youtube-last-end" />

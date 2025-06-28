@@ -80,8 +80,10 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 	}
 	if (!empty($circuitMainData->bgtransition))
 		echo '"bgtransition":1,';
-	if (!empty($circuitMainData->music))
+	if (!empty($circuitMainData->music)) {
 		echo '"music":'.$circuitMainData->music.',';
+		echo '"yt":undefined,';
+	}
 	elseif (isset($circuitMainData->youtube)) {
 		?>
 		"yt" : "<?php echo addslashes($circuitMainData->youtube); ?>",

@@ -1036,8 +1036,8 @@ div.hover-toggle:hover {
 #youtube-advanced-options {
 	display: none;
 }
-#youtube-advanced-options > div {
-	margin-top: 10px;
+#youtube-continuous-option {
+	margin-top: 5px;
 }
 .youtube.youtube-show-advanced #youtube-advanced-options {
 	display: block;

@@ -91,8 +91,10 @@ if (isset($circuitMainData->sections)) {
 "sections" : [<?php echo implode(',',$circuitMainData->sections); ?>],
 	<?php
 }
-if (!empty($circuitMainData->music))
+if (!empty($circuitMainData->music)) {
 	echo '"music":'.$circuitMainData->music.',';
+	echo '"yt":undefined,';
+}
 elseif (isset($circuitMainData->youtube)) {
 	?>
 	"yt" : "<?php echo addslashes($circuitMainData->youtube); ?>",

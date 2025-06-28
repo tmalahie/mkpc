@@ -700,11 +700,12 @@ function fadeInMusic(embed, volume, ratio) {
 	volume /= ratio;
 	if (volume < 1) {
 		setMusicVolume(embed,volume);
-		embed.fadingIn = false;
 		setTimeout(function(){fadeInMusic(embed,volume,ratio)},100);
 	}
-	else
+	else {
+		embed.fadingIn = false;
 		setMusicVolume(embed,1);
+	}
 }
 function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
 	if (embed.fadingIn)
@@ -3012,7 +3013,7 @@ function pauseMusic(elt) {
 	if (oMusicEmbed == elt)
 		oMusicEmbed = undefined;
 }
-function bufferMusic(elt, callback) {
+function bufferMusic(elt, callback, opts) {
 	var isOriginal = isOriginalEmbed(elt);
 	if (isOriginal) {
 		if (callback)
@@ -3021,6 +3022,8 @@ function bufferMusic(elt, callback) {
 	}
 	options = elt.opts || {};
 	var startTime = options.start || 0;
+	if (opts && opts.start)
+		startTime = opts.start;
 	var speed = options.speed;
 	onPlayerReady(elt, function(player) {
 		player.setVolume(0);
@@ -3110,7 +3113,7 @@ function onPlayerReady(elt, onReady) {
 	catch (e) {
 	}
 }
-function updateMusic(elt,fast) {
+function updateMusic(elt,fast,params) {
 	if (elt != oMusicEmbed)
 		removeIfExists(oMusicEmbed);
 	if (document.body.contains(elt)) {
@@ -3119,7 +3122,9 @@ function updateMusic(elt,fast) {
 			if (fast)
 				elt.playbackRate = 1.2;
 			elt.volume = vMusic;
-			elt.currentTime = 0;
+			elt.currentTime = (params && params.start) || 0;
+			if (params && params.callback)
+				params.callback(elt);
 			elt.play();
 		}
 		else {
@@ -3130,8 +3135,12 @@ function updateMusic(elt,fast) {
 				else if (fast)
 					player.setPlaybackRate(1.25);
 				var start = opts.start || 0;
+				if (params && params.start)
+					start = params.start;
 				player.seekTo(start,true);
 				player.setVolume(100*vMusic);
+				if (params && params.callback)
+					params.callback(elt);
 				player.playVideo();
 			});
 		}
@@ -3349,13 +3358,33 @@ function loadEndingMusic() {
 }
 function updateMapMusic(lMap,nMap) {
 	if (!nMap.mapMusic) return;
-	if (nMap.mapMusic === mapMusic) return;
+	if (nMap.mapMusic === mapMusic) {
+		console.log(mapMusic);
+		return;
+	}
 	if (nMap.mapMusic === lMap.mapMusic) return;
 	if (!document.body.contains(nMap.mapMusic)) return;
 	var lastMapMusic = mapMusic;
 	mapMusic = nMap.mapMusic;
-	bufferMusic(mapMusic);
-	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
+	var nextMusicOpts;
+	if ((nMap.yt_opts && nMap.yt_opts.continuous) || (lMap.yt_opts && lMap.yt_opts.continuous)) {
+		var currentProgress = lastMapMusic.yt && lastMapMusic.yt.getCurrentTime ? lastMapMusic.yt.getCurrentTime() : lastMapMusic.currentTime;
+		currentProgress = currentProgress || 0;
+		if (lastMapMusic.opts && lastMapMusic.opts.start)
+			currentProgress -= lastMapMusic.opts.start;
+		var nextProgressStart = (mapMusic.opts && mapMusic.opts.start) || 0;
+		var nextProgressEnd = (mapMusic.opts && mapMusic.opts.end);
+		if (nextProgressEnd == null)
+			nextProgressEnd = mapMusic.yt && mapMusic.yt.getDuration ? mapMusic.yt.getDuration() : mapMusic.duration;
+		var nextProgress = nextProgressStart;
+		currentProgress += 1;
+		nextProgress += currentProgress;
+		if (nextProgress > nextProgressEnd)
+			nextProgress = nextProgressStart + currentProgress % (nextProgressEnd-nextProgressStart);
+		nextMusicOpts = { start: nextProgress };
+	}
+	bufferMusic(mapMusic, undefined, nextMusicOpts);
+	fadeOutMusic(lastMapMusic, 1, nextMusicOpts?0.9:0.8, null,vMusic);
 	var isLastLap = (nMap.lap === oMap.tours-1);
 	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
 		removeIfExists(lastMapMusic);
@@ -3364,10 +3393,19 @@ function updateMapMusic(lMap,nMap) {
 		return;
 	}
 	setTimeout(function() {
-		if (nMap.parentOverrideId === undefined)
+		if (nMap.parentOverrideId === undefined && lMap.parentOverrideId === undefined)
 			removeIfExists(lastMapMusic);
+		else if (lastMapMusic !== mapMusic)
+			pauseMusic(lastMapMusic);
+		else
+			mapMusic.fadingOut = false;
 		var fast = isLastLap && !nMap.yt_opts;
-		updateMusic(mapMusic, fast);
+		if (nextMusicOpts) {
+			nextMusicOpts.callback = function(elt) {
+				fadeInMusic(elt,0.35,0.9);
+			};
+		}
+		updateMusic(mapMusic, fast, nextMusicOpts);
 	}, 1000);
 }
 function loopWithoutGap() {

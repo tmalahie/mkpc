@@ -820,6 +820,13 @@ if (isset($_GET['i'])) {
 									</select><br />
 									<a href="javascript:ytOptions(false)"><?php echo $language ? "Less options":"Moins d'options" ?></a>
 								</div>
+								<div id="youtube-continuous-option">
+									<label>
+										<input type="checkbox" name="youtube-continuous" id="youtube-continuous" />
+										<?php echo $language ? 'Resume from previous time' : 'Reprendre au temps précédent'; ?>
+										<a href="javascript:showContinuousTimerHelp()">[?]</a>
+									</label>
+								</div>
 							</div>
 						</div>
 					</td>
