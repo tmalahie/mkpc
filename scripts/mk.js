@@ -7628,7 +7628,7 @@ var itemBehaviors = {
 			1, // 6: scale up, move, damage (boom 3)
 			1, // 7: move
 			3, // 8: disappear
-			15 // 9: wait to prevent early removal (should fix the effectless pow glitch)
+			15*3 // 9: wait to prevent early removal (should fix the effectless pow glitch)
 		],
 		onlineResync: false,
 		move: function(fSprite) {
