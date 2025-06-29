@@ -570,10 +570,8 @@ function removeIfExists(elt) {
 	if (!elt)
 		return;
 	if (elt.yt) {
-		if (elt.yt.destroy) {
-			elt.yt.isDetroyed = true;
+		if (elt.yt.destroy)
 			elt.yt.destroy();
-		}
 		delete elt.yt;
 		delete elt.tasks;
 		delete elt.opts;
@@ -591,6 +589,7 @@ function removeMapMusics() {
 		subOverrides: false
 	});
 	removeIfExists(lastMapMusic);
+	removeIfExists(firstMapMusic);
 }
 function listMapMusics() {
 	var res = [mapMusic];
@@ -3013,7 +3012,8 @@ function pauseMusic(elt) {
 	if (oMusicEmbed == elt)
 		oMusicEmbed = undefined;
 }
-function bufferMusic(elt, callback, opts) {
+function bufferMusic(elt, opts) {
+	var callback = opts && opts.callback;
 	var isOriginal = isOriginalEmbed(elt);
 	if (isOriginal) {
 		if (callback)
@@ -3039,6 +3039,23 @@ function bufferMusic(elt, callback, opts) {
 			if (callback)
 				callback();
 		}, 1000);
+	});
+}
+var pendingMusicBuffers = [], currentlyBufferingMusic = false;
+function bufferMusicQueue(elt) {
+	if (currentlyBufferingMusic) {
+		pendingMusicBuffers.push(elt);
+		return;
+	}
+	currentlyBufferingMusic = true;
+	bufferMusic(elt, {
+		callback: function() {
+			currentlyBufferingMusic = false;
+			if (pendingMusicBuffers.length) {
+				var pendingMusicElt = pendingMusicBuffers.shift();
+				bufferMusicQueue(pendingMusicElt);
+			}
+		}
 	});
 }
 function stopMusic(elt) {
@@ -3114,8 +3131,6 @@ function onPlayerReady(elt, onReady) {
 	}
 }
 function updateMusic(elt,fast,params) {
-	if (elt != oMusicEmbed)
-		removeIfExists(oMusicEmbed);
 	if (document.body.contains(elt)) {
 		var isOriginal = isOriginalEmbed(elt);
 		if (isOriginal) {
@@ -3268,7 +3283,7 @@ function isOriginalMusic(src) {
 function isOriginalEmbed(elt) {
 	return (elt.tagName.toLowerCase() == "audio");
 }
-var mapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, carEngine2, carEngine3, carDrift, carSpark;
+var mapMusic, firstMapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, carEngine2, carEngine3, carDrift, carSpark;
 var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
@@ -3308,10 +3323,8 @@ function loadMapMusic() {
 }
 function startMapMusic(lastlap) {
 	if (lastlap) {
-		if (lastMapMusic && (mapMusic !== lastMapMusic)) {
-			removeIfExists(mapMusic);
+		if (lastMapMusic && (mapMusic !== lastMapMusic))
 			mapMusic = lastMapMusic;
-		}
 		var fast = (mapMusic!==lastMapMusic) && !oMap.lastMapSpeed;
 		updateMusic(mapMusic, fast);
 	}
@@ -3336,10 +3349,7 @@ function startMapMusic(lastlap) {
 			var opts = pMap.yt_opts || {};
 			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
 			lMap.mapMusic.permanent = 1;
-			bufferMusic(lMap.mapMusic, function() {
-				if (endingMusic && pMap.music)
-					bufferMusic(endingMusic);
-			});
+			bufferMusicQueue(lMap.mapMusic);
 			pMap.mapMusic = lMap.mapMusic;
 			if (!i) {
 				mapMusic = lMap.mapMusic;
@@ -3355,13 +3365,11 @@ function loadEndingMusic() {
 	var endingSrc = getEndingSrc(strPlayer[0]);
 	endingMusic = startMusic(endingSrc);
 	endingMusic.permanent = 1;
+	bufferMusicQueue(endingMusic);
 }
 function updateMapMusic(lMap,nMap) {
 	if (!nMap.mapMusic) return;
-	if (nMap.mapMusic === mapMusic) {
-		console.log(mapMusic);
-		return;
-	}
+	if (nMap.mapMusic === mapMusic) return;
 	if (nMap.mapMusic === lMap.mapMusic) return;
 	if (!document.body.contains(nMap.mapMusic)) return;
 	var lastMapMusic = mapMusic;
@@ -3383,27 +3391,27 @@ function updateMapMusic(lMap,nMap) {
 			nextProgress = nextProgressStart + currentProgress % (nextProgressEnd-nextProgressStart);
 		nextMusicOpts = { start: nextProgress };
 	}
-	bufferMusic(mapMusic, undefined, nextMusicOpts);
+	if (!mapMusic.yt)
+		bufferMusic(mapMusic, nextMusicOpts);
 	fadeOutMusic(lastMapMusic, 1, nextMusicOpts?0.9:0.8, null,vMusic);
 	var isLastLap = (nMap.lap === oMap.tours-1);
 	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
-		removeIfExists(lastMapMusic);
 		if (nMap.yt)
 			oMap.lastMapSpeed = 1;
 		return;
 	}
 	setTimeout(function() {
-		if (nMap.parentOverrideId === undefined && lMap.parentOverrideId === undefined)
-			removeIfExists(lastMapMusic);
-		else if (lastMapMusic !== mapMusic)
+		if (lastMapMusic !== mapMusic)
 			pauseMusic(lastMapMusic);
 		else
 			mapMusic.fadingOut = false;
 		var fast = isLastLap && !nMap.yt_opts;
 		if (nextMusicOpts) {
-			nextMusicOpts.callback = function(elt) {
-				fadeInMusic(elt,0.35,0.9);
-			};
+			nextMusicOpts = Object.assign({
+				callback: function(elt) {
+					fadeInMusic(elt,0.35,0.9);
+				}
+			}, nextMusicOpts);
 		}
 		updateMusic(mapMusic, fast, nextMusicOpts);
 	}, 1000);
@@ -3461,10 +3469,8 @@ function updateEngineSound(elt) {
 	}
 }
 function startEndMusic() {
-	if (bMusic) {
-		removeMenuMusic(true);
-		removeMapMusics();
-	}
+	if (bMusic && mapMusic)
+		pauseMusic(mapMusic);
 	if (iSfx)
 		removeSoundEffects();
 	if (bMusic) {
@@ -18194,10 +18200,12 @@ function move(getId, triggered) {
 									}
 								}, 2700);
 								if (lastMapMusic) {
-									if (mapMusic !== lastMapMusic) {
-										removeIfExists(mapMusic);
-										mapMusic = lastMapMusic;
-									}
+									firstMapMusic = mapMusic;
+									mapMusic = lastMapMusic;
+									foreachLMap(function(lMap) {
+										if (lMap.mapMusic === firstMapMusic)
+											lMap.mapMusic = lastMapMusic;
+									});
 									bufferMusic(lastMapMusic);
 								}
 							}
