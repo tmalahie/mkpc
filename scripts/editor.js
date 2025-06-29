@@ -3403,15 +3403,15 @@ function handleLapCopySelect() {
 	document.getElementById("lapoverride-copy").classList.remove("lapoverride-copy-invalid");
 
 	var enabledComponents = [];
-	if (to) {
+	var overrideFrom = lapOverrides[from];
+	var overrideTo = lapOverrides[to];
+	if (to && overrideFrom.imgData) {
 		enabledComponents.push({
 			key: 'image',
 			label: language ? 'Image':'Image'
 		});
 	}
 	
-	var overrideFrom = lapOverrides[from];
-	var overrideTo = lapOverrides[to];
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 
