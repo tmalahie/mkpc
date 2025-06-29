@@ -591,6 +591,22 @@ function removeMapMusics() {
 	removeIfExists(lastMapMusic);
 	removeIfExists(firstMapMusic);
 }
+function stopMapMusics() {
+	stopIfExists(mapMusic);
+	foreachLMap(function(lMap) {
+		stopIfExists(lMap.mapMusic);
+	}, {
+		subOverrides: false
+	});
+	stopIfExists(lastMapMusic);
+	stopIfExists(firstMapMusic);
+}
+function stopIfExists(elt) {
+	if (elt) {
+		pauseMusic(elt);
+		muteSound(elt);
+	}
+}
 function listMapMusics() {
 	var res = [mapMusic];
 	foreachLMap(function(lMap) {
@@ -3020,7 +3036,7 @@ function bufferMusic(elt, opts) {
 			setTimeout(callback, 1);
 		return;
 	}
-	options = elt.opts || {};
+	var options = elt.opts || {};
 	var startTime = options.start || 0;
 	if (opts && opts.start)
 		startTime = opts.start;
@@ -3375,7 +3391,7 @@ function updateMapMusic(lMap,nMap) {
 	var lastMapMusic = mapMusic;
 	mapMusic = nMap.mapMusic;
 	var nextMusicOpts;
-	if ((nMap.yt_opts && nMap.yt_opts.continuous) || (lMap.yt_opts && lMap.yt_opts.continuous)) {
+	if ((nMap.yt_opts && nMap.yt_opts.continuous) || (lMap.yt_opts && lMap.yt_opts.continuous && nMap.yt === oMap.yt && nMap.yt_opts === oMap.yt_opts && nMap.music === oMap.music)) {
 		var currentProgress = lastMapMusic.yt && lastMapMusic.yt.getCurrentTime ? lastMapMusic.yt.getCurrentTime() : lastMapMusic.currentTime;
 		currentProgress = currentProgress || 0;
 		if (lastMapMusic.opts && lastMapMusic.opts.start)
@@ -3390,9 +3406,11 @@ function updateMapMusic(lMap,nMap) {
 		if (nextProgress > nextProgressEnd)
 			nextProgress = nextProgressStart + currentProgress % (nextProgressEnd-nextProgressStart);
 		nextMusicOpts = { start: nextProgress };
+		if (mapMusic.yt && mapMusic.yt.seekTo)
+			mapMusic.yt.seekTo(nextProgress,true);
+		else if (mapMusic.currentTime != null)
+			mapMusic.currentTime = nextProgress;
 	}
-	if (!mapMusic.yt)
-		bufferMusic(mapMusic, nextMusicOpts);
 	fadeOutMusic(lastMapMusic, 1, nextMusicOpts?0.9:0.8, null,vMusic);
 	var isLastLap = (nMap.lap === oMap.tours-1);
 	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
@@ -3407,11 +3425,9 @@ function updateMapMusic(lMap,nMap) {
 			mapMusic.fadingOut = false;
 		var fast = isLastLap && !nMap.yt_opts;
 		if (nextMusicOpts) {
-			nextMusicOpts = Object.assign({
-				callback: function(elt) {
-					fadeInMusic(elt,0.35,0.9);
-				}
-			}, nextMusicOpts);
+			nextMusicOpts.callback = function(elt) {
+				fadeInMusic(elt,0.35,0.9);
+			};
 		}
 		updateMusic(mapMusic, fast, nextMusicOpts);
 	}, 1000);
@@ -3469,8 +3485,16 @@ function updateEngineSound(elt) {
 	}
 }
 function startEndMusic() {
-	if (bMusic && mapMusic)
-		pauseMusic(mapMusic);
+	if (bMusic) {
+		if (endingMusic.yt) {
+			stopMapMusics();
+			setTimeout(stopMapMusics, 1000);
+		}
+		else {
+			removeMenuMusic(true);
+			removeMapMusics();
+		}
+	}
 	if (iSfx)
 		removeSoundEffects();
 	if (bMusic) {

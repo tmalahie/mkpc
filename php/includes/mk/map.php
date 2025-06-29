@@ -104,6 +104,9 @@ elseif (isset($circuitMainData->youtube)) {
 		"yt_opts" : <?php echo json_encode($circuitMainData->youtube_opts); ?>,
 		<?php
 	}
+	else
+		echo '"yt_opts":undefined,';
+	echo '"music":undefined,';
 }
 elseif (!$lapId)
 	echo '"music":1,';
