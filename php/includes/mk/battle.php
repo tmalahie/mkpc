@@ -63,6 +63,8 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 			echo '"impactAll":'.json_encode($circuitPayload->meta->impactAll).',';
 		if (isset($circuitPayload->meta->interactions))
 			echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
+		if (isset($circuitPayload->meta->requiredOverrides))
+			echo '"requiredOverrides":'.json_encode($circuitPayload->meta->requiredOverrides).',';
 	}
 	if (isset($circuitMainData->bgcolor))
 		echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';

@@ -1885,6 +1885,9 @@ var itemInteractionsDisabled = function() {
 var getItemCollisionLap = function() {
 	return 0;
 }
+var isOverrideActive = function() {
+	return false;
+}
 function getSubOverride(lMap, conditionOverrides) {
 	var conditionOverridesHash = conditionOverrides.join(",");
 	return getCurrentLapId({ tours: lMap.lap+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
@@ -2079,6 +2082,22 @@ function initMap() {
 		if (oMap.conditionOverrides.length) {
 			for (var i=0;i<oMap.conditionOverrides.length;i++)
 				initSubOverrides(0, [i],i.toString(), true);
+		}
+		isOverrideActive = function(oKart, i) {
+			var lapOverride = i ? mapOverrides[i-1] : { lap: 1 };
+			if (!lapOverride) return false;
+			if (lapOverride.lap !== undefined) {
+				var lapId = getCurrentLapId(oKart);
+				if (lapId === i) return true;
+				var lMap = getCurrentLMap(lapId);
+				if (lMap.parentOverrideId === i) return true;
+				return false;
+			}
+			else {
+				return oKart.conditionOverrides.some(function(i) {
+					return oMap.conditionOverrides[i] === lapOverride;
+				});
+			}
 		}
 	}
 	if (clSelected) {
@@ -10940,6 +10959,13 @@ function handleConditionalOverrides(aX,aY, getId) {
 	}
 }
 function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
+	if (oOverride.requiredOverrides) {
+		for (var i=0;i<oOverride.requiredOverrides.length;i++) {
+			var lapId = oOverride.requiredOverrides[i];
+			if (!isOverrideActive(oKart,lapId))
+				return false;
+		}
+	}
 	if (oOverride.time != null) {
 		var gameTime = getActualGameTimeMS();
 		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))

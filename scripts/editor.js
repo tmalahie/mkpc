@@ -3205,6 +3205,33 @@ function renderLapOverrideAdd() {
 	}
 	$overrideImpactAllCheck.checked = !!(editingLapOverride && editingLapOverride.impactAll);
 	handleImpactAllState();
+	
+	// Restore condition checkboxes for zone and time overrides
+	var $conditionCheckZone = document.getElementById("lapoverride-condition-check-zone");
+	var $conditionCheckTime = document.getElementById("lapoverride-condition-check-time");
+	
+	// Reset condition UI first
+	if ($conditionCheckZone) {
+		$conditionCheckZone.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-zone").style.display = "none";
+	}
+	if ($conditionCheckTime) {
+		$conditionCheckTime.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-time").style.display = "none";
+	}
+	
+	if (editingLapOverride && editingLapOverride.requiredOverrides) {
+		if (overrideType === "zone" && $conditionCheckZone) {
+			$conditionCheckZone.checked = true;
+			document.getElementById("lapoverride-triggers-condition-options-zone").style.display = "block";
+			populateConditionList("lapoverride-condition-list-zone", editingLapOverride.requiredOverrides);
+		} else if (overrideType === "time" && $conditionCheckTime) {
+			$conditionCheckTime.checked = true;
+			document.getElementById("lapoverride-triggers-condition-options-time").style.display = "block";
+			populateConditionList("lapoverride-condition-list-time", editingLapOverride.requiredOverrides);
+		}
+	}
+	
 	setOverrideTrigger(overrideType);
 	if ($select)
 		handleLapOverrideSelect(+$select.value);
@@ -3329,6 +3356,37 @@ function handleEndTimeCheck(checked) {
 	document.getElementById("lapoverride-end-time").disabled = !checked;
 	if (checked)
 		document.getElementById("lapoverride-end-time").focus();
+}
+function handleConditionCheck(checked) {
+	var triggerType = document.getElementById("lapoverride-triggers").dataset.value;
+	var conditionOptionsId = "lapoverride-triggers-condition-options-" + triggerType;
+	var conditionListId = "lapoverride-condition-list-" + triggerType;
+	
+	document.getElementById(conditionOptionsId).style.display = checked ? "block" : "none";
+	
+	if (checked)
+		populateConditionList(conditionListId);
+}
+function populateConditionList(conditionListId, requiredOverrides) {
+	var $conditionList = document.getElementById(conditionListId);
+	$conditionList.innerHTML = "";
+	
+	requiredOverrides = requiredOverrides || [];
+	for (var i=0;i<lapOverrides.length;i++) {
+		var lapOverride = lapOverrides[i];
+		if (lapOverride === editingLapOverride) continue;
+		
+		var $label = document.createElement("label");
+		var $checkbox = document.createElement("input");
+		$checkbox.type = "checkbox";
+		$checkbox.value = i;
+		$checkbox.checked = requiredOverrides.includes(lapOverride);
+		var $span = document.createElement("span");
+		$span.innerHTML = getLapOverrideLabel(i);
+		$label.appendChild($checkbox);
+		$label.appendChild($span);
+		$conditionList.appendChild($label);
+	}
 }
 function openZoneEditor(source) {
 	var theme = document.getElementById("theme-selector").getValue();
@@ -3458,6 +3516,19 @@ function showLapOverrideRemove() {
 	renderLapOverrideSelect();
 }
 function selectOverrideTrigger($elt) {
+	// Reset condition UI when user manually switches trigger types
+	var $conditionCheckZone = document.getElementById("lapoverride-condition-check-zone");
+	var $conditionCheckTime = document.getElementById("lapoverride-condition-check-time");
+	
+	if ($conditionCheckZone) {
+		$conditionCheckZone.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-zone").style.display = "none";
+	}
+	if ($conditionCheckTime) {
+		$conditionCheckTime.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-time").style.display = "none";
+	}
+	
 	setOverrideTrigger($elt.dataset.value);
 }
 function setOverrideTrigger(selectedType) {
@@ -3501,7 +3572,7 @@ function addLapOverride() {
 		return;
 	}
 	selectLapOverride(-1, opts);
-	assignLapOverrideSettings(selectedLapOverride);
+	assignLapOverrideSettings(selectedLapOverride, opts);
 	closeLapOverrideOptions();
 }
 function editLapOverride() {
@@ -3520,7 +3591,7 @@ function editLapOverride() {
 	var existingLapOverride;
 	if (existingLapOverride = lapOverrideExists(opts)) {
 		if (existingLapOverride === editingLapOverride)
-			assignLapOverrideSettings(oldLapOverride);
+			assignLapOverrideSettings(oldLapOverride, opts);
 		closeLapOverrideOptions();
 		return;
 	}
@@ -3534,7 +3605,7 @@ function editLapOverride() {
 		selectedLapOverride++;
 	swapLapOverride(editingLapOverride, newLapOverride);
 	applyLapOverrideSelector();
-	assignLapOverrideSettings(newLapOverride);
+	assignLapOverrideSettings(newLapOverride, opts);
 	closeLapOverrideOptions();
 	changes = true;
 }
@@ -3579,6 +3650,17 @@ function assignLapOverrideOpts(opts) {
 		var $impactAllCheck = document.getElementById("lapoverride-impact-all-check");
 		if ($impactAllCheck.checked && !$impactAllCheck.disabled)
 			opts.impactAll = true;
+		
+		var $conditionCheck = document.getElementById("lapoverride-condition-check-zone");
+		if ($conditionCheck && $conditionCheck.checked) {
+			var $conditionCheckboxes = document.querySelectorAll("#lapoverride-condition-list-zone input[type='checkbox']:checked");
+			if ($conditionCheckboxes.length > 0) {
+				var requiredOverrides = [];
+				for (var i = 0; i < $conditionCheckboxes.length; i++)
+					requiredOverrides.push(lapOverrides[$conditionCheckboxes[i].value]);
+				opts.requiredOverrides = requiredOverrides;
+			}
+		}
 		break;
 	case "time":
 		opts.time = parseTimer(document.getElementById("lapoverride-time").value);
@@ -3586,6 +3668,17 @@ function assignLapOverrideOpts(opts) {
 		var endTimeCheck = document.getElementById("lapoverride-end-time-check").checked;
 		if (endTime && endTimeCheck)
 			opts.endTime = parseTimer(endTime);
+		
+		var $conditionCheck = document.getElementById("lapoverride-condition-check-time");
+		if ($conditionCheck && $conditionCheck.checked) {
+			var $conditionCheckboxes = document.querySelectorAll("#lapoverride-condition-list-time input[type='checkbox']:checked");
+			if ($conditionCheckboxes.length > 0) {
+				var requiredOverrides = [];
+				for (var i = 0; i < $conditionCheckboxes.length; i++)
+					requiredOverrides.push(lapOverrides[$conditionCheckboxes[i].value]);
+				opts.requiredOverrides = requiredOverrides;
+			}
+		}
 	}
 }
 function lapOverrideExists(opts) {
@@ -3656,8 +3749,9 @@ function copyLapOverride() {
 	}, 1000);
 	changes = true;
 }
-function assignLapOverrideSettings(lapId) {
+function assignLapOverrideSettings(lapId, opts) {
 	var lapOverride = lapOverrides[lapId];
+	lapOverride.requiredOverrides = opts.requiredOverrides;
 	var $checkbox = document.getElementById("lapoverride-interactions-check");
 	if (!$checkbox.checked) {
 		delete lapOverride.interactions;
@@ -3847,6 +3941,7 @@ function initLapOverride(meta, oldLapOverride) {
 		endOnExit: meta.endOnExit,
 		endDelay: meta.endDelay,
 		impactAll: meta.impactAll,
+		requiredOverrides: meta.requiredOverrides,
 		imgData: meta.imgData,
 		modesData: meta.modesData || {}
 	});
@@ -4493,10 +4588,17 @@ function swapLapOverride(oldLapOverride, newLapOverride) {
 		var lapOverride = lapOverrides[lapKey];
 		if (lapOverride.imgData && lapOverride.imgData.data.overrideRef === oldLapOverride)
 			lapOverride.imgData.data.overrideRef = createdLapOverride;
-		if (!lapOverride.interactions) continue;
-		for (var j=0;j<lapOverride.interactions.length;j++) {
-			if (lapOverride.interactions[j] === oldLapOverride)
-				lapOverride.interactions[j] = createdLapOverride;
+		if (lapOverride.interactions) {
+			for (var j=0;j<lapOverride.interactions.length;j++) {
+				if (lapOverride.interactions[j] === oldLapOverride)
+					lapOverride.interactions[j] = createdLapOverride;
+			}
+		}
+		if (lapOverride.requiredOverrides) {
+			for (var j=0;j<lapOverride.requiredOverrides.length;j++) {
+				if (lapOverride.requiredOverrides[j] === oldLapOverride)
+					lapOverride.requiredOverrides[j] = createdLapOverride;
+			}
 		}
 	}
 }
@@ -4829,6 +4931,7 @@ function _saveData() {
 			zone: lapOverride.zone, endZone: lapOverride.endZone,
 			zoneMeta: lapOverride.zoneMeta, endZoneMeta: lapOverride.endZoneMeta,
 			endOnExit: lapOverride.endOnExit, endDelay: lapOverride.endDelay, impactAll: lapOverride.impactAll,
+			requiredOverrides: lapOverride.requiredOverrides,
 			modes: enabledModes
 		};
 		if (!payload.lapOverrides) payload.lapOverrides = [];
@@ -4842,16 +4945,28 @@ function _saveData() {
 		var lapPayloadId = lapPayloadIds[lapKey];
 		if (!lapPayloadId) continue;
 		var lapOverride = lapOverrides[lapKey];
-		if (!lapOverride.interactions) continue;
-		var lapPayload = payload.lapOverrides[lapPayloadId-1];
-		var lapInteractions = [];
-		for (var j=0;j<lapOverride.interactions.length;j++) {
-			var lapId = lapOverrides.indexOf(lapOverride.interactions[j]);
-			var interactionId = lapPayloadIds[lapId];
-			if (interactionId != null)
-				lapInteractions.push(interactionId);
+		if (lapOverride.interactions) {
+			var lapPayload = payload.lapOverrides[lapPayloadId-1];
+			var lapInteractions = [];
+			for (var j=0;j<lapOverride.interactions.length;j++) {
+				var lapId = lapOverrides.indexOf(lapOverride.interactions[j]);
+				var interactionId = lapPayloadIds[lapId];
+				if (interactionId != null)
+					lapInteractions.push(interactionId);
+			}
+			lapPayload.meta.interactions = lapInteractions;
 		}
-		lapPayload.meta.interactions = lapInteractions;
+		if (lapOverride.requiredOverrides) {
+			var lapPayload = payload.lapOverrides[lapPayloadId-1];
+			var lapRequiredOverrides = [];
+			for (var j=0;j<lapOverride.requiredOverrides.length;j++) {
+				var lapId = lapOverrides.indexOf(lapOverride.requiredOverrides[j]);
+				var requiredOverrideId = lapPayloadIds[lapId];
+				if (requiredOverrideId != null)
+					lapRequiredOverrides.push(requiredOverrideId);
+			}
+			lapPayload.meta.requiredOverrides = lapRequiredOverrides;
+		}
 	}
 	for (var lapKey in imgOverrides) {
 		var imgOverride = imgOverrides[lapKey];
@@ -5007,6 +5122,16 @@ function restoreData(payload) {
 				}
 				var lapKey = lapKeys[i];
 				lapOverrides[lapKey].interactions = lapInteractionsData;
+			}
+			var lapRequiredOverrides = lapOverride.meta.requiredOverrides;
+			if (lapRequiredOverrides) {
+				var lapRequiredOverridesData = [];
+				for (var j=0;j<lapRequiredOverrides.length;j++) {
+					var requiredOverrideId = lapRequiredOverrides[j];
+					lapRequiredOverridesData.push(lapOverrides[requiredOverrideId]);
+				}
+				var lapKey = lapKeys[i];
+				lapOverrides[lapKey].requiredOverrides = lapRequiredOverridesData;
 			}
 		}
 		for (var i=0;i<lapOverrides.length;i++) {

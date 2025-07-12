@@ -447,6 +447,18 @@ if (isset($_GET['i'])) {
 									</span>
 								</label>
 							</div>
+							<div id="lapoverride-triggers-condition-zone">
+								<label>
+									<span>
+										<input type="checkbox" id="lapoverride-condition-check-zone" onclick="handleConditionCheck(this.checked)" />
+										<?php echo $language ? "Trigger condition...":"Condition d'activation..."; ?>
+									</span>
+								</label>
+							</div>
+							<div id="lapoverride-triggers-condition-options-zone">
+								<div><?php echo $language ? 'Enable only if these overrides are active:' : 'Activer seulement si ces modificateurs sont actifs :'; ?></div>
+								<div id="lapoverride-condition-list-zone"></div>
+							</div>
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
 							<div class="lapoverride-triggers">
