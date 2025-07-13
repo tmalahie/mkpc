@@ -4924,7 +4924,6 @@ function _saveData() {
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
-		if (!enabledModes.length && !lapOverride.imgData && !lapOverride.interactions && !lapOverride.time && !lapOverride.zone) continue;
 		lapPayload.meta = {
 			lap: lapOverride.lap, cp: lapOverride.checkpoint,
 			time: lapOverride.time, endTime: lapOverride.endTime,
@@ -7384,12 +7383,9 @@ var commonTools = {
 			if (payload.main.bgtransition)
 				document.getElementById("bg-transition").checked = true;
 		},
-		"postcopy" : function(self, copyFrom) {
-			if (!copyFrom) {
-				self.data.music_override = false;
-				self.data.bg_override = false;
-				self.data.out_color_override = false;
-			}
+		"postcopy" : function(self) {
+			if (self.data.youtube_opts)
+				delete self.data.youtube_opts.last;
 		},
 		"hasPartialOverride": true
 	},

@@ -812,9 +812,9 @@ if (isset($_GET['i'])) {
 							<a id="youtube-advanced-options-link" href="javascript:ytOptions(true)"><?php echo $language ? "More options...":"Plus d'options..." ?></a>
 							<div id="youtube-advanced-options">
 								<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
-								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
+								<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
 								<?php echo $language ? 'and' : 'et'; ?>
-								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
+								<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
 								&nbsp; - &nbsp;
 								<?php echo $language ? 'Speed':'Vitesse'; ?>
 								<select name="youtube-speed" id="youtube-speed">
@@ -827,11 +827,11 @@ if (isset($_GET['i'])) {
 								</select>
 								<div id="youtube-options-last-lap">
 									<?php echo $language ? 'Last lap music:':'Musique du dernier tour :'; ?>
-									<input type="text" size="2" name="youtube-last" id="youtube-last-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
+									<input type="text" size="3" name="youtube-last" id="youtube-last-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
 									<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
-									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-start" id="youtube-last-start" placeholder="0:00" />
+									<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-last-start" id="youtube-last-start" placeholder="0:00" />
 									<?php echo $language ? 'and' : 'et'; ?>
-									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-end" id="youtube-last-end" placeholder="9:59" />
+									<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-last-end" id="youtube-last-end" placeholder="9:59" />
 									&nbsp; - &nbsp;
 									<?php echo $language ? 'Speed':'Vitesse'; ?>
 									<select name="youtube-last-speed" id="youtube-last-speed">

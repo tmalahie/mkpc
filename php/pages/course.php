@@ -611,9 +611,9 @@ if (isset($_GET['i'])) {
 							<a id="youtube-advanced-options-link" href="javascript:ytOptions(true)"><?php echo $language ? "More options...":"Plus d'options..." ?></a>
 							<div id="youtube-advanced-options">
 								<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
-								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
+								<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
 								<?php echo $language ? 'and' : 'et'; ?>
-								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
+								<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
 								&nbsp; - &nbsp;
 								<?php echo $language ? 'Speed':'Vitesse'; ?>
 								<select name="youtube-speed" id="youtube-speed">

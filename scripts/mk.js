@@ -1890,7 +1890,7 @@ var isOverrideActive = function() {
 }
 function getSubOverride(lMap, conditionOverrides) {
 	var conditionOverridesHash = conditionOverrides.join(",");
-	return getCurrentLapId({ tours: lMap.lap+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
+	return getCurrentLapId({ tours: (lMap.lap||0)+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
 }
 function initMap() {
 	oMap.conditionOverrides = [];
@@ -2094,7 +2094,7 @@ function initMap() {
 				return false;
 			}
 			else {
-				return oKart.conditionOverrides.some(function(i) {
+				return oKart.conditionOverrides && oKart.conditionOverrides.some(function(i) {
 					return oMap.conditionOverrides[i] === lapOverride;
 				});
 			}
@@ -3184,7 +3184,8 @@ function updateMusic(elt,fast,params) {
 					player.setPlaybackRate(opts.speed);
 				else if (fast)
 					player.setPlaybackRate(1.25);
-				var start = opts.start || 0;
+				var start = opts.nextStart || opts.start || 0;
+				delete opts.nextStart;
 				if (params && params.start)
 					start = params.start;
 				player.seekTo(start,true);
@@ -3432,9 +3433,15 @@ function updateMapMusic(lMap,nMap) {
 	}
 	fadeOutMusic(lastMapMusic, 1, nextMusicOpts?0.9:0.8, null,vMusic);
 	var isLastLap = (nMap.lap === oMap.tours-1);
-	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
-		if (nMap.yt)
+	if (isLastLap && !nMap.cp && ((lMap.lap||0) < nMap.lap)) {
+		if (nMap.yt) {
 			oMap.lastMapSpeed = 1;
+			if (nextMusicOpts && nextMusicOpts.start >= 1) {
+				if (!mapMusic.opts)
+					mapMusic.opts = {};
+				mapMusic.opts.nextStart = nextMusicOpts.start-1;
+			}
+		}
 		return;
 	}
 	setTimeout(function() {
