@@ -84,6 +84,7 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 		echo '"bgtransition":1,';
 	if (!empty($circuitMainData->music)) {
 		echo '"music":'.$circuitMainData->music.',';
+		echo '"music_ref":{},';
 		echo '"yt":undefined,';
 	}
 	elseif (isset($circuitMainData->youtube)) {
@@ -97,10 +98,13 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 		}
 		else
 			echo '"yt_opts":undefined,';
+		echo '"music_ref":{},';
 		echo '"music":undefined,';
 	}
-	elseif (!$lapId)
+	elseif (!$lapId) {
 		echo '"music":9,';
+		echo '"music_ref":{},';
+	}
 	if (isset($circuitMainData->startposition))
 		echo '"startposition":'.json_encode($circuitMainData->startposition).',';
 	elseif (!$lapId)

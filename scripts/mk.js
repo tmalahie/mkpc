@@ -3368,14 +3368,9 @@ function startMapMusic(lastlap) {
 		foreachLMap(function(lMap,pMap, i) {
 			if (pMap.music === undefined && pMap.yt === undefined) {
 				var prevMap;
-				if (lMap.music !== undefined) {
+				if (lMap.music_ref !== undefined) {
 					prevMap = lMaps.findLast(function(lMap2) {
-						return lMap2.mapMusic && lMap2.music === lMap.music;
-					});
-				}
-				if (lMap.yt !== undefined) {
-					prevMap = lMaps.findLast(function(lMap2) {
-						return lMap2.mapMusic && lMap2.yt === lMap.yt && lMap2.yt_opts === lMap.yt_opts;
+						return lMap2.mapMusic && lMap2.music_ref === lMap.music_ref;
 					});
 				}
 				if (prevMap)

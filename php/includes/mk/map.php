@@ -95,6 +95,7 @@ if (isset($circuitMainData->sections)) {
 }
 if (!empty($circuitMainData->music)) {
 	echo '"music":'.$circuitMainData->music.',';
+	echo '"music_ref":{},';
 	echo '"yt":undefined,';
 }
 elseif (isset($circuitMainData->youtube)) {
@@ -108,10 +109,13 @@ elseif (isset($circuitMainData->youtube)) {
 	}
 	else
 		echo '"yt_opts":undefined,';
+	echo '"music_ref":{},';
 	echo '"music":undefined,';
 }
-elseif (!$lapId)
+elseif (!$lapId) {
 	echo '"music":1,';
+	echo '"music_ref":{},';
+}
 if (isset($circuitMainData->startposition)) {
 	?>
 "startposition" : [<?php echo ($circuitMainData->startposition[0]+5).','.($circuitMainData->startposition[1]-6); ?>],
