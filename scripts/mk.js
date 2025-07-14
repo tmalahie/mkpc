@@ -3166,6 +3166,8 @@ function onPlayerReady(elt, onReady) {
 	}
 }
 function updateMusic(elt,fast,params) {
+	if (elt != oMusicEmbed && oMusicEmbed && !oMusicEmbed.permanent)
+		removeIfExists(oMusicEmbed);
 	if (document.body.contains(elt)) {
 		var isOriginal = isOriginalEmbed(elt);
 		if (isOriginal) {
