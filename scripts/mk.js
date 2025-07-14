@@ -570,10 +570,8 @@ function removeIfExists(elt) {
 	if (!elt)
 		return;
 	if (elt.yt) {
-		if (elt.yt.destroy) {
-			elt.yt.isDetroyed = true;
+		if (elt.yt.destroy)
 			elt.yt.destroy();
-		}
 		delete elt.yt;
 		delete elt.tasks;
 		delete elt.opts;
@@ -591,6 +589,23 @@ function removeMapMusics() {
 		subOverrides: false
 	});
 	removeIfExists(lastMapMusic);
+	removeIfExists(firstMapMusic);
+}
+function stopMapMusics() {
+	stopIfExists(mapMusic);
+	foreachLMap(function(lMap) {
+		stopIfExists(lMap.mapMusic);
+	}, {
+		subOverrides: false
+	});
+	stopIfExists(lastMapMusic);
+	stopIfExists(firstMapMusic);
+}
+function stopIfExists(elt) {
+	if (elt) {
+		pauseMusic(elt);
+		muteSound(elt);
+	}
 }
 function listMapMusics() {
 	var res = [mapMusic];
@@ -700,11 +715,12 @@ function fadeInMusic(embed, volume, ratio) {
 	volume /= ratio;
 	if (volume < 1) {
 		setMusicVolume(embed,volume);
-		embed.fadingIn = false;
 		setTimeout(function(){fadeInMusic(embed,volume,ratio)},100);
 	}
-	else
+	else {
+		embed.fadingIn = false;
 		setMusicVolume(embed,1);
+	}
 }
 function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
 	if (embed.fadingIn)
@@ -1869,9 +1885,12 @@ var itemInteractionsDisabled = function() {
 var getItemCollisionLap = function() {
 	return 0;
 }
+var isOverrideActive = function() {
+	return false;
+}
 function getSubOverride(lMap, conditionOverrides) {
 	var conditionOverridesHash = conditionOverrides.join(",");
-	return getCurrentLapId({ tours: lMap.lap+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
+	return getCurrentLapId({ tours: (lMap.lap||0)+1, demitours: lMap.cp || 0, conditionOverrides: conditionOverrides, conditionOverridesHash: conditionOverridesHash })
 }
 function initMap() {
 	oMap.conditionOverrides = [];
@@ -2063,6 +2082,22 @@ function initMap() {
 		if (oMap.conditionOverrides.length) {
 			for (var i=0;i<oMap.conditionOverrides.length;i++)
 				initSubOverrides(0, [i],i.toString(), true);
+		}
+		isOverrideActive = function(oKart, i) {
+			var lapOverride = i ? mapOverrides[i-1] : { lap: 1 };
+			if (!lapOverride) return false;
+			if (lapOverride.lap !== undefined) {
+				var lapId = getCurrentLapId(oKart);
+				if (lapId === i) return true;
+				var lMap = getCurrentLMap(lapId);
+				if (lMap.parentOverrideId === i) return true;
+				return false;
+			}
+			else {
+				return oKart.conditionOverrides && oKart.conditionOverrides.some(function(i) {
+					return oMap.conditionOverrides[i] === lapOverride;
+				});
+			}
 		}
 	}
 	if (clSelected) {
@@ -3012,15 +3047,18 @@ function pauseMusic(elt) {
 	if (oMusicEmbed == elt)
 		oMusicEmbed = undefined;
 }
-function bufferMusic(elt, callback) {
+function bufferMusic(elt, opts) {
+	var callback = opts && opts.callback;
 	var isOriginal = isOriginalEmbed(elt);
 	if (isOriginal) {
 		if (callback)
 			setTimeout(callback, 1);
 		return;
 	}
-	options = elt.opts || {};
+	var options = elt.opts || {};
 	var startTime = options.start || 0;
+	if (opts && opts.start)
+		startTime = opts.start;
 	var speed = options.speed;
 	onPlayerReady(elt, function(player) {
 		player.setVolume(0);
@@ -3036,6 +3074,23 @@ function bufferMusic(elt, callback) {
 			if (callback)
 				callback();
 		}, 1000);
+	});
+}
+var pendingMusicBuffers = [], currentlyBufferingMusic = false;
+function bufferMusicQueue(elt) {
+	if (currentlyBufferingMusic) {
+		pendingMusicBuffers.push(elt);
+		return;
+	}
+	currentlyBufferingMusic = true;
+	bufferMusic(elt, {
+		callback: function() {
+			currentlyBufferingMusic = false;
+			if (pendingMusicBuffers.length) {
+				var pendingMusicElt = pendingMusicBuffers.shift();
+				bufferMusicQueue(pendingMusicElt);
+			}
+		}
 	});
 }
 function stopMusic(elt) {
@@ -3110,8 +3165,8 @@ function onPlayerReady(elt, onReady) {
 	catch (e) {
 	}
 }
-function updateMusic(elt,fast) {
-	if (elt != oMusicEmbed)
+function updateMusic(elt,fast,params) {
+	if (elt != oMusicEmbed && oMusicEmbed && !oMusicEmbed.permanent)
 		removeIfExists(oMusicEmbed);
 	if (document.body.contains(elt)) {
 		var isOriginal = isOriginalEmbed(elt);
@@ -3119,7 +3174,9 @@ function updateMusic(elt,fast) {
 			if (fast)
 				elt.playbackRate = 1.2;
 			elt.volume = vMusic;
-			elt.currentTime = 0;
+			elt.currentTime = (params && params.start) || 0;
+			if (params && params.callback)
+				params.callback(elt);
 			elt.play();
 		}
 		else {
@@ -3129,9 +3186,14 @@ function updateMusic(elt,fast) {
 					player.setPlaybackRate(opts.speed);
 				else if (fast)
 					player.setPlaybackRate(1.25);
-				var start = opts.start || 0;
+				var start = opts.nextStart || opts.start || 0;
+				delete opts.nextStart;
+				if (params && params.start)
+					start = params.start;
 				player.seekTo(start,true);
 				player.setVolume(100*vMusic);
+				if (params && params.callback)
+					params.callback(elt);
 				player.playVideo();
 			});
 		}
@@ -3259,7 +3321,7 @@ function isOriginalMusic(src) {
 function isOriginalEmbed(elt) {
 	return (elt.tagName.toLowerCase() == "audio");
 }
-var mapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, carEngine2, carEngine3, carDrift, carSpark;
+var mapMusic, firstMapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, carEngine2, carEngine3, carDrift, carSpark;
 var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
@@ -3299,10 +3361,8 @@ function loadMapMusic() {
 }
 function startMapMusic(lastlap) {
 	if (lastlap) {
-		if (lastMapMusic && (mapMusic !== lastMapMusic)) {
-			removeIfExists(mapMusic);
+		if (lastMapMusic && (mapMusic !== lastMapMusic))
 			mapMusic = lastMapMusic;
-		}
 		var fast = (mapMusic!==lastMapMusic) && !oMap.lastMapSpeed;
 		updateMusic(mapMusic, fast);
 	}
@@ -3310,14 +3370,9 @@ function startMapMusic(lastlap) {
 		foreachLMap(function(lMap,pMap, i) {
 			if (pMap.music === undefined && pMap.yt === undefined) {
 				var prevMap;
-				if (lMap.music !== undefined) {
+				if (lMap.music_ref !== undefined) {
 					prevMap = lMaps.findLast(function(lMap2) {
-						return lMap2.mapMusic && lMap2.music === lMap.music;
-					});
-				}
-				if (lMap.yt !== undefined) {
-					prevMap = lMaps.findLast(function(lMap2) {
-						return lMap2.mapMusic && lMap2.yt === lMap.yt && lMap2.yt_opts === lMap.yt_opts;
+						return lMap2.mapMusic && lMap2.music_ref === lMap.music_ref;
 					});
 				}
 				if (prevMap)
@@ -3327,10 +3382,7 @@ function startMapMusic(lastlap) {
 			var opts = pMap.yt_opts || {};
 			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
 			lMap.mapMusic.permanent = 1;
-			bufferMusic(lMap.mapMusic, function() {
-				if (endingMusic && pMap.music)
-					bufferMusic(endingMusic);
-			});
+			bufferMusicQueue(lMap.mapMusic);
 			pMap.mapMusic = lMap.mapMusic;
 			if (!i) {
 				mapMusic = lMap.mapMusic;
@@ -3346,6 +3398,7 @@ function loadEndingMusic() {
 	var endingSrc = getEndingSrc(strPlayer[0]);
 	endingMusic = startMusic(endingSrc);
 	endingMusic.permanent = 1;
+	bufferMusicQueue(endingMusic);
 }
 function updateMapMusic(lMap,nMap) {
 	if (!nMap.mapMusic) return;
@@ -3354,20 +3407,52 @@ function updateMapMusic(lMap,nMap) {
 	if (!document.body.contains(nMap.mapMusic)) return;
 	var lastMapMusic = mapMusic;
 	mapMusic = nMap.mapMusic;
-	bufferMusic(mapMusic);
-	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
+	var nextMusicOpts;
+	if ((nMap.yt_opts && nMap.yt_opts.continuous) || (lMap.yt_opts && lMap.yt_opts.continuous && nMap.yt === oMap.yt && nMap.yt_opts === oMap.yt_opts && nMap.music === oMap.music)) {
+		var currentProgress = lastMapMusic.yt && lastMapMusic.yt.getCurrentTime ? lastMapMusic.yt.getCurrentTime() : lastMapMusic.currentTime;
+		currentProgress = currentProgress || 0;
+		if (lastMapMusic.opts && lastMapMusic.opts.start)
+			currentProgress -= lastMapMusic.opts.start;
+		var nextProgressStart = (mapMusic.opts && mapMusic.opts.start) || 0;
+		var nextProgressEnd = (mapMusic.opts && mapMusic.opts.end);
+		if (nextProgressEnd == null)
+			nextProgressEnd = mapMusic.yt && mapMusic.yt.getDuration ? mapMusic.yt.getDuration() : mapMusic.duration;
+		var nextProgress = nextProgressStart;
+		currentProgress += 1;
+		nextProgress += currentProgress;
+		if (nextProgress > nextProgressEnd)
+			nextProgress = nextProgressStart + currentProgress % (nextProgressEnd-nextProgressStart);
+		nextMusicOpts = { start: nextProgress };
+		if (mapMusic.yt && mapMusic.yt.seekTo)
+			mapMusic.yt.seekTo(nextProgress,true);
+		else if (mapMusic.currentTime != null)
+			mapMusic.currentTime = nextProgress;
+	}
+	fadeOutMusic(lastMapMusic, 1, nextMusicOpts?0.9:0.8, null,vMusic);
 	var isLastLap = (nMap.lap === oMap.tours-1);
-	if (isLastLap && !nMap.cp && (lMap.lap < nMap.lap)) {
-		removeIfExists(lastMapMusic);
-		if (nMap.yt)
+	if (isLastLap && !nMap.cp && ((lMap.lap||0) < nMap.lap)) {
+		if (nMap.yt) {
 			oMap.lastMapSpeed = 1;
+			if (nextMusicOpts && nextMusicOpts.start >= 1) {
+				if (!mapMusic.opts)
+					mapMusic.opts = {};
+				mapMusic.opts.nextStart = nextMusicOpts.start-1;
+			}
+		}
 		return;
 	}
 	setTimeout(function() {
-		if (nMap.parentOverrideId === undefined)
-			removeIfExists(lastMapMusic);
+		if (lastMapMusic !== mapMusic)
+			pauseMusic(lastMapMusic);
+		else
+			mapMusic.fadingOut = false;
 		var fast = isLastLap && !nMap.yt_opts;
-		updateMusic(mapMusic, fast);
+		if (nextMusicOpts) {
+			nextMusicOpts.callback = function(elt) {
+				fadeInMusic(elt,0.35,0.9);
+			};
+		}
+		updateMusic(mapMusic, fast, nextMusicOpts);
 	}, 1000);
 }
 function loopWithoutGap() {
@@ -3424,8 +3509,14 @@ function updateEngineSound(elt) {
 }
 function startEndMusic() {
 	if (bMusic) {
-		removeMenuMusic(true);
-		removeMapMusics();
+		if (endingMusic.yt) {
+			stopMapMusics();
+			setTimeout(stopMapMusics, 1000);
+		}
+		else {
+			removeMenuMusic(true);
+			removeMapMusics();
+		}
 	}
 	if (iSfx)
 		removeSoundEffects();
@@ -10872,6 +10963,13 @@ function handleConditionalOverrides(aX,aY, getId) {
 	}
 }
 function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
+	if (oOverride.requiredOverrides) {
+		for (var i=0;i<oOverride.requiredOverrides.length;i++) {
+			var lapId = oOverride.requiredOverrides[i];
+			if (!isOverrideActive(oKart,lapId))
+				return false;
+		}
+	}
 	if (oOverride.time != null) {
 		var gameTime = getActualGameTimeMS();
 		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
@@ -11067,8 +11165,10 @@ function updateBgLayers(lMap,nMap, callback) {
 		}
 	}
 	else if (nMap.fond) {
-		if (lMap.fond === nMap.fond) return;
-		if (JSON.stringify(lMap.fond) === JSON.stringify(nMap.fond)) return;
+		if (!lMap.custombg) {
+			if (lMap.fond === nMap.fond) return;
+			if (JSON.stringify(lMap.fond) === JSON.stringify(nMap.fond)) return;
+		}
 		callback(nMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
 		}), nMap.fond.length===2);
@@ -18154,10 +18254,12 @@ function move(getId, triggered) {
 									}
 								}, 2700);
 								if (lastMapMusic) {
-									if (mapMusic !== lastMapMusic) {
-										removeIfExists(mapMusic);
-										mapMusic = lastMapMusic;
-									}
+									firstMapMusic = mapMusic;
+									mapMusic = lastMapMusic;
+									foreachLMap(function(lMap) {
+										if (lMap.mapMusic === firstMapMusic)
+											lMap.mapMusic = lastMapMusic;
+									});
 									bufferMusic(lastMapMusic);
 								}
 							}

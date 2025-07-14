@@ -34,7 +34,7 @@ function file_total_size($item=null) {
 			$total_size += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 		if (isset($circuitImg->lapOverrides)) {
 			foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
-				if ($lapImg->local && (!$excludeCircuit || ($lap != $excludedLap)))
+				if (!empty($lapImg->local) && (!$excludeCircuit || ($lap != $excludedLap)))
 					$total_size += @filesize(CIRCUIT_BASE_PATH.$lapImg->url);
 			}
 		}

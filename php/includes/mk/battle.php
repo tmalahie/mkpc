@@ -63,6 +63,8 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 			echo '"impactAll":'.json_encode($circuitPayload->meta->impactAll).',';
 		if (isset($circuitPayload->meta->interactions))
 			echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
+		if (isset($circuitPayload->meta->requiredOverrides))
+			echo '"requiredOverrides":'.json_encode($circuitPayload->meta->requiredOverrides).',';
 	}
 	if (isset($circuitMainData->bgcolor))
 		echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';
@@ -80,8 +82,11 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 	}
 	if (!empty($circuitMainData->bgtransition))
 		echo '"bgtransition":1,';
-	if (!empty($circuitMainData->music))
+	if (!empty($circuitMainData->music)) {
 		echo '"music":'.$circuitMainData->music.',';
+		echo '"music_ref":{},';
+		echo '"yt":undefined,';
+	}
 	elseif (isset($circuitMainData->youtube)) {
 		?>
 		"yt" : "<?php echo addslashes($circuitMainData->youtube); ?>",
@@ -91,9 +96,15 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 			"yt_opts" : <?php echo json_encode($circuitMainData->youtube_opts); ?>,
 			<?php
 		}
+		else
+			echo '"yt_opts":undefined,';
+		echo '"music_ref":{},';
+		echo '"music":undefined,';
 	}
-	elseif (!$lapId)
+	elseif (!$lapId) {
 		echo '"music":9,';
+		echo '"music_ref":{},';
+	}
 	if (isset($circuitMainData->startposition))
 		echo '"startposition":'.json_encode($circuitMainData->startposition).',';
 	elseif (!$lapId)

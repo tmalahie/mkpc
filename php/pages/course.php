@@ -68,7 +68,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -84,7 +84,7 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js?reload=5"></script>
+		<script type="text/javascript" src="scripts/editor.js"></script>
 		<script type="text/javascript" src="scripts/course.js?reload=1"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
@@ -245,6 +245,7 @@ if (isset($_GET['i'])) {
 						<?php echo $language ? 'Background image:':'Arrière-plan :'; ?>
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
+						<a class="mode-option-onoverride" id="button-bgimg-reset" href="javascript:resetBgOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
 					</div>
 					<div>
 						<?php echo $language ? 'Music:':'Musique :'; ?>
@@ -254,7 +255,9 @@ if (isset($_GET['i'])) {
 					</div>
 					<div>
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
-						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button><br />
+						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button>
+						<a class="mode-option-onoverride" id="button-bgcolor-reset" href="javascript:resetOutColorOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
+						<br />
 					</div>
 					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Image:':'Image :'; ?>
@@ -444,6 +447,18 @@ if (isset($_GET['i'])) {
 									</span>
 								</label>
 							</div>
+							<div id="lapoverride-triggers-condition-zone">
+								<label>
+									<span>
+										<input type="checkbox" id="lapoverride-condition-check-zone" onclick="handleConditionCheck(this.checked)" />
+										<?php echo $language ? "Trigger condition...":"Condition d'activation..."; ?>
+									</span>
+								</label>
+							</div>
+							<div id="lapoverride-triggers-condition-options-zone">
+								<div><?php echo $language ? 'Enable only if these overrides are active:' : 'Activer seulement si ces modificateurs sont actifs :'; ?></div>
+								<div id="lapoverride-condition-list-zone"></div>
+							</div>
 						</div>
 						<div class="lapoverride-type-options" id="lapoverride-type-options-time">
 							<div class="lapoverride-triggers">
@@ -596,9 +611,9 @@ if (isset($_GET['i'])) {
 							<a id="youtube-advanced-options-link" href="javascript:ytOptions(true)"><?php echo $language ? "More options...":"Plus d'options..." ?></a>
 							<div id="youtube-advanced-options">
 								<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
-								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
+								<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
 								<?php echo $language ? 'and' : 'et'; ?>
-								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
+								<input type="text" size="3" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
 								&nbsp; - &nbsp;
 								<?php echo $language ? 'Speed':'Vitesse'; ?>
 								<select name="youtube-speed" id="youtube-speed">
@@ -609,6 +624,13 @@ if (isset($_GET['i'])) {
 									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select><br />
+								<div id="youtube-continuous-option">
+									<label>
+										<input type="checkbox" name="youtube-continuous" id="youtube-continuous" />
+										<?php echo $language ? 'Resume from previous time' : 'Reprendre au temps précédent'; ?>
+										<a href="javascript:showContinuousTimerHelp()">[?]</a>
+									</label>
+								</div>
 								<input type="hidden" name="youtube-last" id="youtube-last-url" />
 								<input type="hidden" name="youtube-last-start" id="youtube-last-start" />
 								<input type="hidden" name="youtube-last-end" id="youtube-last-end" />

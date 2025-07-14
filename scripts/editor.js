@@ -3205,6 +3205,33 @@ function renderLapOverrideAdd() {
 	}
 	$overrideImpactAllCheck.checked = !!(editingLapOverride && editingLapOverride.impactAll);
 	handleImpactAllState();
+	
+	// Restore condition checkboxes for zone and time overrides
+	var $conditionCheckZone = document.getElementById("lapoverride-condition-check-zone");
+	var $conditionCheckTime = document.getElementById("lapoverride-condition-check-time");
+	
+	// Reset condition UI first
+	if ($conditionCheckZone) {
+		$conditionCheckZone.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-zone").style.display = "none";
+	}
+	if ($conditionCheckTime) {
+		$conditionCheckTime.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-time").style.display = "none";
+	}
+	
+	if (editingLapOverride && editingLapOverride.requiredOverrides) {
+		if (overrideType === "zone" && $conditionCheckZone) {
+			$conditionCheckZone.checked = true;
+			document.getElementById("lapoverride-triggers-condition-options-zone").style.display = "block";
+			populateConditionList("lapoverride-condition-list-zone", editingLapOverride.requiredOverrides);
+		} else if (overrideType === "time" && $conditionCheckTime) {
+			$conditionCheckTime.checked = true;
+			document.getElementById("lapoverride-triggers-condition-options-time").style.display = "block";
+			populateConditionList("lapoverride-condition-list-time", editingLapOverride.requiredOverrides);
+		}
+	}
+	
 	setOverrideTrigger(overrideType);
 	if ($select)
 		handleLapOverrideSelect(+$select.value);
@@ -3330,6 +3357,37 @@ function handleEndTimeCheck(checked) {
 	if (checked)
 		document.getElementById("lapoverride-end-time").focus();
 }
+function handleConditionCheck(checked) {
+	var triggerType = document.getElementById("lapoverride-triggers").dataset.value;
+	var conditionOptionsId = "lapoverride-triggers-condition-options-" + triggerType;
+	var conditionListId = "lapoverride-condition-list-" + triggerType;
+	
+	document.getElementById(conditionOptionsId).style.display = checked ? "block" : "none";
+	
+	if (checked)
+		populateConditionList(conditionListId);
+}
+function populateConditionList(conditionListId, requiredOverrides) {
+	var $conditionList = document.getElementById(conditionListId);
+	$conditionList.innerHTML = "";
+	
+	requiredOverrides = requiredOverrides || [];
+	for (var i=0;i<lapOverrides.length;i++) {
+		var lapOverride = lapOverrides[i];
+		if (lapOverride === editingLapOverride) continue;
+		
+		var $label = document.createElement("label");
+		var $checkbox = document.createElement("input");
+		$checkbox.type = "checkbox";
+		$checkbox.value = i;
+		$checkbox.checked = requiredOverrides.includes(lapOverride);
+		var $span = document.createElement("span");
+		$span.innerHTML = getLapOverrideLabel(i);
+		$label.appendChild($checkbox);
+		$label.appendChild($span);
+		$conditionList.appendChild($label);
+	}
+}
 function openZoneEditor(source) {
 	var theme = document.getElementById("theme-selector").getValue();
 	window.open("overrideZone.php?page="+(isBattle?"battle":"map")+"&i="+circuitId+"&theme="+theme+"&source="+source,'chose','scrollbars=1, resizable=1, width=800, height=600');
@@ -3403,15 +3461,15 @@ function handleLapCopySelect() {
 	document.getElementById("lapoverride-copy").classList.remove("lapoverride-copy-invalid");
 
 	var enabledComponents = [];
-	if (to) {
+	var overrideFrom = lapOverrides[from];
+	var overrideTo = lapOverrides[to];
+	if (to && overrideFrom.imgData) {
 		enabledComponents.push({
 			key: 'image',
 			label: language ? 'Image':'Image'
 		});
 	}
 	
-	var overrideFrom = lapOverrides[from];
-	var overrideTo = lapOverrides[to];
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 
@@ -3458,6 +3516,19 @@ function showLapOverrideRemove() {
 	renderLapOverrideSelect();
 }
 function selectOverrideTrigger($elt) {
+	// Reset condition UI when user manually switches trigger types
+	var $conditionCheckZone = document.getElementById("lapoverride-condition-check-zone");
+	var $conditionCheckTime = document.getElementById("lapoverride-condition-check-time");
+	
+	if ($conditionCheckZone) {
+		$conditionCheckZone.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-zone").style.display = "none";
+	}
+	if ($conditionCheckTime) {
+		$conditionCheckTime.checked = false;
+		document.getElementById("lapoverride-triggers-condition-options-time").style.display = "none";
+	}
+	
 	setOverrideTrigger($elt.dataset.value);
 }
 function setOverrideTrigger(selectedType) {
@@ -3501,7 +3572,7 @@ function addLapOverride() {
 		return;
 	}
 	selectLapOverride(-1, opts);
-	assignLapOverrideSettings(selectedLapOverride);
+	assignLapOverrideSettings(selectedLapOverride, opts);
 	closeLapOverrideOptions();
 }
 function editLapOverride() {
@@ -3520,7 +3591,7 @@ function editLapOverride() {
 	var existingLapOverride;
 	if (existingLapOverride = lapOverrideExists(opts)) {
 		if (existingLapOverride === editingLapOverride)
-			assignLapOverrideSettings(oldLapOverride);
+			assignLapOverrideSettings(oldLapOverride, opts);
 		closeLapOverrideOptions();
 		return;
 	}
@@ -3534,7 +3605,7 @@ function editLapOverride() {
 		selectedLapOverride++;
 	swapLapOverride(editingLapOverride, newLapOverride);
 	applyLapOverrideSelector();
-	assignLapOverrideSettings(newLapOverride);
+	assignLapOverrideSettings(newLapOverride, opts);
 	closeLapOverrideOptions();
 	changes = true;
 }
@@ -3579,6 +3650,17 @@ function assignLapOverrideOpts(opts) {
 		var $impactAllCheck = document.getElementById("lapoverride-impact-all-check");
 		if ($impactAllCheck.checked && !$impactAllCheck.disabled)
 			opts.impactAll = true;
+		
+		var $conditionCheck = document.getElementById("lapoverride-condition-check-zone");
+		if ($conditionCheck && $conditionCheck.checked) {
+			var $conditionCheckboxes = document.querySelectorAll("#lapoverride-condition-list-zone input[type='checkbox']:checked");
+			if ($conditionCheckboxes.length > 0) {
+				var requiredOverrides = [];
+				for (var i = 0; i < $conditionCheckboxes.length; i++)
+					requiredOverrides.push(lapOverrides[$conditionCheckboxes[i].value]);
+				opts.requiredOverrides = requiredOverrides;
+			}
+		}
 		break;
 	case "time":
 		opts.time = parseTimer(document.getElementById("lapoverride-time").value);
@@ -3586,6 +3668,17 @@ function assignLapOverrideOpts(opts) {
 		var endTimeCheck = document.getElementById("lapoverride-end-time-check").checked;
 		if (endTime && endTimeCheck)
 			opts.endTime = parseTimer(endTime);
+		
+		var $conditionCheck = document.getElementById("lapoverride-condition-check-time");
+		if ($conditionCheck && $conditionCheck.checked) {
+			var $conditionCheckboxes = document.querySelectorAll("#lapoverride-condition-list-time input[type='checkbox']:checked");
+			if ($conditionCheckboxes.length > 0) {
+				var requiredOverrides = [];
+				for (var i = 0; i < $conditionCheckboxes.length; i++)
+					requiredOverrides.push(lapOverrides[$conditionCheckboxes[i].value]);
+				opts.requiredOverrides = requiredOverrides;
+			}
+		}
 	}
 }
 function lapOverrideExists(opts) {
@@ -3656,8 +3749,9 @@ function copyLapOverride() {
 	}, 1000);
 	changes = true;
 }
-function assignLapOverrideSettings(lapId) {
+function assignLapOverrideSettings(lapId, opts) {
 	var lapOverride = lapOverrides[lapId];
+	lapOverride.requiredOverrides = opts.requiredOverrides;
 	var $checkbox = document.getElementById("lapoverride-interactions-check");
 	if (!$checkbox.checked) {
 		delete lapOverride.interactions;
@@ -3847,6 +3941,7 @@ function initLapOverride(meta, oldLapOverride) {
 		endOnExit: meta.endOnExit,
 		endDelay: meta.endDelay,
 		impactAll: meta.impactAll,
+		requiredOverrides: meta.requiredOverrides,
 		imgData: meta.imgData,
 		modesData: meta.modesData || {}
 	});
@@ -4042,11 +4137,17 @@ function showBgSelector() {
 	var $selectedTab;
 	if (editorTool.data.bg_custom)
 		$selectedTab = document.querySelector('#bg-selector-options > div[data-custom="1"]');
-	else {
+	else if (editorTool.data.bg_img != null) {
 		var $selectedBg = document.getElementById("bgchoice-"+editorTool.data.bg_img);
-		$selectedBg.className = "bg-selected";
-		$selectedTab = $selectedBg.parentNode;
+		if ($selectedBg) {
+			$selectedBg.className = "bg-selected";
+			$selectedTab = $selectedBg.parentNode;
+		}
+		else
+			$selectedTab = document.querySelector('#bg-selector-options > div');
 	}
+	else
+		$selectedTab = document.querySelector('#bg-selector-options > div');
 	showBgTab($selectedTab.getAttribute("data-value"));
 }
 function changeBg($elt) {
@@ -4054,6 +4155,8 @@ function changeBg($elt) {
 	storeHistoryData(editorTool.data);
 	editorTool.data.bg_img = +$elt.getAttribute("data-value");
 	editorTool.data.bg_custom = !!$elt.getAttribute("data-custom");
+	if (selectedLapOverride)
+		editorTool.data.bg_override = true;
 	applyBgSelector();
 	var $mask = document.getElementById("mask-bg");
 	$mask.close();
@@ -4065,41 +4168,58 @@ var myBgs;
 var extraBgs = {};
 var customBgImgs = {};
 function applyBgSelector() {
+	var $btnReset = document.getElementById("button-bgimg-reset");
+	var $btnBgimg = document.getElementById("button-bgimg");
 	var editorTool = editorTools[currentMode];
-	var selectedBgArr = [];
-	if (!editorTool.data.bg_custom) {
-		var selectedBg = bgImgs[editorTool.data.bg_img];
-		for (var i=0;i<selectedBg.length;i++)
-			selectedBgArr.unshift("url('images/map_bg/"+selectedBg[i]+".png')");
-	}
-	else {
-		selectedBg = customBgImgs[editorTool.data.bg_img];
-		if (selectedBg) {
-			var bgLayers = selectedBg.layers;
-			for (var i=0;i<bgLayers.length;i++)
-				selectedBgArr.unshift("url('"+bgLayers[i].path+"')");
+	if (!selectedLapOverride || editorTool.data.bg_override) {
+		var selectedBgArr = [];
+		if (!editorTool.data.bg_custom) {
+			var selectedBg = bgImgs[editorTool.data.bg_img];
+			if (selectedBg) {
+				for (var i=0;i<selectedBg.length;i++)
+					selectedBgArr.unshift("url('images/map_bg/"+selectedBg[i]+".png')");
+			}
 		}
 		else {
-			if (myBgs) {
-				fetchCustomBgData({
-					id: editorTool.data.bg_img,
-					callback: function() {
-						if (customBgImgs[editorTool.data.bg_img])
-							applyBgSelector();
-					}
-				});
+			selectedBg = customBgImgs[editorTool.data.bg_img];
+			if (selectedBg) {
+				var bgLayers = selectedBg.layers;
+				for (var i=0;i<bgLayers.length;i++)
+					selectedBgArr.unshift("url('"+bgLayers[i].path+"')");
 			}
 			else {
-				fetchCustomBgData({
-					callback: function() {
-						applyBgSelector();
-					}
-				});
+				if (myBgs) {
+					fetchCustomBgData({
+						id: editorTool.data.bg_img,
+						callback: function() {
+							if (customBgImgs[editorTool.data.bg_img])
+								applyBgSelector();
+						}
+					});
+				}
+				else {
+					fetchCustomBgData({
+						callback: function() {
+							applyBgSelector();
+						}
+					});
+				}
 			}
 		}
+		if (selectedBgArr.length) {
+			$btnBgimg.style.backgroundImage = selectedBgArr.join(",");
+			$btnBgimg.innerHTML = "";
+		} else {
+			$btnBgimg.style.backgroundImage = "";
+			$btnBgimg.innerHTML = language ? "No background" : "Aucun arrière-plan";
+		}
+		if ($btnReset) $btnReset.style.display = "";
 	}
-	if (selectedBgArr.length)
-		document.getElementById("button-bgimg").style.backgroundImage = selectedBgArr.join(",");
+	else {
+		$btnBgimg.style.backgroundImage = "";
+		$btnBgimg.innerHTML = language ? "Override..." : "Modifier...";
+		if ($btnReset) $btnReset.style.display = "none";
+	}
 }
 function showBgSelectorCollab() {
 	var $bgSelectorCollab = document.getElementById("bg-selector-collab");
@@ -4145,10 +4265,22 @@ function selectBgSelectorCollab(e) {
 	});
 }
 function applyColorSelector() {
+	var $btnReset = document.getElementById("button-bgcolor-reset");
+	var $btnBgcolor = document.getElementById("button-bgcolor");
 	var editorTool = editorTools[currentMode];
-	var bgColor = editorTool.data.out_color;
-	document.getElementById("button-bgcolor").style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
-	document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+	if (!selectedLapOverride || editorTool.data.out_color_override) {
+		var bgColor = editorTool.data.out_color;
+		$btnBgcolor.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+		$btnBgcolor.innerHTML = "";
+		document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+		if ($btnReset) $btnReset.style.display = "";
+	}
+	else {
+		$btnBgcolor.style.backgroundColor = "";
+		$btnBgcolor.innerHTML = language ? "Override..." : "Modifier...";
+		document.body.style.backgroundColor = "";
+		if ($btnReset) $btnReset.style.display = "none";
+	}
 }
 function showMusicSelector() {
 	var $music = document.getElementById("music-selector");
@@ -4168,6 +4300,11 @@ function showMusicSelector() {
 	var mChoices = document.getElementsByClassName("music-selected");
 	while (mChoices.length)
 		mChoices[0].className = "";
+	
+	var $continuousCheckbox = document.getElementById("youtube-continuous");
+	if ($continuousCheckbox)
+		$continuousCheckbox.checked = false;
+	
 	var editorTool = editorTools[currentMode];
 	var editorData = editorTool.data;
 	musicSelected = editorData.music;
@@ -4196,6 +4333,8 @@ function showMusicSelector() {
 			if (youtubeOpts.end != null)
 				document.getElementById("youtube-end").value = timeToStr(youtubeOpts.end);
 			ytSpeed = youtubeOpts.speed;
+			if ($continuousCheckbox && youtubeOpts.continuous)
+				$continuousCheckbox.checked = true;
 			var youtubeOptsLast = youtubeOpts.last;
 			if (youtubeOptsLast) {
 				if (youtubeOptsLast.url != null)
@@ -4232,6 +4371,10 @@ function showMusicSelector() {
 	}
 	initYtSelect(document.getElementById("youtube-speed"), ytSpeed);
 	initYtSelect(document.getElementById("youtube-last-speed"), ytSpeedLast);
+	
+	var $continuousOption = document.getElementById("youtube-continuous-option");
+	if ($continuousOption)
+		$continuousOption.style.display = selectedLapOverride ? "" : "none";
 }
 function addOptionIfNotExist($select, value) {
 	var options = $select.options;
@@ -4360,6 +4503,9 @@ function submitMusic(e) {
 		ytOptions.end = strToTime(document.getElementById("youtube-end").value);
 	if (document.getElementById("youtube-speed").value != 1)
 		ytOptions.speed = +document.getElementById("youtube-speed").value;
+	var $continuousCheckbox = document.getElementById("youtube-continuous");
+	if ($continuousCheckbox && $continuousCheckbox.checked)
+		ytOptions.continuous = true;
 	if (document.getElementById("youtube-last-url").value) {
 		ytOptions.last = {url:document.getElementById("youtube-last-url").value};
 		if (document.getElementById("youtube-last-start").value)
@@ -4383,6 +4529,23 @@ function resetMusicOverride() {
 	var editorTool = editorTools[currentMode];
 	editorTool.data.music_override = false;
 	applyMusicSelector();
+}
+function resetBgOverride() {
+	if (!confirm(language ? "Reset background image override?" : "Annuler le changement d'arrière-plan pour ce modificateur ?"))
+		return;
+	var editorTool = editorTools[currentMode];
+	editorTool.data.bg_override = false;
+	editorTool.data.bg_img = null;
+	editorTool.data.bg_custom = false;
+	applyBgSelector();
+}
+function resetOutColorOverride() {
+	if (!confirm(language ? "Reset out color override?" : "Annuler le changement de couleur de fond pour ce modificateur ?"))
+		return;
+	var editorTool = editorTools[currentMode];
+	editorTool.data.out_color_override = false;
+	editorTool.data.out_color = {r:255,g:255,b:255};
+	applyColorSelector();
 }
 function undoMusic() {
 	hideMusicSelector();
@@ -4425,10 +4588,17 @@ function swapLapOverride(oldLapOverride, newLapOverride) {
 		var lapOverride = lapOverrides[lapKey];
 		if (lapOverride.imgData && lapOverride.imgData.data.overrideRef === oldLapOverride)
 			lapOverride.imgData.data.overrideRef = createdLapOverride;
-		if (!lapOverride.interactions) continue;
-		for (var j=0;j<lapOverride.interactions.length;j++) {
-			if (lapOverride.interactions[j] === oldLapOverride)
-				lapOverride.interactions[j] = createdLapOverride;
+		if (lapOverride.interactions) {
+			for (var j=0;j<lapOverride.interactions.length;j++) {
+				if (lapOverride.interactions[j] === oldLapOverride)
+					lapOverride.interactions[j] = createdLapOverride;
+			}
+		}
+		if (lapOverride.requiredOverrides) {
+			for (var j=0;j<lapOverride.requiredOverrides.length;j++) {
+				if (lapOverride.requiredOverrides[j] === oldLapOverride)
+					lapOverride.requiredOverrides[j] = createdLapOverride;
+			}
 		}
 	}
 }
@@ -4470,6 +4640,9 @@ function showBillBallHelp() {
 function showBgTransitionHelp() {
 	alert(language ? "If checked, the map image and background will transition smoothly from the previous to the next one" : "Si coché, les images de la map et de l'arrière-plan changeront progressivement du précédent au suivant");
 }
+function showContinuousTimerHelp() {
+	alert(language ? "If checked, the music will start at the same time point as the previous music, ensuring continuity between overrides" : "Si coché, la musique commencera au même moment que la musique précédente, permettant ainsi une continuité entre les modificateurs");
+}
 function bgTransitionChange(checked) {
 	var editorTool = editorTools[currentMode];
 	storeHistoryData(editorTool.data);
@@ -4495,6 +4668,8 @@ function showColorSelector() {
 			bgColor.r = rgb[0];
 			bgColor.g = rgb[1];
 			bgColor.b = rgb[2];
+			if (selectedLapOverride)
+				editorTool.data.out_color_override = true;
 			$mask.close();
 		},
 		onClose: function() {
@@ -4749,13 +4924,13 @@ function _saveData() {
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
-		if (!enabledModes.length && !lapOverride.imgData && !lapOverride.interactions && !lapOverride.time && !lapOverride.zone) continue;
 		lapPayload.meta = {
 			lap: lapOverride.lap, cp: lapOverride.checkpoint,
 			time: lapOverride.time, endTime: lapOverride.endTime,
 			zone: lapOverride.zone, endZone: lapOverride.endZone,
 			zoneMeta: lapOverride.zoneMeta, endZoneMeta: lapOverride.endZoneMeta,
 			endOnExit: lapOverride.endOnExit, endDelay: lapOverride.endDelay, impactAll: lapOverride.impactAll,
+			requiredOverrides: lapOverride.requiredOverrides,
 			modes: enabledModes
 		};
 		if (!payload.lapOverrides) payload.lapOverrides = [];
@@ -4769,16 +4944,28 @@ function _saveData() {
 		var lapPayloadId = lapPayloadIds[lapKey];
 		if (!lapPayloadId) continue;
 		var lapOverride = lapOverrides[lapKey];
-		if (!lapOverride.interactions) continue;
-		var lapPayload = payload.lapOverrides[lapPayloadId-1];
-		var lapInteractions = [];
-		for (var j=0;j<lapOverride.interactions.length;j++) {
-			var lapId = lapOverrides.indexOf(lapOverride.interactions[j]);
-			var interactionId = lapPayloadIds[lapId];
-			if (interactionId != null)
-				lapInteractions.push(interactionId);
+		if (lapOverride.interactions) {
+			var lapPayload = payload.lapOverrides[lapPayloadId-1];
+			var lapInteractions = [];
+			for (var j=0;j<lapOverride.interactions.length;j++) {
+				var lapId = lapOverrides.indexOf(lapOverride.interactions[j]);
+				var interactionId = lapPayloadIds[lapId];
+				if (interactionId != null)
+					lapInteractions.push(interactionId);
+			}
+			lapPayload.meta.interactions = lapInteractions;
 		}
-		lapPayload.meta.interactions = lapInteractions;
+		if (lapOverride.requiredOverrides) {
+			var lapPayload = payload.lapOverrides[lapPayloadId-1];
+			var lapRequiredOverrides = [];
+			for (var j=0;j<lapOverride.requiredOverrides.length;j++) {
+				var lapId = lapOverrides.indexOf(lapOverride.requiredOverrides[j]);
+				var requiredOverrideId = lapPayloadIds[lapId];
+				if (requiredOverrideId != null)
+					lapRequiredOverrides.push(requiredOverrideId);
+			}
+			lapPayload.meta.requiredOverrides = lapRequiredOverrides;
+		}
 	}
 	for (var lapKey in imgOverrides) {
 		var imgOverride = imgOverrides[lapKey];
@@ -4934,6 +5121,16 @@ function restoreData(payload) {
 				}
 				var lapKey = lapKeys[i];
 				lapOverrides[lapKey].interactions = lapInteractionsData;
+			}
+			var lapRequiredOverrides = lapOverride.meta.requiredOverrides;
+			if (lapRequiredOverrides) {
+				var lapRequiredOverridesData = [];
+				for (var j=0;j<lapRequiredOverrides.length;j++) {
+					var requiredOverrideId = lapRequiredOverrides[j];
+					lapRequiredOverridesData.push(lapOverrides[requiredOverrideId]);
+				}
+				var lapKey = lapKeys[i];
+				lapOverrides[lapKey].requiredOverrides = lapRequiredOverridesData;
 			}
 		}
 		for (var i=0;i<lapOverrides.length;i++) {
@@ -7144,9 +7341,11 @@ var commonTools = {
 			document.body.style.backgroundColor = "";
 		},
 		"save" : function(self,payload) {
-			payload.main.bgimg = self.data.bg_img;
-			if (self.data.bg_custom)
-				payload.main.bgcustom = 1;
+			if (!selectedLapOverride || self.data.bg_override) {
+				payload.main.bgimg = self.data.bg_img;
+				if (self.data.bg_custom)
+					payload.main.bgcustom = 1;
+			}
 			if (!selectedLapOverride || self.data.music_override) {
 				payload.main.music = self.data.music;
 				if (self.data.youtube) {
@@ -7155,11 +7354,16 @@ var commonTools = {
 						payload.main.youtube_opts = self.data.youtube_opts;
 				}
 			}
-			payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
+			if (!selectedLapOverride || self.data.out_color_override)
+				payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
 		},
 		"restore" : function(self,payload) {
 			self.data.bg_img = payload.main.bgimg;
 			self.data.bg_custom = payload.main.bgcustom;
+			if (self.data.bg_img!=null || self.data.bg_custom)
+				self.data.bg_override = true;
+			else
+				self.data.bg_override = false;
 			self.data.music = payload.main.music;
 			if (payload.main.youtube)
 				self.data.youtube = payload.main.youtube;
@@ -7168,14 +7372,20 @@ var commonTools = {
 			if (self.data.youtube || self.data.music)
 				self.data.music_override = true;
 			else
-				self.data.music = 1;
-			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+				self.data.music = isBattle ? 9:1;
+			if (payload.main.bgcolor) {
+				self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+				self.data.out_color_override = true;
+			} else {
+				self.data.out_color = {r:255,g:255,b:255};
+				self.data.out_color_override = false;
+			}
 			if (payload.main.bgtransition)
 				document.getElementById("bg-transition").checked = true;
 		},
-		"postcopy" : function(self, copyFrom) {
-			if (!copyFrom)
-				self.data.music_override = false;
+		"postcopy" : function(self) {
+			if (self.data.youtube_opts)
+				delete self.data.youtube_opts.last;
 		},
 		"hasPartialOverride": true
 	},

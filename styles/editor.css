@@ -399,11 +399,11 @@ body.theme-dark {
 .mode-option-selected:not(.mode-option-override) .mode-option-onoverride {
 	display: none;
 }
-#button-music-reset {
+#button-music-reset, #button-bgimg-reset, #button-bgcolor-reset {
 	color: #912;
 	text-decoration: none;
 }
-#button-music-reset:hover {
+#button-music-reset:hover, #button-bgimg-reset:hover, #button-bgcolor-reset:hover {
 	text-decoration: underline;
 }
 .mode-option-hidden {
@@ -818,6 +818,9 @@ div.hover-toggle:hover {
 #mode-option-options, #mode-option-options button {
 	font-size: 0.8em;
 }
+#mode-option-options #button-bgimg {
+	font-size: 0.9em;
+}
 #mode-option-options > div {
 	margin-top: 0.4em;
 	margin-bottom: 0.5em;
@@ -1033,8 +1036,8 @@ div.hover-toggle:hover {
 #youtube-advanced-options {
 	display: none;
 }
-#youtube-advanced-options > div {
-	margin-top: 10px;
+#youtube-continuous-option {
+	margin-top: 5px;
 }
 .youtube.youtube-show-advanced #youtube-advanced-options {
 	display: block;
@@ -1055,6 +1058,12 @@ embed,#ytplayer {
 #button-bgcolor {
 	width: 30px;
 	height: 18px;
+}
+#mode-option-options #button-bgcolor:not(:empty) {
+	width: auto;
+	font-size: 0.7em;
+	position: relative;
+	top: -0.1em;
 }
 .editor-mask .picker_wrapper {
 	position: fixed;
@@ -1363,6 +1372,34 @@ embed,#ytplayer {
 }
 #lapoverride-impact-all-check:disabled + * {
 	opacity: 0.5;
+}
+#lapoverride-triggers-condition-zone,
+#lapoverride-triggers-condition-time {
+	margin-top: 15px;
+}
+#lapoverride-triggers-condition-options-zone,
+#lapoverride-triggers-condition-options-time {
+	margin-left: 20px;
+	font-size: 0.9em;
+	line-height: 1.6em;
+	display: none;
+}
+#lapoverride-condition-list-zone,
+#lapoverride-condition-list-time {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+#lapoverride-condition-list-zone label,
+#lapoverride-condition-list-time label {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+#lapoverride-condition-list-zone span,
+#lapoverride-condition-list-time span {
+	user-select: none;
 }
 #lapoverride-end-delay {
 	margin-left: 0.2em;
