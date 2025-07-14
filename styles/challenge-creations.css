@@ -340,9 +340,7 @@
 	color: #800;
 }
 .challenges-item-difficulty img {
-	position: relative;
-	top: 1px;
-	height: 20px;
+	height: 18px;
 }
 .challenges-item-action {
 	display: table-cell;
