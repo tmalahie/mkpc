@@ -11202,8 +11202,10 @@ function checkItemLap(fSprite, opts) {
 	if (parentLapId === undefined) parentLapId = lapId;
 	else nextOverride = oMap.lapOverrides[parentLapId];
 	var currentOverride = oMap.lapOverrides[parentLapId-1];
-	if (!tours)
-		tours = currentOverride ? currentOverride.lap : 1;
+	if (!tours) {
+		var currentOverrideLap = (currentOverride && currentOverride.lap) || 0;
+		tours = currentOverrideLap+1;
+	}
 	demitours = (currentOverride && currentOverride.cp) || 0;
 	for (var i=0;i<oMap.conditionOverrides.length;i++) {
 		var oOverride = oMap.conditionOverrides[i];
