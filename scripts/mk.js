@@ -11924,7 +11924,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					let fromSelf;
 					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
 						fromSelf = true;
-					else if (collisionTest === COL_OBJ && collisionItem.owner === oPlayers[0].id)
+					else if (collisionTest === COL_OBJ && collisionItem && collisionItem.owner === oPlayers[0].id)
 						fromSelf = true;
 					
 					const collisionFrom = collisionTest === COL_KART ? collisionPlayer : collisionItem;
