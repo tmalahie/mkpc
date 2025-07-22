@@ -814,6 +814,11 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'auto accelerate':'auto-accélérer',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'no_bumps' => array(
+			'description' => $language ? 'without kart bumps' : 'sans collisions entre les karts',
+			'description_mockup' => $language ? 'disable kart bumps' : 'désactiver collisions entre karts',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'invert_dirs' => array(
 			'description' => $language ? 'with inverted controls':'avec les contrôles inversés',
 			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',

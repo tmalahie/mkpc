@@ -12328,7 +12328,7 @@ function colKart(getId) {
 			var d2 = nearestPoint[0]*nearestPoint[0] + nearestPoint[1]*nearestPoint[1];
 			if (d2 <= hitboxSize) {
 				if (!protect1 && !protect2) {
-					if (isOnline && shareLink.options && shareLink.options.noBumps)
+					if ((isOnline && shareLink.options && shareLink.options.noBumps) || clLocalVars.noBumps)
 						continue;
 					if (isChampiCol) {
 						var qKart = oKart.champi ? kart:oKart;
@@ -14132,6 +14132,14 @@ var challengeRules = {
 		},
 		"success": function(scope) {
 			return !!clLocalVars.autoAccelerate;
+		}
+	},
+	"no_bumps": {
+		"initSelected": function(scope) {
+			clLocalVars.noBumps = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.noBumps;
 		}
 	},
 	"invert_dirs": {
