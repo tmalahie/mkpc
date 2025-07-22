@@ -4782,7 +4782,7 @@ function startGame() {
 											clLocalVars.drifted = true;
 									}
 								}
-								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].billball && !oPlayers[0].tourne && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
+								else if (canTrick(oPlayers[0]))
 									stuntKart(oPlayers[0]);
 								break;
 							case "pause":
@@ -4853,7 +4853,7 @@ function startGame() {
 											oPlayers[1].driftinc = (oPlayers[1].rotincdir>0) ? 1:-1;
 									}
 								}
-								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].billball && !oPlayers[1].tourne && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
+								else if (canTrick(oPlayers[1]))
 									stuntKart(oPlayers[1]);
 								return false;
 							case "balloon_p2":
@@ -16210,6 +16210,11 @@ function distKart(obj) {
 	}
 	return res;
 }
+
+function canTrick(oKart) {
+	return !oKart.jumped && !oKart.fell && !oKart.ctrled && !oKart.billball && !oKart.tourne && !oKart.figuring && !oKart.figstate && !oKart.driftinc && !oKart.cannon;
+}
+
 function stuntKart(oKart) {
 	oKart.figstate = 21;
 	oKart.z += 1;
