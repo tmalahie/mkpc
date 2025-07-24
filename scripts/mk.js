@@ -16482,6 +16482,8 @@ function resetDatas() {
 						itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
 				}
 			}
+			if (itemData.length % 2)
+				itemData += "0";
 			var itemPayload = {
 				data: itemData
 			};
