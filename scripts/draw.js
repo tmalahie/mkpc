@@ -328,7 +328,7 @@ var editorTools = {
 					cpuCount++;
 				payload.main.aiclosed.push(iData.closed ? 1:0);
 				payload.aipoints.push(polyToData(iData.points));
-				if (iData.shortcuts.length) {
+				if (iData.shortcuts && iData.shortcuts.length) {
 					var nShortcuts = [];
 					if (!payload.aishortcuts) payload.aishortcuts = [];
 					for (var j=0;j<iData.shortcuts.length;j++) {
