@@ -23,17 +23,25 @@ if (isset($_GET['pseudo'])) {
 
 				$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
 				$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
-				$msg = $language ? 'Hello '.htmlspecialchars($pseudo).'
-You are receiving this email because you have applied for password recovery on the Mario Kart PC site.
+				$msg = $language ? 'Hello '.htmlspecialchars($pseudo).',
+You are receiving this email because a password reset was requested for your account on the Mario Kart PC site.
 
-Here is a link that will allow you to generate a new password:
-<a href="'.$link.'">'. $link .'</a>
+If you did not make this request, you can safely ignore this email — no changes have been made to your account.
 
-See you soon on Mario Kart PC :)':'Bonjour '.htmlspecialchars($pseudo).'
-Vous recevez cet email car vous avez fait une demande de récupération de mot de passe sur le site Mario Kart PC.
+To reset your password, please click the link below:
+<a href="'.$link.'">'.$link.'</a>
 
-Voici un lien qui va vous permettre de générer un nouveau mot de passe:
-<a href="'.$link.'">'. $link .'</a>
+⚠️ <strong>This link is personal and confidential. Do not share it with anyone under any circumstances.</strong>
+
+See you soon on Mario Kart PC :)' : 'Bonjour '.htmlspecialchars($pseudo).',
+Vous recevez cet e-mail parce qu’une demande de réinitialisation de mot de passe a été effectuée pour votre compte sur le site Mario Kart PC.
+
+Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Aucun changement ne sera effectué sur votre compte.
+
+Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien ci-dessous :
+<a href="'.$link.'">'.$link.'</a>
+
+⚠️ <strong>Ce lien est personnel et confidentiel. Ne le partagez sous aucun prétexte.</strong>
 
 À bientôt sur Mario Kart PC :)';
 
