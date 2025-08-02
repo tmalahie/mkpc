@@ -454,7 +454,7 @@ include('../includes/menu.php');
 				
 			?>
 		</div>
-		<div><strong><?php echo $language ? 'Creation type':'Type de création'; ?></strong> :
+		<div><strong><?php echo $language ? 'Creation type&nbsp;':'Type de création'; ?></strong>
 		<select name="type" onchange="this.form.submit()">
 		<?php
 		$types = $language
@@ -465,7 +465,7 @@ include('../includes/menu.php');
 			echo '<option value="'. $i .'"'. ((strval($i) === $type) ? ' selected="selected"':'') .'>'. $iType . ($singleType ? '':' ('.$nbByType[$i].')') .'</option>';
 		?>
 		</select></div>
-		<div><strong><?php echo $language ? 'Search':'Recherche'; ?></strong> :
+		<div><strong><?php echo $language ? 'Search':'Recherche'; ?></strong>
 			<?php
 			if (isset($_GET['admin']))
 				echo '<input type="hidden" name="admin" value="1" />';

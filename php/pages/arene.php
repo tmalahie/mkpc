@@ -115,7 +115,7 @@ for ($i=0;$i<36;$i++)
 include('../includes/circuitObjects.php');
 ?>
 <span id="deleteAllCtn">
-	<input type="button" value="<?php echo $language ? 'Delete all':'Tout supprimer'; ?>" id="deleteAll" onclick="deleteAll('<?php echo $language ? 'Delete all pieces of this circuit ?':'Supprimer toutes les pi\xE8ces de ce circuit ?'; ?>')" />
+	<input type="button" value="<?php echo $language ? 'Delete all':'Tout supprimer'; ?>" id="deleteAll" onclick="deleteAll('<?php echo $language ? 'Delete all pieces of this arena?':'Supprimer toutes les pi\xE8ces de cette arène ?'; ?>')" />
 </span>
 </p>
 <form method="get" action="arena.php">

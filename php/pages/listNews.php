@@ -101,7 +101,7 @@ $nbPages = ceil($nbNews/$RES_PER_PAGE);
 if ($nbPages > 1) {
 	?>
 	<div class="newsPages"><p>
-		Page : <?php
+		<?php echo $language ? 'Page: &nbsp;':'Page : ';
 		$get = $_GET;
 		foreach ($get as $k => $getk)
 			$get[$k] = stripslashes($get[$k]);

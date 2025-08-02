@@ -274,9 +274,9 @@ include('../includes/menu.php');
 	elseif ($moderate)
 		echo $language ? 'Moderate time trials records' : 'Modérer les records en contre-la-montre';
 	elseif (isset($user))
-		echo $language ? 'Best time trial scores of '. $user['nom']:'Meilleurs scores contre-la-montre de '.$user['nom'];
+		echo $language ? 'Best time trial records of '. $user['nom']:'Meilleurs scores contre-la-montre de '.$user['nom'];
 	else
-		echo $language ? 'Best scores in time trial':'Meilleurs scores contre-la-montre';
+		echo $language ? 'Best time trial records':'Meilleurs scores contre-la-montre';
 ?></h1>
 <div class="action-btns<?php if ($isModerator && !$manage) echo ' action-btns-sm'; ?>">
 <?php
@@ -783,7 +783,7 @@ function displayResult(id, n) {
 		var oPages = document.createElement("td");
 		oPages.id = "page";
 		oPages.setAttribute("colspan", 4+!isMobile+sPts+sFilteredData);
-		oPages.innerHTML = "Page :";
+		oPages.innerHTML = language ? "Page:" : "Page :";
 		if (document.getElementById("result"+ id).getElementsByTagName("tr").length == 1) {
 			oPages.innerHTML = language ? "No record for this circuit yet":"Aucun record sur ce circuit pour l'instant";
 			oPages.style.textAlign = "center";

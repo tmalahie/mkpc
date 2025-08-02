@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
+    include('../includes/language.php');
     include('../includes/initdb.php');
     require_once('../includes/collabUtils.php');
     $link = getCollabLink($_POST['type'], $_POST['id'], $_POST['collab']);

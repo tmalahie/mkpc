@@ -246,7 +246,7 @@ if ($arePersos) {
 <form method="post" action="persoEditor.php" enctype="multipart/form-data">
 	<p>
 		<input type="file" required="required" name="sprites" />
-		<input type="submit" value="<?php echo $language ? 'Send !':'Valider !'; ?>" />
+		<input type="submit" value="<?php echo $language ? 'Send!':'Valider !'; ?>" />
 	</p>
 </form>
 <p><a href="mariokart.php"><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></a></p>

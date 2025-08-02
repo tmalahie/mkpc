@@ -236,7 +236,7 @@ if ($oneset) {
 		if ($nbPages > 1) {
 			?>
 			<div class="topicPages"><p>
-				Page : <?php
+				<?php echo $language ? 'Page: &nbsp;':'Page : ';
 				$get = $_GET;
 				foreach ($get as $k => $getk)
 					$get[$k] = stripslashes($get[$k]);

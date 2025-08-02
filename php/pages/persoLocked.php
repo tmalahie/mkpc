@@ -433,7 +433,7 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
 if ($nbPages > 1) {
     ?>
     <div class="reward-pages"><p>
-        Page : <?php
+        <?php echo $language ? 'Page: ':'Page : ';
         $get = $_GET;
         for ($i=1;$i<=$nbPages;$i++) {
             $get['page'] = $i;

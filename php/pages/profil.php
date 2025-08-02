@@ -459,7 +459,7 @@ include('../includes/menu.php');
 					$oneData = true;
 					?>
 					<div class="description-container">
-						<h3>Description :</h3>
+						<h3><?php echo $language ? 'Description:':'Description :'; ?></h3>
 						<div class="profile-description">
 							<?php echo bbcode($getProfile['description']); ?>
 						</div>
@@ -573,7 +573,7 @@ include('../includes/menu.php');
 					<?php
 				}
 				if (!$oneData)
-					echo '<em class="no-persos">'. ($language ? 'No personnal info entered':'Aucune info perso renseignée') .'</em>';
+					echo '<em class="no-persos">'. ($language ? 'No personal info entered':'Aucune info perso renseignée') .'</em>';
 				?>
 				<?php
 				if ($me) {
@@ -746,7 +746,7 @@ include('../includes/menu.php');
 						if ($challengeDetails['name'])
 							echo '<h2>'. htmlspecialchars($challengeDetails['name']) .'</h2>';
 						echo '<h3>';
-						echo '<strong>'. ($circuit['name'] ? $circuit['name']:($language ? 'Untitled':'Sans titre')) .'</strong> : ';
+						echo '<strong>'. ($circuit['name'] ? $circuit['name']:($language ? 'Untitled':'Sans titre')) .'</strong>'. ($language ? ': ':' : ');
 						echo $challengeDetails['description']['main'];
 						echo '</h3>';
 						if (isset($challengeDetails['description']['extra']))

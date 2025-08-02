@@ -4823,7 +4823,7 @@ function startGame() {
 									quitter();
 								break;
 							case "cheat":
-								if (!isOnline && (course != "GP") && (course != "CM"))
+								//if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
 							case "up_p2":
@@ -6313,7 +6313,7 @@ function continuer() {
 								oValide.parentNode.removeChild(oValide);
 								aPara2.style.fontSize = Math.round(iScreenScale*2.5) + "px";
 								if (success) {
-									aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully ! You placed ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race !", " sur "+ enregistre[1] +" au classement de ce circuit !");
+									aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully! You placed ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race!", " sur "+ enregistre[1] +" au classement de ce circuit !");
 									oSave.style.display = "none";
 								}
 								aPara2.style.visibility = "";
@@ -18376,7 +18376,7 @@ function move(getId, triggered) {
 							var oTd = document.createElement("td");
 							oTd.style.fontSize = (iScreenScale*8) +"px";
 							oTd.style.color = "#F80";
-							oTd.innerHTML = toLanguage("&nbsp; &nbsp; FINISH !", "TERMIN&Eacute; !");
+							oTd.innerHTML = toLanguage("&nbsp; &nbsp; FINISH!", "TERMIN&Eacute; !");
 							oTr.appendChild(oTd);
 							var oTr2 = document.createElement("tr");
 							var oTd2 = document.createElement("td");
@@ -27895,9 +27895,10 @@ function selectMapScreen(opts) {
 			oScr.appendChild(oPInput);
 		}
 
-		showRaceCountIfRelevant(oScr);
+		var paginationEnabled = cupOpts.pages && cupOpts.pages.length;
+		showRaceCountIfRelevant(oScr, { paginationEnabled: paginationEnabled });
 
-		if (cupOpts.pages && cupOpts.pages.length) {
+		if (paginationEnabled) {
 			var oPrevInput = document.createElement("input");
 			oPrevInput.type = "button";
 			oPrevInput.value = "\u25C4";
@@ -28009,7 +28010,7 @@ function exitCircuit() {
 }
 
 // race counter in track selection
-function showRaceCountIfRelevant(oScr) {
+function showRaceCountIfRelevant(oScr, opts) {
 	if ((course != "CM") && isLocalScore() && iRaceCount > 0) {
 		var oRaceCount = document.createElement("div");
 		var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
@@ -28017,7 +28018,8 @@ function showRaceCountIfRelevant(oScr) {
 		oRaceCount.style.fontSize = (2*iScreenScale)+"px";
 		oRaceCount.style.position = "absolute";
 		oRaceCount.style.color = "#ccc";
-		oRaceCount.style.right = (3*iScreenScale)+"px";
+		var paginationEnabled = opts && opts.paginationEnabled;
+		oRaceCount.style.right = ((paginationEnabled?10:3)*iScreenScale)+"px";
 		oRaceCount.style.top = ((isOnline?((isSingle||isMCups||!isCup)?31:27):35)*iScreenScale)+"px";
 		oScr.appendChild(oRaceCount);
 	}
@@ -30458,7 +30460,27 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	var cls = toLanguage(": ", " : ");
+	displayCommands(
+		'<strong>'+ toLanguage('Move', 'Se diriger') +'</strong>'+ cls +
+			aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +
+		'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong>' + cls +
+			aTouches(aKeyName("item"), aKeyName("item_p2")) +
+		'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong>' + cls +
+			aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +
+		'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong>' + cls +
+			aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +
+		'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong>' + cls +
+			aTouches(aKeyName("jump"), aKeyName("jump_p2")) +
+		((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong>' + cls +
+			aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +
+		'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong>' + cls +
+			aTouches(aKeyName("rear"), aKeyName("rear_p2")) +
+		'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong>' + cls +
+			aKeyName("pause") +
+		'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong>' + cls +
+			aKeyName("quit")
+	);
 }
 var pollingGamepadsHandler;
 function editCommands(options) {

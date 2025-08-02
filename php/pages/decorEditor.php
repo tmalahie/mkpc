@@ -287,7 +287,7 @@ if (isset($error))
                         </div>
                     </div>
                 </div>
-                <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
+                <div><button type="submit"><?php echo $language ? 'Send!':'Valider !'; ?></button></div>
             </div>
         </form>
     </div>

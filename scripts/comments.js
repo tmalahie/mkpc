@@ -126,7 +126,7 @@ var circuitNbComments = 0;
 	function createNewComment() {
 		var res = createComment("new");
 		res.find(".comment-undo").hide();
-		res.find(".comment-header").html('<strong>'+ (language ? "Post a comment":"Poster un commentaire") +' :</strong>');
+		res.find(".comment-header").html('<strong>'+ (language ? "Post a comment:":"Poster un commentaire :") +'</strong>');
 		setNewEvents(res);
 		return res;
 	}

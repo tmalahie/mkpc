@@ -48,7 +48,7 @@ function followTopic(id, follow, userIsPoster) {
 		followerCheckboxs[i].checked = follow;
 }
 function confirmSuppr() {
-	return confirm(o_language ? 'Are you sure you want to delete this message ?':'Voulez-vous vraiment supprimer ce message ?');
+	return confirm(o_language ? 'Are you sure you want to delete this message?':'Voulez-vous vraiment supprimer ce message ?');
 }
 function openReactions(type,link, $elt) {
 	var $reactions = document.getElementById("message-reactions");

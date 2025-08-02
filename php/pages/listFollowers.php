@@ -73,7 +73,7 @@ include('../includes/menu.php');
 	if ($nbPages > 1) {
 		?>
 		<div class="topicPages"><p>
-			Page : <?php
+			<?php echo $language ? 'Page: &nbsp;':'Page : ';
 			$get = $_GET;
 			for ($i=1;$i<=$nbPages;$i++) {
 				$get['page'] = $i;

@@ -87,7 +87,7 @@ include('../includes/menu.php');
 			if ($nbPages > 1) {
 				?>
 				<div class="commentPages"><p>
-					Page : <?php
+					<?php echo $language ? 'Page: &nbsp;':'Page : ';
 					$get = $_GET;
 					for ($i=1;$i<=$nbPages;$i++) {
 						$get['page'] = $i;

@@ -241,7 +241,7 @@ include('../includes/menu.php');
 		if ($nbPages > 1) {
 			?>
 			<div class="chat-pages">
-				Page : <?php
+				<?php echo $language ? 'Page: &nbsp;':'Page : ';
 				$get = $_GET;
 				require_once('../includes/utils-paging.php');
 				$allPages = makePaging($currentPage,$nbPages,4);

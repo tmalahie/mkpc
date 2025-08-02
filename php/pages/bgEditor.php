@@ -275,7 +275,7 @@ if (isset($error))
                 <button type="button" class="btn-edit" onclick="addLayer()"><strong>+</strong> <?php echo $language ? 'Add layer' : 'Ajouter un calque'; ?></button>
             </div>
             <div class="bg-form-submit">
-                <button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button>
+                <button type="submit"><?php echo $language ? 'Send!':'Valider !'; ?></button>
             </div>
         </form>
     </div>

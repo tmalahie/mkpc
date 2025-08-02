@@ -103,7 +103,7 @@ showRegularAdSection();
 				<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 			}
 			else
-				echo '<p style="text-align: center">'. ($language ? 'Error while editting message.':'Erreur lors de la modification du message.') .'</p>';
+				echo '<p style="text-align: center">'. ($language ? 'Error while editing message.':'Erreur lors de la modification du message.') .'</p>';
 		}
 		if ($showForm) {
 			$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"'));

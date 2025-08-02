@@ -108,7 +108,7 @@ showRegularAdSection();
 					echo '<p style="text-align: center">'. ($language ? 'Non-existant category.':'Catégorie inexistante.') .'</p>';
 			}
 			else
-				echo '<p style="text-align: center">'. ($language ? 'Error while editting message.':'Erreur lors de la modification du message.') .'</p>';
+				echo '<p style="text-align: center">'. ($language ? 'Error while editing message.':'Erreur lors de la modification du message.') .'</p>';
 		}
 		if ($showForm) {
 		?>

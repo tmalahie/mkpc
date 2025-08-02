@@ -748,7 +748,7 @@ function selectPersoImg(pos) {
 		}
 		if (customCharacters.length) {
 			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
-				? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
+				? "Select here a character from the character editor. If the character hasn't been shared, it will appear as locked for other members."
 				: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres";
 		}
 		else {

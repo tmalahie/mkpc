@@ -30,7 +30,7 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$nbPages = ceil(mysql_numrows($messages)/$nbMsgs);
 	require_once('../includes/utils-paging.php');
 	$allPages = makePaging($cPage,$nbPages);
-	$pagesDiv = '<div class="topicPages"><p>Page :&nbsp;';
+	$pagesDiv = '<div class="topicPages"><p>'. ($language ? 'Page:&nbsp;':'Page :&nbsp;');
 	foreach ($allPages as $i=>$block) {
 		if ($i)
 			$pagesDiv .= ' ...&nbsp; ';
