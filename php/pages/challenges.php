@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 				?></td>
 				<td class="challenges-td-center challenge-difficulty challenge-difficulty-<?php echo $challenge['difficulty']['level']; ?>">
 					<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['level']; ?>" />
-					<?php echo $challenge['difficulty']['name']; ?>
+					<span><?php echo $challenge['difficulty']['name']; ?></span>
 				</td>
 				<td class="challenges-td-center"><?php
 					$needsAck = false;

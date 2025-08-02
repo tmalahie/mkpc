@@ -26815,7 +26815,8 @@ function selectChallengesScreen() {
 			oIcons.style.display = "flex";
 			oIcons.style.alignItems = "center";
 			oIcons.style.justifyContent = "center";
-			oIcons.style.marginBottom = Math.round(iScreenScale/3)+"px";
+			oIcons.style.marginBottom = Math.round(iScreenScale/2)+"px";
+			oIcons.style.gap = Math.round(iScreenScale/8)+"px";
 
 			var oIconDifficulty = document.createElement("img");
 			oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";

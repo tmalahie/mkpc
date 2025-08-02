@@ -157,6 +157,10 @@ body a.challenge-action-edit:hover {
 .challenges-td-center img {
 	vertical-align: middle;
 }
+.challenge-difficulty > span {
+	position: relative;
+	top: 2px;
+}
 .challenges-table-reward ul {
     padding-left: 15px;
 }
