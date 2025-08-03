@@ -26819,7 +26819,7 @@ function selectChallengesScreen() {
 			oIcons.style.gap = Math.round(iScreenScale/8)+"px";
 
 			var oIconDifficulty = document.createElement("img");
-			oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";
+			oIconDifficulty.src = "images/challenges/difficulty-"+ challenge.difficulty.level +".png";
 			oIconDifficulty.alt = "D";
 			oIconDifficulty.style.height = (iScreenScale*2.2) +"px";
 			oIcons.appendChild(oIconDifficulty);

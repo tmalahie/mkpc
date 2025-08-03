@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 					echo '<div class="challenge-description challenge-description-extra">'. $challengeDesc['extra'] .'</div>';
 				?></td>
 				<td class="challenges-td-center challenge-difficulty challenge-difficulty-<?php echo $challenge['difficulty']['level']; ?>">
-					<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['level']; ?>" />
+					<img src="images/challenges/difficulty-<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['level']; ?>" />
 					<span><?php echo $challenge['difficulty']['name']; ?></span>
 				</td>
 				<td class="challenges-td-center"><?php

@@ -479,7 +479,7 @@ include('../includes/menu.php');
 							$note = $challenge['rating']['avg'];
 							?>
 							<div class="challenges-item-difficulty challenges-item-difficulty-<?php echo $challenge['difficulty']['level']; ?>" >
-								<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
+								<img src="images/challenges/difficulty-<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
 								<?php echo $challenge['difficulty']['name']; ?>
 								<div class="challenges-item-rating-thanks"><?php echo $language ? 'Thanks':'Merci'; ?></div>
 							</div>
@@ -502,7 +502,7 @@ include('../includes/menu.php');
 							?>
 						<div class="challenges-item-difficulty challenges-item-difficulty-<?php echo $challenge['difficulty']['level']; ?>" >
 							<div class="challenges-item-difficulty-value">
-								<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
+								<img src="images/challenges/difficulty-<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
 								<?php echo $challenge['difficulty']['name']; ?>
 								<span class="challenge-item-link" onclick="editDifficulty(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Edit':'Modifier'; ?></span>
 							</div>
@@ -554,7 +554,7 @@ include('../includes/menu.php');
 							if ($challenge['status'] === 'active') {
 								?>
 								<span class="challenges-item-difficulty challenges-item-difficulty-<?php echo $challenge['difficulty']['level']; ?>" >
-									<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
+									<img src="images/challenges/difficulty-<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
 									<?php echo $challenge['difficulty']['name']; ?>
 								</span><br />
 								<span class="challenges-item-accepted">
@@ -584,7 +584,7 @@ include('../includes/menu.php');
 							$noteTitle = $nbNotes ? (round($note*100)/100).'/5 '. ($language ? 'on':'sur') .' '. $nbNotes .' vote'. ($nbNotes>1 ? 's':'') : ($language ? 'Unrated':'Non noté');
 						?>
 						<div class="challenges-item-difficulty challenges-item-difficulty-<?php echo $challenge['difficulty']['level']; ?>" >
-							<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
+							<img src="images/challenges/difficulty-<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
 							<?php echo $challenge['difficulty']['name']; ?>
 						</div>
 						<div class="challenges-item-rating">

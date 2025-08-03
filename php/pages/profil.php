@@ -756,7 +756,7 @@ include('../includes/menu.php');
 					</div>
 					<div class="challenges-item-action">
 						<div class="challenges-item-difficulty challenges-item-difficulty-<?php echo $challengeDetails['difficulty']['level']; ?>" >
-							<img src="images/challenges/difficulty<?php echo $challengeDetails['difficulty']['level']; ?>.png" alt="<?php echo $challengeDetails['difficulty']['name']; ?>" />
+							<img src="images/challenges/difficulty-<?php echo $challengeDetails['difficulty']['level']; ?>.png" alt="<?php echo $challengeDetails['difficulty']['name']; ?>" />
 							<?php echo $challengeDetails['difficulty']['name']; ?>
 						</div>
 						<?php
