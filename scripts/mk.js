@@ -13843,7 +13843,8 @@ var challengeRules = {
 			updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"balloons_cpu": {
@@ -13859,7 +13860,8 @@ var challengeRules = {
 			}
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"no_drift": {
@@ -13911,7 +13913,8 @@ var challengeRules = {
 			});
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"avoid_decors": {
@@ -13958,7 +13961,8 @@ var challengeRules = {
 			});
 		},
 		"success": function(scope, ruleVars) {
-			return !ruleVars.hit;
+			if (ruleVars)
+				return !ruleVars.hit;
 		}
 	},
 	"avoid_walls": {
@@ -13982,7 +13986,8 @@ var challengeRules = {
 				supprArme(0);
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"item_distribution": {
@@ -13999,7 +14004,8 @@ var challengeRules = {
 			itemDistribution.isSetup = true;
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"custom_music": {
@@ -14205,7 +14211,8 @@ var challengeRules = {
 			clLocalVars.isSetup = true;
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"extra_items": {
@@ -14242,7 +14249,8 @@ var challengeRules = {
 			});
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"extra_decors": {
@@ -14343,7 +14351,8 @@ var challengeRules = {
 			});
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"extra_walls": {
@@ -14368,7 +14377,8 @@ var challengeRules = {
 			clLocalVars.isSetup = true;
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"place_items": {
@@ -14384,7 +14394,8 @@ var challengeRules = {
 			}
 		},
 		"success": function(scope, ruleVars) {
-			return !!ruleVars.selected;
+			if (ruleVars)
+				return !!ruleVars.selected;
 		}
 	},
 	"mini_turbo": {
