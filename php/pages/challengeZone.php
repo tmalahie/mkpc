@@ -173,7 +173,7 @@ body {
 }
 #editor-svg circle.vertex {
 	stroke-width: 2;
-	r: 4;
+	r: 4px;
 }
 #editor-svg circle {
 	fill: white;
