@@ -2552,12 +2552,11 @@ function dropNewItem(oKart, item) {
 		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.ailap = 0; item.target = -1;
 		break;
 	}
+	if (tombe(item.x, item.y))
+		return;
 	addNewItem(oKart, item);
 }
 function addNewItem(kart,item) {
-	if (tombe(item.x, item.y))
-		return;
-
 	var collection = item.type;
 	var itemBehavior = itemBehaviors[collection];
 	if (itemBehavior.sprite !== false) {
@@ -4823,7 +4822,7 @@ function startGame() {
 									quitter();
 								break;
 							case "cheat":
-								//if (!isOnline && (course != "GP") && (course != "CM"))
+								if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
 							case "up_p2":
