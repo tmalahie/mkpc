@@ -293,10 +293,10 @@ include('../includes/menu.php');
 						You can also change the difficulty if you find it unsuitable for the challenge. Try to stick to these rules:
 						<ul>
 							<li>An <span class="challenges-item-difficulty-0">easy</span> challenge has to be doable for an absolute beginner.</li>
-							<li>A <span class="challenges-item-difficulty-1">medium</span> challenge is typically difficult for a beginner but easy for an experimented player.</li>
-							<li>A <span class="challenges-item-difficulty-2">difficult</span> challenge would be challenging for an experimented player but doable in several trials.</li>
-							<li>An <span class="challenges-item-difficulty-3">extreme</span> challenge will require an experimented player to try-hard.</li>
-							<li>An <span class="challenges-item-difficulty-4">impossible</span> challenge will require experimented players to try for several hours, or even days before succeeding.</li>
+							<li>A <span class="challenges-item-difficulty-1">medium</span> challenge is typically difficult for a beginner but easy for an experienced player.</li>
+							<li>A <span class="challenges-item-difficulty-2">difficult</span> challenge would be challenging for an experienced player but doable in several trials.</li>
+							<li>An <span class="challenges-item-difficulty-3">extreme</span> challenge will require an experienced player to try-hard.</li>
+							<li>An <span class="challenges-item-difficulty-4">impossible</span> challenge will require experienced players to try for several hours, or even days before succeeding.</li>
 						</ul>
 						Finally, you can edit the challenge if you want to make some adjustments without having it revalidated by the creator:
 						<ul>
