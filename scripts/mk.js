@@ -19180,7 +19180,7 @@ function handleDecorExplosions(fSprite, callback) {
 			var decorBehavior = decorBehaviors[type];
 
 			if (decorBehavior.unbreaking)
-				return false;
+				continue;
 
 			if (decorBehavior.damagingItems && decorBehavior.damagingItems[fSprite.type]) {
 				for (var i=0;i<lMap.decor[type].length;i++) {

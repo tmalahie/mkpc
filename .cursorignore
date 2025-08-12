@@ -1,0 +1,5 @@
+images/**
+musics/**
+docker/php/images/**
+node_modules/**
+playwright-report/**
