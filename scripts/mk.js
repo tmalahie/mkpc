@@ -3895,7 +3895,7 @@ function startGame() {
 		if (clLocalVars.invertDirs)
 			dir = -dir;
 		this.rotincdir = this.stats.handling*dir;
-		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
+		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon && !this.rail) {
 			if (this.jumped)
 				this.driftinc = dir;
 			if (this.driftinc)
@@ -3912,6 +3912,25 @@ function startGame() {
 		this.frminv = 10;
 		this.tourne = nb;
 		resetWrongWay(this);
+	}
+	function jumpKart() {
+		this.ctrl = true;
+		if (this.rail && !this.rail.exiting) {
+			hopKart(this);
+			stuntKart(this);
+			this.rail.exiting = true;
+		}
+		else if (!this.z && !this.heightinc) {
+			if (!this.driftinc && !this.tourne) {
+				hopKart(this);
+				if (this.rotincdir)
+					this.driftinc = (this.rotincdir>0) ? 1:-1;
+				if (this.driftinc)
+					clLocalVars.drifted = true;
+			}
+		}
+		else if (canTrick(this))
+			stuntKart(this);
 	}
 	function actualKartSpeed() {
 		return this.speed*sizeSpeedRatio(this)*fSelectedClass;
@@ -4133,6 +4152,7 @@ function startGame() {
 		oKart.accelerate = accelerateKart;
 		oKart.turn = turnKart;
 		oKart.spin = spinKart;
+		oKart.jump = jumpKart;
 		oKart.actualSpeed = actualKartSpeed;
 		for (var j=0;j<strPlayer.length;j++) {
 			(function(sprite, driftSprite) {
@@ -4773,18 +4793,7 @@ function startGame() {
 							case "jump":
 								if (pause) break;
 								if (!isJumpEnabled()) break;
-								oPlayers[0].ctrl = true;
-								if (!oPlayers[0].z && !oPlayers[0].heightinc) {
-									if (!oPlayers[0].driftinc && !oPlayers[0].tourne) {
-										hopKart(oPlayers[0]);
-										if (oPlayers[0].rotincdir)
-											oPlayers[0].driftinc = (oPlayers[0].rotincdir>0) ? 1:-1;
-										if (oPlayers[0].driftinc)
-											clLocalVars.drifted = true;
-									}
-								}
-								else if (canTrick(oPlayers[0]))
-									stuntKart(oPlayers[0]);
+								oPlayers[0].jump();
 								break;
 							case "pause":
 								if (isOnline) break;
@@ -4846,16 +4855,7 @@ function startGame() {
 							case "jump_p2":
 								if (pause) break;
 								if (!oPlayers[1]) return;
-								oPlayers[1].ctrl = true;
-								if (!oPlayers[1].z && !oPlayers[1].heightinc) {
-									if (!oPlayers[1].driftinc && !oPlayers[1].tourne) {
-										hopKart(oPlayers[1]);
-										if (oPlayers[1].rotincdir)
-											oPlayers[1].driftinc = (oPlayers[1].rotincdir>0) ? 1:-1;
-									}
-								}
-								else if (canTrick(oPlayers[1]))
-									stuntKart(oPlayers[1]);
+								oPlayers[1].jump();
 								return false;
 							case "balloon_p2":
 								if (pause) return;
@@ -5185,7 +5185,7 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			//* gogogo
+			/* gogogo
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -5236,7 +5236,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -12573,6 +12573,49 @@ function polygonIntersect(iX,iY,nX,nY, oPoints) {
 	}
 	return res;
 }
+function polylineIntersect(aX,aY,iX,iY, oPoints, mH) {
+	var minT = Infinity, minLine, lineCross;
+	var nPoints = oPoints.length-1;
+	for (var j=0;j<nPoints;j++) {
+		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];
+		var aIntersect = secants(aX,aY,iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		if (aIntersect && aIntersect[0] < minT) {
+			minT = aIntersect[0];
+			minLine = j;
+			lineCross = aIntersect[1];
+		}
+	}
+	if (minLine != null) {
+		return {
+			t: minT,
+			l: lineCross,
+			line: minLine,
+			lines: oPoints
+		}
+	}
+	var minD2 = mH*mH;
+	for (var j=0;j<nPoints;j++) {
+		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];	
+		var l = projete(iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		if (l >= 0 && l < 1) {
+			var x0 = oPoint1[0] + l*(oPoint2[0]-oPoint1[0]), y0 = oPoint1[1] + l*(oPoint2[1]-oPoint1[1]);
+			var d2 = (x0-iX)*(x0-iX) + (y0-iY)*(y0-iY);
+			if (d2 < minD2) {
+				minT = 1;
+				minLine = j;
+				lineCross = l;
+			}
+		}
+	}
+	if (minLine != null) {
+		return {
+			t: minT,
+			l: lineCross,
+			line: minLine,
+			lines: oPoints
+		}
+	}
+}
 
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
 function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
@@ -13275,7 +13318,21 @@ function inTeleport(iX, iY) {
 		if (pointInPolygon(iX,iY, teleport[0]))
 			return teleport[1];
 	}
+}
 
+function inRail(aX,aY,aZ, iX,iY) {
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.rails) return false;
+	for (var i=0;i<lMap.rails.length;i++) {
+		var oRail = lMap.rails[i];
+		var res = polylineIntersect(aX,aY,iX,iY, oRail, 5);
+		if (res) {
+			var cX = aX + res.t * (iX-aX);
+			var cY = aY + res.t * (iY-aY);
+			if (canMoveTo(cX,cY,aZ, cX-aX,cY-aY))
+				return res;
+		}
+	}
 }
 
 function getActualGameTimeMS() {
@@ -17419,7 +17476,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (oKart.speed && !oKart.billball && !oKart.cannon)
+		else if (oKart.speed && !oKart.billball && !oKart.cannon && (!oKart.rail || oKart.rail.exiting))
 			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv) {
 			oKart.frminv--;
@@ -17980,6 +18037,21 @@ function move(getId, triggered) {
 							oKart.aipoint = 0;
 					}
 				}
+			}
+		}
+		else if (!oKart.rail) {
+			var oRail = inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y);
+			if (oRail) {
+				stopDrifting(getId);
+				oKart.protect = true;
+				oKart.jumped = true;
+				if (oKart.tourne)
+					oKart.tourne = 2;
+				delete oKart.shift;
+				oKart.rail = {
+					polyline: oRail.lines,
+					line: oRail.line
+				};
 			}
 		}
 	}
@@ -18940,6 +19012,49 @@ function move(getId, triggered) {
 			delete oKart.cannon;
 			oKart.fell = true;
 			updateProtectFlag(oKart);
+		}
+	}
+	else if (oKart.rail) {
+		if (oKart.rail.end) {
+			if (!inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y)) {
+				if (Math.abs(oKart.speedinc) <= 0.01)
+					oKart.speedinc = 0;
+				updateProtectFlag(oKart);
+				delete oKart.rail;
+			}
+		}
+		else if (oKart.rail.exiting) {
+			if (!inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y))
+				oKart.rail.end = true;
+		}
+		else {
+			var transitionFactor = 3*Math.pow(cappedRelSpeed(oKart),-2);
+			oKart.speed = (oKart.speed*transitionFactor+oKart.maxspeed)/(transitionFactor+1);
+			if (!oKart.speedinc)
+				oKart.speedinc = 0.01;
+			var oLines = oKart.rail.polyline;
+			var oPoint1 = oLines[oKart.rail.line], oPoint2 = oLines[oKart.rail.line+1];
+			var x0 = oKart.x, y0 = oKart.y;
+			var x1 = oPoint1[0], y1 = oPoint1[1];
+			var x2 = oPoint2[0], y2 = oPoint2[1];
+			var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
+			var d0 = Math.hypot(u0,v0);
+			oKart.heightinc = 0;
+			oKart.rotinc = 0;
+			if (!oKart.rail.init) {
+				oKart.rail.init = true;
+				var u1 = oPoint2[0]-x0, v1 = oPoint2[1]-y0;
+				if (u1 || v1)
+					oKart.rotation = nearestAngle(Math.atan2(u1,v1)*180/Math.PI,oKart.rotation, 360);
+			}
+			var l = projete(x0,y0, x1,y1,x2,y2);
+			if ((1-l)*d0 < oKart.speed) {
+				oKart.rail.line++;
+				if (oKart.rail.line >= oKart.rail.polyline.length-1)
+					oKart.rail.end = true;
+				else
+					delete oKart.rail.init;
+			}
 		}
 	}
 

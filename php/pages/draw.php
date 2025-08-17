@@ -107,6 +107,7 @@ if (isset($_GET['i'])) {
 				'teleports' => $language ? 'Teleporters':'Téléporteurs',
 				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
 				'elevators' => $language ? 'Elevators':'Élévateurs',
+				'rails' => $language ? 'Rails':'Rails',
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
