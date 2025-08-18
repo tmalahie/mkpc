@@ -12573,43 +12573,28 @@ function polygonIntersect(iX,iY,nX,nY, oPoints) {
 	}
 	return res;
 }
-function polylineIntersect(aX,aY,iX,iY, oPoints, mH) {
-	var minT = Infinity, minLine, lineCross;
+function getGlidingLine(aX,aY,iX,iY, oPoints, mH,mA) {
 	var nPoints = oPoints.length-1;
-	for (var j=0;j<nPoints;j++) {
-		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];
-		var aIntersect = secants(aX,aY,iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
-		if (aIntersect && aIntersect[0] < minT) {
-			minT = aIntersect[0];
-			minLine = j;
-			lineCross = aIntersect[1];
-		}
-	}
-	if (minLine != null) {
-		return {
-			t: minT,
-			l: lineCross,
-			line: minLine,
-			lines: oPoints
-		}
-	}
-	var minD2 = mH*mH;
+	var minD2 = mH*mH, minLine, lineCross;
 	for (var j=0;j<nPoints;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];	
 		var l = projete(iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
 		if (l >= 0 && l < 1) {
-			var x0 = oPoint1[0] + l*(oPoint2[0]-oPoint1[0]), y0 = oPoint1[1] + l*(oPoint2[1]-oPoint1[1]);
+			var uP = oPoint2[0]-oPoint1[0], vP = oPoint2[1]-oPoint1[1];
+			var x0 = oPoint1[0] + l*uP, y0 = oPoint1[1] + l*vP;
 			var d2 = (x0-iX)*(x0-iX) + (y0-iY)*(y0-iY);
 			if (d2 < minD2) {
-				minT = 1;
-				minLine = j;
-				lineCross = l;
+				var u0 = iX-aX, v0 = iY-aY;
+				var angleSimilarity = u0*uP / Math.sqrt((u0*u0 + v0*v0) * (uP*uP + vP*vP));
+				if (angleSimilarity > mA) {
+					minLine = j;
+					lineCross = l;
+				}
 			}
 		}
 	}
 	if (minLine != null) {
 		return {
-			t: minT,
 			l: lineCross,
 			line: minLine,
 			lines: oPoints
@@ -13325,7 +13310,7 @@ function inRail(aX,aY,aZ, iX,iY) {
 	if (!lMap.rails) return false;
 	for (var i=0;i<lMap.rails.length;i++) {
 		var oRail = lMap.rails[i];
-		var res = polylineIntersect(aX,aY,iX,iY, oRail, 5);
+		var res = getGlidingLine(aX,aY,iX,iY, oRail, 5,0.5);
 		if (res) {
 			var cX = aX + res.t * (iX-aX);
 			var cY = aY + res.t * (iY-aY);
