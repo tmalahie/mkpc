@@ -3915,7 +3915,7 @@ function startGame() {
 	}
 	function jumpKart() {
 		this.ctrl = true;
-		if (this.rail && !this.rail.exiting) {
+		if (isActivelyGliding(this)) {
 			if (this.rail.boostcpt >= railGlobalConfig.boostFadeTf) {
 				hopKart(this);
 				stuntKart(this);
@@ -12294,6 +12294,7 @@ function stopDrifting(i) {
 }
 function stopGliding(i) {
 	var oKart = aKarts[i];
+	if (!oKart.rail) return;
 	resetGlidingSprite(oKart);
 	if (oKart.sparkSound) {
 		oKart.sparkSound.pause();
@@ -12362,6 +12363,9 @@ function resumeSpriteSize(sprite) {
 
 function updateProtectFlag(oKart) {
 	oKart.protect = (oKart.etoile || oKart.megachampi || oKart.billball || oKart.cannon);
+}
+function isActivelyGliding(oKart) {
+	return oKart.rail && !oKart.rail.exiting;
 }
 
 function colKart(getId) {
@@ -12626,7 +12630,7 @@ function getGlidingLine(aX,aY,aZ,aR,iX,iY, oPoints, mH,mA) {
 			var d2 = (x0-iX)*(x0-iX) + (y0-iY)*(y0-iY);
 			if (d2 < minD2) {
 				var u0 = Math.sin(aR * Math.PI/180), v0 = Math.cos(aR * Math.PI/180);
-				var angleSimilarity = (u0*uP + v0*vP) / Math.sqrt(uP*uP + vP*vP);
+				var angleSimilarity = (u0*uP + v0*vP) / Math.hypot(uP,vP);
 				if (Math.abs(angleSimilarity) > mA) {
 					if (canMoveTo(aX,aY,aZ, x0-aX,y0-aY)) {
 						minLine = j;
@@ -17526,7 +17530,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (oKart.speed && !oKart.billball && !oKart.cannon && (!oKart.rail || oKart.rail.exiting))
+		else if (oKart.speed && !oKart.billball && !oKart.cannon && !isActivelyGliding(oKart))
 			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv) {
 			oKart.frminv--;
@@ -17950,7 +17954,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || (oKart.rail&&!oKart.rail.exiting) || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
+	if (oKart.cannon || isActivelyGliding(oKart) || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -18065,6 +18069,7 @@ function move(getId, triggered) {
 			oKart.y = fTeleport[1];
 			oKart.rotation = fTeleport[2]*90;
 			oKart.teleport = 5;
+			stopGliding(getId);
 			kartReplaced = true;
 			playIfShould(oKart, "musics/events/teleport.mp3");
 			if (oKart.speed < 0)
@@ -18093,9 +18098,6 @@ function move(getId, triggered) {
 			var oRail = inRail(aPosX,aPosY,aPosZ,oKart.rotation, oKart.x,oKart.y);
 			if (oRail) {
 				stopDrifting(getId);
-				oKart.jumped = true;
-				if (oKart.tourne)
-					oKart.tourne = 2;
 				delete oKart.shift;
 				var boostSprite = new Sprite("drift");
 				for (var i=0;i<oPlayers.length;i++) {
@@ -18150,6 +18152,7 @@ function move(getId, triggered) {
 			oKart.speed = 11*cappedRelSpeed(oKart);
 			oKart.figuring = false;
 			oKart.figstate = 0;
+			stopGliding(getId);
 			if (!oKart.cpu) {
 				clLocalVars.jumps++;
 				var ruleVars;
@@ -18878,6 +18881,163 @@ function move(getId, triggered) {
 	else
 		oKart.maxspeed = 5.4 * oKart.stats.speed;
 
+	if (oKart.rail) {
+		var oRail = oKart.rail;
+		var shouldEnd = false;
+		if (oRail.exiting) {
+			if (oKart.sparkSound) {
+				fadeOutMusic(oKart.sparkSound, oKart.sparkSound.volume/vSfx,0.8, false, vSfx);
+				oKart.sparkSound = undefined;
+			}
+			switch (oRail.exitReason) {
+			case 'end':
+				if (oRail.exitCooldown) {
+					oRail.exitCooldown++;
+					if (oRail.exitCooldown >= 5)
+						shouldEnd = true;
+				}
+				else {
+					oRail.exitCooldown = 1;
+					for (var i=0;i<oPlayers.length;i++)
+						oRail.boostSprite[i].div.style.display = "none";
+				}
+				if (oRail.angleTilt > 0)
+					oRail.angleTilt = Math.max(oRail.angleTilt*1.1 - 20, 0);
+				break;
+			case 'stunt':
+				if (oRail.exitCooldown) {
+					oRail.exitCooldown++;
+					if (oRail.exitCooldown >= 5)
+						shouldEnd = true;
+				}
+				else if (aPosZ) {
+					if (oRail.angleTilt > 0)
+						oRail.angleTilt = Math.max(oRail.angleTilt - 10, 0);
+					if (oRail.shiftTilt) {
+						var shiftTilt = oRail.shiftTilt * oRail.side * 2;
+						oKart.x += shiftTilt * oRail.side * direction(1, oKart.rotation);
+						oKart.y -= shiftTilt * oRail.side * direction(0, oKart.rotation);
+					}
+				}
+				else
+					oRail.exitCooldown = 1;
+			}
+		}
+		else {
+			oKart.maxspeed = 5.7;
+			if (oRail.boostcpt < railGlobalConfig.superTurboCpt) {
+				if (oRail.boostcpt <= railGlobalConfig.boostFadeTf) {
+					for (var i=0;i<oPlayers.length;i++)
+						oRail.boostSprite[i].img.style.opacity = Math.max(0,(oRail.boostcpt-railGlobalConfig.boostFadeT0)/(railGlobalConfig.boostFadeTf-railGlobalConfig.boostFadeT0));
+				}
+				oRail.boostcpt++;
+				if (oRail.boostcpt === railGlobalConfig.boostFadeT0) {
+					if (carSpark && (oKart === oPlayers[0])) {
+						carSpark.currentTime = 0;
+						carSpark.volume = 0.5*vSfx;
+						carSpark.play();
+						oKart.sparkSound = carSpark;
+					}
+				}
+				else if (oRail.boostcpt === railGlobalConfig.miniTurboCpt) {
+					if (carSpark && (oKart.sparkSound === carSpark)) {
+						carSpark.currentTime = 0;
+						carSpark.volume = 0.7*vSfx;
+					}
+				}
+				else if (oRail.boostcpt === railGlobalConfig.superTurboCpt) {
+					if (carSpark && (oKart.sparkSound === carSpark)) {
+						carSpark.currentTime = 0;
+						carSpark.volume = vSfx;
+					}
+				}
+			}
+
+			var angleTilt0 = railGlobalConfig.angleTilt0 - oKart.rotincdir*oRail.side*railGlobalConfig.angleTiltRot;
+			if (oRail.rotincdir !== oKart.rotincdir) {
+				oRail.rotincdir = oKart.rotincdir;
+				oRail.angleTiltPhase = undefined;
+			}
+			if (oRail.angleTiltPhase === undefined) {
+				var angleTiltD = 9;
+				if (oRail.angleTilt < angleTilt0) {
+					oRail.angleTilt += angleTiltD;
+					if (oRail.angleTilt >= angleTilt0) {
+						oRail.angleTilt = angleTilt0;
+						oRail.angleTiltPhase = 0;
+					}
+				}
+				else {
+					oRail.angleTilt -= angleTiltD;
+					if (oRail.angleTilt <= angleTilt0) {
+						oRail.angleTilt = angleTilt0;
+						oRail.angleTiltPhase = 0;
+					}
+				}
+			}
+			else {
+				oRail.angleTiltPhase += 1;
+				oRail.angleTiltPhase %= 2*Math.PI;
+				var tiltJitter = Math.sin(oRail.angleTiltPhase);
+				oRail.angleTilt = angleTilt0 + railGlobalConfig.angleTiltJitter * tiltJitter;
+			}
+			var oLines = oRail.polyline;
+			var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
+			if (oRail.dir < 0) {
+				oPoint1 = oPoint2;
+				oPoint2 = oLines[oRail.line];
+			}
+			var x0 = oKart.x, y0 = oKart.y;
+			var x1 = oPoint1[0], y1 = oPoint1[1];
+			var x2 = oPoint2[0], y2 = oPoint2[1];
+			var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
+			var d0 = Math.hypot(u0,v0);
+			oKart.heightinc = 0;
+			oKart.rotinc = 0;
+			if (!oRail.init) {
+				oRail.init = true;
+				var u1 = x2-x1, v1 = y2-y1;
+				if (u1 || v1)
+					oKart.rotation = nearestAngle(Math.atan2(u1,v1)*180/Math.PI,oKart.rotation, 360);
+			}
+			var l = projete(x0,y0, x1,y1,x2,y2);
+			oKart.x = x1 + l*(x2-x1);
+			oKart.y = y1 + l*(y2-y1);
+			if ((1-l)*d0 < oKart.speed) {
+				oRail.line += oRail.dir;
+				if ((oRail.line < 0) || (oRail.line >= oRail.polyline.length-1)) {
+					oRail.exiting = true;
+					oRail.exitReason = 'end';
+				}
+				else
+					delete oRail.init;
+			}
+			if (oKart.speed < railGlobalConfig.minSpeed1) {
+				oRail.exiting = true;
+				oRail.exitReason = 'end';
+			}
+		}
+		if (shouldEnd) {
+			if (Math.abs(oKart.speedinc) <= 0.01)
+				oKart.speedinc = 0;
+			updateProtectFlag(oKart);
+			stopGliding(getId);
+		}
+		else {
+			var tiltSide = getMirrorFactor()*oRail.side;
+
+			var boostState = 0;
+			if (oRail.boostcpt >= railGlobalConfig.superTurboCpt)
+				boostState = 2;
+			else if (oRail.boostcpt >= railGlobalConfig.miniTurboCpt)
+				boostState = 1;
+			for (var i=0;i<oPlayers.length;i++)
+				oRail.boostSprite[i].setState(boostState * railGlobalConfig.boostR + railGlobalConfig.boostX - railGlobalConfig.boostDX*tiltSide*tiltJitter);
+			
+			for (var i=0;i<oPlayers.length;i++)
+				oKart.sprite[i].div.style.transform = "rotate("+Math.round(tiltSide*oRail.angleTilt)+"deg)";
+		}
+	}
 	if (oKart.turbodrift) {
 		var nSpeed = 8;
 		if (oKart.turbodrift > 15) {
@@ -19087,160 +19247,6 @@ function move(getId, triggered) {
 			delete oKart.cannon;
 			oKart.fell = true;
 			updateProtectFlag(oKart);
-		}
-	}
-	else if (oKart.rail) {
-		var oRail = oKart.rail;
-		var shouldEnd = false;
-		if (oRail.exiting) {
-			if (oKart.sparkSound) {
-				fadeOutMusic(oKart.sparkSound, oKart.sparkSound.volume/vSfx,0.8, false, vSfx);
-				oKart.sparkSound = undefined;
-			}
-			switch (oRail.exitReason) {
-			case 'end':
-				if (oRail.exitCooldown) {
-					oRail.exitCooldown++;
-					if (oRail.exitCooldown >= 5)
-						shouldEnd = true;
-				}
-				else {
-					oRail.exitCooldown = 1;
-					for (var i=0;i<oPlayers.length;i++)
-						oRail.boostSprite[i].div.style.display = "none";
-				}
-				if (oRail.angleTilt > 0)
-					oRail.angleTilt = Math.max(oRail.angleTilt*1.1 - 20, 0);
-				break;
-			case 'stunt':
-				if (oRail.exitCooldown) {
-					oRail.exitCooldown++;
-					if (oRail.exitCooldown >= 5)
-						shouldEnd = true;
-				}
-				else if (aPosZ) {
-					if (oRail.angleTilt > 0)
-						oRail.angleTilt = Math.max(oRail.angleTilt - 10, 0);
-					if (oRail.shiftTilt) {
-						var shiftTilt = oRail.shiftTilt * oRail.side * 2;
-						oKart.x += shiftTilt * oRail.side * direction(1, oKart.rotation);
-						oKart.y -= shiftTilt * oRail.side * direction(0, oKart.rotation);
-					}
-				}
-				else
-					oRail.exitCooldown = 1;
-			}
-		}
-		else {
-			if (oRail.boostcpt < railGlobalConfig.superTurboCpt) {
-				if (oRail.boostcpt <= railGlobalConfig.boostFadeTf) {
-					for (var i=0;i<oPlayers.length;i++)
-						oRail.boostSprite[i].img.style.opacity = Math.max(0,(oRail.boostcpt-railGlobalConfig.boostFadeT0)/(railGlobalConfig.boostFadeTf-railGlobalConfig.boostFadeT0));
-				}
-				oRail.boostcpt++;
-				if (oRail.boostcpt === railGlobalConfig.boostFadeT0) {
-					if (carSpark && (oKart === oPlayers[0])) {
-						carSpark.currentTime = 0;
-						carSpark.volume = 0.5*vSfx;
-						carSpark.play();
-						oKart.sparkSound = carSpark;
-					}
-				}
-				else if (oRail.boostcpt === railGlobalConfig.miniTurboCpt) {
-					if (carSpark && (oKart.sparkSound === carSpark)) {
-						carSpark.currentTime = 0;
-						carSpark.volume = 0.7*vSfx;
-					}
-				}
-				else if (oRail.boostcpt === railGlobalConfig.superTurboCpt) {
-					if (carSpark && (oKart.sparkSound === carSpark)) {
-						carSpark.currentTime = 0;
-						carSpark.volume = vSfx;
-					}
-				}
-			}
-
-			var angleTilt0 = railGlobalConfig.angleTilt0 - oKart.rotincdir*oRail.side*railGlobalConfig.angleTiltRot;
-			if (oRail.rotincdir !== oKart.rotincdir) {
-				oRail.rotincdir = oKart.rotincdir;
-				oRail.angleTiltPhase = undefined;
-			}
-			if (oRail.angleTiltPhase === undefined) {
-				var angleTiltD = 9;
-				if (oRail.angleTilt < angleTilt0) {
-					oRail.angleTilt += angleTiltD;
-					if (oRail.angleTilt >= angleTilt0) {
-						oRail.angleTilt = angleTilt0;
-						oRail.angleTiltPhase = 0;
-					}
-				}
-				else {
-					oRail.angleTilt -= angleTiltD;
-					if (oRail.angleTilt <= angleTilt0) {
-						oRail.angleTilt = angleTilt0;
-						oRail.angleTiltPhase = 0;
-					}
-				}
-			}
-			else {
-				oRail.angleTiltPhase += 1;
-				oRail.angleTiltPhase %= 2*Math.PI;
-				var tiltJitter = Math.sin(oRail.angleTiltPhase);
-				oRail.angleTilt = angleTilt0 + railGlobalConfig.angleTiltJitter * tiltJitter;
-			}
-			var oLines = oRail.polyline;
-			var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
-			if (oRail.dir < 0) {
-				oPoint1 = oPoint2;
-				oPoint2 = oLines[oRail.line];
-			}
-			var x0 = oKart.x, y0 = oKart.y;
-			var x1 = oPoint1[0], y1 = oPoint1[1];
-			var x2 = oPoint2[0], y2 = oPoint2[1];
-			var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
-			var d0 = Math.hypot(u0,v0);
-			oKart.heightinc = 0;
-			oKart.rotinc = 0;
-			if (!oRail.init) {
-				oRail.init = true;
-				var u1 = oPoint2[0]-x0, v1 = oPoint2[1]-y0;
-				if (u1 || v1)
-					oKart.rotation = nearestAngle(Math.atan2(u1,v1)*180/Math.PI,oKart.rotation, 360);
-			}
-			var l = projete(x0,y0, x1,y1,x2,y2);
-			if ((1-l)*d0 < oKart.speed) {
-				oRail.line += oRail.dir;
-				if ((oRail.line < 0) || (oRail.line >= oRail.polyline.length-1)) {
-					oRail.exiting = true;
-					oRail.exitReason = 'end';
-				}
-				else
-					delete oRail.init;
-			}
-			if (oKart.speed < railGlobalConfig.minSpeed1) {
-				oRail.exiting = true;
-				oRail.exitReason = 'end';
-			}
-		}
-		if (shouldEnd) {
-			if (Math.abs(oKart.speedinc) <= 0.01)
-				oKart.speedinc = 0;
-			updateProtectFlag(oKart);
-			stopGliding(getId);
-		}
-		else {
-			var tiltSide = getMirrorFactor()*oRail.side;
-
-			var boostState = 0;
-			if (oRail.boostcpt >= railGlobalConfig.superTurboCpt)
-				boostState = 2;
-			else if (oRail.boostcpt >= railGlobalConfig.miniTurboCpt)
-				boostState = 1;
-			for (var i=0;i<oPlayers.length;i++)
-				oRail.boostSprite[i].setState(boostState * railGlobalConfig.boostR + railGlobalConfig.boostX - railGlobalConfig.boostDX*tiltSide*tiltJitter);
-			
-			for (var i=0;i<oPlayers.length;i++)
-				oKart.sprite[i].div.style.transform = "rotate("+Math.round(tiltSide*oRail.angleTilt)+"deg)";
 		}
 	}
 
@@ -20460,7 +20466,22 @@ function ai(oKart) {
 						speedToAim = distToAim/Math.pow(rAngle,1.2);
 				}
 			}
-			if (diffThetaAbs > fMaxRotInCp) {
+			if (isActivelyGliding(oKart)) {
+				oKart.speedinc = 1;
+				oKart.rotincdir = 0;
+				var oRail = oKart.rail;
+				var canTrick = false;
+				if ((oRail.boostcpt >= railGlobalConfig.miniTurboCpt) && oRail.init) {
+					var safeDist = oRail.boostcpt >= railGlobalConfig.superTurboCpt ? 150 : 120;
+					if ((distToAim >= safeDist) && (angleToAim <= 10))
+						canTrick = true;
+				}
+				if (canTrick)
+					oKart.jump();
+				else
+					oKart.aipoint = undefined;
+			}
+			else if (diffThetaAbs > fMaxRotInCp) {
 				if (h < hMargin) {
 					var marginSpeed = aiMarginLimitSpeed(oKart.x,oKart.y,direction(0,oKart.rotation),direction(1,oKart.rotation),currentAi[0],currentAi[1],u,v,hMargin*2,maxOmega);
 					if (marginSpeed < speedToAim) speedToAim = marginSpeed;
