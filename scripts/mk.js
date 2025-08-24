@@ -8110,8 +8110,25 @@ var itemBehaviors = {
 			var relSpeed = cappedRelSpeed();
 
 			for (var i=0;i<2;i++) {
-				var fMoveX = fSprite.vx*relSpeed/2, fMoveY = fSprite.vy*relSpeed/2;
+				if (fSprite.rail) {
+					var oRail = fSprite.rail;
+					var oRes = {
+						x: fSprite.x,
+						y: fSprite.y,
+						speed: oRail.speed/2
+					};
+					followRail(oRail,oRes);
+					fSprite.x = oRes.x;
+					fSprite.y = oRes.y;
+					if (oRes.rotation != null) {
+						fSprite.vx = oRail.speed*direction(0,oRes.rotation);
+						fSprite.vy = oRail.speed*direction(1,oRes.rotation);
+					}
+					if (oRail.exiting)
+						delete fSprite.rail;
+				}
 
+				var fMoveX = fSprite.vx*relSpeed/2, fMoveY = fSprite.vy*relSpeed/2;
 				if (fMoveX || fMoveY) {
 					fNewPosX = fSprite.x + fMoveX;
 					fNewPosY = fSprite.y + fMoveY;
@@ -8142,7 +8159,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionLap = getItemCollisionLap(fSprite);
 				var isMoving = (fSprite.owner != -1);
-				var fTeleport;
+				var fTeleport, oRail;
 				if (isMoving && (fTeleport=inTeleport(roundX1, roundY1))) {
 					fSprite.x = fTeleport[0];
 					fSprite.y = fTeleport[1];
@@ -8150,12 +8167,21 @@ var itemBehaviors = {
 					var cSpeed = Math.hypot(fSprite.vx,fSprite.vy);
 					fSprite.vx = cSpeed * Math.sin(theta);
 					fSprite.vy = cSpeed * Math.cos(theta);
+					delete fSprite.rail;
 				}
 				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY)) {
+				else if (isMoving && !fSprite.rail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z,null, fNewPosX,fNewPosY))) {
+					fSprite.rail = {
+						polyline: oRail.lines,
+						line: oRail.line,
+						dir: oRail.dir,
+						speed: Math.hypot(fSprite.vx,fSprite.vy)
+					};
+				}
+				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY) || fSprite.rail) {
 					if (ctx && ctx.checkCollisions) {
 						ctx.checkCollisions(fSprite);
 						if (fSprite.deleted)
@@ -8291,7 +8317,8 @@ var itemBehaviors = {
 
 			var steps = 5;
 			for (var l=0;l<steps;l++) {
-				var dSpeed = 14*cappedRelSpeed()/steps;
+				var fSpeed = 14/steps;
+				var dSpeed = fSpeed*cappedRelSpeed();
 				var fTeleport;
 				if (fSprite.owner != -1) {
 					if (fSprite.cannon) {
@@ -8309,6 +8336,24 @@ var itemBehaviors = {
 							delete fSprite.cannon;
 						}
 						continue;
+					}
+					else if (fSprite.rail) {
+						var oRail = fSprite.rail;
+						var oRes = {
+							x: fSprite.x,
+							y: fSprite.y,
+							speed: fSpeed
+						};
+						followRail(oRail,oRes);
+						fSprite.x = oRes.x;
+						fSprite.y = oRes.y;
+						if (oRes.rotation != null) {
+							fSprite.theta = oRes.rotation;
+							if (fSprite.aipoint >= 0)
+								fSprite.aipoint = -1;
+						}
+						if (oRail.exiting)
+							delete fSprite.rail;
 					}
 
 					if (!l) {
@@ -8398,7 +8443,7 @@ var itemBehaviors = {
 						}
 						else {
 							if (fSprite.aipoint == -1) {
-								if (course != "BB") {
+								if ((course != "BB") && !fSprite.rail) {
 									var minDist = 2000;
 									var lMap = getCurrentLMap(fSprite.ailap);
 									for (var j=0;j<lMap.airoutesmeta.cpu;j++) {
@@ -8433,6 +8478,14 @@ var itemBehaviors = {
 						fNewPosX = fSprite.x + fMoveX;
 						fNewPosY = fSprite.y + fMoveY;
 
+						var oRail;
+						if (!fSprite.rail && (oRail = inRail(fSprite.x,fSprite.y,fSprite.z,null, fNewPosX,fNewPosY))) {
+							fSprite.rail = {
+								polyline: oRail.lines,
+								line: oRail.line,
+								dir: oRail.dir
+							};
+						}
 						if (fSprite.aipoint != -2) {
 							var maxDist = 4000;
 							var tCible = null;
@@ -8456,6 +8509,7 @@ var itemBehaviors = {
 							}
 							if (tCible) {
 								fSprite.target = tCible.id;
+								delete fSprite.rail;
 								if (isOnline && ((tCible.id == identifiant) || (tCible.controller == identifiant) || isControlledByPlayer(fSprite.owner)))
 									syncItems.push(fSprite);
 							}
@@ -8538,7 +8592,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionFloor = null;
 				collisionLap = getItemCollisionLap(fSprite);
-				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, null, fSprite))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && (fSprite.rail||canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, null, fSprite)))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -12367,6 +12421,39 @@ function updateProtectFlag(oKart) {
 function isActivelyGliding(oKart) {
 	return oKart.rail && !oKart.rail.exiting;
 }
+function followRail(oRail,oKart) {
+	var oLines = oRail.polyline;
+	var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
+	if (oRail.dir < 0) {
+		oPoint1 = oPoint2;
+		oPoint2 = oLines[oRail.line];
+	}
+	var x0 = oKart.x, y0 = oKart.y;
+	var x1 = oPoint1[0], y1 = oPoint1[1];
+	var x2 = oPoint2[0], y2 = oPoint2[1];
+	var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
+	var d0 = Math.hypot(u0,v0);
+	oKart.heightinc = 0;
+	oKart.rotinc = 0;
+	if (!oRail.init) {
+		oRail.init = true;
+		var u1 = x2-x1, v1 = y2-y1;
+		if (u1 || v1)
+			oKart.rotation = Math.atan2(u1,v1)*180/Math.PI;
+	}
+	var l = projete(x0,y0, x1,y1,x2,y2);
+	oKart.x = x1 + l*(x2-x1);
+	oKart.y = y1 + l*(y2-y1);
+	if ((1-l)*d0 < cappedRelSpeed(oKart)) {
+		oRail.line += oRail.dir;
+		if ((oRail.line < 0) || (oRail.line >= oRail.polyline.length-1)) {
+			oRail.exiting = true;
+			oRail.exitReason = 'end';
+		}
+		else
+			delete oRail.init;
+	}
+}
 
 function colKart(getId) {
 	var oKart = aKarts[getId];
@@ -12629,7 +12716,18 @@ function getGlidingLine(aX,aY,aZ,aR,iX,iY, oPoints, mH,mA) {
 			var x0 = oPoint1[0] + l*uP, y0 = oPoint1[1] + l*vP;
 			var d2 = (x0-iX)*(x0-iX) + (y0-iY)*(y0-iY);
 			if (d2 < minD2) {
-				var u0 = Math.sin(aR * Math.PI/180), v0 = Math.cos(aR * Math.PI/180);
+				var u0, v0;
+				if (aR == null) {
+					u0 = (iX-aX);
+					v0 = (iY-aY);
+					var w0 = Math.hypot(u0,v0);
+					u0 /= w0;
+					v0 /= w0;
+				}
+				else {
+					u0 = Math.sin(aR * Math.PI/180);
+					v0 = Math.cos(aR * Math.PI/180);
+				}
 				var angleSimilarity = (u0*uP + v0*vP) / Math.hypot(uP,vP);
 				if (Math.abs(angleSimilarity) > mA) {
 					if (canMoveTo(aX,aY,aZ, x0-aX,y0-aY)) {
@@ -18981,37 +19079,7 @@ function move(getId, triggered) {
 				var tiltJitter = Math.sin(oRail.angleTiltPhase);
 				oRail.angleTilt = angleTilt0 + railGlobalConfig.angleTiltJitter * tiltJitter;
 			}
-			var oLines = oRail.polyline;
-			var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
-			if (oRail.dir < 0) {
-				oPoint1 = oPoint2;
-				oPoint2 = oLines[oRail.line];
-			}
-			var x0 = oKart.x, y0 = oKart.y;
-			var x1 = oPoint1[0], y1 = oPoint1[1];
-			var x2 = oPoint2[0], y2 = oPoint2[1];
-			var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
-			var d0 = Math.hypot(u0,v0);
-			oKart.heightinc = 0;
-			oKart.rotinc = 0;
-			if (!oRail.init) {
-				oRail.init = true;
-				var u1 = x2-x1, v1 = y2-y1;
-				if (u1 || v1)
-					oKart.rotation = nearestAngle(Math.atan2(u1,v1)*180/Math.PI,oKart.rotation, 360);
-			}
-			var l = projete(x0,y0, x1,y1,x2,y2);
-			oKart.x = x1 + l*(x2-x1);
-			oKart.y = y1 + l*(y2-y1);
-			if ((1-l)*d0 < oKart.speed) {
-				oRail.line += oRail.dir;
-				if ((oRail.line < 0) || (oRail.line >= oRail.polyline.length-1)) {
-					oRail.exiting = true;
-					oRail.exitReason = 'end';
-				}
-				else
-					delete oRail.init;
-			}
+			followRail(oRail,oKart);
 			if (oKart.speed < railGlobalConfig.minSpeed1) {
 				oRail.exiting = true;
 				oRail.exitReason = 'end';
@@ -20489,7 +20557,7 @@ function ai(oKart) {
 				var maxSpeed = speedToAim;
 				if (oKart.bloops && oKart.bloops.effective(oKart))
 					maxSpeed = Math.min(maxSpeed,3);
-				maxSpeed /= 0.9;
+				maxSpeed /= 0.9*cappedRelSpeed();
 				if (!maxSpeed)
 					maxSpeed = 0.01;
 				if ((oMap.skin == 32) && (actualSpeed > 6) && (maxSpeed < (actualSpeed-1))) {
