@@ -6,11 +6,12 @@ if (is_file($configFile)) {
 	$config = json_decode(file_get_contents($configFile), true);
 } else {
 	$config = array(
-        'mini-turbo-activation' => 20,
-        'super-turbo-activation' => 40,
+        'mini-turbo-activation' => 5,
+        'super-turbo-activation' => 25,
         'mini-turbo-duration' => 15,
         'super-turbo-duration' => 30,
         'rail-speed' => 6,
+        'angle-similarity' => 0.8,
     );
 }
 $updated = false;
@@ -49,6 +50,9 @@ if ($updated)
         </label>
         <label>Rail Speed (in px/frames)
         <input type="number" name="rail-speed" step="0.1" value="<?= $config['rail-speed'] ?>">
+        </label>
+        <label>Required angle similarity (0-1)
+        <input type="number" name="angle-similarity" step="0.01" value="<?= $config['angle-similarity'] ?>">
         </label>
         <input type="submit" value="Save">&nbsp;
         <a href="?reset" onclick="return confirm('Reset the config?');">Reset to default</a>
