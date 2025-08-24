@@ -12593,7 +12593,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 							handleDecorHit(i,type, lMap);
 							if (decorBehavior.bonus && clientSideDrop)
 								dropBoxDecorLoot(collisionFrom, dropPos);
-							if (collisionPlayer.turbodrift && !decorBehavior.transparent)
+							if (collisionPlayer.turbodrift && !decorBehavior.transparent && !iP)
 								collisionPlayer.turbodrift = 0;
 						}
 					}
