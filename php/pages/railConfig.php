@@ -11,7 +11,7 @@ if (is_file($configFile)) {
         'mini-turbo-duration' => 15,
         'super-turbo-duration' => 30,
         'rail-speed' => 6,
-        'angle-similarity' => 0.8,
+        'angle-similarity' => 0.6,
     );
 }
 $updated = false;
