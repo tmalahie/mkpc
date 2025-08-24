@@ -11763,7 +11763,7 @@ function render() {
 					var oRail = fSpriteRef.rail;
 					if (oRail.boostcpt && !oRail.exiting) {
 						if (!fSpriteRef.z || (oRail.boostSprite[i].div.style.display === "block")) {
-							var fShift = 0.3*oRail.side + 0.5*fSpriteRef.rotincdir;
+							var fShift = 0.3*oRail.side + 0.7*fSpriteRef.rotincdir;
 							oRail.boostSprite[i].render(jCamera, {
 								x: fSprite.x-fShift*fSprite.size*direction(1,fRotation),
 								y: fSprite.y+fShift*fSprite.size*direction(0,fRotation),
@@ -13460,20 +13460,47 @@ var railGlobalConfig = {
 	minAngleSimilarity: 0.9,
 	miniTurboCpt: 20,
 	superTurboCpt: 40,
+	miniTurboTime: 15,
+	superTurboTime: 30,
 	boostW: 22,
 	boostH: 22,
 	boostR: 63/22,
 	boostX: 0.3,
 	boostDX: 0.04,
-	boostZ: -0.05,
 	boostFadeT0: 5,
 	boostFadeTf: 10,
 	angleTilt0: 45,
 	angleTiltRot: 15,
 	angleTiltJitter: 3,
 	minSpeed0: 1.8,
-	minSpeed1: 1.6
+	minSpeed1: 1.6,
+	maxSpeed: 6
 };
+xhr('railConfig.php', '', function(res) {
+	res = JSON.parse(res);
+	railGlobalConfig = {
+		hitboxW: 5,
+		minAngleSimilarity: 0.9,
+		miniTurboCpt: +res['mini-turbo-activation'] || railGlobalConfig.miniTurboCpt,
+		superTurboCpt: +res['super-turbo-activation'] || railGlobalConfig.superTurboCpt,
+		miniTurboTime: +res['mini-turbo-duration'] || railGlobalConfig.miniTurboTime,
+		superTurboTime: +res['super-turbo-duration'] || railGlobalConfig.superTurboTime,
+		boostW: 22,
+		boostH: 22,
+		boostR: 63/22,
+		boostX: 0.3,
+		boostDX: 0.04,
+		boostFadeT0: Math.min((res['super-turbo-activation']-2)||railGlobalConfig.boostFadeT0,5),
+		boostFadeTf: Math.min((res['super-turbo-activation']-1)||railGlobalConfig.boostFadeTf,10),
+		angleTilt0: 45,
+		angleTiltRot: 15,
+		angleTiltJitter: 3,
+		minSpeed0: 1.8,
+		minSpeed1: 1.6,
+		maxSpeed: +res['rail-speed'] || railGlobalConfig.maxSpeed
+	}
+	return true;
+})
 function inRail(aX,aY,aZ,aR, iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (!lMap.rails) return false;
@@ -18198,11 +18225,15 @@ function move(getId, triggered) {
 				stopDrifting(getId);
 				delete oKart.shift;
 				var boostSprite = new Sprite("drift");
+				function easeTransform(x) {
+					return 25*Math.atan(17*x-16.43) + 36.75;
+				}
 				for (var i=0;i<oPlayers.length;i++) {
 					boostSprite[i].nbSprites = 3;
 					boostSprite[i].w = railGlobalConfig.boostW;
 					boostSprite[i].h = railGlobalConfig.boostH;
-					boostSprite[i].z = railGlobalConfig.boostZ * oKart.sprite[i].h;
+					boostSprite[i].z = -1.6 * (1 + 0.8*(oKart.sprite[i].w/32-1));
+					oKart.sprite[i].div.style.transformOrigin = "50% "+ easeTransform(oKart.sprite[i].h/oKart.sprite[i].w).toFixed(1) +"%";
 					boostSprite[i].setState(railGlobalConfig.boostX);
 				}
 				oKart.rail = {
@@ -18230,9 +18261,9 @@ function move(getId, triggered) {
 		if (oKart.figuring) {
 			if (oKart.rail) {
 				if (oKart.rail.boostcpt >= railGlobalConfig.superTurboCpt)
-					oKart.turbodrift = 30;
+					oKart.turbodrift = railGlobalConfig.superTurboTime;
 				else if (oKart.rail.boostcpt >= railGlobalConfig.miniTurboCpt)
-					oKart.turbodrift = 15;
+					oKart.turbodrift = railGlobalConfig.miniTurboTime;
 				else
 					oKart.turbodrift = 1;
 			}
@@ -19022,7 +19053,7 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			oKart.maxspeed = 5.7;
+			oKart.maxspeed = railGlobalConfig.maxSpeed;
 			if (oRail.boostcpt < railGlobalConfig.superTurboCpt) {
 				if (oRail.boostcpt <= railGlobalConfig.boostFadeTf) {
 					for (var i=0;i<oPlayers.length;i++)
@@ -19109,7 +19140,8 @@ function move(getId, triggered) {
 	if (oKart.turbodrift) {
 		var nSpeed = 8;
 		if (oKart.turbodrift > 15) {
-			nSpeed += Math.pow(2*(oKart.turbodrift-15)/(15*sizeSpeedRatio(oKart)),2);
+			var cappedTurbo = Math.min(oKart.turbodrift,30);
+			nSpeed += Math.pow(2*(cappedTurbo-15)/(15*sizeSpeedRatio(oKart)),2);
 			oKart.turbodrift--;
 			oKart.turbodrift0--;
 		}
