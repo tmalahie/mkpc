@@ -4746,6 +4746,14 @@ function startGame() {
 				if (!pause || !fInfos.replay) {
 					function handleInputPressed(gameAction) {
 						switch (gameAction) {
+							case "item":
+							case "item_back":
+							case "item_fwd":
+								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause && !oPlayers[0].justPressedItem) {
+									oPlayers[0].justPressedItem = true;
+									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
+								}
+								break;
 							case "up":
 								currentPressedKeys[gameAction] = true;
 								oPlayers[0].accelerate();
@@ -4825,6 +4833,14 @@ function startGame() {
 								if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
+							case "item_p2":
+								case "item_back_p2":
+								case "item_fwd_p2":
+									if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause && !oPlayers[1].justPressedItem) {
+										oPlayers[1].justPressedItem = true;
+										arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+									}
+									break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
 								oPlayers[1].accelerate();
@@ -4870,12 +4886,6 @@ function startGame() {
 					}
 					function handleInputReleased(gameAction) {
 						switch (gameAction) {
-							case "item":
-							case "item_back":
-							case "item_fwd":
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause)
-									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
-								break;
 							case "up":
 								currentPressedKeys.up = false;
 								oPlayers[0].speedinc = 0;
@@ -4931,12 +4941,6 @@ function startGame() {
 							case "rear":
 								if (!clLocalVars.rearView)
 									showRearView(0);
-								break;
-							case "item_p2":
-							case "item_back_p2":
-							case "item_fwd_p2":
-								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause)
-									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
@@ -5038,6 +5042,7 @@ function startGame() {
 						if (onlineSpectatorId) return;
 						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
+							oPlayers[i].justPressedItem = false;
 							if (!ctrlSettings.autoacc)
 								oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
