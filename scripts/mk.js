@@ -8111,17 +8111,18 @@ var itemBehaviors = {
 			for (var i=0;i<2;i++) {
 				if (fSprite.rail) {
 					var oRail = fSprite.rail;
+					var fSpeed = Math.hypot(fSprite.vx,fSprite.vy);
 					var oRes = {
 						x: fSprite.x,
 						y: fSprite.y,
-						speed: oRail.speed/2
+						speed: fSpeed/2
 					};
 					followRail(oRail,oRes);
 					fSprite.x = oRes.x;
 					fSprite.y = oRes.y;
 					if (oRes.rotation != null) {
-						fSprite.vx = oRail.speed*direction(0,oRes.rotation);
-						fSprite.vy = oRail.speed*direction(1,oRes.rotation);
+						fSprite.vx = fSpeed*direction(0,oRes.rotation);
+						fSprite.vy = fSpeed*direction(1,oRes.rotation);
 					}
 					if (oRail.exiting)
 						delete fSprite.rail;
@@ -8176,8 +8177,7 @@ var itemBehaviors = {
 					fSprite.rail = {
 						polyline: oRail.lines,
 						line: oRail.line,
-						dir: oRail.dir,
-						speed: Math.hypot(fSprite.vx,fSprite.vy)
+						dir: oRail.dir
 					};
 				}
 				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY) || fSprite.rail) {
@@ -12369,8 +12369,8 @@ function resetGrindingSprite(oKart) {
 		for (var i=0;i<oPlayers.length;i++) {
 			oKart.sprite[i].div.style.transform = "";
 			oKart.sprite[i].div.style.transformOrigin = "";
-			oKart.rail.boostSprite[i].suppr();
 		}
+		oKart.rail.boostSprite[0].suppr();
 		delete oKart.rail;
 	}
 }
@@ -18270,9 +18270,9 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (!oKart.rail && (oKart.z < 1.2) && !(oKart.z > 0 && oKart.heightinc >= 0))
-			checkRailEnter(getId, aPosX,aPosY,aPosZ);
 	}
+	if (!oKart.rail && !oKart.teleport && (oKart.z < 1.2) && !(oKart.z > 0 && oKart.heightinc >= 0))
+		checkRailEnter(getId, aPosX,aPosY,aPosZ);
 	oKart.sliding = undefined;
 	if (!oKart.z) {
 		if (!oKart.heightinc) {
