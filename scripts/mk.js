@@ -7596,7 +7596,7 @@ var itemBehaviors = {
 				}
 			}
 			if (!isOnline || fSprite.id) {
-				var itemCooldown =  (itemDistribution.lightningdelay != 0) ? -300 : -50;
+				var itemCooldown =  (itemDistribution.lightningdelay != 0) ? -450 : -50;
 				fSprite.countdown--;
 				if (fSprite.countdown <= 0) {
 					if (fSprite.countdown < itemCooldown)
@@ -8760,7 +8760,7 @@ var itemBehaviors = {
 			}
 		},
 		"del": function(item) {
-			nextBlueShellCooldown = 300;
+			nextBlueShellCooldown = 450;
 		}
 	},
 	"carapace-noire": {
@@ -8950,7 +8950,7 @@ var itemBehaviors = {
 			}
 		},
 		"del": function(item) {
-			nextBlueShellCooldown = 300;
+			nextBlueShellCooldown = 450;
 		}
 	}
 }
