@@ -12424,10 +12424,10 @@ function updateProtectFlag(oKart) {
 function isActivelyGrinding(oKart) {
 	return oKart.rail && !oKart.rail.exiting;
 }
-function checkRailEnter(getId, aPosX,aPosY,aPosZ) {
+function checkRailEnter(getId, aPosX,aPosY,aPosZ, previousRail) {
 	var oKart = aKarts[getId];
 	if (oKart.speed > railGlobalConfig.minSpeed0 && !oKart.tourne) {
-		var oRail = inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y, oKart.rotation-angleDrift(oKart),oKart.z0||0);
+		var oRail = inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y, oKart.rotation-angleDrift(oKart),oKart.z0||0,previousRail);
 		if (oRail) {
 			if (!oKart.cpu)
 				oKart.ctrled = oKart.ctrl;
@@ -12750,11 +12750,11 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 	var minD2 = mH*mH, minLine, lineCross, lineDir, lineSide;
 	for (var j=0;j<nPoints;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];	
-		var l = projete(iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		var l = projete(aX,aY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
 		if (l >= 0 && l < 1) {
 			var uP = oPoint2[0]-oPoint1[0], vP = oPoint2[1]-oPoint1[1];
 			var x0 = oPoint1[0] + l*uP, y0 = oPoint1[1] + l*vP;
-			var d2 = (x0-iX)*(x0-iX) + (y0-iY)*(y0-iY);
+			var d2 = (x0-aX)*(x0-aX) + (y0-aY)*(y0-aY);
 			if (d2 < minD2) {
 				var u0, v0;
 				if (aR == null) {
@@ -13497,7 +13497,8 @@ function inTeleport(iX, iY) {
 
 var railGlobalConfig = {
 	hitboxW: 5,
-	minAngleSimilarity: 0.6,
+	minEnterAngle: 0.6,
+	minComboAngle: 0.4,
 	sparkCpt: 3,
 	miniTurboCpt: 5,
 	superTurboCpt: 25,
@@ -13524,11 +13525,11 @@ xhr('railConfig.php', '', function(res) {
 		miniTurboTime: +res['mini-turbo-duration'] || railGlobalConfig.miniTurboTime,
 		superTurboTime: +res['super-turbo-duration'] || railGlobalConfig.superTurboTime,
 		maxSpeed: +res['rail-speed'] || railGlobalConfig.maxSpeed,
-		minAngleSimilarity: +res['angle-similarity'] || railGlobalConfig.minAngleSimilarity
+		minEnterAngle: +res['angle-similarity'] || railGlobalConfig.minEnterAngle
 	}
 	return true;
 })
-function inRail(aX,aY,aZ, iX,iY, aR,aZ0) {
+function inRail(aX,aY,aZ, iX,iY, aR,aZ0, previousRail) {
 	var lMap = getCurrentLMap(collisionLap);
 	var aRails = lMap.rails;
 	if (!aRails) return false;
@@ -13544,6 +13545,9 @@ function inRail(aX,aY,aZ, iX,iY, aR,aZ0) {
 				aZ = zH;
 		}
 	}
+	var minAngleSimilarity = railGlobalConfig.minEnterAngle;
+	if (previousRail)
+		minAngleSimilarity = railGlobalConfig.minComboAngle;
 	for (var i=0;i<aRails.length;i++) {
 		var oRail = aRails[i];
 		var oRailProps = oRailsProps && oRailsProps[i];
@@ -13552,7 +13556,7 @@ function inRail(aX,aY,aZ, iX,iY, aR,aZ0) {
 			continue;
 		if (bZ && !iZ)
 			continue;
-		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,railGlobalConfig.minAngleSimilarity);
+		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,minAngleSimilarity);
 		if (nRes && (!res || (nRes.t < res.t))) {
 			res = nRes;
 			res.z0 = iZ;
@@ -19143,7 +19147,7 @@ function move(getId, triggered) {
 		}
 		if (shouldEnd) {
 			stopGrinding(getId);
-			checkRailEnter(getId, aPosX,aPosY,aPosZ);
+			checkRailEnter(getId, aPosX,aPosY,aPosZ, oRail);
 			oRail = oKart.rail;
 			if (oRail)
 				oRail.angleTilt = 25;
