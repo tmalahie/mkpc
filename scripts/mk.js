@@ -3922,6 +3922,7 @@ function startGame() {
 				this.rail.exiting = true;
 				this.rail.exitReason = 'stunt';
 				this.rail.shiftTilt = Math.sign(this.rotincdir);
+				this.rail.rotinc = this.rail.shiftTilt;
 			}
 		}
 		else if (!this.z && !this.heightinc) {
@@ -19071,11 +19072,11 @@ function move(getId, triggered) {
 					}
 					else if (oRail.angleTilt > 0)
 						oRail.angleTilt = Math.max(oRail.angleTilt - 10, 0);
-					if (oRail.shiftTilt) {
-						var shiftTilt = oRail.shiftTilt * oRail.side * 2.5;
-						oKart.x += shiftTilt * oRail.side * direction(1, oKart.rotation);
-						oKart.y -= shiftTilt * oRail.side * direction(0, oKart.rotation);
+					if (oRail.rotinc) {
+						oKart.x += oRail.rotinc * direction(1, oKart.rotation);
+						oKart.y -= oRail.rotinc * direction(0, oKart.rotation);
 					}
+					oRail.rotinc += Math.sign(oKart.rotincdir);
 				}
 				else {
 					if (oRail.z0 && !(oKart.z0 > oRail.z0))
