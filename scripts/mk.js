@@ -6402,7 +6402,7 @@ function continuer() {
 			oInput.name = "pseudo";
 			oInput.value = recorder;
 			oInput.size = 15;
-			oInput.maxlength = 18;
+			oInput.setAttribute("maxlength", "30");
 			oInput.style.fontSize = (iScreenScale*3) +"px";
 			oInput.onkeydown = function(e) {
 				e.stopPropagation();
