@@ -11320,7 +11320,7 @@ function checkItemLap(fSprite, opts) {
 	if (fSprite.ailap < nextOverride.lap) return;
 	if (!nextOverride.cp) return;
 	if (enteredCheckpoint(lMap.checkpointCoords[nextOverride.cp], fSprite, opts))
-        incItemLap(lMap,fSprite,nextOverride);
+		incItemLap(lMap,fSprite,nextOverride);
 }
 function incItemLap(lMap,fSprite,nextOverride) {
 	var conditionOverrides = lMap.conditionOverrideIds;
