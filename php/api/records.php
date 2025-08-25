@@ -23,7 +23,7 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 		}
 	}
 
-	if (mb_strlen($_POST['perso']) > 30) { // mkrecords.name is varchar(30)
+	if (mb_strlen($_POST['name']) > 30) { // mkrecords.name is varchar(30)
 		echo 2;
 		mysql_close();
 		exit;
