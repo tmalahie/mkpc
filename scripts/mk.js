@@ -5047,7 +5047,7 @@ function startGame() {
 							if (!ctrlSettings.autoacc)
 								oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
-							stopDrifting(i, { preserveGliding: true });
+							stopDrifting(i, { preserveGrinding: true });
 						}
 					};
 					window.addEventListener("blur", window.releaseOnBlur);
@@ -8171,7 +8171,7 @@ var itemBehaviors = {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (isMoving && !fSprite.rail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z,null, fNewPosX,fNewPosY))) {
+				else if (isMoving && !fSprite.rail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY))) {
 					fSprite.rail = {
 						polyline: oRail.lines,
 						line: oRail.line,
@@ -8477,7 +8477,7 @@ var itemBehaviors = {
 						fNewPosY = fSprite.y + fMoveY;
 
 						var oRail;
-						if (!fSprite.rail && (oRail = inRail(fSprite.x,fSprite.y,fSprite.z,null, fNewPosX,fNewPosY))) {
+						if (!fSprite.rail && (oRail = inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY))) {
 							fSprite.rail = {
 								polyline: oRail.lines,
 								line: oRail.line,
@@ -12336,8 +12336,8 @@ function stopDrifting(i, opts) {
 	if (!opts.preserveTurbo)
 		oKart.turbodrift = 0;
 	resetDriftSprite(oKart);
-	if (!opts.preserveGliding)
-		resetGlidingSprite(oKart);
+	if (!opts.preserveGrinding)
+		resetGrindingSprite(oKart);
 	if (oKart.driftSound) {
 		oKart.driftSound.pause();
 		oKart.driftSound = undefined;
@@ -12347,10 +12347,10 @@ function stopDrifting(i, opts) {
 		oKart.sparkSound = undefined;
 	}
 }
-function stopGliding(i) {
+function stopGrinding(i) {
 	var oKart = aKarts[i];
 	if (!oKart.rail) return;
-	resetGlidingSprite(oKart);
+	resetGrindingSprite(oKart);
 	if (oKart.sparkSound) {
 		oKart.sparkSound.pause();
 		oKart.sparkSound = undefined;
@@ -12363,7 +12363,7 @@ function resetDriftSprite(oKart) {
 		driftSprite.setState(0);
 	}
 }
-function resetGlidingSprite(oKart) {
+function resetGrindingSprite(oKart) {
 	if (oKart.rail) {
 		for (var i=0;i<oPlayers.length;i++) {
 			oKart.sprite[i].div.style.transform = "";
@@ -12420,18 +12420,20 @@ function resumeSpriteSize(sprite) {
 function updateProtectFlag(oKart) {
 	oKart.protect = (oKart.etoile || oKart.megachampi || oKart.billball || oKart.cannon);
 }
-function isActivelyGliding(oKart) {
+function isActivelyGrinding(oKart) {
 	return oKart.rail && !oKart.rail.exiting;
 }
 function checkRailEnter(getId, aPosX,aPosY,aPosZ) {
 	var oKart = aKarts[getId];
 	if (oKart.speed > railGlobalConfig.minSpeed0 && !oKart.tourne) {
-		var oRail = inRail(aPosX,aPosY,aPosZ,oKart.rotation-angleDrift(oKart), oKart.x,oKart.y);
+		var oRail = inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y, oKart.rotation-angleDrift(oKart),oKart.z0||0);
 		if (oRail) {
-			if (oKart.ctrl && !oKart.cpu)
-				oKart.ctrled = true;
+			if (!oKart.cpu)
+				oKart.ctrled = oKart.ctrl;
 			stopDrifting(getId, { preserveTurbo:true });
 			delete oKart.shift;
+			oKart.z = 0;
+			oKart.heightinc = 0;
 			var boostSprite = new Sprite("drift");
 			function easeTransform(x) {
 				return 25*Math.atan(17*x-16.43) + 36.75;
@@ -12450,6 +12452,7 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ) {
 				line: oRail.line,
 				dir: oRail.dir,
 				side: oRail.side,
+				z0: oRail.z0,
 				boostcpt: 0,
 				boostSprite: boostSprite,
 				angleTilt: 0
@@ -12741,7 +12744,7 @@ function polygonIntersect(iX,iY,nX,nY, oPoints) {
 	}
 	return res;
 }
-function getGlidingLine(aX,aY,aZ,aR,iX,iY, oPoints, mH,mA) {
+function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 	var nPoints = oPoints.length-1;
 	var minD2 = mH*mH, minLine, lineCross, lineDir, lineSide;
 	for (var j=0;j<nPoints;j++) {
@@ -12766,7 +12769,7 @@ function getGlidingLine(aX,aY,aZ,aR,iX,iY, oPoints, mH,mA) {
 				}
 				var angleSimilarity = (u0*uP + v0*vP) / Math.hypot(uP,vP);
 				if (Math.abs(angleSimilarity) > mA) {
-					if (canMoveTo(aX,aY,aZ, x0-aX,y0-aY)) {
+					if (canMoveTo(aX,aY,aZ, x0-aX,y0-aY, false, aZ0)) {
 						minLine = j;
 						lineCross = l;
 						lineDir = Math.sign(angleSimilarity) || 1;
@@ -13524,15 +13527,35 @@ xhr('railConfig.php', '', function(res) {
 	}
 	return true;
 })
-function inRail(aX,aY,aZ,aR, iX,iY) {
+function inRail(aX,aY,aZ, iX,iY, aR,aZ0) {
 	var lMap = getCurrentLMap(collisionLap);
-	if (!lMap.rails) return false;
+	var aRails = lMap.rails;
+	if (!aRails) return false;
 	var res;
-	for (var i=0;i<lMap.rails.length;i++) {
-		var oRail = lMap.rails[i];
-		var nRes = getGlidingLine(aX,aY,aZ,aR,iX,iY, oRail, railGlobalConfig.hitboxW,railGlobalConfig.minAngleSimilarity);
-		if (nRes && (!res || (nRes.t < res.t)))
+	var oRailsProps = lMap.railProps;
+
+	var bZ = aZ;
+	if (oRailsProps) {
+		var zH = getFloorHeight(lMap, aX,aY,aZ0);
+		if (aZ0) aZ += aZ0;
+		if (zH) {
+			if (zH > aZ)
+				aZ = zH;
+		}
+	}
+	for (var i=0;i<aRails.length;i++) {
+		var oRail = aRails[i];
+		var oRailProps = oRailsProps && oRailsProps[i];
+		var iZ = oRailProps && getPointHeight(oRailProps.z);
+		if (iZ > aZ)
+			continue;
+		if (bZ && !iZ)
+			continue;
+		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,railGlobalConfig.minAngleSimilarity);
+		if (nRes && (!res || (nRes.t < res.t))) {
 			res = nRes;
+			res.z0 = iZ;
+		}
 	}
 	return res;
 }
@@ -17678,7 +17701,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (oKart.speed && !oKart.billball && !oKart.cannon && !isActivelyGliding(oKart))
+		else if (oKart.speed && !oKart.billball && !oKart.cannon && !isActivelyGrinding(oKart))
 			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv) {
 			oKart.frminv--;
@@ -18102,7 +18125,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || isActivelyGliding(oKart) || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball || isActivelyGrinding(oKart)) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -18217,7 +18240,7 @@ function move(getId, triggered) {
 			oKart.y = fTeleport[1];
 			oKart.rotation = fTeleport[2]*90;
 			oKart.teleport = 5;
-			stopGliding(getId);
+			stopGrinding(getId);
 			kartReplaced = true;
 			playIfShould(oKart, "musics/events/teleport.mp3");
 			if (oKart.speed < 0)
@@ -18242,13 +18265,13 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (!oKart.rail && !oKart.z)
+		else if (!oKart.rail && (oKart.z < 1.2) && !(oKart.z > 0 && oKart.heightinc >= 0))
 			checkRailEnter(getId, aPosX,aPosY,aPosZ);
 	}
 	oKart.sliding = undefined;
 	if (!oKart.z) {
 		if (!oKart.heightinc) {
-			if (!isActivelyGliding(oKart))
+			if (!isActivelyGrinding(oKart))
 				oKart.ctrled = false;
 			oKart.fell = false;
 			if (nPosZ0)
@@ -18284,7 +18307,7 @@ function move(getId, triggered) {
 			oKart.speed = 11*cappedRelSpeed(oKart);
 			oKart.figuring = false;
 			oKart.figstate = 0;
-			stopGliding(getId);
+			stopGrinding(getId);
 			if (!oKart.cpu) {
 				clLocalVars.jumps++;
 				var ruleVars;
@@ -19054,11 +19077,16 @@ function move(getId, triggered) {
 						oKart.y -= shiftTilt * oRail.side * direction(0, oKart.rotation);
 					}
 				}
-				else
+				else {
+					if (oRail.z0 && !(oKart.z0 > oRail.z0))
+						oKart.z0 = oRail.z0;
 					shouldEnd = true;
+				}
 			}
 		}
 		else {
+			if (oRail.z0 && !(oKart.z0 > oRail.z0))
+				oKart.z0 = oRail.z0;
 			oKart.maxspeed = railGlobalConfig.maxSpeed;
 			if (oRail.boostcpt < railGlobalConfig.superTurboCpt) {
 				oRail.boostcpt++;
@@ -19113,7 +19141,7 @@ function move(getId, triggered) {
 			}
 		}
 		if (shouldEnd) {
-			stopGliding(getId);
+			stopGrinding(getId);
 			checkRailEnter(getId, aPosX,aPosY,aPosZ);
 			oRail = oKart.rail;
 			if (oRail)
@@ -20312,7 +20340,7 @@ function ai(oKart) {
 				if (Math.abs(oKart.randShift) > maxShift)
 					oKart.randShift = maxShift*Math.sign(oKart.randShift);
 			}
-			if (isActivelyGliding(oKart))
+			if (isActivelyGrinding(oKart))
 				oKart.randShift = 0;
 		}
 		var l = projete(oKart.x,oKart.y, lastAi[0],lastAi[1], currentAi[0],currentAi[1]);
@@ -20565,7 +20593,7 @@ function ai(oKart) {
 						speedToAim = distToAim/Math.pow(rAngle,1.2);
 				}
 			}
-			if (isActivelyGliding(oKart)) {
+			if (isActivelyGrinding(oKart)) {
 				oKart.speedinc = 1;
 				oKart.rotincdir = 0;
 				var oRail = oKart.rail;
