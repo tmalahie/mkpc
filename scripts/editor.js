@@ -2195,6 +2195,7 @@ function createPolyline(self,points, options) {
 			};
 		})(i);
 	}
+	return shape;
 }
 function setPointPos(point,data) {
 	point.setAttribute("x", data.x);
@@ -5415,7 +5416,7 @@ var commonTools = {
 					}
 					hText.innerHTML = data.z == null ? "" : data.z;
 				};
-				shape.promptHeight = function(prop) {
+				shape.promptHeight = function() {
 					var defaultVal = 1;
 					var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data.z || defaultVal);
 					if (enteredVal == null) return;
@@ -8419,8 +8420,9 @@ var commonTools = {
 				var extra = getExtraForResume(iData);
 				for (var j=0;j<iData.points.length;j++)
 					self.click(self,iData.points[j],extra);
-				createdShape = self.state.polygon;
 				self.state.nodes[0].circle.onclick();
+				if (iData.z)
+					self.state.createdShape.reheight(iData.z);
 			}
 		},
 		"click" : function(self,point,extra) {
@@ -8468,6 +8470,20 @@ var commonTools = {
 								self.state.nodes[i].center.onclick = undefined;
 								self.state.nodes[i].center.classList.remove("hover-toggle");
 							}
+							function promptHeight(shape) {
+								return function() {
+									var defaultVal = 0;
+									var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data.z || defaultVal);
+									if (enteredVal == null) return;
+									if (enteredVal !== "") {
+										enteredVal = +enteredVal;
+										if (enteredVal === defaultVal)
+											enteredVal = "";
+									}
+									if (enteredVal >= 0)
+										shape.reheight(enteredVal);
+								}
+							}
 							function deleteRail(shape) {
 								return function() {
 									storeHistoryData(self.data);
@@ -8475,7 +8491,7 @@ var commonTools = {
 									shape.remove();
 								}
 							}
-							createPolyline(self,points, {
+							var createdShape = createPolyline(self,points, {
 								closed: false,
 								on_pre_edit: function(self,shape) {
 									if (self.state.movingNode !== undefined) return false;
@@ -8485,7 +8501,10 @@ var commonTools = {
 									self.state.data = { points:points };
 								},
 								ctxmenu: function(i,e,shape) {
-									return [{
+									return [ {
+										text: (language ? "Rail height...":"Hauteur rail..."),
+										click: promptHeight(shape)
+									}, {
 										text: (language ? "Delete whole rail":"Supprimer le rail"),
 										click: deleteRail(shape)
 									}];
@@ -8497,11 +8516,22 @@ var commonTools = {
 											shape.addPoint(e,i);
 										}
 									}, {
+										text: (language ? "Rail height...":"Hauteur rail..."),
+										click: promptHeight(shape)
+									}, {
 										text: (language ? "Delete whole rail":"Supprimer le rail"),
 										click: deleteRail(shape)
 									}]);
 								},
 							});
+							createdShape.reheight = function(z) {
+								storeHistoryData(self.data);
+								if (z === "")
+									delete data.z;
+								else
+									data.z = z;
+							};
+							self.state.createdShape = createdShape;
 						}
 					});
 				}
@@ -8521,15 +8551,24 @@ var commonTools = {
 			if (!self.data.length && !selectedLapOverride)
 				return;
 			payload.rails = [];
+			var railProps = {}, hasRailProps = false;
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				payload.rails.push(shapeToData(iData));
+				if (iData.z) {
+					railProps[i] = {z:iData.z};
+					hasRailProps = true;
+				}
 			}
+			if (hasRailProps)
+				payload.railProps = railProps;
 		},
 		"restore" : function(self,payload) {
 			if (!payload.rails) return;
 			for (var i=0;i<payload.rails.length;i++) {
 				var iData = dataToShape(payload.rails[i]);
+				if (payload.railProps && payload.railProps[i])
+					iData.z = payload.railProps[i].z;
 				self.data.push(iData);
 			}
 		},
