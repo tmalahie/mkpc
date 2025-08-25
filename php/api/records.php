@@ -22,6 +22,13 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 			exit;
 		}
 	}
+
+	if (mb_strlen($_POST['perso']) > 30) { // mkrecords.name is varchar(30)
+		echo 2;
+		mysql_close();
+		exit;
+	}
+
 	$cc = isset($_POST['cc']) ? $_POST['cc'] : 150;
 	if (!in_array($cc,array(150,200))) {
 		echo -1;

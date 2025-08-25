@@ -6375,6 +6375,9 @@ function continuer() {
 								case 1:
 									aPara2.innerHTML = toLanguage("This username is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
 									break;
+								case 2:
+									aPara2.innerHTML = toLanguage("This character name is too long, please choose another one.", "Ce nom de personnage est trop long, veuillez en choisir un autre.");
+									break;
 								default:
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
 									break;
