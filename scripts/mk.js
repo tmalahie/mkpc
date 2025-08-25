@@ -4746,6 +4746,14 @@ function startGame() {
 				if (!pause || !fInfos.replay) {
 					function handleInputPressed(gameAction) {
 						switch (gameAction) {
+							case "item":
+							case "item_back":
+							case "item_fwd":
+								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause && !oPlayers[0].justPressedItem) {
+									oPlayers[0].justPressedItem = true;
+									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
+								}
+								break;
 							case "up":
 								currentPressedKeys[gameAction] = true;
 								oPlayers[0].accelerate();
@@ -4825,6 +4833,14 @@ function startGame() {
 								if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
+							case "item_p2":
+								case "item_back_p2":
+								case "item_fwd_p2":
+									if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause && !oPlayers[1].justPressedItem) {
+										oPlayers[1].justPressedItem = true;
+										arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+									}
+									break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
 								oPlayers[1].accelerate();
@@ -4870,12 +4886,6 @@ function startGame() {
 					}
 					function handleInputReleased(gameAction) {
 						switch (gameAction) {
-							case "item":
-							case "item_back":
-							case "item_fwd":
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause)
-									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
-								break;
 							case "up":
 								currentPressedKeys.up = false;
 								oPlayers[0].speedinc = 0;
@@ -4931,12 +4941,6 @@ function startGame() {
 							case "rear":
 								if (!clLocalVars.rearView)
 									showRearView(0);
-								break;
-							case "item_p2":
-							case "item_back_p2":
-							case "item_fwd_p2":
-								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause)
-									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
@@ -5038,6 +5042,7 @@ function startGame() {
 						if (onlineSpectatorId) return;
 						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
+							oPlayers[i].justPressedItem = false;
 							if (!ctrlSettings.autoacc)
 								oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
@@ -6370,6 +6375,9 @@ function continuer() {
 								case 1:
 									aPara2.innerHTML = toLanguage("This username is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
 									break;
+								case 2:
+									aPara2.innerHTML = toLanguage("This name is too long, please choose another one.", "Ce nom est trop long, veuillez en choisir un autre.");
+									break;
 								default:
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
 									break;
@@ -7596,7 +7604,7 @@ var itemBehaviors = {
 				}
 			}
 			if (!isOnline || fSprite.id) {
-				var itemCooldown =  (itemDistribution.lightningdelay != 0) ? -300 : -50;
+				var itemCooldown =  (itemDistribution.lightningdelay != 0) ? -450 : -50;
 				fSprite.countdown--;
 				if (fSprite.countdown <= 0) {
 					if (fSprite.countdown < itemCooldown)
@@ -8760,7 +8768,7 @@ var itemBehaviors = {
 			}
 		},
 		"del": function(item) {
-			nextBlueShellCooldown = 300;
+			nextBlueShellCooldown = 450;
 		}
 	},
 	"carapace-noire": {
@@ -8950,7 +8958,7 @@ var itemBehaviors = {
 			}
 		},
 		"del": function(item) {
-			nextBlueShellCooldown = 300;
+			nextBlueShellCooldown = 450;
 		}
 	}
 }
