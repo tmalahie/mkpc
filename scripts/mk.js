@@ -4749,8 +4749,8 @@ function startGame() {
 							case "item":
 							case "item_back":
 							case "item_fwd":
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause && !oPlayers[0].justPressedItem) {
-									oPlayers[0].justPressedItem = true;
+								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause && !oPlayers[0].item) {
+									oPlayers[0].item = true;
 									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
 								}
 								break;
@@ -4834,13 +4834,13 @@ function startGame() {
 									openCheats();
 								break;
 							case "item_p2":
-								case "item_back_p2":
-								case "item_fwd_p2":
-									if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause && !oPlayers[1].justPressedItem) {
-										oPlayers[1].justPressedItem = true;
-										arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
-									}
-									break;
+							case "item_back_p2":
+							case "item_fwd_p2":
+								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause && !oPlayers[1].item) {
+									oPlayers[1].item = true;
+									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+								}
+								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
 								oPlayers[1].accelerate();
@@ -4886,6 +4886,11 @@ function startGame() {
 					}
 					function handleInputReleased(gameAction) {
 						switch (gameAction) {
+							case "item":
+							case "item_back":
+							case "item_fwd":
+								delete oPlayers[0].item;
+								break;
 							case "up":
 								currentPressedKeys.up = false;
 								oPlayers[0].speedinc = 0;
@@ -4941,6 +4946,12 @@ function startGame() {
 							case "rear":
 								if (!clLocalVars.rearView)
 									showRearView(0);
+								break;
+							case "item_p2":
+							case "item_back_p2":
+							case "item_fwd_p2":
+								if (!oPlayers[1]) return;
+								delete oPlayers[1].item;
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
@@ -5042,7 +5053,6 @@ function startGame() {
 						if (onlineSpectatorId) return;
 						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
-							oPlayers[i].justPressedItem = false;
 							if (!ctrlSettings.autoacc)
 								oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
@@ -11310,7 +11320,7 @@ function checkItemLap(fSprite, opts) {
 	if (fSprite.ailap < nextOverride.lap) return;
 	if (!nextOverride.cp) return;
 	if (enteredCheckpoint(lMap.checkpointCoords[nextOverride.cp], fSprite, opts))
-		incItemLap(lMap,fSprite,nextOverride);
+        incItemLap(lMap,fSprite,nextOverride);
 }
 function incItemLap(lMap,fSprite,nextOverride) {
 	var conditionOverrides = lMap.conditionOverrideIds;
