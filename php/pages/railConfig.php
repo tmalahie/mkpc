@@ -10,7 +10,7 @@ if (is_file($configFile)) {
         'super-turbo-activation' => 25,
         'mini-turbo-duration' => 15,
         'super-turbo-duration' => 30,
-        'rail-speed' => 6,
+        'rail-speed' => 7.5,
         'angle-similarity' => 0.6,
     );
 }
