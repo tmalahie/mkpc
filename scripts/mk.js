@@ -3895,7 +3895,7 @@ function startGame() {
 		if (clLocalVars.invertDirs)
 			dir = -dir;
 		this.rotincdir = this.stats.handling*dir;
-		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon && !this.rail) {
+		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon && (!this.rail || this.rail.exitCooldown)) {
 			if (this.jumped)
 				this.driftinc = dir;
 			if (this.driftinc)
@@ -13545,9 +13545,6 @@ function inRail(aX,aY,aZ, iX,iY, aR,aZ0, previousRail) {
 				aZ = zH;
 		}
 	}
-	var minAngleSimilarity = railGlobalConfig.minEnterAngle;
-	if (previousRail)
-		minAngleSimilarity = railGlobalConfig.minComboAngle;
 	for (var i=0;i<aRails.length;i++) {
 		var oRail = aRails[i];
 		var oRailProps = oRailsProps && oRailsProps[i];
@@ -13556,6 +13553,9 @@ function inRail(aX,aY,aZ, iX,iY, aR,aZ0, previousRail) {
 			continue;
 		if (bZ && !iZ)
 			continue;
+		var minAngleSimilarity = railGlobalConfig.minEnterAngle;
+		if (previousRail || (bZ && iZ))
+			minAngleSimilarity = railGlobalConfig.minComboAngle;
 		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,minAngleSimilarity);
 		if (nRes && (!res || (nRes.t < res.t))) {
 			res = nRes;
@@ -19054,7 +19054,7 @@ function move(getId, triggered) {
 			case 'end':
 				if (oRail.exitCooldown) {
 					oRail.exitCooldown++;
-					if (oRail.exitCooldown >= 5)
+					if (oRail.exitCooldown >= 3)
 						shouldEnd = true;
 				}
 				else {
