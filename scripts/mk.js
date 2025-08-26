@@ -9799,6 +9799,9 @@ var decorBehaviors = {
 				if (iAngleStep > 21) iAngleStep -= 22;
 				decorData[2][j].setState(iAngleStep);
 			}
+		},
+		shouldCollide: function(decorData) {
+			return decorData[5] >= 0;
 		}
 	},
 	tortitaupe:{
@@ -9806,6 +9809,7 @@ var decorBehaviors = {
 		preinit:function(decorsData) {
 			this.init_ = decorBehaviors.taupe.init.bind(this);
 			this.move = decorBehaviors.taupe.move.bind(this);
+			this.shouldCollide = decorBehaviors.taupe.shouldCollide.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -9821,6 +9825,7 @@ var decorBehaviors = {
 		preinit:function(decorsData) {
 			this.init = decorBehaviors.taupe.init.bind(this);
 			this.move = decorBehaviors.taupe.move.bind(this);
+			this.shouldCollide = decorBehaviors.taupe.shouldCollide.bind(this);
 		}
 	},
 	coconut:{
@@ -12575,10 +12580,8 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 				if (nX > oBox[0]-hitboxSize && nX < oBox[0]+hitboxSize && nY > oBox[1]-hitboxSize && nY < oBox[1]+hitboxSize && (Math.abs((oBox[3]?oBox[3]:0)-iZ)<hitboxHeight)) {
 					if ((oBox[3] == undefined) && (iX > oBox[0]-hitboxSize) && (iX < oBox[0]+hitboxSize) && (iY > oBox[1]-hitboxSize) && (iY < oBox[1]+hitboxSize))
 						continue;
-
-					if (typeof decorBehavior.shouldCollide === 'function' && !decorBehavior.shouldCollide(oBox)) {
+					if (decorBehavior.shouldCollide && !decorBehavior.shouldCollide(oBox))
 						continue;
-					}
 
 					let fromSelf;
 					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
