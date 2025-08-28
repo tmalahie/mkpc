@@ -8984,6 +8984,9 @@ var decorBehaviors = {
 			decorData[3] = 0;
 			decorData[4] = (iG%2) ? 9:0;
 		},
+		shouldCollide: function(decorData) {
+			return decorData[3] < 10;
+		},
 		move:function(decorData) {
 			decorData[4]++;
 			if (decorData[4] >= 0) {
@@ -9484,6 +9487,9 @@ var decorBehaviors = {
 				decorData[6] = 2*Math.round(10000*Math.abs(Math.sin(iG+2))%1)-1;
 			if (decorData[7] == undefined)
 				decorData[7] = Math.round(10000*Math.abs(Math.sin(iG+1)))%40;
+		},
+		shouldCollide: function(decorData) {
+			return decorData[3] <= 2; // 20 is max, but we want to disable hitbox before it finishes raising
 		},
 		move: function(decorData,i) {
 			if (decorData[7])
@@ -12587,6 +12593,10 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 				if (nX > oBox[0]-hitboxSize && nX < oBox[0]+hitboxSize && nY > oBox[1]-hitboxSize && nY < oBox[1]+hitboxSize && (Math.abs((oBox[3]?oBox[3]:0)-iZ)<hitboxHeight)) {
 					if ((oBox[3] == undefined) && (iX > oBox[0]-hitboxSize) && (iX < oBox[0]+hitboxSize) && (iY > oBox[1]-hitboxSize) && (iY < oBox[1]+hitboxSize))
 						continue;
+
+					if (typeof decorBehavior.shouldCollide === 'function' && !decorBehavior.shouldCollide(oBox)) {
+						continue;
+					}
 
 					let fromSelf;
 					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
