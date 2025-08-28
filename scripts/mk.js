@@ -3916,7 +3916,7 @@ function startGame() {
 		this.ctrl = true;
 		if (this.rail && this.rail.exitReason !== 'end') {
 			if (!this.ctrled && !this.rail.exiting) {
-				hopKart(this);
+				hopKart(this, this.rail.rotincdir ? 1 : 2);
 				stuntKart(this);
 				this.rail.exiting = true;
 				this.rail.exitReason = 'stunt';
@@ -18163,7 +18163,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball || isActivelyGrinding(oKart)) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball || (oKart.rail && !oKart.rail.exiting)) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -18523,6 +18523,7 @@ function move(getId, triggered) {
 		var oRail = oKart.rail;
 		var shouldEnd = false;
 		var tiltJitter = 0;
+		var z0 = oRail.z0 && !(oKart.z0 > oRail.z0) ? oRail.z0 : oKart.z0;
 		if (oRail.exiting) {
 			if (oKart.sparkSound) {
 				fadeOutMusic(oKart.sparkSound, oKart.sparkSound.volume/vSfx,0.8, false, vSfx);
@@ -18555,21 +18556,22 @@ function move(getId, triggered) {
 					else if (oRail.angleTilt > 0)
 						oRail.angleTilt = Math.max(oRail.angleTilt - 10, 0);
 					if (oRail.rotinc) {
-						oKart.x += oRail.rotinc * direction(1, oKart.rotation);
-						oKart.y -= oRail.rotinc * direction(0, oKart.rotation);
+						var fMoveX = oRail.rotinc * direction(1, oKart.rotation), fMoveY = -oRail.rotinc * direction(0, oKart.rotation);
+						if (canMoveTo(oKart.x,oKart.y,oKart.z, fMoveX,fMoveY, oKart.protect, z0||0)) {
+							oKart.x += fMoveX;
+							oKart.y += fMoveY;
+						}
 					}
 					oRail.rotinc += Math.sign(oKart.rotincdir);
 				}
 				else {
-					if (oRail.z0 && !(oKart.z0 > oRail.z0))
-						oKart.z0 = oRail.z0;
+					oKart.z0 = z0;
 					shouldEnd = true;
 				}
 			}
 		}
 		else {
-			if (oRail.z0 && !(oKart.z0 > oRail.z0))
-				oKart.z0 = oRail.z0;
+			oKart.z0 = z0;
 			if (oRail.boostcpt < railGlobalConfig.superTurboCpt) {
 				oRail.boostcpt++;
 				if (oRail.boostcpt === railGlobalConfig.miniTurboCpt) {
