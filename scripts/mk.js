@@ -12845,6 +12845,7 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 						lineDir = Math.sign(angleSimilarity) || 1;
 						var angleDir = v0*uP - u0*vP;
 						lineSide = Math.sign(angleDir*lineDir) || 1;
+						minD2 = d2;
 					}
 				}
 			}
@@ -12856,7 +12857,8 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 			line: minLine,
 			lines: oPoints,
 			dir: lineDir,
-			side: lineSide
+			side: lineSide,
+			d2: minD2
 		}
 	}
 }
@@ -13630,7 +13632,7 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aR,aS,aZ0, previousRail) {
 		else if (aS < railGlobalConfig.idleSpeed)
 			minAngleSimilarity = railGlobalConfig.minIdleAngle;
 		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,minAngleSimilarity);
-		if (nRes && (!res || (nRes.t < res.t))) {
+		if (nRes && (!res || (nRes.d2 < res.d2))) {
 			res = nRes;
 			res.z0 = iZ0;
 		}
