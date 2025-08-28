@@ -10363,6 +10363,7 @@ var decorBehaviors = {
 									var cannons = lMap.decor[this.type];
 									lMap.decor[this.type] = [];
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
+									var pRail;
 									var pAsset;
 									collisionFloor = null;
 									collisionItem = null;
@@ -10371,6 +10372,39 @@ var decorBehaviors = {
 										var nSpeed = this.jumpspeed(pJump), nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
 										this.autojump(decorData,nMoveX,nMoveY,nSpeed);
+									}
+									else if (pRail = inRail(decorData[0],decorData[1],Infinity, decorData[0]+fMoveX,decorData[1]+fMoveY,0)) {
+										var offset = 2;
+										var rLines = pRail.lines;
+										var firstLine = pRail.line;
+										if (pRail.dir < 0) {
+											rLines = rLines.slice().reverse();
+											firstLine = 9;
+										}
+										var aLines = decorData[4].slice(0,offset).concat(rLines.slice(firstLine));
+										decorData[4] = aLines;
+										decorData[6][0] = offset;
+										aLines[offset] = [decorData[0]+fMoveX,decorData[1]+fMoveY];
+										for (var i=offset;i<aLines.length;i++)
+											decorData[5][i] = { speed: railGlobalConfig.baseSpeed };
+										decorData[5][aLines.length-1].loop = [0];
+										decorData[5][aLines.length-1].speed = decorData[6][2];
+										if (rLines.length > 1) {
+											var lastPoint = rLines[rLines.length-1];
+											var prevPoint = rLines[rLines.length-2];
+											var uL = lastPoint[0]-prevPoint[0], vL = lastPoint[1]-prevPoint[1];
+											var L = Math.hypot(uL,vL);
+											if (L) {
+												uL /= L;
+												vL /= L;
+												this.setdir(decorData,uL,vL);
+												lastPoint = decorData[4][aLines.length-1];
+												decorData[4][aLines.length-1] = [
+													lastPoint[0] + uL*railGlobalConfig.baseSpeed,
+													lastPoint[1] + vL*railGlobalConfig.baseSpeed
+												];
+											}
+										}
 									}
 									else if (!canMoveTo(decorData[0],decorData[1],0, fMoveX,fMoveY)) {
 										var horizontality = getHorizontality(decorData[0],decorData[1],collisionFloor?collisionFloor.z:0, fMoveX,fMoveY);
