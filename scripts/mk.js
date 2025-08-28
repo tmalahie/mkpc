@@ -12484,8 +12484,17 @@ function followRail(oRail,oKart) {
 		if (!oRail.init) {
 			oRail.init = true;
 			var u1 = x2-x1, v1 = y2-y1;
-			if (u1 || v1)
-				oKart.rotation = Math.atan2(u1,v1)*180/Math.PI;
+			if (u1 || v1) {
+				var targetAngle = nearestAngle(Math.atan2(u1,v1)*180/Math.PI,oKart.rotation||0, 360);
+				var angleDiff = targetAngle-oKart.rotation;
+				var maxRotInc = 60;
+				if (Math.abs(angleDiff) > maxRotInc) {
+					oRail.init = false;
+					oKart.rotation += maxRotInc*Math.sign(angleDiff);
+				}
+				else
+					oKart.rotation = targetAngle;
+			}
 		}
 		var l = projete(x0,y0, x1,y1,x2,y2);
 		oKart.x = x1 + l*(x2-x1);
