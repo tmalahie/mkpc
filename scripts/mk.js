@@ -3916,7 +3916,7 @@ function startGame() {
 		this.ctrl = true;
 		if (this.rail && this.rail.exitReason !== 'end') {
 			if (!this.ctrled && !this.rail.exiting) {
-				hopKart(this, this.rail.rotincdir ? 1 : 2);
+				hopKart(this, this.rotincdir ? 1 : 2);
 				stuntKart(this);
 				this.rail.exiting = true;
 				this.rail.exitReason = 'stunt';
@@ -12823,6 +12823,8 @@ var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
 function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	var nX = iX+iI, nY = iY+iJ;
 	var lMap = getCurrentLMap(collisionLap);
+	if ((iZ > jumpHeight0) && collisionPlayer && collisionPlayer.rail && (collisionPlayer.rail.shiftTilt === 0) && (collisionTest === COL_KART))
+		iZ = jumpHeight0;
 
 	if (lMap.decor) {
 		for (var type in lMap.decor) {
@@ -18176,7 +18178,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball || (oKart.rail && !oKart.rail.exiting)) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball || isActivelyGrinding(oKart)) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
