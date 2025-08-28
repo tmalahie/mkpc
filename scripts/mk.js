@@ -19291,20 +19291,15 @@ function updateLapHud(sID) {
 	for (var i=0;i<oCompteurTours.length;i++)
 		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
 }
-function timeStr(timeMS) {
-	var timeMins = Math.floor(timeMS/60000);
-	timeMS -= timeMins*60000;
-	timeMins += "";
-	var timeSecs = Math.floor(timeMS/1000);
-	timeMS -= timeSecs*1000;
-	timeSecs += "";
-	if (timeSecs.length < 2)
-		timeSecs = "0"+ timeSecs;
-	timeMS += "";
-	while (timeMS.length < 3)
-		timeMS = "0"+ timeMS;
-	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+
+function timeStr(ms) {
+	const mins = Math.floor(ms / 60000);
+	ms -= mins * 60000;
+	const secs = Math.floor(ms / 1000);
+	ms -= secs * 1000;
+	return `${mins}'${secs.toString().padStart(2, '0')}"${ms.toString().padStart(3, '0')}`;
 }
+
 function updateSpeedometer(getId, aPosX,aPosY) {
 	if (!$speedometerVals[getId]) return;
 	var oKart = aKarts[getId];
