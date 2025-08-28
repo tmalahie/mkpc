@@ -3917,11 +3917,7 @@ function startGame() {
 		if (this.rail && this.rail.exitReason !== 'end') {
 			if (!this.ctrled && !this.rail.exiting) {
 				hopKart(this, 2);
-				stuntKart(this);
-				this.rail.exiting = true;
-				this.rail.exitReason = 'stunt';
-				this.rail.shiftTilt = Math.sign(this.rotincdir);
-				this.rail.rotinc = this.rail.shiftTilt;
+				railTrick(this);
 			}
 		}
 		else if (!this.z && !this.heightinc) {
@@ -16645,6 +16641,14 @@ function stuntKart(oKart) {
 	playIfShould(oKart, "musics/events/stunt.mp3");
 }
 
+function railTrick(oKart) {
+	stuntKart(oKart);
+	oKart.rail.exiting = true;
+	oKart.rail.exitReason = 'stunt';
+	oKart.rail.shiftTilt = Math.sign(oKart.rotincdir);
+	oKart.rail.rotinc = oKart.rail.shiftTilt;
+}
+
 function getRankScore(oKart) {
 	if (course != "BB") {
 		var lapId = getCurrentLapId(oKart);
@@ -17117,7 +17121,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve;
+						var aX = oKart.x, aY = oKart.y, aZ = oKart.z, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve, aTourne = oKart.tourne;
 						var nDemitours;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
@@ -17182,6 +17186,8 @@ function resetDatas() {
 								updateBalloonHud(document.getElementById("compteur0"),oKart);
 						}
 						updateProtectFlag(oKart);
+						if (oKart.z && !aZ && isActivelyGrinding(oKart))
+							railTrick(oKart);
 						if (aTombe && !oKart.tombe) {
 							oKart.sprite[0].img.style.display = "block";
 							if (course == "BB") {
@@ -17195,6 +17201,7 @@ function resetDatas() {
 							}
 						}
 						if (!aTombe && oKart.tombe) {
+							stopGrinding(j);
 							oKart.sprite[0].img.style.display = "none";
 							oKart.frminv = 10;
 							if (oKart.tombe > 2) {
@@ -17229,6 +17236,8 @@ function resetDatas() {
 						}
 						if (oKart.turnSound && !oKart.tourne)
 							oKart.turnSound = undefined;
+						if ((!aTourne && oKart.tourne) || (!aBillBall && oKart.billball))
+							stopGrinding(j);
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
 							move(j, true);
