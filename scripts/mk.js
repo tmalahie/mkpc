@@ -5185,7 +5185,7 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			/* gogogo
+			//* gogogo
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -5236,7 +5236,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -12820,7 +12820,7 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 			var uP = oPoint2[0]-oPoint1[0], vP = oPoint2[1]-oPoint1[1];
 			var x0 = oPoint1[0] + l*uP, y0 = oPoint1[1] + l*vP;
 			var d2 = (x0-aX)*(x0-aX) + (y0-aY)*(y0-aY);
-			if (d2 < minD2) {
+			if (d2 <= minD2) {
 				var u0, v0;
 				if (aR == null) {
 					u0 = (iX-aX);
@@ -17866,7 +17866,12 @@ function move(getId, triggered) {
 			var hpType, hpProps;
 			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && !oKart.protect && !oKart.champi))) {
 			//if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)))) {
-				hopKart(oKart);
+				if (isActivelyGrinding(oKart)) {
+					hopKart(oKart,2);
+					railTrick(oKart);
+				}
+				else
+					hopKart(oKart);
 			}
 		}
 	}
@@ -20055,6 +20060,7 @@ function processCode(cheatCode) {
 			oPlayer.rotation = newPos.r;
 
 			resetRenderState();
+			stopGrinding(0);
 			return true;
 
 		case "lapn":

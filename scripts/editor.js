@@ -8411,7 +8411,7 @@ var commonTools = {
 	},
 	"rails": {
 		"resume" : function(self) {
-			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.point = createCircle({x:-1,y:-1,r:0.5});
 			self.state.shape = "polygon";
 			var data = self.data;
 			self.data = [];
@@ -8545,7 +8545,7 @@ var commonTools = {
 				movePolygonBuilder(self,point);
 		},
 		"round_on_pixel" : function(self) {
-			return self.state.shape == "polygon";
+			return true;
 		},
 		"save" : function(self,payload) {
 			if (!self.data.length && !selectedLapOverride)
