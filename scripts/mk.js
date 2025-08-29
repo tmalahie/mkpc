@@ -13586,19 +13586,6 @@ var railGlobalConfig = {
 	idleSpeed: 5,
 	minIdleAngle: 0.9
 };
-xhr('railConfig.php', '', function(res) {
-	res = JSON.parse(res);
-	railGlobalConfig = {
-		...railGlobalConfig,
-		miniTurboCpt: +res['mini-turbo-activation'] || railGlobalConfig.miniTurboCpt,
-		superTurboCpt: +res['super-turbo-activation'] || railGlobalConfig.superTurboCpt,
-		miniTurboTime: +res['mini-turbo-duration'] || railGlobalConfig.miniTurboTime,
-		superTurboTime: +res['super-turbo-duration'] || railGlobalConfig.superTurboTime,
-		baseSpeed: +res['rail-speed'] || railGlobalConfig.baseSpeed,
-		minEnterAngle: +res['angle-similarity'] || railGlobalConfig.minEnterAngle
-	}
-	return true;
-})
 function inRail(aX,aY,aZ, iX,iY,iZ, aR,aS,aZ0, previousRail) {
 	var lMap = getCurrentLMap(collisionLap);
 	var aRails = lMap.rails;
