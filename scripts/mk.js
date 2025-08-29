@@ -12815,11 +12815,11 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 	var minD2 = mH*mH, minLine, lineCross, lineDir, lineSide;
 	for (var j=0;j<nPoints;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];	
-		var l = projete(aX,aY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
+		var l = projete(iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
 		if (l >= 0 && l < 1) {
 			var uP = oPoint2[0]-oPoint1[0], vP = oPoint2[1]-oPoint1[1];
 			var x0 = oPoint1[0] + l*uP, y0 = oPoint1[1] + l*vP;
-			var d2 = (x0-aX)*(x0-aX) + (y0-aY)*(y0-aY);
+			var d2 = (x0-iX)*(x0-iX) + (y0-iY)*(y0-iY);
 			if (d2 <= minD2) {
 				var u0, v0;
 				if (aR == null) {
@@ -16646,7 +16646,7 @@ function railTrick(oKart) {
 	oKart.rail.exiting = true;
 	oKart.rail.exitReason = 'stunt';
 	oKart.rail.shiftTilt = Math.sign(oKart.rotincdir);
-	oKart.rail.rotinc = oKart.rail.shiftTilt;
+	oKart.rail.shiftSince = 0;
 }
 
 function getRankScore(oKart) {
@@ -17868,6 +17868,7 @@ function move(getId, triggered) {
 			//if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)))) {
 				if (isActivelyGrinding(oKart)) {
 					hopKart(oKart,2);
+					oKart.rotincdir = 0;
 					railTrick(oKart);
 				}
 				else
@@ -18628,14 +18629,32 @@ function move(getId, triggered) {
 					}
 					else if (oRail.angleTilt > 0)
 						oRail.angleTilt = Math.max(oRail.angleTilt - 10, 0);
-					if (oRail.rotinc) {
-						var fMoveX = oRail.rotinc * direction(1, oKart.rotation), fMoveY = -oRail.rotinc * direction(0, oKart.rotation);
+					if (oRail.shiftSince < 10)
+						oRail.shiftSince++;
+					var rotinc = Math.sign(oKart.rotincdir);
+					if (oRail.shiftCtrl !== 2) {
+						if (oKart.cpu || !oRail.shiftTilt)
+							oRail.shiftCtrl = 2;
+						else if (oRail.shiftCtrl === 1) {
+							if (rotinc)
+								oRail.shiftCtrl = 2;
+						}
+						else if (rotinc !== oRail.shiftTilt)
+							oRail.shiftCtrl = rotinc ? 2:1;
+					}
+					if (oRail.shiftCtrl !== 2)
+						rotinc = oRail.shiftTilt;
+					if ((oRail.shiftSince >= 5) && !oRail.shiftCtrl)
+						rotinc *= 4.5 + (oRail.shiftSince-5);
+					else
+						rotinc *= 2.5;
+					if (rotinc) {
+						var fMoveX = rotinc * direction(1, oKart.rotation), fMoveY = -rotinc * direction(0, oKart.rotation);
 						if (canMoveTo(oKart.x,oKart.y,oKart.z, fMoveX,fMoveY, oKart.protect, z0||0)) {
 							oKart.x += fMoveX;
 							oKart.y += fMoveY;
 						}
 					}
-					oRail.rotinc += Math.sign(oKart.rotincdir);
 				}
 				else {
 					oKart.z0 = z0;
