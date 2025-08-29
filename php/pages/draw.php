@@ -1119,6 +1119,17 @@ if (isset($_GET['i'])) {
 							Faites un clic droit sur le décor pour voir les options auxquelles vous avez accès !"
 						)
 					),
+					'rails' => array(
+						'title' => $language ? 'Rails':'Rails',
+						'text' => ($language ?
+							"Introduced in Mario Kart World, rails are areas where karts follow a predefined path while being able to trick to gain speed.<br />
+							You define them the same way you define <a href=\"javascript:selectHelpTab('aipoints')\">CPUs route</a>: with a path delimited by points.<br />
+							Once you finished drawing the path, click on any point to validate. Then you can define some additional properties by right clicking on it, such as the rail height (min altitude required to ride it)." :
+							"Introduits dans Mario Kart World, les rails sont des zones où les karts suivent un chemin prédéfini tout en pouvant faire des figures pour gagner de la vitesse.<br />
+							Ils sont définis de la même manière que les <a href=\"javascript:selectHelpTab('aipoints')\">trajets ordi</a> : avec un chemin délimité par des points.<br />
+							Une fois le chemin tracé, cliquez sur n'importe quel point pour valider. Vous pouvez ensuite définir des propriétés supplémentaires en faisant un clic droit dessus, telles que la hauteur du rail (altitude minimale pour pouvoir monter dessus)."
+						)
+					),
 					'options' => array(
 						'title' => $language ? 'Options':'Divers',
 						'text' => ($language ?
