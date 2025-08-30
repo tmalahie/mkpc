@@ -4089,7 +4089,17 @@ function startGame() {
 					var ux = direction(0,effRotation), uy = direction(1,effRotation);
 					oKart.speed = (oKart.x-aX)*ux + (oKart.y-aY)*uy;
 					if (oKart.rail) {
+						var bX = oKart.x, prevY = bY = oKart.y, bZ = oKart.z, bR = oKart.rotation, bL = oKart.rail.line;
 						handleKartRail(getId,aX,aY,aZ);
+						if (((oKart.x-bX)*(oKart.x-bX) + (oKart.y-bY)*(oKart.y-bY)) > 5) {
+							if (isActivelyGrinding(oKart) && !oKart.z && (bL === oKart.rail.line)) {
+								stopGrinding(getId);
+								oKart.x = bX;
+								oKart.y = bY;
+								oKart.z = bZ;
+								oKart.rotation = bR;
+							}
+						}
 						if (!oKart.rail)
 							delete oKart.z0;
 					}
