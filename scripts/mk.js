@@ -2566,7 +2566,10 @@ function addNewItem(kart,item) {
 	if (itemBehavior.init)
 		itemBehavior.init(item);
 	if (kart)
+	if (kart) {
 		item.lapId = getCurrentLapId(kart);
+		item.sender = kart;
+	}
 	items[collection].push(item);
 	if (isOnline) {
 		if (kart && (kart.id == identifiant || kart.controller == identifiant))
@@ -4026,9 +4029,10 @@ function startGame() {
 				aKarts[i].driftSprite[j].div.style.opacity = opacity;
 			}
 		}
+		var iTrajets = [iTrajet];
 		for (var i=0;i<aKarts.length;i++) {
-			var aStunted = false, aJumped = false, aSmallJump = false, iTrajets = [iTrajet];
 			(function(getId) {
+				var aStunted = false, aJumped = false, aSmallJump = false;
 				var oKart = aKarts[getId];
 				oKart.stopDrifting = function() {
 					oKart.tourne = 0;
@@ -8188,6 +8192,10 @@ var itemBehaviors = {
 				collisionLap = getItemCollisionLap(fSprite);
 				var isMoving = (fSprite.owner != -1);
 				var fTeleport, oRail;
+				if (isMoving && fSprite.sender) {
+					z0 = fSprite.sender.z0;
+					delete fSprite.sender;
+				}
 				if (isMoving && (fTeleport=inTeleport(roundX1, roundY1))) {
 					fSprite.x = fTeleport[0];
 					fSprite.y = fTeleport[1];
@@ -8201,7 +8209,7 @@ var itemBehaviors = {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (isMoving && !fRail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY))) {
+				else if (isMoving && !fRail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY,getNextHeight(fSprite),z0))) {
 					fRail = {
 						polyline: oRail.lines,
 						line: oRail.line,
@@ -8344,7 +8352,7 @@ var itemBehaviors = {
 			var fNewPosX;
 			var fNewPosY;
 
-			var steps = 10;
+			var steps = 5;
 			for (var l=0;l<steps;l++) {
 				var fSpeed = 14/steps;
 				var dSpeed = fSpeed*cappedRelSpeed();
@@ -8384,6 +8392,10 @@ var itemBehaviors = {
 						}
 						if (oRail.exiting)
 							delete fSprite.rail;
+					}
+					else if (fSprite.sender) {
+						z0 = fSprite.sender.z0;
+						delete fSprite.sender;
 					}
 
 					if (!l) {
@@ -8509,7 +8521,7 @@ var itemBehaviors = {
 						fNewPosY = fSprite.y + fMoveY;
 
 						var oRail;
-						if (!fSprite.rail && (oRail = inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY))) {
+						if (!fSprite.rail && (oRail = inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY,getNextHeight(fSprite), z0))) {
 							fSprite.rail = {
 								polyline: oRail.lines,
 								line: oRail.line,
@@ -8575,6 +8587,7 @@ var itemBehaviors = {
 						fNewPosX = fTeleport[0];
 						fNewPosY = fTeleport[1];
 						fSprite.theta = fTeleport[2]*90;
+						delete fSprite.rail;
 						if (fSprite.aipoint >= 0) {
 							var lMap = getCurrentLMap(fSprite.ailap);
 							var aipoints = lMap.aipoints[fSprite.aimap];
@@ -12495,7 +12508,7 @@ function isActivelyGrinding(oKart) {
 function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 	var oKart = aKarts[getId];
 	if (oKart.speed > railGlobalConfig.minSpeed0 && !oKart.tourne) {
-		var oRail = inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y,oKart.z, oKart.rotation-angleDrift(oKart),oKart.speed,oKart.z0||0,oKart.rail);
+		var oRail = inRail(aPosX,aPosY,aPosZ, oKart.x,oKart.y,oKart.z, oKart.z0||0,oKart.rotation-angleDrift(oKart),oKart.speed,oKart.rail);
 		if (callback) callback(oRail);
 		if (oRail) {
 			if (!oKart.cpu)
@@ -12564,8 +12577,11 @@ function followRail(oRail,oKart) {
 			}
 		}
 		var l = projete(x0,y0, x1,y1,x2,y2);
-		oKart.x = x1 + l*(x2-x1);
-		oKart.y = y1 + l*(y2-y1);
+		var xH = x1 + l*(x2-x1), yH = y1 + l*(y2-y1);
+		if (canMoveTo(x0,y0,oKart.z, xH-x0,yH-y0, oKart.protect, oKart.z0)) {
+			oKart.x = xH;
+			oKart.y = yH;
+		}
 		w0 -= (1-l)*d0;
 		if (w0 > 0) {
 			oRail.line += oRail.dir;
@@ -13545,7 +13561,7 @@ function handleJump(oKart, pJump) {
 	return false;
 }
 function handleHeightInc(oKart) {
-	oKart.z += 0.7 * oKart.heightinc * Math.abs(oKart.heightinc);
+	oKart.z += getHeightInc(oKart);
 	oKart.heightinc -= 0.5;
 	if (oKart.z <= 0) {
 		oKart.heightinc = 0;
@@ -13553,6 +13569,13 @@ function handleHeightInc(oKart) {
 		return true;
 	}
 	return false;
+}
+function getHeightInc(oKart) {
+	return 0.7 * oKart.heightinc * Math.abs(oKart.heightinc);
+}
+function getNextHeight(oKart) {
+	if (!oKart.heightinc) return oKart.z;
+	return Math.max(oKart.z + getHeightInc(oKart), 0);
 }
 function handleCannon(oKart, cannon) {
 	if (cannon && (cannon[0]||cannon[1])) {
@@ -13768,7 +13791,7 @@ var railGlobalConfig = {
 	idleSpeed: 5,
 	minIdleAngle: 0.9
 };
-function inRail(aX,aY,aZ, iX,iY,iZ, aR,aS,aZ0, previousRail) {
+function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 	var lMap = getCurrentLMap(collisionLap);
 	var aRails = lMap.rails;
 	if (!aRails) return false;
@@ -16805,9 +16828,10 @@ function stuntKart(oKart) {
 	oKart.figstate = 21;
 	oKart.z += 1;
 	oKart.heightinc += 0.5;
-	if (oKart == oPlayers[0])
+	if (oPlayers.includes(oKart)) {
 		clLocalVars.stunted = true;
-	playIfShould(oKart, "musics/events/stunt.mp3");
+		playIfShould(oKart, "musics/events/stunt.mp3");
+	}
 }
 
 function railTrick(oKart) {
@@ -17494,6 +17518,7 @@ function resetDatas() {
 						if (oItemId == -1) {
 							oKart.using.push(uItem);
 							uItem.lapId = getCurrentLapId(oKart);
+							uItem.sender = oKart;
 							if ((oKart.using.length > 1) && !oKart.rotitem)
 								oKart.rotitem = 0;
 						}
