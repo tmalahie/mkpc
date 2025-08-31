@@ -8243,6 +8243,7 @@ var itemBehaviors = {
 						var l = 0.7;
 						fSprite.vx = l*(2*m_u*ux - vx);
 						fSprite.vy = l*(2*m_u*uy - vy);
+						delete fSprite.rail;
 					}
 					else
 						detruit(fSprite);
@@ -8581,7 +8582,8 @@ var itemBehaviors = {
 					oSpriteExcept = otherPlayerItems([]);
 				}
 				if (fSprite.owner != -1) {
-					handleCannon(fSprite, inCannon(fSprite.x,fSprite.y, fNewPosX,fNewPosY));
+					if (handleCannon(fSprite, inCannon(fSprite.x,fSprite.y, fNewPosX,fNewPosY)))
+						delete fSprite.rail;
 					fTeleport = inTeleport(fSprite.x, fSprite.y);
 					if (fTeleport) {
 						fNewPosX = fTeleport[0];
