@@ -8422,7 +8422,9 @@ var commonTools = {
 					self.click(self,iData.points[j],extra);
 				self.state.nodes[0].circle.onclick();
 				if (iData.z)
-					self.state.createdShape.reheight(iData.z);
+					self.state.createdShape.reheight(iData.z, "z");
+				if (iData.z0)
+					self.state.createdShape.reheight(iData.z0, "z0");
 			}
 		},
 		"click" : function(self,point,extra) {
@@ -8470,18 +8472,19 @@ var commonTools = {
 								self.state.nodes[i].center.onclick = undefined;
 								self.state.nodes[i].center.classList.remove("hover-toggle");
 							}
-							function promptHeight(shape) {
+							function promptHeight(shape, prop, defaultVal, validator) {
 								return function() {
-									var defaultVal = 0;
-									var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data.z || defaultVal);
+									var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data[prop] || defaultVal);
 									if (enteredVal == null) return;
 									if (enteredVal !== "") {
 										enteredVal = +enteredVal;
 										if (enteredVal === defaultVal)
 											enteredVal = "";
 									}
-									if (enteredVal >= 0)
-										shape.reheight(enteredVal);
+									if (enteredVal >= 0) {
+										if ((enteredVal==="") || validator(enteredVal))
+											shape.reheight(enteredVal, prop);
+									}
 								}
 							}
 							function deleteRail(shape) {
@@ -8491,6 +8494,28 @@ var commonTools = {
 									shape.remove();
 								}
 							}
+							function additionalOptions(shape) {
+								return [{
+									text: (language ? "Rail height...":"Hauteur rail..."),
+									click: promptHeight(shape, "z", 0, function(res) {
+										if (data.z0 < res)
+											delete data.z0;
+										return true;
+									})
+								}, {
+									text: (language ? "Target height...":"Hauteur cible..."),
+									click: promptHeight(shape, "z0", data.z||0, function(res) {
+										if (res < data.z) {
+											alert(language ? "Target height cannot be lower that rail height. Check Help section for details.":"La hauteur cible ne peut pas être inférieure à la hauteur du rail. Lisez l'aide pour plus de détails.");
+											return false;
+										}
+										return true;
+									})
+								}, {
+									text: (language ? "Delete whole rail":"Supprimer le rail"),
+									click: deleteRail(shape)
+								}];
+							};
 							var createdShape = createPolyline(self,points, {
 								closed: false,
 								on_pre_edit: function(self,shape) {
@@ -8501,13 +8526,7 @@ var commonTools = {
 									self.state.data = { points:points };
 								},
 								ctxmenu: function(i,e,shape) {
-									return [ {
-										text: (language ? "Rail height...":"Hauteur rail..."),
-										click: promptHeight(shape)
-									}, {
-										text: (language ? "Delete whole rail":"Supprimer le rail"),
-										click: deleteRail(shape)
-									}];
+									return additionalOptions(shape);
 								},
 								l_ctxmenu: function(i,e,shape) {
 									showContextMenu(e,[{
@@ -8515,21 +8534,15 @@ var commonTools = {
 										click: function(e) {
 											shape.addPoint(e,i);
 										}
-									}, {
-										text: (language ? "Rail height...":"Hauteur rail..."),
-										click: promptHeight(shape)
-									}, {
-										text: (language ? "Delete whole rail":"Supprimer le rail"),
-										click: deleteRail(shape)
-									}]);
+									}].concat(additionalOptions(shape)));
 								},
 							});
-							createdShape.reheight = function(z) {
+							createdShape.reheight = function(z, prop) {
 								storeHistoryData(self.data);
 								if (z === "")
-									delete data.z;
+									delete data[prop];
 								else
-									data.z = z;
+									data[prop] = z;
 							};
 							self.state.createdShape = createdShape;
 						}
@@ -8559,6 +8572,13 @@ var commonTools = {
 					railProps[i] = {z:iData.z};
 					hasRailProps = true;
 				}
+				if (iData.z0) {
+					railProps[i] = {
+						...railProps[i],
+						z0:iData.z0
+					}
+					hasRailProps = true;
+				}
 			}
 			if (hasRailProps)
 				payload.railProps = railProps;
@@ -8567,8 +8587,10 @@ var commonTools = {
 			if (!payload.rails) return;
 			for (var i=0;i<payload.rails.length;i++) {
 				var iData = dataToShape(payload.rails[i]);
-				if (payload.railProps && payload.railProps[i])
+				if (payload.railProps && payload.railProps[i]) {
 					iData.z = payload.railProps[i].z;
+					iData.z0 = payload.railProps[i].z0;
+				}
 				self.data.push(iData);
 			}
 		},

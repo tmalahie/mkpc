@@ -13808,8 +13808,8 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 	}
 	for (var i=0;i<aRails.length;i++) {
 		var oRail = aRails[i];
-		var oRailProps = oRailsProps && oRailsProps[i];
-		var iZ0 = oRailProps && getPointHeight(oRailProps.z);
+		var oRailProps = (oRailsProps && oRailsProps[i]) || {};
+		var iZ0 = oRailProps.z && getPointHeight(oRailProps.z);
 		if (iZ0 > aZ)
 			continue;
 		if (iZ > (iZ0||0))
@@ -13822,7 +13822,8 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,minAngleSimilarity);
 		if (nRes && (!res || (nRes.d2 < res.d2))) {
 			res = nRes;
-			res.z0 = iZ0;
+			var iZ1 = oRailProps.z0 && getPointHeight(oRailProps.z0);
+			res.z0 = iZ1 || iZ0;
 		}
 	}
 	return res;
