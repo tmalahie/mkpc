@@ -1932,10 +1932,11 @@ function moveRouteBuilder(self,point,extra) {
 function movePolylinePoint(self,i,point) {
 	self.state.nodes[i].move(point);
 	var lines = self.state.lines;
-	var inc = i-1;
-	if (inc < 0 && self.state.nodes.length === lines.length)
-		inc += lines.length;
-	var line1 = lines[inc], line2 = lines[i];
+	var prev = i-1;
+	if (prev < 0 && self.state.nodes.length === lines.length)
+		// Polygon is closed, and this is the last line closing the polygon
+		prev += lines.length;
+	var line1 = lines[prev], line2 = lines[i];
 	if (line1) {
 		line1.setAttribute("x2", point.x);
 		line1.setAttribute("y2", point.y);
