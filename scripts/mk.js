@@ -28480,7 +28480,7 @@ function choose(map,rand) {
 						var cCursor = 0;
 						var cTime = 50;
 						function moveCursor() {
-							var isInFuckingLoop = true;
+							var isInLoop = true;
 							if (cCursor == rCode[1]) {
 								var pTime = 0, iTime = cTime;
 								for (var i=0;i<nbChoices;i++) {
@@ -28488,9 +28488,9 @@ function choose(map,rand) {
 									pTime += iTime;
 								}
 								if (pTime >= (tThen-new Date().getTime()))
-									isInFuckingLoop = false;
+									isInLoop = false;
 							}
-							if (isInFuckingLoop) {
+							if (isInLoop) {
 								trs[cCursor].style.backgroundColor = "";
 								trs[cCursor].style.color = "";
 								cCursor++;
