@@ -2563,6 +2563,8 @@ function addNewItem(kart,item) {
 		item.sprite = new Sprite(collection);
 		item.size = itemBehavior.size;
 	}
+	if (itemBehavior.init)
+		itemBehavior.init(item);
 	if (kart)
 		item.lapId = getCurrentLapId(kart);
 	items[collection].push(item);
@@ -8759,7 +8761,7 @@ var itemBehaviors = {
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
 			}
 		},
-		"del": function(item) {
+		"init": function(item) {
 			nextBlueShellCooldown = 450;
 		}
 	},
@@ -8949,7 +8951,7 @@ var itemBehaviors = {
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
 			}
 		},
-		"del": function(item) {
+		"init": function(item) {
 			nextBlueShellCooldown = 450;
 		}
 	}
@@ -10058,6 +10060,7 @@ var decorBehaviors = {
 				}
 				this.setdir = decorBehaviors.cannonball.setdir.bind(this);
 				this.autojump = decorBehaviors.cannonball.autojump.bind(this);
+				this.shouldCollide = decorBehaviors.cannonball.shouldCollide.bind(this);
 			}
 		},
 		init:function(decorData) {
@@ -10130,6 +10133,9 @@ var decorBehaviors = {
 					}
 				}
 			}
+		},
+		shouldCollide: function(decorData) {
+			return (decorData[5][1] === 0);
 		}
 	},
 	cannonball:{
@@ -10371,6 +10377,9 @@ var decorBehaviors = {
 					dSpeed = 0;
 				}
 			}
+		},
+		shouldCollide: function(decorData) {
+			return (decorData[6][1] >= 0);
 		}
 	},
 	truck:{
@@ -17726,8 +17735,12 @@ function move(getId, triggered) {
 						forbiddenItems["bloops"] = 1;
 					if (items.pow.length || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
-					if (oKart.arme && (itemDistribution.doubleitemx2 != 1))
-						forbiddenItems[oKart.arme] = 1;
+					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
+						if (oKart.arme === "champiX2")
+							forbiddenItems["champiX3"] = 1;
+						else
+							forbiddenItems[oKart.arme] = 1;
+					}
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
 							iObj = randObj(oKart);
