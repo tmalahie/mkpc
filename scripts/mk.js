@@ -3914,6 +3914,7 @@ function startGame() {
 		this.frminv = 10;
 		this.tourne = nb;
 		resetWrongWay(this);
+		fallRail(this);
 	}
 	function jumpKart() {
 		this.ctrl = true;
@@ -12724,6 +12725,7 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 			oRail.exitReason = 'end';
 		}
 	}
+	delete oRail.lastboostcpt;
 	if (shouldCheckRail) {
 		var newRail;
 		checkRailEnter(getId, aPosX,aPosY,aPosZ, function(res) {
@@ -12731,9 +12733,11 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 			if (newRail || shouldEnd)
 				stopGrinding(getId);
 		});
+		if (newRail) {
+			oKart.rail.lastboostcpt = oRail.boostcpt;
+			oKart.rail.angleTilt = 25;
+		}
 		oRail = oKart.rail;
-		if (newRail)
-			oRail.angleTilt = 25;
 	}
 	if (oRail) {
 		var tiltSide = getMirrorFactor()*oRail.side;
@@ -12785,10 +12789,10 @@ function colKart(getId) {
 								var iKart = aKarts.indexOf(qKart);
 								handleHit2(pKart,qKart);
 								loseBall(iKart);
-								stopDrifting(iKart);
 								if (pKart.ballons.length < 3)
 									addNewBalloon(pKart,qKart.team);
 								qKart.spin(62);
+								stopDrifting(iKart);
 							}
 						}
 					}
@@ -12848,8 +12852,8 @@ function colKart(getId) {
 							var iKart = aKarts.indexOf(qKart);
 							handleHit2(pKart,qKart);
 							loseBall(iKart);
-							stopDrifting(iKart);
 							qKart.spin(62);
+							stopDrifting(iKart);
 							loseUsingItems(qKart);
 							dropCurrentItem(qKart);
 						}
@@ -18139,20 +18143,20 @@ function move(getId, triggered) {
 					switch (asset[0]) {
 					case "oils":
 						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
-							stopDrifting(getId);
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(20);
+							stopDrifting(getId);
 						}
 						stopped = false;
 						break;
 					case "pointers":
 						if (!isCustom) decorType = 'assets/pivothand';
 						if (hittable) {
-							stopDrifting(getId);
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(42);
+							stopDrifting(getId);
 							if (oKart.cpu)
 								oKart.frminv = 16;
 						}
@@ -18161,10 +18165,10 @@ function move(getId, triggered) {
 						break;
 					case "flippers":
 						if (hittable) {
-							stopDrifting(getId);
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(42);
+							stopDrifting(getId);
 						}
 						oKart.speed *= -1;
 						var pushSpeed = 8;
@@ -18486,8 +18490,8 @@ function move(getId, triggered) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
 				loseBall(getId);
-				stopDrifting(getId);
 				oKart.spin(collisionSpin);
+				stopDrifting(getId);
 				oKart.speed = 2.5*Math.sign(oKart.speed);
 
 				// cancel movement to prevent loseUsingItems dropping ahead of the player (transparent decors only)
@@ -18588,9 +18592,10 @@ function move(getId, triggered) {
 		if (oKart.figuring) {
 			var nextTurbo;
 			if (oKart.rail) {
-				if (oKart.rail.boostcpt >= railGlobalConfig.superTurboCpt)
+				var boostcpt = oKart.rail.lastboostcpt || oKart.rail.boostcpt;
+				if (boostcpt >= railGlobalConfig.superTurboCpt)
 					nextTurbo = railGlobalConfig.superTurboTime;
-				else if (oKart.rail.boostcpt >= railGlobalConfig.miniTurboCpt)
+				else if (boostcpt >= railGlobalConfig.miniTurboCpt)
 					nextTurbo = railGlobalConfig.miniTurboTime;
 				else
 					nextTurbo = 1;
@@ -19796,22 +19801,22 @@ function handleExplosionHit(getId, pExplose) {
 function handleHardHit(getId) {
 	var oKart = aKarts[getId];
 	loseBall(getId);
-	stopDrifting(getId);
 	oKart.spin(42);
+	stopDrifting(getId);
 	loseUsingItem(oKart);
 }
 function handleSoftHit(getId) {
 	var oKart = aKarts[getId];
 	loseBall(getId);
-	stopDrifting(getId);
 	oKart.spin(20);
+	stopDrifting(getId);
 	loseUsingItem(oKart);
 }
 function handlePoisonHit(getId) {
 	var oKart = aKarts[getId];
 	loseBall(getId);
-	stopDrifting(getId);
 	oKart.spin(20);
+	stopDrifting(getId);
 	loseUsingItems(oKart);
 	oKart.size = 0.6;
 	oKart.mini = Math.max(oKart.mini, 60);
@@ -20018,6 +20023,12 @@ function resetWrongWay(oKart) {
 	}
 	removeIfExists(oKart.wrongWaySound);
 	delete oKart.wrongWaySound;
+}
+function fallRail(oKart) {
+	if (isActivelyGrinding(oKart)) {
+		var fMoveL = railGlobalConfig.hitboxW*oKart.rail.side, fMoveX = fMoveL*direction(1, oKart.rotation), fMoveY = -fMoveL*direction(0, oKart.rotation);
+		oKart.shift = [fMoveX,fMoveY,0];
+	}
 }
 
 var clLocalVars, clHud, clSelected;
