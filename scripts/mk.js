@@ -18579,7 +18579,7 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	if (!oKart.rail && !oKart.teleport && !oKart.billball && !(oKart.z > 0 && oKart.heightinc >= 0))
+	if (!oKart.rail && !oKart.teleport && !oKart.billball && !oKart.cannon && !(oKart.z > 0 && oKart.heightinc >= 0))
 		checkRailEnter(getId, aPosX,aPosY,aPosZ);
 	oKart.sliding = undefined;
 	if (!oKart.z) {
