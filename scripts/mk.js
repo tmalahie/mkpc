@@ -13039,7 +13039,7 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 				}
 				var angleSimilarity = (u0*uP + v0*vP) / Math.hypot(uP,vP);
 				if (Math.abs(angleSimilarity) > mA) {
-					if (canMoveTo(aX,aY,aZ, x0-aX,y0-aY, false, aZ0)) {
+					if (canMoveTo(aX,aY,aZ, x0-aX,y0-aY, false, aZ0) && !tombe(x0,y0)) {
 						minLine = j;
 						lineCross = l;
 						lineDir = Math.sign(angleSimilarity) || 1;
@@ -13795,8 +13795,11 @@ var railGlobalConfig = {
 	baseSpeed: 7.5,
 	turboSpeed: 10,
 	idleSpeed: 5,
-	minIdleAngle: 0.9
+	minIdleAngle: 0.9,
+	minZ0: 0
 };
+if (new URLSearchParams(document.location.search).get('z0'))
+	railGlobalConfig.minZ0 = +new URLSearchParams(document.location.search).get('z0') || 0;
 function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 	var lMap = getCurrentLMap(collisionLap);
 	var aRails = lMap.rails;
@@ -13818,7 +13821,7 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 		var iZ0 = oRailProps.z && getPointHeight(oRailProps.z);
 		if (iZ0 > aZ)
 			continue;
-		if (iZ > (iZ0||0))
+		if (iZ > Math.max(iZ0||0,railGlobalConfig.minZ0))
 			continue;
 		var minAngleSimilarity = railGlobalConfig.minEnterAngle;
 		if (previousRail || iZ)
