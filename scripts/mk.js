@@ -12736,6 +12736,8 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 		if (newRail) {
 			oKart.rail.lastboostcpt = oRail.boostcpt;
 			oKart.rail.angleTilt = 25;
+			if (aPosZ && oRail.shiftTilt)
+				oKart.rail.side = oRail.shiftTilt;
 		}
 		oRail = oKart.rail;
 	}
@@ -13043,8 +13045,8 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 						minLine = j;
 						lineCross = l;
 						lineDir = Math.sign(angleSimilarity) || 1;
-						var angleDir = v0*uP - u0*vP;
-						lineSide = Math.sign(angleDir*lineDir) || 1;
+						var angleDir = (y0-iY)*uP - (x0-iX)*vP;
+						lineSide = Math.sign(angleDir*lineDir) || ((Math.random()<0.5) ? -1:1);
 						minD2 = d2;
 					}
 				}
