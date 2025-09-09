@@ -12653,10 +12653,18 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 				}
 				if (oRail.shiftCtrl !== 2)
 					rotinc = oRail.shiftTilt;
-				if ((oRail.shiftSince >= 5) && !oRail.shiftCtrl)
-					rotinc *= 4.5 + (oRail.shiftSince-5);
-				else
+				if (!oRail.shiftTilt)
 					rotinc *= 2.5;
+				else if (oRail.shiftSince >= 5) {
+					if (!oRail.shiftCtrl)
+						rotinc *= 4.5 + (oRail.shiftSince-5);
+					else
+						rotinc *= 1.5;
+				}
+				else if (rotinc !== -oRail.shiftTilt)
+					rotinc *= 4;
+				else
+					rotinc *= 0;
 				if (rotinc) {
 					var fMoveX = rotinc * direction(1, oKart.rotation), fMoveY = -rotinc * direction(0, oKart.rotation);
 					if (canMoveTo(oKart.x,oKart.y,oKart.z, fMoveX,fMoveY, oKart.protect, z0||0)) {
@@ -13798,7 +13806,7 @@ var railGlobalConfig = {
 	turboSpeed: 10,
 	idleSpeed: 5,
 	minIdleAngle: 0.9,
-	minZ0: 0
+	minZ0: 2
 };
 if (new URLSearchParams(document.location.search).get('z0'))
 	railGlobalConfig.minZ0 = +new URLSearchParams(document.location.search).get('z0') || 0;
