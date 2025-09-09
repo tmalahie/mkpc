@@ -8531,7 +8531,7 @@ var commonTools = {
 								},
 								l_ctxmenu: function(i,e,shape) {
 									showContextMenu(e,[{
-										text: (language ? "Add point":"Ajouter un point"),
+										text: (language ? "Add node":"Ajouter un point"),
 										click: function(e) {
 											shape.addPoint(e,i);
 										}
