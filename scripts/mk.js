@@ -20827,7 +20827,7 @@ function ai(oKart) {
 				var maxSpeed = speedToAim;
 				if (oKart.bloops && oKart.bloops.effective(oKart))
 					maxSpeed = Math.min(maxSpeed,3);
-				maxSpeed /= 0.9*cappedRelSpeed();
+				maxSpeed /= 0.9;
 				if (!maxSpeed)
 					maxSpeed = 0.01;
 				if ((oMap.skin == 32) && (actualSpeed > 6) && (maxSpeed < (actualSpeed-1))) {
