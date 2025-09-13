@@ -13808,8 +13808,6 @@ var railGlobalConfig = {
 	minIdleAngle: 0.9,
 	minZ0: 2
 };
-if (new URLSearchParams(document.location.search).get('z0'))
-	railGlobalConfig.minZ0 = +new URLSearchParams(document.location.search).get('z0') || 0;
 function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 	var lMap = getCurrentLMap(collisionLap);
 	var aRails = lMap.rails;
