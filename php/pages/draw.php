@@ -107,6 +107,7 @@ if (isset($_GET['i'])) {
 				'teleports' => $language ? 'Teleporters':'Téléporteurs',
 				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
 				'elevators' => $language ? 'Elevators':'Élévateurs',
+				'rails' => $language ? 'Rails':'Rails',
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
@@ -1116,6 +1117,25 @@ if (isset($_GET['i'])) {
 							Cliquez sur un endroit de la carte de votre choix pour placer un décor à cet endroit.<br />
 							Pour certains décors, comme les bus, vous pouvez spécifier des paramètres supplémentaires (route à suivre, vitesse...).
 							Faites un clic droit sur le décor pour voir les options auxquelles vous avez accès !"
+						)
+					),
+					'rails' => array(
+						'title' => $language ? 'Rails':'Rails',
+						'text' => ($language ?
+							"Introduced in Mario Kart World, rails are areas where karts follow a predefined path while being able to trick to gain speed.<br />
+							You define them the same way you define <a href=\"javascript:selectHelpTab('aipoints')\">CPUs route</a>: with a path delimited by nodes.<br />
+							Once you finished drawing the path, click on any node to validate. Then you can define some additional properties by right clicking on it:
+							<ul>
+								<li>Rail height: minimum altitude required to start riding it (default = 0)</li>
+								<li>Target height: altitude of the kart once on the rail (default = rail height). Works like <a href=\"javascript:selectHelpTab('elevators')\">elevators</a>, specify this value if the rail goes over a wall for example.</li>
+							</ul>" :
+							"Introduits dans Mario Kart World, les rails sont des zones où les karts suivent un chemin prédéfini tout en pouvant faire des figures pour gagner de la vitesse.<br />
+							Ils sont définis de la même manière que les <a href=\"javascript:selectHelpTab('aipoints')\">trajets ordi</a> : avec un chemin délimité par des points.<br />
+							Une fois le chemin tracé, cliquez sur n'importe quel point pour valider. Vous pouvez ensuite définir des propriétés supplémentaires en faisant un clic droit dessus :
+							<ul>
+								<li>Hauteur rail : altitude minimale pour pouvoir monter dessus (défaut = 0)</li>
+								<li>Hauteur cible : altitude du kart une fois sur le rail (défaut = hauteur rail). Fonctionne comme les <a href=\"javascript:selectHelpTab('elevators')\">élévateurs</a>, spécifiez cette valeur si le rail passe au-dessus d'un mur par exemple.</li>
+							</ul>"
 						)
 					),
 					'options' => array(
