@@ -4802,6 +4802,14 @@ function startGame() {
 				if (!pause || !fInfos.replay) {
 					function handleInputPressed(gameAction) {
 						switch (gameAction) {
+							case "item":
+							case "item_back":
+							case "item_fwd":
+								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause && !oPlayers[0].item) {
+									oPlayers[0].item = true;
+									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
+								}
+								break;
 							case "up":
 								currentPressedKeys[gameAction] = true;
 								oPlayers[0].accelerate();
@@ -4870,6 +4878,14 @@ function startGame() {
 								if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
+							case "item_p2":
+							case "item_back_p2":
+							case "item_fwd_p2":
+								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause && !oPlayers[1].item) {
+									oPlayers[1].item = true;
+									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+								}
+								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
 								oPlayers[1].accelerate();
@@ -4909,8 +4925,7 @@ function startGame() {
 							case "item":
 							case "item_back":
 							case "item_fwd":
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause)
-									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
+								delete oPlayers[0].item;
 								break;
 							case "up":
 								currentPressedKeys.up = false;
@@ -4971,8 +4986,8 @@ function startGame() {
 							case "item_p2":
 							case "item_back_p2":
 							case "item_fwd_p2":
-								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause)
-									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+								if (!oPlayers[1]) return;
+								delete oPlayers[1].item;
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
@@ -6405,6 +6420,9 @@ function continuer() {
 									break;
 								case 1:
 									aPara2.innerHTML = toLanguage("This username is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
+									break;
+								case 2:
+									aPara2.innerHTML = toLanguage("This name is too long, please choose another one.", "Ce nom est trop long, veuillez en choisir un autre.");
 									break;
 								default:
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
@@ -19945,20 +19963,15 @@ function updateLapHud(sID) {
 	for (var i=0;i<oCompteurTours.length;i++)
 		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
 }
-function timeStr(timeMS) {
-	var timeMins = Math.floor(timeMS/60000);
-	timeMS -= timeMins*60000;
-	timeMins += "";
-	var timeSecs = Math.floor(timeMS/1000);
-	timeMS -= timeSecs*1000;
-	timeSecs += "";
-	if (timeSecs.length < 2)
-		timeSecs = "0"+ timeSecs;
-	timeMS += "";
-	while (timeMS.length < 3)
-		timeMS = "0"+ timeMS;
-	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+
+function timeStr(ms) {
+	const mins = Math.floor(ms / 60000);
+	ms -= mins * 60000;
+	const secs = Math.floor(ms / 1000);
+	ms -= secs * 1000;
+	return `${mins}'${secs.toString().padStart(2, '0')}"${ms.toString().padStart(3, '0')}`;
 }
+
 function updateSpeedometer(getId, aPosX,aPosY) {
 	if (!$speedometerVals[getId]) return;
 	var oKart = aKarts[getId];
@@ -29153,7 +29166,7 @@ function choose(map,rand) {
 						var cCursor = 0;
 						var cTime = 50;
 						function moveCursor() {
-							var isInFuckingLoop = true;
+							var isInLoop = true;
 							if (cCursor == rCode[1]) {
 								var pTime = 0, iTime = cTime;
 								for (var i=0;i<nbChoices;i++) {
@@ -29161,9 +29174,9 @@ function choose(map,rand) {
 									pTime += iTime;
 								}
 								if (pTime >= (tThen-new Date().getTime()))
-									isInFuckingLoop = false;
+									isInLoop = false;
 							}
-							if (isInFuckingLoop) {
+							if (isInLoop) {
 								trs[cCursor].style.backgroundColor = "";
 								trs[cCursor].style.color = "";
 								cCursor++;
