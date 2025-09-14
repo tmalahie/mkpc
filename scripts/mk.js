@@ -4151,6 +4151,7 @@ function startGame() {
 								oKart.tourne = 19;
 								if (oKart.rail && !oKart.rail.exiting) {
 									railTrick(oKart);
+									oKart.figstate = 0;
 									if (oKart.rail.shiftTilt)
 										oKart.tourne = 0;
 								}
