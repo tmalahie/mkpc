@@ -13121,10 +13121,6 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (decorBehavior.shouldCollide && !decorBehavior.shouldCollide(oBox))
 						continue;
 
-					if (typeof decorBehavior.shouldCollide === 'function' && !decorBehavior.shouldCollide(oBox)) {
-						continue;
-					}
-
 					let fromSelf;
 					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
 						fromSelf = true;
