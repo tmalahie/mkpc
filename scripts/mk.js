@@ -8138,7 +8138,6 @@ var itemBehaviors = {
 			var relSpeed = cappedRelSpeed();
 
 			var steps = 4;
-			var fRail = fSprite.rail;
 			for (var i=0;i<steps;i++) {
 				var z0;
 				if (fSprite.rail) {
@@ -8210,14 +8209,13 @@ var itemBehaviors = {
 					detruit(fSprite,true);
 					break;
 				}
-				else if (isMoving && !fRail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY,getNextHeight(fSprite),z0))) {
-					fRail = {
+				else if (isMoving && !fSprite.rail && (oRail=inRail(fSprite.x,fSprite.y,fSprite.z, fNewPosX,fNewPosY,getNextHeight(fSprite),z0))) {
+					fSprite.rail = {
 						polyline: oRail.lines,
 						line: oRail.line,
 						dir: oRail.dir,
 						z0: oRail.z0
 					};
-					fSprite.rail = fRail;
 				}
 				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, false, z0)) {
 					if (ctx && ctx.checkCollisions) {
@@ -12590,8 +12588,12 @@ function followRail(oRail,oKart) {
 		if (w0 > 0) {
 			oRail.line += oRail.dir;
 			if ((oRail.line < 0) || (oRail.line >= oRail.polyline.length-1)) {
-				oRail.exiting = true;
-				oRail.exitReason = 'end';
+				if (l < 1)
+					oRail.line -= oRail.dir;
+				else {
+					oRail.exiting = true;
+					oRail.exitReason = 'end';
+				}
 				break;
 			}
 			else
@@ -12612,12 +12614,11 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 		}
 		switch (oRail.exitReason) {
 		case 'end':
+			shouldCheckRail = true;
 			if (oRail.exitCooldown) {
 				oRail.exitCooldown++;
-				if (oRail.exitCooldown >= 3) {
+				if (oRail.exitCooldown >= 3)
 					shouldEnd = true;
-					shouldCheckRail = true;
-				}
 			}
 			else {
 				oRail.exitCooldown = 1;
@@ -12628,7 +12629,7 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 				oRail.angleTilt = Math.max(oRail.angleTilt*1.1 - 20, 0);
 			break;
 		case 'stunt':
-			shouldCheckRail = (oKart.z <= aPosZ);
+			shouldCheckRail = true;
 			if (aPosZ) {
 				oKart.rotinc = 0;
 				if (oRail.shiftTilt) {
@@ -12729,13 +12730,15 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 			oRail.angleTilt = angleTilt0 + railGlobalConfig.angleTiltJitter * tiltJitter;
 		}
 		followRail(oRail,oKart);
+		if (oRail.exitReason === 'end')
+			shouldCheckRail = true;
 		if (oKart.speed < railGlobalConfig.minSpeed1) {
 			oRail.exiting = true;
 			oRail.exitReason = 'end';
 		}
 	}
 	delete oRail.lastboostcpt;
-	if (shouldCheckRail) {
+	if (shouldCheckRail && (oKart.z <= aPosZ)) {
 		var newRail;
 		checkRailEnter(getId, aPosX,aPosY,aPosZ, function(res) {
 			newRail = res;
@@ -12743,10 +12746,18 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 				stopGrinding(getId);
 		});
 		if (newRail) {
-			oKart.rail.lastboostcpt = oRail.boostcpt;
-			oKart.rail.angleTilt = 25;
-			if (aPosZ && oRail.shiftTilt)
-				oKart.rail.side = oRail.shiftTilt;
+			if ((oRail.exitReason === 'end') && oRail.angleTilt) {
+				if (!oRail.exitCooldown)
+					oKart.rail.boostcpt = oRail.boostcpt;
+				oKart.rail.angleTilt = oRail.angleTilt;
+				oKart.rail.side = oRail.side;
+			}
+			else {
+				oKart.rail.lastboostcpt = oRail.boostcpt;
+				oKart.rail.angleTilt = 25;
+				if (aPosZ && oRail.shiftTilt)
+					oKart.rail.side = oRail.shiftTilt;
+			}
 		}
 		oRail = oKart.rail;
 	}
