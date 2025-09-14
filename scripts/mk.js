@@ -12532,6 +12532,8 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 				boostSprite[i].div.style.display = "block";
 				boostSprite[i].setState(railGlobalConfig.boostX);
 			}
+			oKart.x = oRail.x;
+			oKart.y = oRail.y;
 			oKart.rail = {
 				polyline: oRail.lines,
 				line: oRail.line,
@@ -13038,7 +13040,7 @@ function polygonIntersect(iX,iY,nX,nY, oPoints) {
 }
 function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 	var nPoints = oPoints.length-1;
-	var minD2 = mH*mH, minLine, lineCross, lineDir, lineSide;
+	var minD2 = mH*mH, minLine, lineCross, lineDir, lineSide, minX0, minY0;
 	for (var j=0;j<nPoints;j++) {
 		var oPoint1 = oPoints[j], oPoint2 = oPoints[j+1];	
 		var l = projete(iX,iY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]);
@@ -13068,6 +13070,8 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 						var angleDir = (y0-iY)*uP - (x0-iX)*vP;
 						lineSide = Math.sign(angleDir*lineDir) || ((Math.random()<0.5) ? -1:1);
 						minD2 = d2;
+						minX0 = x0;
+						minY0 = y0;
 					}
 				}
 			}
@@ -13080,7 +13084,9 @@ function getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oPoints, mH,mA) {
 			lines: oPoints,
 			dir: lineDir,
 			side: lineSide,
-			d2: minD2
+			d2: minD2,
+			x: minX0,
+			y: minY0
 		}
 	}
 }
