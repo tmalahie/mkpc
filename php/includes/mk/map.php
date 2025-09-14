@@ -230,6 +230,12 @@ if (isset($circuitPayload->teleports)) {
 	?>,
 "teleports" : <?php echo json_encode($circuitPayload->teleports);
 }
+if (isset($circuitPayload->rails)) {
+	?>,
+"rails" : <?php echo json_encode($circuitPayload->rails);
+if (isset($circuitPayload->railProps)) echo ',"railProps":'. json_encode($circuitPayload->railProps);
+elseif ($lapId) echo ',"railProps":undefined';
+}
 if (isset($circuitPayload->flows)) {
 	?>,
 "flows" : <?php echo json_encode($circuitPayload->flows);

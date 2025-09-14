@@ -43,7 +43,8 @@ if (!isset($mkSalt)) {
 			$_COOKIE['mktoken'] = encode_mkid(base64($identifiants[0]));
 		else
 			$_COOKIE['mktoken'] = encode_mkid(base64($identifiants[0]).base64($identifiants[1]).base64($identifiants[2]).base64($identifiants[3]));
-		@setcookie('mktoken', $_COOKIE['mktoken'], 4294967295,'/');
+		if (!isset($_SERVER['HTTP_REFERER']) || !str_starts_with($_SERVER['HTTP_REFERER'], 'https://www.google.'))
+			@setcookie('mktoken', $_COOKIE['mktoken'], 4294967295,'/');
 	}
 	function fetch_mkid() {
 		global $identifiants;

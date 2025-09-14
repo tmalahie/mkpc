@@ -1723,9 +1723,13 @@ function startPolygonBuilder(self,point, options) {
 		self.state.nodes[0].circle.classList.add("hover-toggle");
 		self.state.nodes[0].circle.onmouseover = function(e) {
 			polygon.classList.add("dark");
+			if (options.on_pre_apply && self.state.points.length >= options.min_points)
+				options.on_pre_apply(polygon,self.state.points);
 		};
 		self.state.nodes[0].circle.onmouseout = function(e) {
 			polygon.classList.remove("dark");
+			if (options.on_pre_unapply)
+				options.on_pre_unapply(polygon,self.state.points);
 		};
 		self.state.nodes[0].circle.onclick = function(e) {
 			if (e) e.stopPropagation();
@@ -1893,17 +1897,8 @@ function appendRouteBuilder(self,point,extra,options) {
 	}
 	else if (selfData.closed) {
 		var i = self.state.movingNode;
-		if (i !== undefined) {
-			$toolbox.classList.remove("hiddenbox");
-			self.move(self,point,extra);
-			selfData.points[i] = Object.assign({}, selfData.points[i], point);
-			$editor.removeChild(self.state.mask);
-			delete self.state.movingNode;
-			if (self.state.onPostMove) {
-				self.state.onPostMove(self);
-				delete self.state.onPostMove;
-			}
-		}
+		if (i !== undefined)
+			applyPolylinePoint(self,i,point, extra);
 	}
 	else {
 		if (!extra.oob) {
@@ -1928,18 +1923,39 @@ function appendRouteBuilder(self,point,extra,options) {
 function moveRouteBuilder(self,point,extra) {
 	if (self.state.data.closed) {
 		var i = self.state.movingNode;
-		if (i !== undefined) {
-			self.state.nodes[i].move(point);
-			var lines = self.state.lines;
-			var line1 = lines[(i+lines.length-1)%lines.length], line2 = lines[i];
-			line1.setAttribute("x2", point.x);
-			line1.setAttribute("y2", point.y);
-			line2.setAttribute("x1", point.x);
-			line2.setAttribute("y1", point.y);
-		}
+		if (i !== undefined)
+			movePolylinePoint(self,i,point);
 	}
 	else
 		movePolygonBuilder(self,point);
+}
+function movePolylinePoint(self,i,point) {
+	self.state.nodes[i].move(point);
+	var lines = self.state.lines;
+	var prev = i-1;
+	if (prev < 0 && self.state.nodes.length === lines.length)
+		// Polygon is closed, and this is the last line closing the polygon
+		prev += lines.length;
+	var line1 = lines[prev], line2 = lines[i];
+	if (line1) {
+		line1.setAttribute("x2", point.x);
+		line1.setAttribute("y2", point.y);
+	}
+	if (line2) {
+		line2.setAttribute("x1", point.x);
+		line2.setAttribute("y1", point.y);
+	}
+}
+function applyPolylinePoint(self,i,point, extra) {
+	$toolbox.classList.remove("hiddenbox");
+	self.move(self,point,extra);
+	self.state.data.points[i] = Object.assign({}, self.state.data.points[i], point);
+	$editor.removeChild(self.state.mask);
+	delete self.state.movingNode;
+	if (self.state.onPostMove) {
+		self.state.onPostMove(self);
+		delete self.state.onPostMove;
+	}
 }
 function startCircleBuilder(self,point,options) {
 	self.state.origin = point;
@@ -2079,7 +2095,9 @@ function setPolygonPoints(polygon,data,closed) {
 function createPolyline(self,points, options) {
 	options = options || {};
 	self.state.lines = [];
+	var shape = {nodes:self.state.nodes,lines:self.state.lines};
 	function addPointInLine(e,i) {
+		if (options.on_pre_edit && options.on_pre_edit(self,shape) === false) return;
 		var nPoint = getEditorCoordsRounded(getPointerPos(e));
 		self.state.nodes.splice(i+1,0,createPolygonNode(nPoint));
 		var lines = self.state.lines;
@@ -2090,7 +2108,20 @@ function createPolyline(self,points, options) {
 		createPolyline(self,self.state.data.points, options);
 		self.state.nodes[i+1].circle.onclick();
 	}
-	for (var i=0;i<points.length;i++) {
+	shape.addPoint = addPointInLine;
+	function removeShape() {
+		var lines = shape.lines;
+		for (var j=0;j<lines.length;j++)
+			$editor.removeChild(lines[j]);
+		var nodes = shape.nodes;
+		for (var j=0;j<nodes.length;j++) {
+			$editor.removeChild(nodes[j].center);
+			$editor.removeChild(nodes[j].circle);
+		}
+	}
+	shape.remove = removeShape;
+	var linesCount = options.closed === false ? points.length-1 : points.length;
+	for (var i=0;i<linesCount;i++) {
 		(function(i) {
 			var point1 = points[i], point2 = points[(i+1)%points.length];
 			var line = createLine(point1,point2,false);
@@ -2105,17 +2136,21 @@ function createPolyline(self,points, options) {
 				addPointInLine(e,i);
 			};
 			line.oncontextmenu = function(e) {
-				addPointInLine(e,i);
+				if (options.l_ctxmenu)
+					options.l_ctxmenu(i,e,shape);
+				else
+					addPointInLine(e,i);
 				return false;
 			};
 			$editor.insertBefore(line, self.state.nodes[0].circle);
 			self.state.lines.push(line);
 		})(i);
 	}
-	for (var i=0;i<self.state.nodes.length;i++) {
+	for (var i=0;i<shape.nodes.length;i++) {
 		(function(i) {
-			self.state.nodes[i].circle.classList.add("hover-toggle");
-			self.state.nodes[i].circle.onclick = function(e) {
+			shape.nodes[i].circle.classList.add("hover-toggle");
+			shape.nodes[i].circle.onclick = function(e) {
+				if (options.on_pre_edit && options.on_pre_edit(self,shape) === false) return;
 				if (e) e.stopPropagation();
 				var mask = createRectangle({x:0,y:0,w:imgSize.w,h:imgSize.h});
 				mask.setAttribute("class", "transparent");
@@ -2125,22 +2160,23 @@ function createPolyline(self,points, options) {
 				if (e) storeHistoryData(self.data);
 				$toolbox.classList.add("hiddenbox");
 			};
-			self.state.nodes[i].circle.oncontextmenu = function(e) {
+			shape.nodes[i].circle.oncontextmenu = function(e) {
 				//alert(i);
 				//return false;
 				e.stopPropagation();
 				var ctxMenuItems = [{
 					text: (language ? "Move":"Déplacer"),
 					click: function() {
-						self.state.nodes[i].circle.onclick(e);
+						shape.nodes[i].circle.onclick(e);
 					}
 				}, {
 					text: (language ? "Delete":"Supprimer"),
 					click: function() {
-						$editor.removeChild(self.state.nodes[i].center);
-						$editor.removeChild(self.state.nodes[i].circle);
-						self.state.nodes.splice(i,1);
-						var lines = self.state.lines;
+						if (options.on_pre_edit && options.on_pre_edit(self,shape) === false) return;
+						$editor.removeChild(shape.nodes[i].center);
+						$editor.removeChild(shape.nodes[i].circle);
+						shape.nodes.splice(i,1);
+						var lines = shape.lines;
 						for (var j=0;j<lines.length;j++)
 							$editor.removeChild(lines[j]);
 						storeHistoryData(self.data);
@@ -2151,7 +2187,7 @@ function createPolyline(self,points, options) {
 					}
 				}];
 				if (options.ctxmenu) {
-					var extraItems = options.ctxmenu(i, e);
+					var extraItems = options.ctxmenu(i, e, shape);
 					for (var j=0;j<extraItems.length;j++)
 						ctxMenuItems.push(extraItems[j]);
 				}
@@ -2160,6 +2196,7 @@ function createPolyline(self,points, options) {
 			};
 		})(i);
 	}
+	return shape;
 }
 function setPointPos(point,data) {
 	point.setAttribute("x", data.x);
@@ -5380,7 +5417,7 @@ var commonTools = {
 					}
 					hText.innerHTML = data.z == null ? "" : data.z;
 				};
-				shape.promptHeight = function(prop) {
+				shape.promptHeight = function() {
 					var defaultVal = 1;
 					var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data.z || defaultVal);
 					if (enteredVal == null) return;
@@ -8372,6 +8409,204 @@ var commonTools = {
 			for (var i=0;i<self.data.length;i++)
 				flipShape(self.data[i], imgSize,axis);
 		}
+	},
+	"rails": {
+		"resume" : function(self) {
+			self.state.point = createCircle({x:-1,y:-1,r:0.5});
+			self.state.shape = "polygon";
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				var extra = getExtraForResume(iData);
+				for (var j=0;j<iData.points.length;j++)
+					self.click(self,iData.points[j],extra);
+				self.state.nodes[0].circle.onclick();
+				if (iData.z)
+					self.state.createdShape.reheight(iData.z, "z");
+				if (iData.z0)
+					self.state.createdShape.reheight(iData.z0, "z0");
+			}
+		},
+		"click" : function(self,point,extra) {
+			if (self.state.polygon) {
+				appendPolygonBuilder(self,point);
+				var lastNode = self.state.nodes[self.state.nodes.length-1];
+				var firstNode = self.state.nodes[0];
+				lastNode.circle.classList.add("hover-toggle");
+				lastNode.circle.onmouseover = firstNode.circle.onmouseover;
+				lastNode.circle.onmouseout = firstNode.circle.onmouseout;
+				lastNode.circle.onclick = firstNode.circle.onclick;
+				lastNode.center.onmouseover = firstNode.center.onmouseover;
+				lastNode.center.onmouseout = firstNode.center.onmouseout;
+				lastNode.center.onclick = firstNode.center.onclick;
+			}
+			else if (self.state.movingNode !== undefined)
+				applyPolylinePoint(self,self.state.movingNode,point,extra);
+			else {
+				if (!extra.oob) {
+					self.state.applying = false;
+					startPolygonBuilder(self,point, {
+						min_points: 2,
+						keep_nodes: true,
+						on_pre_apply: function(polygon,points) {
+							points[points.length-1].x = points[points.length-2].x;
+							points[points.length-1].y = points[points.length-2].y;
+							setPolygonPoints(polygon,points);
+							self.state.applying = true;
+						},
+						on_pre_unapply: function(polygon,points) {
+							self.state.applying = false;
+						},
+						on_apply: function(polygon,points) {
+							var data = {type:"polygon",points:points};
+							self.data.push(data);
+							$editor.removeChild(polygon);
+							self.state.polygon = null;
+							for (var i=0;i<self.state.nodes.length;i++) {
+								self.state.nodes[i].circle.onmouseover = undefined;
+								self.state.nodes[i].circle.onmouseout = undefined;
+								self.state.nodes[i].circle.onclick = undefined;
+								self.state.nodes[i].circle.classList.remove("hover-toggle");
+								self.state.nodes[i].center.onmouseover = undefined;
+								self.state.nodes[i].center.onmouseout = undefined;
+								self.state.nodes[i].center.onclick = undefined;
+								self.state.nodes[i].center.classList.remove("hover-toggle");
+							}
+							function promptHeight(shape, prop, defaultVal, validator) {
+								return function() {
+									var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data[prop] || defaultVal);
+									if (enteredVal == null) return;
+									if (enteredVal !== "") {
+										enteredVal = +enteredVal;
+										if (enteredVal === defaultVal)
+											enteredVal = "";
+									}
+									if (enteredVal >= 0) {
+										if ((enteredVal==="") || validator(enteredVal))
+											shape.reheight(enteredVal, prop);
+									}
+								}
+							}
+							function deleteRail(shape) {
+								return function() {
+									storeHistoryData(self.data);
+									removeFromArray(self.data, data);
+									shape.remove();
+								}
+							}
+							function additionalOptions(shape) {
+								return [{
+									text: (language ? "Rail height...":"Hauteur rail..."),
+									click: promptHeight(shape, "z", 0, function(res) {
+										if (data.z0 < res)
+											delete data.z0;
+										return true;
+									})
+								}, {
+									text: (language ? "Target height...":"Hauteur cible..."),
+									click: promptHeight(shape, "z0", data.z||0, function(res) {
+										if (res < data.z) {
+											alert(language ? "Target height cannot be lower that rail height. Check Help section for details.":"La hauteur cible ne peut pas être inférieure à la hauteur du rail. Lisez l'aide pour plus de détails.");
+											return false;
+										}
+										return true;
+									})
+								}, {
+									text: (language ? "Delete whole rail":"Supprimer le rail"),
+									click: deleteRail(shape)
+								}];
+							};
+							var createdShape = createPolyline(self,points, {
+								closed: false,
+								on_pre_edit: function(self,shape) {
+									if (self.state.movingNode !== undefined) return false;
+									if (self.state.polygon) return false;
+									self.state.nodes = shape.nodes;
+									self.state.lines = shape.lines;
+									self.state.data = { points:points };
+								},
+								ctxmenu: function(i,e,shape) {
+									return additionalOptions(shape);
+								},
+								l_ctxmenu: function(i,e,shape) {
+									showContextMenu(e,[{
+										text: (language ? "Add node":"Ajouter un point"),
+										click: function(e) {
+											shape.addPoint(e,i);
+										}
+									}].concat(additionalOptions(shape)));
+								},
+							});
+							createdShape.reheight = function(z, prop) {
+								storeHistoryData(self.data);
+								if (z === "")
+									delete data[prop];
+								else
+									data[prop] = z;
+							};
+							self.state.createdShape = createdShape;
+						}
+					});
+				}
+			}
+		},
+		"move" : function(self,point,extra) {
+			if (self.state.applying) return;
+			if (self.state.movingNode !== undefined)
+				movePolylinePoint(self,self.state.movingNode,point);
+			else
+				movePolygonBuilder(self,point);
+		},
+		"round_on_pixel" : function(self) {
+			return true;
+		},
+		"save" : function(self,payload) {
+			if (!self.data.length && !selectedLapOverride)
+				return;
+			payload.rails = [];
+			var railProps = {}, hasRailProps = false;
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				payload.rails.push(shapeToData(iData));
+				if (iData.z) {
+					railProps[i] = {z:iData.z};
+					hasRailProps = true;
+				}
+				if (iData.z0) {
+					railProps[i] = {
+						...railProps[i],
+						z0:iData.z0
+					}
+					hasRailProps = true;
+				}
+			}
+			if (hasRailProps)
+				payload.railProps = railProps;
+		},
+		"restore" : function(self,payload) {
+			if (!payload.rails) return;
+			for (var i=0;i<payload.rails.length;i++) {
+				var iData = dataToShape(payload.rails[i]);
+				if (payload.railProps && payload.railProps[i]) {
+					iData.z = payload.railProps[i].z;
+					iData.z0 = payload.railProps[i].z0;
+				}
+				self.data.push(iData);
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescaleShape(self.data[i], scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotateShape(self.data[i], imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipShape(self.data[i], imgSize,axis);
+		},
 	}
 };
 for (var key in commonTools["holes"]) {

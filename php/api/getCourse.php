@@ -97,6 +97,7 @@ if ($id) {
 		$getPlayers = mysql_query(
 			'SELECT p.course,m.time,COUNT(p.id) AS nb FROM mkplayers p
 			INNER JOIN mariokart m ON p.course=m.id
+			INNER JOIN mkjoueurs j ON p.id=j.id AND j.banned=0
 			WHERE p.connecte>='.floor(($time-35)*1000/67).'
 			AND m.cup="'. $nid .'" AND m.mode='. $nmode .' AND m.link='. $nlink .' AND (m.time>='.afk_threshold_time().' OR m.time<'.($time+1000).')
 			GROUP BY p.course HAVING(nb<'.(+$linkOptions->rules->maxPlayers).')
@@ -137,6 +138,7 @@ if ($id) {
 			COUNT(DISTINCT p.id)+COUNT(DISTINCT s2.id) AS nbAttendees
 			FROM `mariokart`
 			INNER JOIN `mkplayers` p ON p.course=mariokart.id
+			INNER JOIN `mkjoueurs` j ON p.id=j.id AND j.banned=0
 			LEFT JOIN `mkspectators` s ON s.course=mariokart.id AND s.state="queuing" AND s.player!='.$id.'
 			LEFT JOIN `mkplayers` p2 ON s.course=p2.course AND s.player=p2.id
 			LEFT JOIN `mkspectators` s2 ON s.id=s2.id AND p2.id IS NULL
