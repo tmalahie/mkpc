@@ -19824,6 +19824,7 @@ function handleExplosionHit(getId, pExplose) {
 		delete oKart.champiType;
 		oKart.speed = 0;
 		oKart.heightinc = 3;
+		delete oKart.shift;
 		supprArme(aKarts.indexOf(oKart));
 	}
 }
