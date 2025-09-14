@@ -12520,6 +12520,7 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 			delete oKart.shift;
 			oKart.z = 0;
 			oKart.heightinc = 0;
+			oKart.drift = 0;
 			var boostSprite = new Sprite("drift");
 			function easeTransform(x) {
 				return 25*Math.atan(17*x-16.43) + 36.75;
