@@ -21664,6 +21664,23 @@ function showFocusIndicator(oScr, oButton) {
 	selectedOscrElt = oButton;
 	var oRect = oButton.getBoundingClientRect();
 	var cRect = oScr.getBoundingClientRect();
+	if ($mkScreen.dataset.fs) {
+		var fsRatio = oScr.scrollWidth / cRect.width;
+		if (fsRatio) {
+			oRect = {
+				left: Math.round(oRect.left*fsRatio),
+				top: Math.round(oRect.top*fsRatio),
+				width: Math.round(oRect.width*fsRatio),
+				height: Math.round(oRect.height*fsRatio),
+			};
+			cRect = {
+				left: Math.round(cRect.left*fsRatio),
+				top: Math.round(cRect.top*fsRatio),
+				width: Math.round(cRect.width*fsRatio),
+				height: Math.round(cRect.height*fsRatio),
+			};
+		}
+	}
 	if (!focusIndicator) {
 		focusIndicator = document.createElement("div");
 		focusIndicator.style.position = "absolute";
