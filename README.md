@@ -6,7 +6,7 @@ This project has historically only been maintained by one developer (@tmalahie, 
 ## Using Docker
 The easiest way to install MKPC website is by using a [Docker](https://www.docker.com/) image. Just run the command:
 ```
-docker-compose up --build
+docker compose up --build
 ```
 And Docker will set up everything for you. The site should be reachable at http://localhost:8080.
 
