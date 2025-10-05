@@ -22,14 +22,6 @@ include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
-<style type="text/css">
-#ban_msg {
-	display: none;
-}
-#titres td:nth-child(2) {
-	width: 300px;
-}
-</style>
 
 <?php
 include('../includes/o_online.php');
@@ -54,6 +46,11 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	else
 		$message = $language ? 'This player does not exist':'Ce membre n\'existe pas';
 }
+$autocompleteNick = '';
+if (isset($_GET['member'])) {
+	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['member'] .'"')))
+		$autocompleteNick = $getPseudo['nom'];
+}
 ?>
 <main>
 	<h1><?php echo $language ? 'Change username':'Modification de pseudo'; ?></h1>
@@ -73,7 +70,7 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	</p>
 	<form method="post" action="edit-pseudo.php">
 	<blockquote>
-		<p><label for="joueur"><strong><?php echo $language ? 'Last username':'Ancien pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); ?>" required="required" /></p>
+		<p><label for="joueur"><strong><?php echo $language ? 'Last username':'Ancien pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); else echo $autocompleteNick; ?>" required="required" /></p>
 		<p><label for="newpseudo"><strong><?php echo $language ? 'New username':'Nouveau pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); ?>" required="required" /></p>
 		<p><input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</blockquote>

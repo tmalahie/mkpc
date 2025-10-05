@@ -11,17 +11,14 @@ if (isset($_GET['pseudo'])) {
 		if ($getEmail = mysql_fetch_array(mysql_query('SELECT email FROM mkprofiles WHERE id="'. $getId['id'] .'" AND email!=""'))) {
 			$success = 'mail_sent';
 			$email = $getEmail['email'];
-			do {
-				$code = bin2hex(openssl_random_pseudo_bytes(16));
-			} while (mysql_numrows(mysql_query('SELECT * FROM mkpassrecovery WHERE token="'. $code .'"')));
 			include('../includes/getId.php');
 			include('../includes/utils-cooldown.php');
 			if (isPassRecoveryCooldowned())
 				logCooldownEvent('pass_recovery');
 			else {
-				mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].','.$identifiants[0].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 7 DAY))');
+				require_once('../includes/reset-password.php');
+				$link = generatePasswordLink($getId['id']);
 
-				$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
 				$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
 				$msg = $language ? 'Hello '.htmlspecialchars($pseudo).',
 You are receiving this email because a password reset was requested for your account on the Mario Kart PC site.
@@ -262,13 +259,8 @@ include('../includes/menu.php');
 		?></a></h2>
 		<div class="big-instructions" id="show-ask">
 			<?php
-			echo $language ? 'Too bad... In that case, the easiest solution is to create a temporary account and contact':'Pas de chance... Dans ce cas le plus simple est de créer un nouveau compte temporaire et de contacter';
-			?>
-			<a href="profil.php?id=1">Wargor</a>, <?php
-			echo $language ? 'the creator of the site':'le créateur du site';
-			?>.
-			<?php
-			echo $language ? 'He will do his best to give you back your account, promised!':'Il fera son possible pour vous redonner votre compte, promis !';
+			echo $language ? 'Too bad... In that case, the easiest solution is to contact a moderator of the site, either through <a href="https://discord.gg/VkeAxaj">Discord</a> or through MKPC by creating a temporary account.':'Pas de chance... Dans ce cas le plus simple est de contacter un modérateur du site, via <a href="https://discord.gg/VkeAxaj">Discord</a> ou via MKPC en créant un compte temporaire.';
+			echo $language ? ' We will do our best to recover your account!':' Nous ferons notre possible pour récupérer votre compte !';
 			?>
 		</div>
 	</p>

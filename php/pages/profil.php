@@ -600,8 +600,12 @@ include('../includes/menu.php');
 							echo '<li><a href="?id='. $profileId .'&amp;unignore">'. ($language ? 'Stop ignoring ' . $getInfos['nom']:'Ne plus ignorer ' . $getInfos['nom']) .'</a></li>';
 						else
 							echo '<li><a href="?id='. $profileId .'&amp;ignore">'. ($language ? 'Ignore ' . $getInfos['nom']:'Ignorer ' . $getInfos['nom']) .'</a></li>';
-						if ($isModerator)
+						if ($isModerator) {
 							echo '<li><a href="edit-profile.php?member='. $profileId .'">'. ($language ? 'Edit profile':'Modifier le profil') .'</a></li>';
+							echo '<li><a href="edit-pseudo.php?member='. $profileId .'">'. ($language ? 'Edit username':'Modifier le pseudo') .'</a></li>';
+							echo '<li><a href="reset-password.php?member='. $profileId .'">'. ($language ? 'Reset password':'Réinitialiser mot de passe') .'</a></li>';
+							echo '<li><a href="ban-player.php?member='. $profileId .'">'. ($language ? 'Ban member':'Bannir le membre') .'</a></li>';
+						}
 						?>
 					</ul>
 					<?php
