@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-05 19:17+0200\n"
+"POT-Creation-Date: 2025-10-06 13:23+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -403,6 +403,10 @@ msgstr "a supprimé la multicoupe #$1"
 #: php/pages/admin-logs.php
 msgid "updated {member}'s profile"
 msgstr "a modifié le profil de {member}"
+
+#: php/pages/admin-logs.php
+msgid "reset {member}'s password"
+msgstr "a réinitialisé le mot de passe de {member}"
 
 #: php/pages/admin-logs.php
 msgid "updated country of {member} to <strong>{new_country}</strong>"
@@ -1438,7 +1442,6 @@ msgstr "Visiteurs"
 msgid "Learn more"
 msgstr "En savoir plus"
 
-#. if (!$id) {
 #: php/pages/index.php
 msgid "Click here to start playing"
 msgstr "Commencez à jouer ici"

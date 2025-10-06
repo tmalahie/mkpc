@@ -40,6 +40,7 @@ if (isset($_POST['joueur'])) {
         include('../includes/getId.php');
         require_once('../includes/reset-password.php');
         $link = generatePasswordLink($getId['id']);
+        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "RPwd '. $getId['id'] .'")');
         $success = ($language ? "The following password link has been generated:":"Le lien de réinitialisation de mot de passe a été généré :") . '<br /><a href="'. $link .'" target="_blank">'. $link .'</a><br />' . ($language ? "You can forward it to the member.":"Vous pouvez le transmettre au membre ayant fait la demande.");
 	}
 }
