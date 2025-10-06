@@ -8342,6 +8342,7 @@ var itemBehaviors = {
 		frminv: true,
 		move: function(fSprite, ctx) {
 			function canTarget(fSprite, oKart) {
+				if (!oKart) return false;
 				const isOwner = oKart.id == fSprite.owner;
 				const isHurt = oKart.tourne;
 				const fellOff = oKart.fell;
