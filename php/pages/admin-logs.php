@@ -301,6 +301,10 @@ $logMapping = array(
         'render' => F_('updated {member}\'s profile', member: $logTemplates['member']('$1')),
         'role' => 'moderator'
     ),
+    'RPwd' => array(
+        'render' => F_('reset {member}\'s password', member: $logTemplates['member']('$1')),
+        'role' => 'moderator'
+    ),
     'Flag' => array(
         'render' => F_(
             'updated country of {member} to <strong>{new_country}</strong>',

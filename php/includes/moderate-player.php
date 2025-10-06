@@ -13,6 +13,11 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+$autocompleteNick = '';
+if (isset($_GET['member'])) {
+	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['member'] .'"')))
+		$autocompleteNick = $getPseudo['nom'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -225,8 +230,8 @@ if ($unban) {
             echo $language ? 'Warn a member:':'Avertir un membre :';
             break;
         }
-        ?></strong></label> &nbsp;<input type="text" name="joueur" id="joueur" /> <input type="button" value="&rarr;" class="action_button show_form_details" onclick="showBanFormDetails()" />
-		<div id="ban_msg">
+        ?></strong></label> &nbsp;<input type="text" name="joueur" id="joueur"<?php if ($autocompleteNick) echo ' value="'. $autocompleteNick .'"'; ?> /> <input type="button" value="&rarr;" class="action_button show_form_details" onclick="showBanFormDetails()" />
+		<div id="ban_msg"<?php if ($autocompleteNick) echo ' style="display: block"'; ?>>
 			<?= _('Message:'); ?> <textarea name="msg" cols="30" rows="4"<?php if ($action === 'warn') echo ' required="required"'; ?>></textarea><br />
             <?php
             if ($action === 'ban') {

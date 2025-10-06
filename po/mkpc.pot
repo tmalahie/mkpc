@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-05 19:17+0200\n"
+"POT-Creation-Date: 2025-10-06 13:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -392,6 +392,10 @@ msgstr ""
 
 #: php/pages/admin-logs.php
 msgid "updated {member}'s profile"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "reset {member}'s password"
 msgstr ""
 
 #: php/pages/admin-logs.php
@@ -1324,7 +1328,6 @@ msgstr ""
 msgid "Learn more"
 msgstr ""
 
-#. if (!$id) {
 #: php/pages/index.php
 msgid "Click here to start playing"
 msgstr ""
