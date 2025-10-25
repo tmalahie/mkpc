@@ -18099,9 +18099,11 @@ function move(getId, triggered) {
 			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && !oKart.protect && !oKart.champi))) {
 			//if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)))) {
 				if (isActivelyGrinding(oKart)) {
-					hopKart(oKart,2);
-					oKart.rotincdir = 0;
-					railTrick(oKart);
+					if (!hpType) {
+						hopKart(oKart,2);
+						oKart.rotincdir = 0;
+						railTrick(oKart);
+					}
 				}
 				else
 					hopKart(oKart);
@@ -18785,7 +18787,7 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
-				if (!oKart.protect && !oKart.champi && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && (hpType=ralenti(fNewPosX, fNewPosY))) {
+				if (!oKart.protect && !oKart.champi && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY))) {
 					var hpProps = getOffroadProps(oKart,hpType);
 					hpProps.speed *= cappedRelSpeed();
 					if (hpProps.sliding)
