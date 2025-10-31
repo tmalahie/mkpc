@@ -28,7 +28,7 @@ if ($id) {
 		$course = getCourse(array(
 			'spectator' => $spectatorId,
 		));
-		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
+		$lastconnect = isset($payload['lastcon']) ? intval($payload['lastcon']):0;
 		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			$playerPayloads = array();
@@ -41,6 +41,7 @@ if ($id) {
 			}
 			if (isset($payload['cpu'])) {
 				foreach ($payload['cpu'] as $cpuId => $cpuPayload) {
+					$cpuId = intval($cpuId);
 					$playerPayloads[$cpuId] = array(
 						'param' => $cpuPayload,
 						'mapping' => $cpuMapping,
@@ -84,12 +85,12 @@ if ($id) {
 			if (!$finished) {
 				if (isset($payload['item'])) {
 					foreach ($payload['item'] as $item) {
-						$holder = isset($item['holder']) ? $item['holder']:0;
+						$holder = isset($item['holder']) ? intval($item['holder']):0;
 						if (isset($item['id'])) {
-							mysql_query('UPDATE items SET data=UNHEX("'. $item['data'] .'"),holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. $item['id'] .'" AND data!=""');
+							mysql_query('UPDATE items SET data=UNHEX('. $dbh->quote($item['data']) .'),holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. intval($item['id']) .'" AND data!=""');
 						}
 						else {
-							mysql_query('INSERT INTO items SET course="'. $course .'",type="'. $item['type'] .'",holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'",data=UNHEX("'. $item['data'] .'")');
+							mysql_query('INSERT INTO items SET course="'. $course .'",type="'. intval($item['type']) .'",holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'",data=UNHEX('. $dbh->quote($item['data']) .')');
 							$newItems[] = mysql_insert_id();
 						}
 					}
