@@ -62,8 +62,12 @@ function getBaseCircuitImgDataRaw(&$baseCircuitImg,&$circuitImg, $lap) {
     }
 }
 function getCircuitLocalFile($circuitImg) {
-    if ($circuitImg->local)
-        return array('path' => CIRCUIT_BASE_PATH.$circuitImg->url);
+    if ($circuitImg->local) {
+        return array(
+            'path' => CIRCUIT_BASE_PATH.$circuitImg->url,
+            'url' => (isset($_SERVER['HTTPS'])?'https':'http') . '://' . $_SERVER['HTTP_HOST'] . '/'. CIRCUIT_REL_PATH.$circuitImg->url
+        );
+    }
     $file = tmpfile();
     $fileStream = stream_get_meta_data($file);
     $filePath = $fileStream['uri'];
@@ -77,6 +81,7 @@ function getCircuitLocalFile($circuitImg) {
     file_put_contents($filePath, @file_get_contents($circuitImg->url, false, $context));
     return array(
         'path' => $filePath,
+        'url' => $circuitImg->url,
         'tmp_file' => $file
     );
 }

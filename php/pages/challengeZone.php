@@ -22,10 +22,10 @@ if (isset($clCircuit) && isset($clTable)) {
 	$circuitId = $clCircuit['id'];
 	switch ($clTable) {
 	case 'circuits':
-		$circuitUrl = 'racepreview.php?id='.$circuitId;
+		$circuitUrl = 'racepreview.php?id='.$circuitId.'&fallback=redirect';
 		break;
 	case 'arenes':
-		$circuitUrl = 'coursepreview.php?id='.$circuitId;
+		$circuitUrl = 'coursepreview.php?id='.$circuitId.'&fallback=redirect';
 		break;
 	case 'mkcircuits':
 		$circuitUrl = 'mappreview.php?id='.$circuitId;

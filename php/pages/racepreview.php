@@ -16,8 +16,13 @@ if (isset($id)) {
 		$path = $circuitFile['path'];
 		$ext = $circuitImg->ext;
 		list($w,$h) = @getimagesize($path);
-		if (!$w && !$h || ($w*$h >= 20000000))
+		if (!$w && !$h || ($w*$h >= 20000000)) {
+			if (!$isTemp && isset($_GET['fallback'])) {
+				header('location: '.$circuitFile['url']);
+				exit;
+			}
 			$path = CIRCUIT_BASE_PATH.'overload.'. $ext;
+		}
 		if (!$isTemp) {
 			$ext2 = str_replace('jpg', 'jpeg', $ext);
 			header('Content-type: image/'.$ext2);
