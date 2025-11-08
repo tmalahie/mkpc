@@ -11100,6 +11100,17 @@ function handleLapChange(prevLapId,lapId, getId,prevId) {
 	var nMap = getCurrentLMap(lapId);
 	if (lMap.aipoints !== nMap.aipoints)
 		resetAiPoints(oKart, lMap,nMap);
+	if ((lMap.rails !== nMap.rails) && isActivelyGrinding(oKart) && !railExists(nMap, oKart.rail.polyline)) {
+		var fMoveX = oKart.speed*direction(0, oKart.rotation);
+		var fMoveY = oKart.speed*direction(1, oKart.rotation);
+		var aPosX = oKart.x - fMoveX, aPosY = oKart.y - fMoveY, aPosZ = oKart.z;
+		oKart.rail.exitReason = 'end';
+		var prevCLap = collisionLap;
+		collisionLap = lapId;
+		checkNextRail(getId, aPosX,aPosY,aPosZ, true);
+		renderRailState(oKart, 0);
+		collisionLap = prevCLap;
+	}
 	refreshUsingItems(oKart, lapId);
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
@@ -11138,7 +11149,7 @@ function handleCpChange(prevLap,prevCP, getId,prevId) {
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId,prevId);
-	return lapId
+	return lapId;
 }
 function handleConditionalOverrides(aX,aY, getId) {
 	if (!oMap.conditionOverrides.length) return;
@@ -12551,6 +12562,29 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 	else if (callback)
 		callback(null);
 }
+function checkNextRail(getId, aPosX,aPosY,aPosZ, shouldEnd) {
+	var oKart = aKarts[getId];
+	var oRail = oKart.rail, newRail;
+	checkRailEnter(getId, aPosX,aPosY,aPosZ, function(res) {
+		newRail = res;
+		if (newRail || shouldEnd)
+			stopGrinding(getId);
+	});
+	if (newRail) {
+		if ((oRail.exitReason === 'end') && oRail.angleTilt) {
+			if (!oRail.exitCooldown)
+				oKart.rail.boostcpt = oRail.boostcpt;
+			oKart.rail.angleTilt = oRail.angleTilt;
+			oKart.rail.side = oRail.side;
+		}
+		else {
+			oKart.rail.lastboostcpt = oRail.boostcpt;
+			oKart.rail.angleTilt = 25;
+			if (aPosZ && oRail.shiftTilt)
+				oKart.rail.side = oRail.shiftTilt;
+		}
+	}
+}
 function followRail(oRail,oKart) {
 	var oLines = oRail.polyline;
 	var w0 = cappedRelSpeed(oKart);
@@ -12742,29 +12776,13 @@ function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 		}
 	}
 	delete oRail.lastboostcpt;
-	if (shouldCheckRail && (oKart.z <= aPosZ)) {
-		var newRail;
-		checkRailEnter(getId, aPosX,aPosY,aPosZ, function(res) {
-			newRail = res;
-			if (newRail || shouldEnd)
-				stopGrinding(getId);
-		});
-		if (newRail) {
-			if ((oRail.exitReason === 'end') && oRail.angleTilt) {
-				if (!oRail.exitCooldown)
-					oKart.rail.boostcpt = oRail.boostcpt;
-				oKart.rail.angleTilt = oRail.angleTilt;
-				oKart.rail.side = oRail.side;
-			}
-			else {
-				oKart.rail.lastboostcpt = oRail.boostcpt;
-				oKart.rail.angleTilt = 25;
-				if (aPosZ && oRail.shiftTilt)
-					oKart.rail.side = oRail.shiftTilt;
-			}
-		}
-		oRail = oKart.rail;
-	}
+	if (shouldCheckRail && (oKart.z <= aPosZ))
+		checkNextRail(getId, aPosX,aPosY,aPosZ, shouldEnd);
+	renderRailState(oKart, tiltJitter);
+}
+
+function renderRailState(oKart, tiltJitter) {
+	var oRail = oKart.rail;
 	if (oRail) {
 		var tiltSide = getMirrorFactor()*oRail.side;
 
@@ -13867,6 +13885,19 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 		}
 	}
 	return res;
+}
+function railExists(lMap, aRails) {
+	if (!lMap.rails) return false;
+	var sRails;
+	for (var i=0;i<lMap.rails.length;i++) {
+		var aRails2 = lMap.rails[i];
+		if (aRails2.length !== aRails.length)
+			continue;
+		sRails = sRails || JSON.stringify(aRails);
+		if (JSON.stringify(aRails2) === sRails)
+			return true;
+	}
+	return false;
 }
 
 function getActualGameTimeMS() {
