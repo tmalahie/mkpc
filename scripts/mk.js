@@ -13121,8 +13121,6 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					const clientSideDrop = !isOnline || (fromSelf && !onlineSpectatorId);
 					const dropPos = {x: nX + iI*2.5, y: nY+iJ*2.5};
 
-					collisionDecor = type;
-
 					// player collision
 					if (collisionTest == COL_KART) {
 						const canBreak = !decorBehavior.unbreaking && (decorBehavior.breaking ||
@@ -13148,11 +13146,16 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						}
 					}
 
-					if (decorBehavior.transparent)
+					if (decorBehavior.transparent) {
+						if (!iP)
+							collisionDecor = type;
 						continue;
+					}
 
-					if (!iP || decorBehavior.unbreaking)
+					if (!iP || decorBehavior.unbreaking) {
+						collisionDecor = type;
 						return false;
+					}
 				}
 			}
 		}
