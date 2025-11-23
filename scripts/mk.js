@@ -15360,7 +15360,7 @@ function challengeRuleSatisfied(challenge,rule) {
 }
 function challengeSucceeded(challenge) {
 	if (challenge.succeeded && (challenge !== clSelected)) return;
-	var wasSucceeded = challenge.succeeded;
+	var wasSucceeded = false;//challenge.succeeded;
 	challenge.succeeded = true;
 	if (clSelected == challenge) {
 		clSelected = undefined;
@@ -32574,7 +32574,7 @@ else {
 							for (var i=0;i<challengesList.length;i++) {
 								var challenge = challengesList[i];
 								if (challenge.id == res.id) {
-									if (!clSelected && !challenge.succeeded) {
+									if (!clSelected) {// && !challenge.succeeded) {
 										clSelected = challenge;
 										clSelected.trackType = type;
 										clSelected.trackId = cid;
