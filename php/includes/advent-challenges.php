@@ -336,10 +336,39 @@ case 2023:
 	$adventChallenges[15]['description'] = '<a href="'. $adventChallenges[12]['link'] .'" target="_blank">'. ($language ? 'Cake-fort city' : 'Cité gâteau-fort') .'</a>' . ($language ? ': Destroy the gingerbreads in VS mode, without going backwards' : " : Détruire les pains d'épice en mode Course VS, sans reculer");
 	break;
 case 2024:
-	include('advent-selected-challenges.php');
+	$selectedChallenges = array(
+		1 => 60668,
+		2 => 42647,
+		3 => 380,
+		4 => 4330,
+		5 => 62505,
+		6 => 41170,
+		7 => 60521,
+		8 => 61997,
+		9 => 61570,
+		10 => 39567,
+		11 => 46512,
+		12 => 62975,
+		13 => 61310,
+		14 => 63177,
+		15 => 61801,
+		16 => 28613,
+		17 => 60922,
+		18 => 998,
+		19 => 45506,
+		20 => 12360,
+		21 => 63423,
+		22 => 58075,
+		23 => 64437,
+		24 => 65436
+	);
 	$adventChallenges = fetch_advent_challenges($selectedChallenges);
 	$adventChallenges[1]['description'] = str_replace('Gift', $language?'gifts':'cadeaux', $adventChallenges[1]['description']);
 	$adventChallenges[9]['description'] = str_replace(', they just wanted to play😢,', '', $adventChallenges[9]['description']);
+	break;
+case 2025:
+	include('advent-selected-challenges.php');
+	$adventChallenges = fetch_advent_challenges($selectedChallenges);
 	break;
 }
 function get_challenges_until($day) {
