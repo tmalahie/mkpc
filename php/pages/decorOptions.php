@@ -34,7 +34,7 @@ if (isset($_GET['id'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=2" />
 <?php
 include('../includes/o_online.php');
 ?>
@@ -118,13 +118,14 @@ include('../includes/o_online.php');
 					<div class="option-form-items">
 						<?php
 						$selectedItems = isset($decorOptionsValue->items) ? $decorOptionsValue->items : null;
+						$hitboxW = isset($decorOptionsValue->hitboxW) ? $decorOptionsValue->hitboxW : null;
 						?>
 						<label>
 							<input type="checkbox" id="items-cb" onclick="handleItemsChange()"<?php
 							if ($selectedItems !== null)
 								echo ' checked="checked"';
 							?> />
-							<input type="hidden" name="items" onclick="handleItemsChange()" />
+							<input type="hidden" name="items" />
 							<?php echo $language ? 'Items can destroy decor' : 'Les objets peuvent détruire le décor'; ?>
 						</label>
 						<div class="option-form-items-types">
@@ -137,6 +138,21 @@ include('../includes/o_online.php');
 							<?php
 						}
 						?>
+						</div>
+						<div id="hitbox-group">
+							<label>
+								<input type="checkbox" name="hitbox-cb" onclick="toggleHitbox(this.checked)"<?php
+								if ($hitboxW !== null)
+									echo ' checked="checked"';
+								?> />
+								<?php echo $language ? 'Custom hitbox size' : 'Hitbox custom...'; ?>
+							</label>
+							<label id="hitbox-size-label" class="<?php echo $hitboxW !== null ? 'show' : ''; ?>">
+								<?php echo $language ? 'Hitbox size:' : 'Taille hitbox :'; ?>
+								<input type="number" name="hitboxW" id="hitbox-in" onclick="handleHitboxChange()" value="<?php
+									echo $hitboxW !== null ? $hitboxW : 10;
+								?>" /> px
+							</label>
 						</div>
 					</div>
 					<div class="option-form-submit">
@@ -160,6 +176,18 @@ include('../includes/o_online.php');
 	}
 	function handleFormChange() {
 		var $form = document.forms['decor-options-form'];
+		var $hitboxGroup = document.querySelector('#hitbox-group');
+		var $hitboxCb = $form.querySelector('input[name="hitbox"]');
+		if ($hitboxCb.value === '0') {
+			$hitboxGroup.style.display = 'none';
+			var $hitboxWcb = document.querySelector('input[name="hitbox-cb"]');
+			if ($hitboxWcb.checked) {
+				$hitboxWcb.checked = false;
+				toggleHitbox(false);
+			}
+		}
+		else
+			$hitboxGroup.style.display = 'block';
 		var $unbreaking = $form.querySelector('input[name="unbreaking"]');
 		var $unbreakingCb = $unbreaking.parentNode.querySelector('input[type="checkbox"]');
 		var $breaking = $form.querySelector('input[name="breaking"]');
@@ -240,6 +268,15 @@ include('../includes/o_online.php');
 		var $itemsCb = document.querySelector('#items-cb');
 		$itemsCb.checked = false;
 		handleFormChange();
+	}
+	function toggleHitbox(checked) {
+		var $hitboxSizeLabel = document.querySelector('#hitbox-size-label');
+		if (checked) {
+			$hitboxSizeLabel.classList.add('show');
+			document.getElementById('hitbox-in').select();
+		}
+		else
+			$hitboxSizeLabel.classList.remove('show');
 	}
 
 	var $checkboxInd = document.querySelectorAll('.option-form-group input[type="checkbox"]');

@@ -445,6 +445,7 @@ h2 {
 }
 .option-form-items-types {
     display: none;
+    margin-bottom: 5px;
 }
 .option-form-items-types.shown {
     display: block;
@@ -477,6 +478,18 @@ h2 {
 }
 .advanced-option .option-label {
     white-space: nowrap;
+}
+#hitbox-size-label {
+    display: none;
+    text-align: left;
+    margin-left: 24px;
+}
+#hitbox-size-label.show {
+    display: block;
+}
+#hitbox-size-label #hitbox-in {
+    width: 36px;
+    margin-left: 3px;
 }
 .decors-bottom {
 	margin-top: 10px;

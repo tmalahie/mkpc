@@ -4302,7 +4302,8 @@ function startGame() {
 							if (sizeRatio.w !== 1) {
 								var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
 								var hitboxConst = 1;
-								decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
+								if (decorBehavior.hitboxW == null)
+									decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
 							}
 							if (sizeRatio.h !== 1) {
 								var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
@@ -4315,6 +4316,11 @@ function startGame() {
 								decorBehavior.transparent = true;
 							else if (res.options.hitbox === 1)
 								delete decorBehavior.transparent;
+							
+							if (res.options.hitboxW != null) {
+								decorBehavior.hitboxW = res.options.hitboxW;
+								decorBehavior.hitbox = decorBehavior.hitboxW/2;
+							}
 
 							if (res.options.spin === 1 && !decorBehavior.spin)
 								decorBehavior.spin = 20;

@@ -9,6 +9,8 @@ if (isset($_GET['id'])) {
     }
     if (!empty($_POST['items']))
         $newOptions['items'] = json_decode($_POST['items']);
+    if (isset($_POST['hitbox-cb']) && isset($_POST['hitboxW']))
+        $newOptions['hitboxW'] = intval($_POST['hitboxW']);
     include('../includes/initdb.php');
     include('../includes/getId.php');
     $newOptionsJson = '';
