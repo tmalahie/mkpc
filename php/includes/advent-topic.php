@@ -1,4 +1,4 @@
 <?php
-$adventTopicId = 15719;
+$adventTopicId = 19219;
 $adventTopicUrl = "topic.php?topic=$adventTopicId";
 $adventEnabled = !empty($id) && date('n') == 12;
