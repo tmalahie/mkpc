@@ -387,7 +387,7 @@ h2 {
 	left: 35px;
 	top: -190px;
 }
-.advanced-option.option-map .option-bg img:last-child {
+.advanced-option.option-map .option-bg #ic-decor-preview {
 	position: absolute;
 	left: 64px;
 	top: 64px;
@@ -490,6 +490,15 @@ h2 {
 #hitbox-size-label #hitbox-in {
     width: 36px;
     margin-left: 3px;
+}
+#hitbox-preview {
+    display: none;
+	position: absolute;
+	left: 64px;
+	top: 64px;
+	width: 12px;
+    height: 12px;
+    border: dashed 2px red;
 }
 .decors-bottom {
 	margin-top: 10px;

@@ -34,7 +34,7 @@ if (isset($_GET['id'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css?reload=2" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=3" />
 <?php
 include('../includes/o_online.php');
 ?>
@@ -58,7 +58,8 @@ include('../includes/o_online.php');
 		<a class="advanced-option option-map" href="<?php echo $hasWriteGrants ? 'decorSprite.php?id='.urlencode($_GET['id']).$collabSuffix : 'javascript:void(0)'; ?>&amp;map">
 			<div class="option-bg">
 				<img src="images/maps/map3.png" alt="Map" />
-				<img src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" style="width:<?php echo round(12*$sizeRatio); ?>px" />
+				<img id="ic-decor-preview" src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" style="width:<?php echo round(12*$sizeRatio); ?>px" />
+				<div id="hitbox-preview"></div>
 			</div>
 			<div class="option-label"><?php
 				if ($hasWriteGrants)
@@ -149,7 +150,7 @@ include('../includes/o_online.php');
 							</label>
 							<label id="hitbox-size-label" class="<?php echo $hitboxW !== null ? 'show' : ''; ?>">
 								<?php echo $language ? 'Hitbox size:' : 'Taille hitbox :'; ?>
-								<input type="number" name="hitboxW" id="hitbox-in" onclick="handleHitboxChange()" value="<?php
+								<input type="number" name="hitboxW" id="hitbox-in" onfocus="showHitboxPreview()" onchange="handleHitboxChange()" value="<?php
 									echo $hitboxW !== null ? $hitboxW : 10;
 								?>" /> px
 							</label>
@@ -271,12 +272,35 @@ include('../includes/o_online.php');
 	}
 	function toggleHitbox(checked) {
 		var $hitboxSizeLabel = document.querySelector('#hitbox-size-label');
+		var $hitboxPreview = document.querySelector('#hitbox-preview');
 		if (checked) {
 			$hitboxSizeLabel.classList.add('show');
 			document.getElementById('hitbox-in').select();
 		}
-		else
+		else {
 			$hitboxSizeLabel.classList.remove('show');
+			$hitboxPreview.style.display = 'none';
+		}
+	}
+
+	function showHitboxPreview() {
+		var $hitboxPreview = document.querySelector('#hitbox-preview');
+		$hitboxPreview.style.display = 'block';
+		handleHitboxChange();
+	}
+
+	function handleHitboxChange() {
+		var $icDecorPreview = document.querySelector('#ic-decor-preview');
+		var $hitboxPreview = document.querySelector('#hitbox-preview');
+		var $hitboxIn = document.querySelector('#hitbox-in');
+		var hitboxW = $hitboxIn.value;
+		var decorX = $icDecorPreview.offsetLeft, decorY = $icDecorPreview.offsetTop;
+		var decorW = $icDecorPreview.offsetWidth, decorH = $icDecorPreview.offsetHeight;
+		var borderSize = 2;
+		$hitboxPreview.style.left = Math.floor(decorX + decorW/2 - hitboxW/2 - borderSize) + 'px';
+		$hitboxPreview.style.top = Math.floor(decorY + decorH/2 - hitboxW/2 - borderSize) + 'px';
+		$hitboxPreview.style.width = hitboxW + 'px';
+		$hitboxPreview.style.height = hitboxW + 'px';
 	}
 
 	var $checkboxInd = document.querySelectorAll('.option-form-group input[type="checkbox"]');
