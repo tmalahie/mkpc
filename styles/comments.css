@@ -98,6 +98,33 @@
 	font-size: 20px;
 	font-weight: bold;
 	font-family: Courier;
+	position: relative;
+}
+.comments-lock-button {
+	position: absolute;
+	right: 5px;
+	top: 60%;
+	transform: translateY(-50%);
+	cursor: pointer;
+	font-size: 18px;
+	opacity: 0.7;
+	display: none;
+	user-select: none;
+	line-height: 1;
+}
+.comments-lock-button:hover {
+	opacity: 1;
+}
+.comments-lock-button.comments-locked {
+	color: #F84;
+}
+#comments-locked-message {
+	padding: 10px;
+	text-align: center;
+	color: #F84;
+	font-size: 0.9em;
+	border-bottom: solid 1px white;
+	background-color: #400;
 }
 #comments-scroller {
 	overflow-y: auto;

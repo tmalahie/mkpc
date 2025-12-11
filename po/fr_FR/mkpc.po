@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 13:23+0200\n"
+"POT-Creation-Date: 2025-12-11 00:34+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -271,6 +271,14 @@ msgstr "a locké le topic "
 #: php/pages/admin-logs.php
 msgid "unlocked topic "
 msgstr "a unlocké le topic "
+
+#: php/pages/admin-logs.php
+msgid "locked comments in $6 "
+msgstr "a locké les commentaires sur $6 "
+
+#: php/pages/admin-logs.php
+msgid "unlocked comments in $6 "
+msgstr "a unlocké les commentaires sur $6 "
 
 #: php/pages/admin-logs.php
 msgid "archived report on <a href=\"{url}\">message #$3</a> in topic "

@@ -17,6 +17,7 @@ $cAuteur = null;
 $cDate = null;
 $cThumb = null;
 $cDesc = null;
+$commentsLocked = false;
 $cShared = false;
 $pNote = 0;
 $pNotes = 0;

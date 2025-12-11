@@ -24,6 +24,11 @@ if (isset($_POST['circuit']) &&  isset($_POST['type']) && isset($_POST['message'
 					exit;
 				}
 				if ($getCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $type .'` WHERE id="'. $circuit.'"'))) {
+					$getTrackSettings = mysql_fetch_array(mysql_query('SELECT lock_comments FROM `mktracksettings` WHERE circuit="'. $circuit .'" AND type="'. $type .'"'));
+					if ($getTrackSettings && $getTrackSettings['lock_comments']) {
+						mysql_close();
+						exit;
+					}
 					mysql_query('INSERT INTO `mkcomments` VALUES(NULL,"'.$circuit.'","'.$type.'","'.$id.'","'.$message.'",NULL)');
 					$commentID = mysql_insert_id();
 					include('../includes/getId.php');

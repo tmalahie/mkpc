@@ -90,7 +90,10 @@ var circuitNbComments = 0;
 		'<div id="comments-description-music" class="comments-description-music"></div>'+
 		'<div id="comments-description-music2" class="comments-description-music"></div>'+
 	'</div>');
-	$commentsScroller.append('<h1>'+ (language ? 'Comments':'Commentaires') +' (<span id="comments-nb"></span>)</h1>');
+	var commentsHeader = $('<h1>'+ (language ? 'Comments':'Commentaires') +' (<span id="comments-nb"></span>)</h1>');
+	var commentsLockButton = $('<span id="comments-lock-btn" class="comments-lock-button" title="'+ (language ? 'Lock comments':'Verrouiller les commentaires') +'">🔓</span>');
+	commentsHeader.append(commentsLockButton);
+	$commentsScroller.append(commentsHeader);
 	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
 	var comments = $('<div id="comments"></div>');
 	$commentsScroller.append(comments);
@@ -130,6 +133,27 @@ var circuitNbComments = 0;
 		setNewEvents(res);
 		return res;
 	}
+	function updateCommentsLockState() {
+		if (commentsLocked) {
+			commentsLockButton.addClass("comments-locked");
+			commentsLockButton.html("🔒");
+			commentsLockButton.attr("title", language ? "Unlock comments" : "Déverrouiller les commentaires");
+			$("#comments .comment-new").hide();
+			$("#comment-connect").hide();
+			if ($("#comments-locked-message").length === 0) {
+				var lockedMsg = $('<div id="comments-locked-message" class="comments-locked-message">'+ (language ? "Comments are locked for this track":"Les commentaires sont verrouillés pour ce circuit") +'</div>');
+				comments.prepend(lockedMsg);
+			}
+		} else {
+			commentsLockButton.removeClass("comments-locked");
+			commentsLockButton.html("🔓");
+			commentsLockButton.attr("title", language ? "Lock comments" : "Verrouiller les commentaires");
+			$("#comments-locked-message").remove();
+			$("#comments .comment-new").show();
+			if (!$("#comments .comment-new").length && $("#comment-connect").length)
+				$("#comment-connect").show();
+		}
+	}
 	function nl2br(str) {
 		return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=;]*))/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})/gi, '<a href="mailto:$1">$1</a>').replace(/\r?\n/g, '<br />').replace(/  /g, ' &nbsp;');
 	}
@@ -146,7 +170,11 @@ var circuitNbComments = 0;
 	}
 	function setNewEvents(commentCtn) {
 		var commentSend = commentCtn.find(".comment-send");
-		commentSend.click(function() {
+			commentSend.click(function() {
+			if (commentsLocked) {
+				alert(language ? "Comments are locked. You cannot post a comment." : "Les commentaires sont verrouillés. Vous ne pouvez pas poster de commentaire.");
+				return;
+			}
 			var commentMessage = commentCtn.find(".comment-textarea");
 			if (!commentMessage.val())
 				return;
@@ -286,6 +314,24 @@ var circuitNbComments = 0;
 		appendComments(res.comments);
 		circuitNbComments = res.count;
 		updateNbComments();
+		// Show lock button only to track creator or admin
+		if (res.mine || myCommentAdmin) {
+			commentsLockButton.show();
+			commentsLockButton.off('click').on('click', function() {
+				if (!confirm(language ? "Disable comments for this track?" : "Désactiver les commentaires pour ce circuit ?"))
+					return;
+				commentsLocked = !commentsLocked;
+				updateCommentsLockState();
+				$.post("api/lockComments.php", {
+					"circuit": commentCircuit,
+					"type":commentType,
+					"locked":commentsLocked?1:0
+				});
+			});
+		} else {
+			commentsLockButton.hide();
+		}
+		updateCommentsLockState();
 		function updateCircuitDesc() {
 			if (circuitDesc) {
 				var circuitScroller = $("#comments-description-content-value .comment-desc-scroller");

@@ -85,7 +85,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cThumb, $cDesc, $hdescription, $cDate, $cOptions, $cupIDs, $clId, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode, $challenges;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cThumb, $cDesc, $commentsLocked, $hdescription, $cDate, $cOptions, $cupIDs, $clId, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode, $challenges;
     include('creation-entities.php');
     $isOnline = isset($options['online']);
     if ($isOnline) {
@@ -104,7 +104,7 @@ function getTrackPayloads($options) {
         $nid = $id;
         $isCup = true;
         $isMCup = true;
-        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.*'))) {
+        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,s.lock_comments,c.*'))) {
             $cName = $getMCup['name'];
             $cName0 = $getMCup['name0'];
             $infos['name'] = $cName;
@@ -113,6 +113,7 @@ function getTrackPayloads($options) {
             $cAuteur = $cPseudo;
             $cThumb = $getMCup['thumbnail'];
             $cDesc = $getMCup['description'];
+            $commentsLocked = $getMCup['lock_comments'];
             $pNote = $getMCup['note'];
             $pNotes = $getMCup['nbnotes'];
             $cDate = $getMCup['publication_date'];
@@ -131,7 +132,7 @@ function getTrackPayloads($options) {
         $id = intval($_GET['cid']);
         $nid = $id;
         $isCup = true;
-        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.*'))) {
+        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,s.lock_comments,c.*'))) {
             $cName = $getCup['name'];
             $cName0 = $getCup['name0'];
             $infos['name'] = $cName;
@@ -140,6 +141,7 @@ function getTrackPayloads($options) {
             $cAuteur = $cPseudo;
             $cThumb = $getCup['thumbnail'];
             $cDesc = $getCup['description'];
+            $commentsLocked = $getCup['lock_comments'];
             $pNote = $getCup['note'];
             $pNotes = $getCup['nbnotes'];
             $cDate = $getCup['publication_date'];
@@ -169,7 +171,7 @@ function getTrackPayloads($options) {
         $isCup = true;
         if (isset($_GET['nid'])) { // Cup being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,s.lock_comments,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
                 $cPrefix = $getMain['prefix'];
@@ -177,6 +179,7 @@ function getTrackPayloads($options) {
                 $cAuteur = $cPseudo;
                 $cThumb = $getMain['thumbnail'];
                 $cDesc = $getMain['description'];
+                $commentsLocked = $getMain['lock_comments'];
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
@@ -203,7 +206,7 @@ function getTrackPayloads($options) {
         $isMCup = true;
         if (isset($_GET['nid'])) { // Multicups being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,s.lock_comments,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
                 $cPrefix = $getMain['prefix'];
@@ -211,6 +214,7 @@ function getTrackPayloads($options) {
                 $cAuteur = $cPseudo;
                 $cThumb = $getMain['thumbnail'];
                 $cDesc = $getMain['description'];
+                $commentsLocked = $getMain['lock_comments'];
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
@@ -245,6 +249,7 @@ function getTrackPayloads($options) {
                 $cAuteur = $cPseudo;
                 $cThumb = $getMain['thumbnail'];
                 $cDesc = $getMain['description'];
+                $commentsLocked = $getMain['lock_comments'];
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
@@ -346,6 +351,7 @@ function getTrackPayloads($options) {
                     if (array_key_exists('description', $getMain))
                         $infos['description'] = $getMain['description'];
                     $infos['thumbnail'] = $getMain['thumbnail'];
+                    $infos['lock_comments'] = $getMain['lock_comments'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
@@ -374,6 +380,7 @@ function getTrackPayloads($options) {
             $cAuteur = $infos['auteur'];
             $cThumb = $infos['thumbnail'];
             $cDesc = $infos['description'];
+            $commentsLocked = $infos['lock_comments'];
             $pNote = $infos['note'];
             $pNotes = $infos['nbnotes'];
             $hthumbnail = 'https://mkpc.malahieude.net/'.$infos['preview'];

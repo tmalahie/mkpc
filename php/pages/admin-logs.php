@@ -153,6 +153,28 @@ $logMapping = array(
         'render' => _('unlocked topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
+    'LComments' => array(
+        'render' => function(&$groups) {
+            $getCircuitData = get_circuit_data($groups[1],$groups[2]);
+            $groups[4] = $getCircuitData['name'];
+            $groups[5] = $getCircuitData['link'];
+            $groups[6] = $getCircuitData['label'];
+            $track = '<a href="$5">{{$4|global.ifEmpty("<em>'. _('Untitled') .'</em>")}}</a>';
+            return _('locked comments in $6 ') . $track;
+        },
+        'role' => 'moderator'
+    ),
+    'ULComments' => array(
+        'render' => function(&$groups) {
+            $getCircuitData = get_circuit_data($groups[1],$groups[2]);
+            $groups[4] = $getCircuitData['name'];
+            $groups[5] = $getCircuitData['link'];
+            $groups[6] = $getCircuitData['label'];
+            $track = '<a href="$5">{{$4|global.ifEmpty("<em>'. _('Untitled') .'</em>")}}</a>';
+            return _('unlocked comments in $6 ') . $track;
+        },
+        'role' => 'moderator'
+    ),
     'AReport' => array(
         'render' => function(&$groups) {
             global $logTemplates;

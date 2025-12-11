@@ -275,7 +275,7 @@ function addCircuitsData(&$creationsList, &$params) {
 	$circuitTypesStr = implode(',',$circuitTypes);
 	if ($circuitTypesStr) {
 		$nameCol = $language ? 'name_en' : 'name_fr';
-		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name,thumbnail,prefix FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
+		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name,thumbnail,prefix,lock_comments FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
 		while ($trackSettings = mysql_fetch_array($getTrackSettings)) {
 			$cTable = $trackSettings['type'];
 			$cId = $trackSettings['circuit'];
@@ -283,6 +283,8 @@ function addCircuitsData(&$creationsList, &$params) {
 				$circuitByType[$cTable][$cId]['nom'] = $trackSettings['name'];
 			if ($trackSettings['thumbnail'] && !isset($params['no_thumbnail']))
 				$circuitByType[$cTable][$cId]['thumbnail'] = $trackSettings['thumbnail'];
+			if (isset($trackSettings['lock_comments']))
+				$circuitByType[$cTable][$cId]['lock_comments'] = $trackSettings['lock_comments'];
 			if ($trackSettings['prefix'])
 				$circuitByType[$cTable][$cId]['prefix'] = $trackSettings['prefix'];
 		}
