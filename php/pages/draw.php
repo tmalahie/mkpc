@@ -1376,7 +1376,7 @@ else {
 					<br />
 					The first step is to provide an image of the circuit seen from above.
 					That image is what will be used to render the circuit in the game.<br />
-					For example, here is the image of Mario Circuit 1 : <a href="images/maps/map1.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
+					For example, here is the image of Mario Circuit 1: <a href="images/maps/map1.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
 					<br />
 					<div id="map-example">
 						<img src="images/maps/map1.png" alt="Mario Circuit 1" />

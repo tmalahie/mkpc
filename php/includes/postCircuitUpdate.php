@@ -170,7 +170,7 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
         WHERE circuit="'. $circuitId .'" AND type="'. $type .'"
         AND name_en IS NULL AND name_fr IS NULL
         AND thumbnail IS NULL AND prefix IS NULL
-        AND description IS NULL'
+        AND description IS NULL AND lock_comments=0'
     );
 }
 function postCircuitDelete($type, $circuitId) {

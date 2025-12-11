@@ -318,7 +318,7 @@ var circuitNbComments = 0;
 		if (res.mine || myCommentAdmin) {
 			commentsLockButton.show();
 			commentsLockButton.off('click').on('click', function() {
-				if (!confirm(language ? "Disable comments for this track?" : "Désactiver les commentaires pour ce circuit ?"))
+				if (!confirm(language ? (commentsLocked ? "Re-enable" : "Disable") + " comments for this track?" : (commentsLocked ? "Réactiver" : "Désactiver") + " les commentaires pour ce circuit ?"))
 					return;
 				commentsLocked = !commentsLocked;
 				updateCommentsLockState();

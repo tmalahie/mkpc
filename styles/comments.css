@@ -102,17 +102,22 @@
 }
 .comments-lock-button {
 	position: absolute;
-	right: 5px;
-	top: 60%;
+	right: -3px;
+	top: 8px;
+	padding: 4px 0;
 	transform: translateY(-50%);
 	cursor: pointer;
-	font-size: 18px;
-	opacity: 0.7;
+	font-size: 14px;
+	opacity: 0;
 	display: none;
 	user-select: none;
 	line-height: 1;
+	background-color: black;
 }
-.comments-lock-button:hover {
+#comments-section h1:hover .comments-lock-button {
+	opacity: 0.7;
+}
+#comments-section h1 .comments-lock-button:hover {
 	opacity: 1;
 }
 .comments-lock-button.comments-locked {
@@ -121,10 +126,10 @@
 #comments-locked-message {
 	padding: 10px;
 	text-align: center;
-	color: #F84;
+	color: #CCC;
 	font-size: 0.9em;
 	border-bottom: solid 1px white;
-	background-color: #400;
+	background-color: #222;
 }
 #comments-scroller {
 	overflow-y: auto;
