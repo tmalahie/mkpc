@@ -274,6 +274,7 @@ nav {
 main {
 	display: block;
 	background-color: white;
+	color: black;
 	margin-left: 10px;
 	margin-right: 10px;
 	padding: 10px;
