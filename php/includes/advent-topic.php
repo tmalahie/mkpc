@@ -1,4 +1,5 @@
 <?php
 $adventTopicId = 19219;
 $adventTopicUrl = "topic.php?topic=$adventTopicId";
-$adventEnabled = !empty($id) && date('n') == 12;
+$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+$adventEnabled = !empty($id) && $now->format('n') == 12;

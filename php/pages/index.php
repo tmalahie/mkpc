@@ -336,7 +336,6 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 			}
 		}*/
-		date_default_timezone_set('Europe/Paris');
 		require_once('../includes/advent-topic.php');
 		if ($adventEnabled) {
 			?>
