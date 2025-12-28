@@ -369,6 +369,9 @@ case 2024:
 case 2025:
 	include('advent-selected-challenges.php');
 	$adventChallenges = fetch_advent_challenges($selectedChallenges);
+	$adventChallenges[9]['description'] = '<a href="map.php?i=163694" target="_blank">'. ($language ? 'Mushroom Gorge' : 'Gorge Champignon') .'</a>' . ($language ? ': Destroy all mushrooms' : ' : Détruire tous les champignons');
+	if (!$language)
+		$adventChallenges[21]['description'] = str_replace('snowman', 'bonhomme de neige', $adventChallenges[21]['description']);
 	break;
 }
 function get_challenges_until($day) {
