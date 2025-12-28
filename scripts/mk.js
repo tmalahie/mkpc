@@ -12592,19 +12592,9 @@ function checkNextRail(getId, aPosX,aPosY,aPosZ, shouldEnd) {
 	}
 }
 function followRail(oRail,oKart) {
-	var oLines = oRail.polyline;
 	var w0 = cappedRelSpeed(oKart);
 	do {
-		var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
-		if (oRail.dir < 0) {
-			oPoint1 = oPoint2;
-			oPoint2 = oLines[oRail.line];
-		}
-		var x0 = oKart.x, y0 = oKart.y;
-		var x1 = oPoint1[0], y1 = oPoint1[1];
-		var x2 = oPoint2[0], y2 = oPoint2[1];
-		var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
-		var d0 = Math.hypot(u0,v0);
+		const { x0, y0, x1, y1, x2, y2, u0, v0, d0, l, xH, yH } = getRailLineCoords(oRail,oKart);
 		oKart.heightinc = 0;
 		oKart.rotinc = 0;
 		if (!oRail.init) {
@@ -12622,8 +12612,6 @@ function followRail(oRail,oKart) {
 					oKart.rotation = targetAngle;
 			}
 		}
-		var l = projete(x0,y0, x1,y1,x2,y2);
-		var xH = x1 + l*(x2-x1), yH = y1 + l*(y2-y1);
 		if (canMoveTo(x0,y0,oKart.z, xH-x0,yH-y0, oKart.protect, oKart.z0)) {
 			oKart.x = xH;
 			oKart.y = yH;
@@ -12644,6 +12632,22 @@ function followRail(oRail,oKart) {
 				delete oRail.init;
 		}
 	} while (w0 > 0);
+}
+function getRailLineCoords(oRail,oKart) {
+	var oLines = oRail.polyline;
+	var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
+	if (oRail.dir < 0) {
+		oPoint1 = oPoint2;
+		oPoint2 = oLines[oRail.line];
+	}
+	var x0 = oKart.x, y0 = oKart.y;
+	var x1 = oPoint1[0], y1 = oPoint1[1];
+	var x2 = oPoint2[0], y2 = oPoint2[1];
+	var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
+	var d0 = Math.hypot(u0,v0);
+	var l = projete(x0,y0, x1,y1,x2,y2);
+	var xH = x1 + l*(x2-x1), yH = y1 + l*(y2-y1);
+	return { x0, y0, x1, y1, x2, y2, u0, v0, d0, l, xH, yH };
 }
 function handleKartRail(getId, aPosX,aPosY,aPosZ) {
 	var oKart = aKarts[getId];
@@ -18716,6 +18720,10 @@ function move(getId, triggered) {
 				if (lMap.checkpoint && oKart.demitours)
 					iC = lMap.checkpoint[(oKart.demitours+1) % lMap.checkpoint.length][3];
 				fTombe = tombe(oKart.x, oKart.y, iC);
+				if (fTombe && isActivelyGrinding(oKart)) {
+					const { xH, yH } = getRailLineCoords(oKart.rail,oKart);
+					fTombe = tombe(xH,yH, iC);
+				}
 			}
 			if (fTombe) {
 				var lastCp;
