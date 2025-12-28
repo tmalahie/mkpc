@@ -21794,6 +21794,7 @@ function addButton(lettre, options) {
 		var oImg = document.createElement("img");
 		oImg.src = "images/vkeyboard/"+ options.src +".png";
 		oImg.alt = lettre;
+		oImg.style.pointerEvents = "none";
 		oButton.appendChild(oImg);
 	}
 	else
