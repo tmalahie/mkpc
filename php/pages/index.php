@@ -336,30 +336,10 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 			}
 		}*/
-		function uc_strlen($str) {
-			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
-		}
-		function uc_substr($str, $l) {
-			preg_match_all('#(%u[0-9a-fA-F]{4})+#', $str, $positions, PREG_OFFSET_CAPTURE);
-			$positions = $positions[0];
-			$res = mb_substr(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str), 0,$l);
-			foreach ($positions as $position) {
-				if ($position[1] >= strlen($res))
-					return $res;
-				$res = mb_substr($res,0,$position[1]).$position[0].mb_substr($res,$position[1]+1);
-			}
-			return $res;
-		}
-		function controlLength($str,$maxLength) {
-			$pts = '...';
-			if (uc_strlen($str) > $maxLength)
-				return uc_substr($str,$maxLength-strlen($pts)).$pts;
-			return $str;
-		}
-		function controlLengthUtf8($str,$len) {
-			return htmlEscapeCircuitNames(controlLength($str,$len));
-		}
-		require_once('../includes/circuitEscape.php');
+	require_once('../includes/home-utils.php');
+	function uc_strlen($str) { return home_uc_strlen($str); }
+	function controlLength($str, $maxLength) { return home_controlLength($str, $maxLength); }
+	function controlLengthUtf8($str, $len) { return home_controlLengthUtf8($str, $len); }
 		function display_sidebar($title,$link=null) {
 			?>
 			<table class="sidebar_container">
@@ -425,49 +405,11 @@ $placeholderPath = 'images/pages/pixel.png';
 		display_sidebar('Forum', 'forum.php');
 		?>
 			<h2><?= _('Latest topics') ?></h2>
-			<div id="forum_section" class="right_subsection">
+			<div id="forum_section" class="right_subsection" data-section="topics" data-offset="10" data-limit="10">
 				<?php
-				require_once('../includes/getRights.php');
-				$sql = 'SELECT t.id,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t ' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 10';
-				if (!$id && $language)
-					$sql = 'SELECT * FROM ('. $sql .') t ORDER BY (category=4) DESC, dernier DESC';
-				$getTopics = mysql_query($sql);
-				$topics = array();
-				$topicIds = array();
-				while ($topic = mysql_fetch_array($getTopics)) {
-					$topics[] = $topic;
-					$topicIds[] = $topic['id'];
-				}
-				$lastMsgByTopic = array();
-				$topicIdsString = implode(',', $topicIds);
-				if ($topicIdsString) {
-					$getLastMessages = mysql_query('SELECT m.topic,j.nom FROM (SELECT topic,MAX(id) AS maxid FROM mkmessages WHERE topic IN ('. $topicIdsString .') GROUP BY topic) mm LEFT JOIN mkmessages m ON m.topic=mm.topic AND m.id=mm.maxid LEFT JOIN mkjoueurs j ON m.auteur=j.id');
-					while ($message = mysql_fetch_array($getLastMessages))
-						$lastMsgByTopic[$message['topic']] = $message;
-				}
-				foreach ($topics as $topic) {
-					$nbMsgs = $topic['nbmsgs'];
-					$message = $lastMsgByTopic[$topic['id']];
-					?>
-					<a href="topic.php?topic=<?= $topic['id'] ?>" title="<?= $topic['titre'] ?>">
-						<h2><?php echo htmlspecialchars(controlLength($topic['titre'],40)); ?></h2>
-						<h3>
-							<?php
-								if ($message['nom']) {
-									printf(F_("Latest message by <strong>{message}</strong>", message: $message['nom']));
-								} else {
-									printf(_("Latest message"));
-								}
-								echo ' ';
-								echo pretty_dates_short($topic['dernier'],array('lower'=>true));
-							?>
-						</h3>
-						<div class="creation_comments" title="<?= FN_("{count} message", "{count} messages", count: $nbMsgs) ?>"><img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?></div>
-					</a>
-					<?php
-				}
+				$topics = getLatestTopics(10, 0, $id);
+				echo renderTopicItems($topics);
 				unset($topics);
-				unset($lastMsgByTopic);
 				?>
 			</div>
 			<a class="right_section_actions action_button" href="forum.php"><?= _('Go to the forum') ?></a>
@@ -477,53 +419,15 @@ $placeholderPath = 'images/pages/pixel.png';
 		display_sidebar('News', 'listNews.php');
 		?>
 			<h2><?= _('Latest news') ?></h2>
-			<div id="news_section" class="right_subsection">
+			<div id="news_section" class="right_subsection" data-section="news" data-offset="8" data-limit="8">
 				<?php
-				date_default_timezone_set('Europe/Paris');
-				$getNews = mysql_query('SELECT n.id,n.title,n.nbcomments,
-					name'. $language .' AS name,author,
-					category,c.name'. $language .' AS catname,
-					n.publication_date
-					FROM `mknews` n
-					INNER JOIN `mkcats` c ON n.category=c.id
-					WHERE status="accepted"
-					ORDER BY n.publication_date DESC
-					LIMIT 8
-				');
-				$lastNewsDate = time();
-				if ($id) {
-					$lastNewsDate -= 7*86400;
-					if ($lastNewsRead = mysql_fetch_array(mysql_query('SELECT date FROM `mknewsread` WHERE user='.$id)))
-						$lastNewsDate = max($lastNewsDate,strtotime($lastNewsRead['date']));
+				$newsList = getLatestNews(8, 0, $id);
+				if (count($newsList) > 0) {
+					echo renderNewsItems($newsList);
+				} else {
+					echo '<div style="text-align:center;margin-top:55px">' . _('No news yet') . '</div>';
 				}
-				$nbnews = 0;
-				while ($news = mysql_fetch_array($getNews)) {
-					$nbnews++;
-					$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $news['author']));
-					$nbMsgs = $news['nbcomments'];
-					$isNew = (strtotime($news['publication_date']) > $lastNewsDate);
-					?>
-					<a href="news.php?id=<?php echo $news['id']; ?>" title="<?php echo htmlspecialchars($news['title']); ?>"<?php if ($isNew) echo ' class="news_new"'; ?>>
-						<h2><?php echo htmlspecialchars(controlLength($news['title'],40)); ?></h2>
-						<h3>
-							<?php
-								if ($name) {
-									printf(P_("Categories", "In <strong>%s</strong> by <strong>%s</strong>"), $news['catname'], $name['nom']);
-								} else {
-									printf(P_("Categories", "In <strong>%s</strong>"), $name['nom']);
-								}
-							?>
-							<?= pretty_dates_short($news['publication_date'],array('lower'=>true)); ?>
-						</h3>
-						<div class="creation_comments" title="<?= FN_("{count} comment", "{count} comments", count: $nbMsgs)?>">
-							<img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?>
-						</div>
-					</a>
-					<?php
-				}
-				date_default_timezone_set('UTC');
-				if (!$nbnews)
-					echo '<div style="text-align:center;margin-top:55px">'. _('No news yet').'</div>';
+				unset($newsList);
 				?>
 			</div>
 			<?php
@@ -619,101 +523,23 @@ $placeholderPath = 'images/pages/pixel.png';
 			display_sidebar(_('Track builder'), 'creations.php');
 			?>
 			<h2><?= _('Latest creations') ?></h2>
-			<div id="creations_section" class="right_subsection">
+			<div id="creations_section" class="right_subsection" data-section="creations" data-offset="14" data-limit="14">
 				<table>
 					<?php
-					function getNom($circuit) {
-						$maxL = 25;
-						$res = ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],$maxL):(_('Untitled')));
-						if (isset($circuit['prefix']) && (uc_strlen($circuit['nom'])+mb_strlen($circuit['prefix']) <= $maxL))
-							$res = '<small>'. $circuit['prefix'] .' </small>' . $res;
-						return $res;
-					}
-					function getAuteur($circuit) {
-						if ($circuit['auteur']) {
-							return F_("By <strong>{author}</strong>", author: controlLengthUtf8($circuit['auteur'],15));
-						}
-						return '';
-					}
-					function cmp_creation($line1, $line2) {
-						$score1 = $line1['score'];
-						$score2 = $line2['score'];
-						if ($score1 < $score2)
-							return 1;
-						if ($score2 < $score1)
-							return -1;
-						$time1 = strtotime($line1['publication_date']);
-						$time2 = strtotime($line2['publication_date']);
-						if ($time1 < $time2)
-							return 1;
-						if ($time1 < $time2)
-							return -1;
-						return 0;
-					}
-					function sortLines($lines) {
-						$logb = log(1.7);
-						foreach ($lines as &$line) {
-							$publishedSince = time()-strtotime($line['publication_date']);
-							$publishedSince = max($publishedSince,0);
-							$recency = 8-log($publishedSince/2000)/$logb;
-							$recency = min(max($recency,3),8);
-							$note = $line['note']-1;
-							$nbnotes = max($line['nbnotes'],1);
-							if ($note == -1) {
-								if ($recency == 8)
-									$note = $recency;
-								else
-									$note = 2;
-							}
-							elseif ($recency > $note) {
-								if ($note >= 2.6)
-									$note = $recency;
-								elseif ($note <= 1.4)
-									$nbnotes = max($nbnotes,2);
-							}
-							$line['score'] = ($recency+$note*$nbnotes)/(1+$nbnotes);
-						}
-						usort($lines, 'cmp_creation');
-						return $lines;
-					}
-					function showLine($line) {
-						global $language, $today;
-						$circuit = $line;
-						include('../includes/creation_line.php');
-					}
-					require_once('../includes/utils-circuits.php');
-					$nbByType = array(1,1,2,2,3,3,2,2,1,1,1,1);
-					$tracksList = listCreations(1,$nbByType,null,$aCircuits);
-					$tracksList = sortLines($tracksList);
-					$tracksList = array_slice($tracksList,0,14);
-					foreach ($tracksList as $line)
-						showLine($line);
+					function getNom($circuit) { return home_getNom($circuit, $GLOBALS['language']); }
+					function getAuteur($circuit) { return home_getAuteur($circuit, $GLOBALS['language']); }
+					
+					$tracksList = getLatestCreations(14, 0);
+					echo renderCreationItems($tracksList);
 					?>
 				</table>
 			</div>
 			<a class="right_section_actions action_button" href="creations.php"><?= _('Display all') ?></a>
 			<h2><?= _('Latest challenges') ?></h2>
-			<div id="challenges_section" class="right_subsection">
+			<div id="challenges_section" class="right_subsection" data-section="challenges" data-offset="15" data-limit="15">
 				<?php
-				require_once('../includes/utils-challenges.php');
-				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE c.status="active" AND l.type!="" ORDER BY date DESC LIMIT 15');
-				$challengeParams = array(
-					'circuit' => true,
-					'circuit.raw' => true
-				);
-				if ($id) {
-					$challengeParams['winners'] = true;
-					$challengeParams['id'] = $id;
-				}
-				while ($challenge = mysql_fetch_array($getChallenges)) {
-					$challengeDetails = getChallengeDetails($challenge, $challengeParams);
-					?>
-					<a href="<?php echo 'challengeTry.php?challenge='.$challenge['id']; ?>" title="<?php echo $challengeDetails['description']['main']; ?>"<?php if (isset($challengeDetails['succeeded'])) echo ' class="challenges_section_succeeded"'; ?>>
-						<h2><?php echo controlLength($challengeDetails['description']['main'],100); ?></h2>
-						<h3><?php echo ucfirst(($challengeDetails['circuit']['author'] ? (($language ? 'by':'par') .' <strong>'. controlLengthUtf8($challengeDetails['circuit']['author'],10) .'</strong> '):'') . ($challengeDetails['circuit']['name'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($challengeDetails['circuit']['name'],30-min(10,strlen($challengeDetails['circuit']['author']))-strlen($challengeDetails['difficulty']['name'])) .'</strong>'):'')); ?> - <strong><?php echo $challengeDetails['difficulty']['name']; ?></strong></h3>
-					</a>
-					<?php
-				}
+				$challenges = getLatestChallenges(15, 0, $id);
+				echo renderChallengeItems($challenges);
 				?>
 			</div>
 			<?php
@@ -729,89 +555,10 @@ $placeholderPath = 'images/pages/pixel.png';
 			<a class="right_section_actions action_button" href="challengesList.php"><?= _('Display all') ?></a>
 			<div id="challenge_ranking"><a href="challengeRanking.php"><?= _('Challenge points - Leaderboard') ?></a></div>
 			<h2><?= _('Recent activity') ?></h2>
-			<div id="comments_section" class="right_subsection">
+			<div id="comments_section" class="right_subsection" data-section="activity" data-offset="14" data-limit="14">
 				<?php
-				//$getComments = mysql_query('SELECT c.circuit,c.type,c.message,c.temps,c.nom,c.date FROM ((SELECT mkcomments.circuit,mkcomments.type COLLATE latin1_general_ci AS type,mkcomments.message COLLATE latin1_general_ci AS message,mkcomments.date,mkjoueurs.nom COLLATE latin1_general_ci AS nom,NULL as temps FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id) UNION ALL (SELECT circuit,type,NULL as message,date,nom,temps FROM `mkrecords`) ORDER BY date DESC) as c GROUP BY c.type,c.circuit ORDER BY c.date DESC LIMIT 14');
-				$getComments = mysql_query('SELECT class,circuit,type,message,time,name,date,recency FROM ((SELECT NULL AS class,mkcomments.circuit,mkcomments.type,mkcomments.message,mkcomments.date,mkjoueurs.nom AS name,NULL as time, (UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(date))*1 AS recency FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id ORDER BY mkcomments.id DESC LIMIT 30) UNION ALL (SELECT class,circuit,type,NULL as message,date,name,time,(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(date))*2 AS recency FROM `mkrecords` WHERE type!="" AND best=1 ORDER BY id DESC LIMIT 30) ORDER BY recency) as c GROUP BY c.type,c.circuit ORDER BY recency LIMIT 14');
-				function zerofill($nb,$l) {
-					$nb .= '';
-					while (strlen($nb) < $l)
-						$nb = '0'. $nb;
-					return $nb;
-				}
-				function getRank($n) {
-					$languageForOrdinals = P_("language for ordinals", "en");
-					$dec = $n%100;
-					if ($languageForOrdinals == "fr") {
-						if ($n > 1)
-							return 'e';
-						else
-							return 'er';
-					}
-					else
-					{
-						if (($dec >= 10) && ($dec < 20))
-							return 'th';
-						switch ($n%10) {
-						case 1 :
-							return 'st';
-						case 2 :
-							return 'nd';
-						case 3 :
-							return 'rd';
-						default :
-							return 'th';
-						}
-					}
-					return $n;
-				}
-				require_once('../includes/utils-cups.php');
-				while ($comment = mysql_fetch_array($getComments)) {
-					if (($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) && ($getCircuit['name'] !== null)) {
-						switch ($comment['type']) {
-						case 'mkmcups' :
-							$url = getCupPage($getCircuit['mode']) . '.php?mid='. $getCircuit['id'];
-							break;
-						case 'mkcups' :
-							$url = getCupPage($getCircuit['mode']) . '.php?cid='. $getCircuit['id'];
-							break;
-						case 'mkcircuits' :
-							$url = ($getCircuit['type'] ? 'arena.php':'circuit.php') . '?id='. $getCircuit['id'];
-							break;
-						case 'arenes' :
-							$url = 'battle.php?i='. $getCircuit['ID'];
-							break;
-						case 'circuits' :
-							$url = 'map.php?i='. $getCircuit['ID'];
-						}
-						if ($comment['message'] !== null) {
-							$type = 'comments';
-							$message = $comment['message'];
-						}
-						else {
-							$type = 'records';
-							$timeMS = $comment['time'];
-							$ms = $timeMS%1000;
-							$secs = floor($timeMS/1000)%60;
-							$mins = floor($timeMS/60000);
-							$records = mysql_query('SELECT time FROM `mkrecords` WHERE class="'. $comment['class'] .'" AND circuit="'. $comment['circuit'] .'" AND type="'. $comment['type'] .'" AND best=1');
-							$place = 1;
-							$nbRecords = 0;
-							while ($record = mysql_fetch_array($records)) {
-								if ($record['time'] < $comment['time'])
-									$place++;
-								$nbRecords++;
-							}
-							$message = $mins.':'.zerofill($secs,2).':'.zerofill($ms,3) .' ('. $place.'<sup>'.getRank($place).'</sup>' .' '.($language ? 'out of':'sur').' '. $nbRecords .')';
-						}
-						?>
-						<a href="<?php echo $url; ?>"<?php if ($type == 'comments') echo ' title="'. htmlspecialchars($message) .'"'; ?>>
-							<h2><img src="images/<?php echo $type; ?>.png" alt="<?php echo $type; ?>" /> <?php echo ($type == 'comments') ? htmlspecialchars(controlLength($message,40)) : $message; ?></h2>
-							<h3><?php echo ($language ? 'By':'Par') .' <strong>'. htmlspecialchars(controlLength($comment['name'],10)) .'</strong>'; ?> <?php echo ($getCircuit['name'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($getCircuit['name'],20) .'</strong>'):''); ?> <?php echo pretty_dates_short($comment['date'],array('lower'=>true)); ?></h3>
-						</a>
-						<?php
-					}
-				}
+				$activities = getRecentActivity(14, 0);
+				echo renderActivityItems($activities);
 				?>
 			</div>
 		</div>
@@ -1179,6 +926,10 @@ mysql_close();
 var loadingMsg = "<?= _('Loading') ?>";
 </script>
 <script defer src="scripts/creations.js"></script>
+<?php
+if (isset($identifiants) && ($identifiants[0] % 2)) // Very basic AB testing
+	echo '<script defer src="scripts/home-sections.js"></script>';
+?>
 <script defer src="scripts/posticons.js?reload=1"></script>
 <script defer src="scripts/officials.js"></script>
 

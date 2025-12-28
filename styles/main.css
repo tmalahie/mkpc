@@ -1182,3 +1182,31 @@ footer a {
 #final_call_to_action {
 	display: none;
 }
+
+#right_section .infinite-scroll-loading {
+	text-align: center;
+	padding: 15px;
+	color: #666;
+	font-size: 0.9em;
+}
+#right_section .infinite-scroll-loading .loading-spinner {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	border: 2px solid #ccc;
+	border-top-color: #820;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+#right_section .infinite-scroll-loading .loading-text {
+	vertical-align: middle;
+}
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+#right_section .loading-row td {
+	text-align: center;
+	padding: 15px;
+}
