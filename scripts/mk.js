@@ -8790,10 +8790,18 @@ var itemBehaviors = {
 				if (!isBB) {
 					var lMap = getCurrentLMap(fSprite.ailap);
 					var aipoints = lMap.aipoints[fSprite.aimap];
+					if (!aipoints) {
+						fSprite.aimap = 0;
+						aipoints = lMap.aipoints[fSprite.aimap];
+					}
 					var dSpeed = 15*relSpeed * spdMult;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
 						var target = aipoints[fSprite.aipoint];
+						if (!target) {
+							fSprite.aipoint = 0;
+							target = aipoints[fSprite.aipoint];
+						}
 						if (!target) break;
 						var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
 						if (dist > dSpeed) {
