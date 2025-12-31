@@ -7521,7 +7521,12 @@ function lapIdType(key) {
 			if (value < 0)
 				return "F";
 			var lMap = getCurrentLMap(value);
-			return value + (lMap.conditionOverrideIds ? ("A"+lMap.conditionOverrideIds.join("B")):"") + "F";
+			if (lMap.conditionOverrideIds) {
+				var parentLapId = lMap.parentOverrideId;
+				if (parentLapId === undefined) parentLapId = value;
+				return parentLapId + "A" + lMap.conditionOverrideIds.join("B") + "F";
+			}
+			return value + "F";
 		},
 		decode: function(value) {
 			var endPos = value.indexOf("F");
