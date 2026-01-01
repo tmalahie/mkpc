@@ -1,8 +1,9 @@
 DROP DATABASE IF EXISTS mkpc;
 CREATE DATABASE mkpc;
 USE mkpc;
+/*M!999999\- enable the sandbox mode */ 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `arenes` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `publication_date` timestamp NULL DEFAULT NULL,
@@ -23,18 +24,18 @@ CREATE TABLE `arenes` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `pscore` (`pscore`),
   KEY `tscore` (`tscore`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `arenes_data` (
   `id` int(10) NOT NULL,
   `data` mediumblob NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `circuits` (
   `ID` int(10) NOT NULL AUTO_INCREMENT,
   `publication_date` timestamp NULL DEFAULT NULL,
@@ -55,18 +56,18 @@ CREATE TABLE `circuits` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `pscore` (`pscore`),
   KEY `tscore` (`tscore`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `circuits_data` (
   `id` int(10) NOT NULL,
   `data` mediumblob NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ip_bans` (
   `player` int(11) NOT NULL,
   `ip1` int(10) unsigned NOT NULL,
@@ -74,10 +75,10 @@ CREATE TABLE `ip_bans` (
   `ip3` int(10) unsigned NOT NULL,
   `ip4` int(10) unsigned NOT NULL,
   UNIQUE KEY `player` (`player`,`ip1`,`ip2`,`ip3`,`ip4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `items` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `course` int(11) NOT NULL,
@@ -88,10 +89,10 @@ CREATE TABLE `items` (
   `data` varbinary(252) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `course` (`course`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mariokart` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `map` tinyint(2) NOT NULL,
@@ -102,10 +103,10 @@ CREATE TABLE `mariokart` (
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
   KEY `map` (`map`,`time`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `marks` (
   `circuit` int(11) NOT NULL,
   `identifiant` int(11) unsigned NOT NULL,
@@ -114,37 +115,37 @@ CREATE TABLE `marks` (
   `identifiant4` int(11) unsigned NOT NULL,
   `note` float NOT NULL,
   KEY `arene` (`circuit`,`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `metaitem` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `settings` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mka` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkadvent` (
   `year` smallint(6) NOT NULL,
   `user` int(11) NOT NULL,
   `day` tinyint(4) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`year`,`user`,`day`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkanalytics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -152,10 +153,10 @@ CREATE TABLE `mkanalytics` (
   `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`metadata`)),
   PRIMARY KEY (`id`),
   KEY `event` (`event`,`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkavis` (
   `circuit` int(11) NOT NULL,
   `identifiant` int(11) unsigned NOT NULL,
@@ -164,19 +165,19 @@ CREATE TABLE `mkavis` (
   `identifiant4` int(11) unsigned NOT NULL,
   `note` float NOT NULL,
   UNIQUE KEY `circuit` (`circuit`,`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkawarded` (
   `user` int(11) NOT NULL,
   `award` int(11) NOT NULL,
   `value` varchar(255) NOT NULL,
   UNIQUE KEY `user` (`user`,`award`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkawards` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ordering` int(11) NOT NULL,
@@ -185,19 +186,19 @@ CREATE TABLE `mkawards` (
   `notif_msg_en` varchar(255) NOT NULL DEFAULT '',
   `notif_msg_fr` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkb` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbadmsglog` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
@@ -207,30 +208,30 @@ CREATE TABLE `mkbadmsglog` (
   `message` varchar(255) NOT NULL,
   `code` tinyint(4) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbadwords` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `word` varchar(255) NOT NULL,
   `action` enum('none','block','mute') NOT NULL DEFAULT 'none',
   PRIMARY KEY (`id`),
   UNIQUE KEY `word` (`word`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbans` (
   `player` int(11) NOT NULL,
   `msg` text NOT NULL,
   `ban_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `end_date` date DEFAULT NULL,
   UNIQUE KEY `player` (`player`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbglayers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `bg` int(11) NOT NULL,
@@ -238,37 +239,37 @@ CREATE TABLE `mkbglayers` (
   `filename` varchar(255) NOT NULL,
   `url` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbgs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL DEFAULT '',
   `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `identifiant` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbrowsers` (
   `player` int(11) NOT NULL,
   `browser` varchar(255) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
   UNIQUE KEY `id` (`player`,`browser`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkc` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcategories` (
   `id` int(11) NOT NULL,
   `nom` varchar(255) NOT NULL,
@@ -279,20 +280,20 @@ CREATE TABLE `mkcategories` (
   `ordering` int(11) NOT NULL,
   `adminonly` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name1` varchar(255) NOT NULL,
   `name0` varchar(255) NOT NULL,
   `color` varchar(7) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchallenges` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `clist` int(11) NOT NULL,
@@ -307,23 +308,23 @@ CREATE TABLE `mkchallenges` (
   PRIMARY KEY (`id`),
   KEY `clist` (`clist`),
   KEY `date` (`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkchallenges_d` AS SELECT
  1 AS `day`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkchallenges_m` AS SELECT
  1 AS `y`,
   1 AS `m`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchars` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(30) NOT NULL DEFAULT '',
@@ -345,10 +346,10 @@ CREATE TABLE `mkchars` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `sprites` (`sprites`),
   KEY `publication_date` (`publication_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchat` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `course` int(10) NOT NULL,
@@ -358,10 +359,10 @@ CREATE TABLE `mkchat` (
   PRIMARY KEY (`id`),
   KEY `course` (`course`),
   KEY `auteur` (`auteur`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchats` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sender` int(10) unsigned NOT NULL,
@@ -373,23 +374,23 @@ CREATE TABLE `mkchats` (
   KEY `date` (`date`),
   KEY `unseen` (`receiver`,`seen`),
   KEY `sender` (`sender`,`receiver`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkchats_d` AS SELECT
  1 AS `day`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkchats_m` AS SELECT
  1 AS `y`,
   1 AS `m`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchatvoc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `course` int(11) NOT NULL,
@@ -397,10 +398,10 @@ CREATE TABLE `mkchatvoc` (
   `muted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `player` (`course`,`player`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchatvocpeer` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sender` int(11) NOT NULL,
@@ -409,10 +410,10 @@ CREATE TABLE `mkchatvocpeer` (
   PRIMARY KEY (`id`),
   KEY `sender` (`sender`),
   KEY `receiver` (`receiver`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkchisto` (
   `id` int(11) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
@@ -428,10 +429,10 @@ CREATE TABLE `mkchisto` (
   `rating` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`id`,`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `date` (`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcircuits` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `publication_date` timestamp NULL DEFAULT NULL,
@@ -454,10 +455,10 @@ CREATE TABLE `mkcircuits` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `pscore` (`pscore`),
   KEY `tscore` (`tscore`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclbans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `identifiant` int(10) unsigned NOT NULL,
@@ -466,19 +467,19 @@ CREATE TABLE `mkclbans` (
   `msg` text DEFAULT NULL,
   `ban_until_date` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclorder` (
   `clist` int(11) NOT NULL,
   `challenge` int(11) NOT NULL,
   `position` int(11) NOT NULL,
   PRIMARY KEY (`clist`,`challenge`,`position`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclrace` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('','arenes','circuits','mkcircuits','mkcups','mkmcups') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
@@ -489,54 +490,67 @@ CREATE TABLE `mkclrace` (
   `identifiant4` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclrecheck` (
   `id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclrewardchs` (
   `reward` int(11) NOT NULL,
   `challenge` int(11) NOT NULL,
   PRIMARY KEY (`reward`,`challenge`),
   KEY `challenge` (`challenge`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclrewarded` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
   `reward` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `player` (`player`,`reward`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclrewards` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `clist` int(11) NOT NULL,
   `charid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcltry` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
   `challenge` int(11) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mkclvalidations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `challenge` int(11) NOT NULL,
+  `validator` int(11) NOT NULL,
+  `accepted` tinyint(1) NOT NULL,
+  `validation` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `challenge` (`challenge`,`accepted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkclwin` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `challenge` int(11) NOT NULL,
@@ -548,10 +562,10 @@ CREATE TABLE `mkclwin` (
   UNIQUE KEY `challenge` (`challenge`,`player`),
   KEY `player` (`player`),
   KEY `date` (`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcollablinks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -561,10 +575,10 @@ CREATE TABLE `mkcollablinks` (
   `rights` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `secret` (`secret`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcomments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `circuit` int(11) NOT NULL,
@@ -575,18 +589,18 @@ CREATE TABLE `mkcomments` (
   PRIMARY KEY (`id`),
   KEY `circuit` (`circuit`,`type`),
   KEY `auteur` (`auteur`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkconnectes` (
   `id` int(10) NOT NULL,
   `connecte` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkconvs` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sender` int(10) unsigned NOT NULL,
@@ -595,10 +609,10 @@ CREATE TABLE `mkconvs` (
   `reduced` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sender` (`sender`,`receiver`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcooldownhist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -608,10 +622,10 @@ CREATE TABLE `mkcooldownhist` (
   PRIMARY KEY (`id`),
   KEY `player` (`player`),
   KEY `identifiant` (`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcountries` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(2) NOT NULL,
@@ -620,10 +634,10 @@ CREATE TABLE `mkcountries` (
   `ordering` smallint(5) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkcups` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `publication_date` timestamp NULL DEFAULT NULL,
@@ -648,19 +662,19 @@ CREATE TABLE `mkcups` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `pscore` (`pscore`),
   KEY `tscore` (`tscore`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkd` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkdecors` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL DEFAULT '',
@@ -672,64 +686,64 @@ CREATE TABLE `mkdecors` (
   `extra_parent_id` int(11) DEFAULT NULL,
   `options` text NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mke` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkf` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkfollowers` (
   `user` int(11) NOT NULL,
   `topic` int(11) NOT NULL,
   UNIQUE KEY `user` (`user`,`topic`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkfollowusers` (
   `follower` int(11) NOT NULL,
   `followed` int(11) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`followed`,`follower`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkg` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgamecpu` (
   `course` int(11) NOT NULL,
   `min_id` int(11) NOT NULL,
   `max_id` int(11) NOT NULL,
   PRIMARY KEY (`course`),
   UNIQUE KEY `min_id` (`min_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgamecrash` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -738,68 +752,68 @@ CREATE TABLE `mkgamecrash` (
   `stack` text NOT NULL,
   `referrer` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkgamecrash_d` AS SELECT
  1 AS `day`,
   1 AS `nb`,
   1 AS `nb_distinct` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgamedata` (
   `game` int(11) NOT NULL,
   `aRaceCount` int(11) NOT NULL,
   `raceCount` int(11) NOT NULL,
   PRIMARY KEY (`game`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgameoptions` (
   `id` int(11) unsigned NOT NULL,
   `rules` text NOT NULL,
   `public` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `public` (`public`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgamerank` (
   `game` int(11) NOT NULL,
   `player` int(11) NOT NULL,
   `pts` int(11) NOT NULL,
   PRIMARY KEY (`game`,`player`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgamestates` (
   `id` int(11) NOT NULL,
   `extra` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgametime` (
   `player` int(11) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
   `time` bigint(20) NOT NULL DEFAULT 0,
   PRIMARY KEY (`player`,`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkgametime_d` AS SELECT
  1 AS `day`,
   1 AS `gametime` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkgametimehist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -808,10 +822,10 @@ CREATE TABLE `mkgametimehist` (
   `time` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `player` (`player`,`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkghosts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -830,36 +844,36 @@ CREATE TABLE `mkghosts` (
   UNIQUE KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`class`,`type`,`circuit`) USING BTREE,
   KEY `perso` (`perso`(191)),
   KEY `type` (`class`,`type`,`circuit`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkghostsdata` (
   `id` int(11) NOT NULL,
   `data` mediumblob NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkh` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mki` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkidentifiants` (
   `identifiant` int(10) unsigned NOT NULL,
   `file_quota` int(11) DEFAULT NULL,
@@ -868,18 +882,18 @@ CREATE TABLE `mkidentifiants` (
   `external_size` int(11) DEFAULT NULL,
   `message_size` int(11) DEFAULT NULL,
   PRIMARY KEY (`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkignores` (
   `ignorer` int(10) unsigned NOT NULL,
   `ignored` int(10) unsigned NOT NULL,
   UNIQUE KEY `ignorer` (`ignorer`,`ignored`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkinvitations` (
   `demandeur` int(10) NOT NULL,
   `receveur` int(10) NOT NULL,
@@ -888,19 +902,19 @@ CREATE TABLE `mkinvitations` (
   `message` text NOT NULL,
   `battle` tinyint(1) NOT NULL,
   UNIQUE KEY `demandeur` (`demandeur`,`receveur`,`battle`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkipcountry` (
   `ip` varchar(250) NOT NULL,
   `country` varchar(255) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`ip`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkips` (
   `player` int(10) unsigned NOT NULL,
   `ip1` int(10) unsigned NOT NULL,
@@ -908,19 +922,19 @@ CREATE TABLE `mkips` (
   `ip3` int(10) unsigned NOT NULL,
   `ip4` int(10) unsigned NOT NULL,
   UNIQUE KEY `player` (`player`,`ip1`,`ip2`,`ip3`,`ip4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkj` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkjoueurs` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `course` int(10) NOT NULL,
@@ -942,10 +956,10 @@ CREATE TABLE `mkjoueurs` (
   KEY `joueur` (`joueur`(250)),
   KEY `pts_battle` (`pts_battle`),
   KEY `pts_challenge` (`pts_challenge`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mklogs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -953,10 +967,10 @@ CREATE TABLE `mklogs` (
   `log` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `log` (`log`(250))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmatches` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
@@ -967,23 +981,23 @@ CREATE TABLE `mkmatches` (
   KEY `date` (`date`),
   KEY `player` (`player`),
   KEY `course` (`course`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkmatches_d` AS SELECT
  1 AS `day`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkmatches_m` AS SELECT
  1 AS `y`,
   1 AS `m`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmcups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `publication_date` timestamp NULL DEFAULT NULL,
@@ -1005,19 +1019,19 @@ CREATE TABLE `mkmcups` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `pscore` (`pscore`),
   KEY `tscore` (`tscore`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmcups_tracks` (
   `mcup` int(11) NOT NULL,
   `ordering` tinyint(4) NOT NULL,
   `cup` int(11) NOT NULL,
   UNIQUE KEY `mcup` (`mcup`,`ordering`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmessages` (
   `id` int(10) NOT NULL,
   `topic` int(10) NOT NULL,
@@ -1028,23 +1042,23 @@ CREATE TABLE `mkmessages` (
   KEY `date` (`date`),
   KEY `auteur` (`auteur`),
   FULLTEXT KEY `message` (`message`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkmessages_d` AS SELECT
  1 AS `day`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkmessages_m` AS SELECT
  1 AS `y`,
   1 AS `m`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmmlogs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -1052,20 +1066,20 @@ CREATE TABLE `mkmmlogs` (
   `player` int(11) NOT NULL,
   `message` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmuted` (
   `player` int(11) NOT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
   `end_date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`player`),
   KEY `identifiant` (`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknewnicks` (
   `oldnick` varchar(248) NOT NULL,
   `id` int(11) NOT NULL,
@@ -1073,10 +1087,10 @@ CREATE TABLE `mknewnicks` (
   PRIMARY KEY (`oldnick`,`id`,`date`),
   KEY `id` (`id`),
   KEY `date` (`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknews` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
@@ -1092,10 +1106,10 @@ CREATE TABLE `mknews` (
   PRIMARY KEY (`id`),
   KEY `publication_date` (`status`,`publication_date`) USING BTREE,
   KEY `author` (`author`,`status`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknewscoms` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `news` int(11) NOT NULL,
@@ -1105,28 +1119,28 @@ CREATE TABLE `mknewscoms` (
   PRIMARY KEY (`id`),
   KEY `news` (`news`),
   KEY `author` (`author`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknewsdraft` (
   `author` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `category` int(11) NOT NULL,
   `message` text NOT NULL,
   PRIMARY KEY (`author`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknewsread` (
   `user` int(11) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotes` (
   `circuit` int(10) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
@@ -1135,21 +1149,21 @@ CREATE TABLE `mknotes` (
   `identifiant4` int(10) unsigned NOT NULL,
   `note` tinyint(1) NOT NULL,
   UNIQUE KEY `id` (`circuit`,`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotifmute` (
   `user` int(11) NOT NULL,
   `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report','award') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`user`,`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotifs` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award') CHARACTER SET latin1 NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `user` int(10) unsigned DEFAULT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
   `identifiant2` int(10) unsigned DEFAULT NULL,
@@ -1159,37 +1173,37 @@ CREATE TABLE `mknotifs` (
   PRIMARY KEY (`id`),
   KEY `user` (`user`,`type`),
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mko` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkofficialmsgread` (
   `player` int(11) NOT NULL,
   `message` varchar(255) NOT NULL,
   `read_date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`player`,`message`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkp` (
   `id` tinyint(2) NOT NULL,
   `circuit` int(10) NOT NULL,
   `piece` tinyint(2) NOT NULL,
   PRIMARY KEY (`circuit`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkpassrecovery` (
   `token` varchar(255) NOT NULL,
   `player` int(11) NOT NULL,
@@ -1197,10 +1211,10 @@ CREATE TABLE `mkpassrecovery` (
   `expiry_date` datetime NOT NULL,
   PRIMARY KEY (`token`),
   KEY `expiry_date` (`expiry_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkpersos_bkp` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `identifiant` int(10) unsigned NOT NULL,
@@ -1214,10 +1228,10 @@ CREATE TABLE `mkpersos_bkp` (
   UNIQUE KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`map`),
   KEY `perso` (`perso`(250)),
   KEY `map` (`map`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkpersosel` (
   `identifiant` int(10) unsigned NOT NULL,
   `identifiant2` int(10) unsigned NOT NULL,
@@ -1226,10 +1240,10 @@ CREATE TABLE `mkpersosel` (
   `perso1` int(11) NOT NULL,
   `perso2` int(11) NOT NULL,
   PRIMARY KEY (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkplayers` (
   `id` int(10) NOT NULL,
   `course` int(10) NOT NULL DEFAULT 0,
@@ -1250,8 +1264,8 @@ CREATE TABLE `mkplayers` (
   `size` double NOT NULL DEFAULT 1,
   `tourne` tinyint(2) NOT NULL DEFAULT 0,
   `tombe` tinyint(2) NOT NULL DEFAULT 0,
-  `arme` varchar(15) CHARACTER SET ascii NOT NULL DEFAULT '',
-  `stash` varchar(15) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `arme` varchar(15) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL DEFAULT '',
+  `stash` varchar(15) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL DEFAULT '',
   `tours` tinyint(1) NOT NULL DEFAULT 0,
   `demitours` tinyint(1) DEFAULT 0,
   `ballons` tinyint(3) NOT NULL DEFAULT 1,
@@ -1269,43 +1283,43 @@ CREATE TABLE `mkplayers` (
   `finalts` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`) USING HASH,
   KEY `course` (`course`) USING HASH
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkpollres` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `poll` int(11) NOT NULL,
   `answer` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `poll` (`poll`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkpolls` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title_fr` varchar(255) NOT NULL,
   `question_fr` varchar(255) NOT NULL,
   `title_en` varchar(255) NOT NULL,
   `question_en` varchar(255) NOT NULL,
-  `type` enum('radio','checkbox') CHARACTER SET latin1 NOT NULL,
+  `type` enum('radio','checkbox') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `over` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkprivgame` (
   `id` int(10) unsigned NOT NULL,
   `player` int(11) NOT NULL,
   `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_used_date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkprofiles` (
   `id` int(10) unsigned NOT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
@@ -1326,33 +1340,33 @@ CREATE TABLE `mkprofiles` (
   KEY `nbmessages` (`nbmessages`),
   KEY `country` (`country`),
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkprofiles_d` AS SELECT
  1 AS `day`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
+SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `mkprofiles_m` AS SELECT
  1 AS `y`,
   1 AS `m`,
   1 AS `nb` */;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkr` (
   `id` int(10) NOT NULL,
   `circuit` int(10) NOT NULL,
   `s` tinyint(2) NOT NULL,
   `r` tinyint(1) NOT NULL,
   PRIMARY KEY (`circuit`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkracehist` (
   `id` int(10) NOT NULL,
   `map` tinyint(2) NOT NULL,
@@ -1363,18 +1377,18 @@ CREATE TABLE `mkracehist` (
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
   KEY `map` (`map`,`time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkratingoptions` (
   `rating` int(11) NOT NULL,
   `tscore` float NOT NULL,
   PRIMARY KEY (`rating`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkratings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups') NOT NULL,
@@ -1385,10 +1399,10 @@ CREATE TABLE `mkratings` (
   `rating` tinyint(4) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`circuit`,`identifiant`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkreactions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('topic','news','newscom','trackcom') NOT NULL,
@@ -1398,10 +1412,10 @@ CREATE TABLE `mkreactions` (
   `reaction` varchar(30) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`link`,`member`,`reaction`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkrecords` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1423,10 +1437,10 @@ CREATE TABLE `mkrecords` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`class`,`type`,`circuit`) USING BTREE,
   KEY `player` (`player`,`type`,`class`,`circuit`) USING BTREE,
   KEY `type_2` (`class`,`type`,`best`,`circuit`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkrecords_bkp` (
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   `nom` varchar(20) NOT NULL,
@@ -1442,10 +1456,10 @@ CREATE TABLE `mkrecords_bkp` (
   UNIQUE KEY `ip` (`nom`,`type`,`circuit`),
   KEY `date` (`date`),
   KEY `perso` (`perso`(250))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkreports` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('topic','circuits','mkcircuits','arenes','mkcups','mkmcups') NOT NULL,
@@ -1457,10 +1471,10 @@ CREATE TABLE `mkreports` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`link`),
   KEY `count` (`type`,`state`,`count`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkreportshist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('topic') NOT NULL,
@@ -1469,18 +1483,18 @@ CREATE TABLE `mkreportshist` (
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`link`,`reporter`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkrights` (
   `player` int(11) NOT NULL,
   `privilege` enum('admin','moderator','organizer','publisher','clvalidator') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   UNIQUE KEY `player` (`player`,`privilege`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mksaves` (
   `identifiant` int(10) unsigned NOT NULL,
   `identifiant2` int(10) unsigned NOT NULL,
@@ -1488,10 +1502,10 @@ CREATE TABLE `mksaves` (
   `identifiant4` int(10) unsigned NOT NULL,
   `scores` varchar(14) NOT NULL,
   PRIMARY KEY (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mksessionstorage` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
@@ -1501,10 +1515,10 @@ CREATE TABLE `mksessionstorage` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `player` (`player`,`param`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkspectators` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `course` int(11) NOT NULL,
@@ -1514,20 +1528,20 @@ CREATE TABLE `mkspectators` (
   `state` enum('joined','pending','queuing') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `course` (`course`,`player`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkt` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,
   `y` smallint(3) NOT NULL,
   `t` tinyint(4) NOT NULL DEFAULT 0,
   KEY `circuit` (`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkteststats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `perso` varchar(191) NOT NULL,
@@ -1539,10 +1553,10 @@ CREATE TABLE `mkteststats` (
   `offroad` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `perso` (`perso`,`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mktopics` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `titre` tinytext NOT NULL,
@@ -1555,19 +1569,19 @@ CREATE TABLE `mktopics` (
   PRIMARY KEY (`id`),
   KEY `dernier` (`dernier`),
   KEY `category` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mktrackbin` (
   `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups') NOT NULL,
   `circuit` int(11) NOT NULL,
   `delete_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`type`,`circuit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mktracksettings` (
   `circuit` int(11) NOT NULL,
   `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups') NOT NULL,
@@ -1578,11 +1592,12 @@ CREATE TABLE `mktracksettings` (
   `name_fr` varchar(255) DEFAULT NULL,
   `prefix` varchar(255) DEFAULT NULL,
   `thumbnail` varchar(255) DEFAULT NULL,
+  `lock_comments` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`circuit`,`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mktrackthemes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -1591,10 +1606,10 @@ CREATE TABLE `mktrackthemes` (
   `type` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `identifiant` (`identifiant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mktthacker` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1602,20 +1617,20 @@ CREATE TABLE `mktthacker` (
   `body` varchar(255) NOT NULL,
   `hash` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkttranking` (
   `player` int(11) NOT NULL,
   `class` tinyint(3) unsigned NOT NULL DEFAULT 150,
   `score` int(11) NOT NULL,
   PRIMARY KEY (`player`,`class`) USING BTREE,
   KEY `score` (`class`,`score`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkvisites` (
   `ip1` tinyint(11) unsigned NOT NULL,
   `ip2` tinyint(11) unsigned NOT NULL,
@@ -1623,38 +1638,38 @@ CREATE TABLE `mkvisites` (
   `ip4` tinyint(11) unsigned NOT NULL,
   `page` enum('mariokart','index') CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
   UNIQUE KEY `ip1` (`ip1`,`ip2`,`ip3`,`ip4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkvotes` (
   `user` int(11) NOT NULL,
   `answer` int(11) NOT NULL,
   UNIQUE KEY `user` (`user`,`answer`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkwarns` (
   `player` int(11) NOT NULL AUTO_INCREMENT,
   `msg` text NOT NULL,
   `warn_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `seen` tinyint(1) NOT NULL,
   PRIMARY KEY (`player`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkwcbets` (
   `console` char(4) NOT NULL,
   `player` int(11) NOT NULL,
   `vote` char(3) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`console`,`player`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkwins` (
   `identifiant` int(10) unsigned NOT NULL,
   `identifiant2` int(10) unsigned NOT NULL,
@@ -1663,19 +1678,19 @@ CREATE TABLE `mkwins` (
   `cup` int(10) unsigned NOT NULL,
   `score` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`cup`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkwrongtz` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `tz` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `tz` (`tz`(191))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notes` (
   `circuit` int(10) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
@@ -1684,16 +1699,16 @@ CREATE TABLE `notes` (
   `identifiant4` int(10) unsigned NOT NULL,
   `note` float NOT NULL,
   UNIQUE KEY `circuit` (`circuit`,`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `previouspages` (
   `url` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ratings` (
   `circuit` int(10) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
@@ -1702,10 +1717,10 @@ CREATE TABLE `ratings` (
   `identifiant4` int(10) unsigned NOT NULL,
   `note` tinyint(1) NOT NULL,
   UNIQUE KEY `id` (`circuit`,`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `records_bkp` (
   `nom` varchar(20) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
@@ -1721,7 +1736,7 @@ CREATE TABLE `records_bkp` (
   KEY `circuit` (`circuit`,`temps`),
   KEY `ip` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `player` (`player`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50001 DROP VIEW IF EXISTS `mkchallenges_d`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
@@ -1879,6 +1894,7 @@ CREATE TABLE `records_bkp` (
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
+/*M!999999\- enable the sandbox mode */ 
 INSERT INTO `mkcategories` VALUES
 (0,'Topics officiels','Official topics','Dans cette catégorie, vous trouverez toutes les annonces et informations officielles de Mario Kart PC. Il est obligatoire de lire ces topics avant de poster un message sur le forum.','In this section you will find all the official information of Mario Kart PC. Read these topics before posting any message on the forum.',0,1,1),
 (1,'Annonces et présentations','Announcements and presentations','Dans cette catégorie, postez toutes les annonces en rapport ou non avec le site : news, événements, présentations, absences et retours.','In this section, you can put announcements directly related (or not) to MKPC: such as news, events, self-presentations, departures or returns',1,2,0),
