@@ -12607,7 +12607,7 @@ function checkNextRail(getId, aPosX,aPosY,aPosZ, shouldEnd) {
 function followRail(oRail,oKart) {
 	var w0 = cappedRelSpeed(oKart);
 	do {
-		const { x0, y0, x1, y1, x2, y2, u0, v0, d0, l, xH, yH } = getRailLineCoords(oRail,oKart);
+		const { x0, y0, x1, y1, x2, y2, u0, v0, d0, l, xH, yH } = getRailLineCoords(oRail,oKart,{});
 		oKart.heightinc = 0;
 		oKart.rotinc = 0;
 		if (!oRail.init) {
@@ -12646,7 +12646,7 @@ function followRail(oRail,oKart) {
 		}
 	} while (w0 > 0);
 }
-function getRailLineCoords(oRail,oKart) {
+function getRailLineCoords(oRail,oKart,opts) {
 	var oLines = oRail.polyline;
 	var oPoint1 = oLines[oRail.line], oPoint2 = oLines[oRail.line+1];
 	if (oRail.dir < 0) {
@@ -12659,6 +12659,7 @@ function getRailLineCoords(oRail,oKart) {
 	var u0 = oPoint2[0]-oPoint1[0], v0 = oPoint2[1]-oPoint1[1];
 	var d0 = Math.hypot(u0,v0);
 	var l = projete(x0,y0, x1,y1,x2,y2);
+	if (opts.clamp) l = Math.min(Math.max(l,0),1);
 	var xH = x1 + l*(x2-x1), yH = y1 + l*(y2-y1);
 	return { x0, y0, x1, y1, x2, y2, u0, v0, d0, l, xH, yH };
 }
@@ -18734,7 +18735,7 @@ function move(getId, triggered) {
 					iC = lMap.checkpoint[(oKart.demitours+1) % lMap.checkpoint.length][3];
 				fTombe = tombe(oKart.x, oKart.y, iC);
 				if (fTombe && isActivelyGrinding(oKart)) {
-					const { xH, yH } = getRailLineCoords(oKart.rail,oKart);
+					const { xH, yH } = getRailLineCoords(oKart.rail,oKart,{clamp:1});
 					fTombe = tombe(xH,yH, iC);
 				}
 			}
