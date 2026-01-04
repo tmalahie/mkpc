@@ -926,10 +926,7 @@ mysql_close();
 var loadingMsg = "<?= _('Loading') ?>";
 </script>
 <script defer src="scripts/creations.js"></script>
-<?php
-if (isset($identifiants) ? ($identifiants[0] % 2) : preg_match('#[13579]$#', $_SERVER['REMOTE_ADDR'])) // Very basic AB testing
-	echo '<script defer src="scripts/home-sections.js"></script>';
-?>
+<script defer src="scripts/home-sections.js"></script>
 <script defer src="scripts/posticons.js?reload=1"></script>
 <script defer src="scripts/officials.js"></script>
 
