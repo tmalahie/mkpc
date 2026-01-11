@@ -1,6 +1,6 @@
 CURRENT_DIR=`dirname $(realpath $0)`
 HOST=pi
-APP=$CURRENT_DIR/php
+APP=$CURRENT_DIR/../php
 APPI=$APP/images
 BKP=/mnt/drive/bkp/dev/mkpc/auto_bkp
 BKPI=$BKP/images
