@@ -100,7 +100,7 @@ fi
 echo "SSH tunnel established on port $LOCAL_TUNNEL_PORT"
 
 # Test tunnel connection
-if ! mysql -h 127.0.0.1 -P ${LOCAL_TUNNEL_PORT} -u "$PROD_DB_USER" -p"$PROD_DB_PASSWORD" -e "SELECT 1" "$PROD_DB_NAME" > /dev/null 2>&1; then
+if ! mysql -h 127.0.0.1 -P ${LOCAL_TUNNEL_PORT} -u "$PROD_DB_USER" -p"$PROD_DB_PASSWORD" --skip-ssl -e "SELECT 1" "$PROD_DB_NAME" > /dev/null 2>&1; then
     echo "Error: Cannot connect to production database through tunnel"
     exit 1
 fi
@@ -128,6 +128,7 @@ if mysqldump -h 127.0.0.1 -P ${LOCAL_TUNNEL_PORT} \
     --skip-triggers \
     --skip-lock-tables \
     --single-transaction \
+    --skip-ssl \
     --compact >> "$SQL_FILE" 2>/dev/null; then
     # Check if mysqldump actually output INSERT statements (not just comments)
     if grep -q "^INSERT INTO" "$SQL_FILE"; then
@@ -151,6 +152,7 @@ if mysqldump -h 127.0.0.1 -P ${LOCAL_TUNNEL_PORT} \
     --skip-triggers \
     --skip-lock-tables \
     --single-transaction \
+    --skip-ssl \
     --compact >> "$SQL_FILE" 2>/dev/null; then
     # Check if mysqldump actually output INSERT statements
     if grep -q "^INSERT INTO" "$SQL_FILE"; then
@@ -172,6 +174,7 @@ fi
 echo "Importing data into local database..."
 mysql -h "$LOCAL_DB_HOST" -P "$LOCAL_DB_PORT" \
     -u "$LOCAL_DB_USER" -p"$LOCAL_DB_PASSWORD" \
+    --skip-ssl \
     "$LOCAL_DB_NAME" < "$SQL_FILE"
 
 echo "Successfully imported ${TABLE_TYPE} data (id=$ID) from production to local database"
