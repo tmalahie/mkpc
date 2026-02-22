@@ -365,10 +365,10 @@ function getRecentActivity($limit = 14, $offset = 0) {
             
             switch ($comment['type']) {
                 case 'mkmcups':
-                $activity['url'] = getCupPage($getCircuit['mode']) . '?mid=' . $getCircuit['id'];
+                $activity['url'] = getCupPage($getCircuit['mode']) . '.php?mid=' . $getCircuit['id'];
                     break;
                 case 'mkcups':
-                    $activity['url'] = getCupPage($getCircuit['mode']) . '?cid=' . $getCircuit['id'];
+                    $activity['url'] = getCupPage($getCircuit['mode']) . '.php?cid=' . $getCircuit['id'];
                     break;
                 case 'mkcircuits':
                     $activity['url'] = ($getCircuit['type'] ? 'arena.php' : 'circuit.php') . '?id=' . $getCircuit['id'];
