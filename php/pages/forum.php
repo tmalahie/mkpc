@@ -179,33 +179,36 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 	);
 	echo "</li>";
 
-	echo "<li>";
-	echo F_(
-		'The most active member is <a href="{urlToProfile}">{topPlayer}</a> with <strong>{topPlayerMessagesWithCount}</strong> posted in total.',
-		urlToProfile: "profil.php?id=". $getTopPlayer['id'],
-		topPlayer: $getTopPlayer['nom'],
-		topPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getTopPlayer['nb']),
-	);
-	echo '<a href="ranking-forum.php">';
-	echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") . '"/>';
-	echo _("Ranking of most active members");
-	echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") .  '"/></a>';
-	echo "</li>";
-
-	if ($getMonthlyTopPlayer) {
+	require_once('../includes/trials.php');
+	if (isTrialDisabled('hidemsgcount')) {
 		echo "<li>";
 		echo F_(
-			'The most active member of the month is <a href="{urlToProfile}">{monthlyTopPlayer}</a> with <strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the 1<small class="superscript">st</small>.',
-			urlToProfile: "profil.php?id=". $getMonthlyTopPlayer['id'],
-			month: $month,
-			monthlyTopPlayer: $getMonthlyTopPlayer['nom'],
-			monthlyTopPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getMonthlyTopPlayer['nb']),
+			'The most active member is <a href="{urlToProfile}">{topPlayer}</a> with <strong>{topPlayerMessagesWithCount}</strong> posted in total.',
+			urlToProfile: "profil.php?id=". $getTopPlayer['id'],
+			topPlayer: $getTopPlayer['nom'],
+			topPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getTopPlayer['nb']),
 		);
-		echo '<a href="ranking-forum.php?month=last">';
-		echo '<img src="images/cups/cup2.png" alt="' . _("Classement") . '"/>';
-		echo _("Ranking of month's most active members");
-		echo '<img src="images/cups/cup2.png" alt="' . _("Classement") .  '"/></a>';
+		echo '<a href="ranking-forum.php">';
+		echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") . '"/>';
+		echo _("Ranking of most active members");
+		echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") .  '"/></a>';
 		echo "</li>";
+
+		if ($getMonthlyTopPlayer) {
+			echo "<li>";
+			echo F_(
+				'The most active member of the month is <a href="{urlToProfile}">{monthlyTopPlayer}</a> with <strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the 1<small class="superscript">st</small>.',
+				urlToProfile: "profil.php?id=". $getMonthlyTopPlayer['id'],
+				month: $month,
+				monthlyTopPlayer: $getMonthlyTopPlayer['nom'],
+				monthlyTopPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getMonthlyTopPlayer['nb']),
+			);
+			echo '<a href="ranking-forum.php?month=last">';
+			echo '<img src="images/cups/cup2.png" alt="' . _("Classement") . '"/>';
+			echo _("Ranking of month's most active members");
+			echo '<img src="images/cups/cup2.png" alt="' . _("Classement") .  '"/></a>';
+			echo "</li>";
+		}
 	}
 	?>
 </ul>

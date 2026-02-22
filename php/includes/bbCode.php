@@ -52,6 +52,7 @@ function print_league($pts,$ic) {
 		echo '&#9733;&nbsp;'.get_league_name($pts);
 	echo '</div>';
 }
+require_once('trials.php');
 function print_forum_msg($message,$options=array()) {
 	global $id, $language;
 	if (isset($_GET['topic']))
@@ -85,7 +86,8 @@ function print_forum_msg($message,$options=array()) {
 		echo '<a href="profil.php?id='.$message['auteur'].'">';
 		print_avatar($message['auteur'], 100);
 		echo '</a>';
-		print_nb_msgs($message['auteur']);
+		if (isTrialDisabled('hidemsgcount'))
+			print_nb_msgs($message['auteur']);
 		if (!$getAuteur['deleted']) {
 			print_league($getAuteur['pts_vs'],'vs');
 			print_league($getAuteur['pts_battle'],'battle');
