@@ -48,7 +48,7 @@ function printMsgCooldowned() {
         ?>
         It looks like you've sent a lot of messages in the last minutes.<br />
         Our system has blocked you temporarilly from sending new messages to prevent spam.<br />
-        Sending lot of messages is generally considered a bad behaviour, to learn more, please read the <a href="topic.php?topic=2448">forum's rules</a> topic.<br />
+        Sending lot of messages is generally considered a bad behaviour, to learn more, please read the <a href="topic.php?topic=19829">forum's rules</a> topic.<br />
         Don't worry, this block is temporary, you should be able to post again in a few minutes
         <?php
     }
@@ -56,7 +56,7 @@ function printMsgCooldowned() {
         ?>
         Il semble que vous avez envoyé beaucoup de messages dans les dernières minutes.<br />
         Le système a bloqué temporairement l'envoi de messages sur votre compte pour éviter les spams.<br />
-        Le spam de façon générale est interdit sur le forum du site, pour en savoir plus, lisez le <a href="topic.php?topic=2448">règlement</a> du forum.<br />
+        Le spam de façon générale est interdit sur le forum du site, pour en savoir plus, lisez le <a href="topic.php?topic=19829">règlement</a> du forum.<br />
         Notez que le bloquage est temporaire, vous devriez pouvoir reposter des messages dans quelques minutes.
         <?php
     }
@@ -93,7 +93,7 @@ function printNewUserCooldowned() {
             <p>
                 To prevent spam, new accounts aren't allowed to post on the forum for a short period of time.<br />
                 Please wait a few minutes before sending your 1<sup>st</sup> message.<br />
-                If you haven't done it yet, you can take this time to read the <a href="topic.php?topic=2448" target="_blank">forum's rules</a>.<br />
+                If you haven't done it yet, you can take this time to read the <a href="topic.php?topic=19829" target="_blank">forum's rules</a>.<br />
                 Thanks for your understanding, and welcome to MKPC <sub><img src="images/smileys/smiley0.png" alt=":)" /></sub>
             </p>
             <?php
@@ -103,7 +103,7 @@ function printNewUserCooldowned() {
             <p>
                 Pour éviter les spams, les nouveaux comptes ne sont pas autorisés à poster sur le forum pendant une courte période.<br />
                 Veuillez patienter quelques minutes avant d'envoyer votre 1<sup>er</sup> message.<br />
-                Si ce n'est pas déjà fait, vous pouvez prendre ce temps pour consulter le <a href="topic.php?topic=2448" target="_blank">règlement du forum</a>.<br />
+                Si ce n'est pas déjà fait, vous pouvez prendre ce temps pour consulter le <a href="topic.php?topic=19829" target="_blank">règlement du forum</a>.<br />
                 Merci de votre compréhension, et bienvenue sur MKPC <sub><img src="images/smileys/smiley0.png" alt=":)" /></sub>
             </p>
             <?php

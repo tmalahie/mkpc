@@ -60,7 +60,7 @@ if ($id) {
 	$getNom = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	?>
 	<div class="forum-welcome">
-		<?= F_('Welcome to the MKPC forum! If you haven\'t done it yet, please check out the <a href="{url}">rules</a> before posting.', url: "topic.php?topic=2448") ?>
+		<?= F_('Welcome to the MKPC forum! If you haven\'t done it yet, please check out the <a href="{url}">rules</a> before posting.', url: "topic.php?topic=19829") ?>
 	</div>
 	<p id="compte"><span><?= $getNom['nom'] ?></span>
 	<a href="profil.php?id=<?= $id ?>"><?= _('My profile') ?></a><br />

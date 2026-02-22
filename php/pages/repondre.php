@@ -135,7 +135,7 @@ showRegularAdSection();
 					The last message has been posted on <?php echo to_local_tz($getTopic['dernier'], 'Y-m-d'); ?>.<br />
 					It's generally a bad idea to revive old topics, you might want to create a
 					<a href="newtopic.php?category=<?php echo $getTopic['category']; ?>">new topic</a> instead.<br />
-					In case of doubt, please read the <a href="topic.php?topic=2448">forum's rules</a> topic.
+					In case of doubt, please read the <a href="topic.php?topic=19829">forum's rules</a> topic.
 					<?php
 				}
 				else {
@@ -144,7 +144,7 @@ showRegularAdSection();
 					Le dernier message remonte au <?php echo to_local_tz($getTopic['dernier'], 'd/m/Y'); ?>.<br />
 					C'est généralement une mauvaise idée de déterrer des vieux topics, il est peut-être préférable de créer un
 					<a href="newtopic.php?category=<?php echo $getTopic['category']; ?>">nouveau topic</a> à la place.<br />
-					En cas de doute, réferrez-vous au <a href="topic.php?topic=2448">règlement</a> du forum.
+					En cas de doute, réferrez-vous au <a href="topic.php?topic=19829">règlement</a> du forum.
 					<?php
 				}
 				?>

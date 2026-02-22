@@ -20,7 +20,7 @@ function printForumReplyNotices() {
         </div>
         <?php
     }
-    elseif (!apcu_fetch("forum_rules_ack_$id") && !hasRecentMessage($id, '2026-02-28')) {
+    elseif ($language && !apcu_fetch("forum_rules_ack_$id") && !hasRecentMessage($id, '2026-02-28')) {
         ?>
         <div class="auto-moderation-notice">
         <?php
