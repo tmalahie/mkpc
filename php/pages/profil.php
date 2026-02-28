@@ -375,14 +375,17 @@ include('../includes/menu.php');
 						echo '</div>';
 					}
 				}
-				$rkname = get_forum_rkname($getProfile['nbmessages']);
-				$rkimg = get_forum_rkimg($getProfile['nbmessages']);
-				echo '<div class="player-rank">';
-					echo '<img src="images/messages.png" alt="Forum messages" title="Forum" />';
-					echo '<strong>'. $getProfile['nbmessages'] . ' message'. ($getProfile['nbmessages']>=2?'s':'') .'</strong> ';
-					echo ' - <span><img src="images/ranks/'. $rkimg .'.gif" alt="'. $rkname .'" class="mNbmsgsRk" /></span>';
-					echo $rkname.'</strong><sup><a href="javascript:helpRanks()">[?]</a></sup>';
-				echo '</div>';
+				require_once('../includes/trials.php');
+				if (isTrialDisabled('hidemsgcount')) {
+					$rkname = get_forum_rkname($getProfile['nbmessages']);
+					$rkimg = get_forum_rkimg($getProfile['nbmessages']);
+					echo '<div class="player-rank">';
+						echo '<img src="images/messages.png" alt="Forum messages" title="Forum" />';
+						echo '<strong>'. $getProfile['nbmessages'] . ' message'. ($getProfile['nbmessages']>=2?'s':'') .'</strong> ';
+						echo ' - <span><img src="images/ranks/'. $rkimg .'.gif" alt="'. $rkname .'" class="mNbmsgsRk" /></span>';
+						echo $rkname.'</strong><sup><a href="javascript:helpRanks()">[?]</a></sup>';
+					echo '</div>';
+				}
 				$getNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mknews` WHERE author="'. $profileId .'" AND status="accepted"'));
 				if ($getNews['nb']) {
 					?>
