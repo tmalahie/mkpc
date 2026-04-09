@@ -396,7 +396,7 @@ if (isset($_GET['i'])) {
 					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a course override':'Ajouter un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a course override':'Changer un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-copy" href="javascript:showLapOverrideCopy()">'. ($language ? 'Copy an override':'Copier un modificateur') .'</a>';
-					echo '<a id="lapoverride-btn-reorder" href="javascript:showLapOverrideReorder()">'. ($language ? 'Reorder overrides':'Réordonner les modificateurs') .'</a>';
+					echo '<a id="lapoverride-btn-reorder" href="javascript:showLapOverrideReorder()">'. ($language ? 'Reorder overrides':'Réordonner modificateurs') .'</a>';
 					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
 					echo '</div>';
 					?>
@@ -527,7 +527,7 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="lapoverride-reorder">
-					<h1><?php echo $language ? 'Reorder overrides':'Réordonner les modificateurs'; ?></h1>
+					<h1><?php echo $language ? 'Reorder overrides':'Réordonner modificateurs'; ?></h1>
 					<div>
 						<ul id="lapoverride-reorder-list"></ul>
 						<div class="popup-buttons">
