@@ -5226,7 +5226,7 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			//* gogogo
+			/* gogogo
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -5277,7 +5277,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -20574,8 +20574,9 @@ function ai(oKart) {
 					}
 				}
 				currentAi = oKart.aipoints[oKart.aipoint].slice(1);
-				if (oKart.lastAI)
-					lastAi = oKart.aipoints[oKart.lastAI].slice(1);
+				var lastAIpt = oKart.aipoints[oKart.lastAI];
+				if (lastAIpt)
+					lastAi = lastAIpt.slice(1);
 				else {
 					if (!oKart.lastAIpt)
 						oKart.lastAIpt = [oKart.x,oKart.y];
