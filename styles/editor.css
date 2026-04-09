@@ -1242,6 +1242,15 @@ embed,#ytplayer {
 	background-color: #17C;
 	color: #C9D9FF;
 }
+#lapoverride-btn-reorder {
+	background-color: #9cf;
+	color: #259;
+	border: solid 1px #48a;
+}
+#lapoverride-btn-reorder:hover {
+	background-color: #bdf;
+	color: #36a;
+}
 #lapoverride-btn-remove {
 	background-color: #F96;
 	color: #C24;
@@ -1250,6 +1259,41 @@ embed,#ytplayer {
 #lapoverride-btn-remove:hover {
 	background-color: #FB7;
 	color: #D35;
+}
+#lapoverride-reorder h1 {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	color: #259;
+}
+#lapoverride-reorder .popup-buttons {
+	margin-bottom: 10px;
+}
+#lapoverride-reorder-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 10px 10px 10px;
+	text-align: left;
+	max-height: 300px;
+	overflow-y: auto;
+}
+#lapoverride-reorder-list li {
+	cursor: grab;
+	padding: 6px 10px;
+	margin: 4px 0;
+	background-color: #e8f4ff;
+	border: solid 1px #7ab;
+	border-radius: 4px;
+	user-select: none;
+}
+#lapoverride-reorder-list li:hover {
+	background-color: #d0eaff;
+}
+#lapoverride-reorder-list li.lapoverride-reorder-dragging {
+	opacity: 0.4;
+}
+#lapoverride-reorder-list li.lapoverride-reorder-over {
+	border-color: #259;
+	background-color: #bdf;
 }
 #lapoverride-current {
 	font-size: 0.8em;

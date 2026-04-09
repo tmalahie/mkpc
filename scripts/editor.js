@@ -3036,9 +3036,12 @@ function initLapOverrideOptions() {
 	document.getElementById("lapoverride-more").style.display = "none";
 	document.getElementById("lapoverride-less").style.display = "none";
 	document.getElementById("lapoverride-copy").style.display = "none";
+	document.getElementById("lapoverride-reorder").style.display = "none";
 	document.getElementById("lapoverride-btn-add").style.display = "block";
 	document.getElementById("lapoverride-btn-edit").style.display = (lapOverrides.length > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-copy").style.display = (lapOverrides.length > 1) ? "block" : "none";
+	var reorderableCount = lapOverrides.filter(function(o) { return o.lap === undefined && o !== lapOverrides[0]; }).length;
+	document.getElementById("lapoverride-btn-reorder").style.display = (reorderableCount > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-remove").style.display = (lapOverrides.length > 1) ? "block" : "none";
 }
 function initModeOverrideOptions() {
@@ -3551,6 +3554,91 @@ function handleLapCopyComponentsAll(checked) {
 function showLapOverrideRemove() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-delete";
 	renderLapOverrideSelect();
+}
+function showLapOverrideReorder() {
+	document.getElementById("lapoverride-menu").style.display = "none";
+	document.getElementById("lapoverride-reorder").style.display = "block";
+	var $list = document.getElementById("lapoverride-reorder-list");
+	$list.innerHTML = "";
+	for (var lapKey = 1; lapKey < lapOverrides.length; lapKey++) {
+		if (lapOverrides[lapKey].lap !== undefined) continue;
+		var $item = document.createElement("li");
+		$item.dataset.key = lapKey;
+		$item.draggable = true;
+		$item.innerHTML = getLapOverrideLabel(lapKey);
+		$item.addEventListener("dragstart", function(e) {
+			e.dataTransfer.setData("text/plain", this.dataset.key);
+			this.classList.add("lapoverride-reorder-dragging");
+		});
+		$item.addEventListener("dragend", function() {
+			this.classList.remove("lapoverride-reorder-dragging");
+		});
+		$item.addEventListener("dragover", function(e) {
+			e.preventDefault();
+			this.classList.add("lapoverride-reorder-over");
+		});
+		$item.addEventListener("dragleave", function() {
+			this.classList.remove("lapoverride-reorder-over");
+		});
+		$item.addEventListener("drop", function(e) {
+			e.preventDefault();
+			this.classList.remove("lapoverride-reorder-over");
+			var fromKey = e.dataTransfer.getData("text/plain");
+			var $from = document.querySelector("#lapoverride-reorder-list li[data-key='"+fromKey+"']");
+			if ($from && $from !== this) {
+				var $list = document.getElementById("lapoverride-reorder-list");
+				var items = Array.from($list.children);
+				var fromIdx = items.indexOf($from);
+				var toIdx = items.indexOf(this);
+				if (fromIdx < toIdx)
+					$list.insertBefore($from, this.nextSibling);
+				else
+					$list.insertBefore($from, this);
+			}
+		});
+		$list.appendChild($item);
+	}
+}
+function applyLapOverrideReorder() {
+	var $items = document.querySelectorAll("#lapoverride-reorder-list li");
+	var newOrder = [];
+	for (var i = 0; i < $items.length; i++) {
+		newOrder.push(+$items[i].dataset.key);
+	}
+	var originalOrder = [];
+	for (var i = 1; i < lapOverrides.length; i++) {
+		if (lapOverrides[i].lap === undefined) originalOrder.push(i);
+	}
+	var changed = false;
+	for (var i = 0; i < newOrder.length; i++) {
+		if (newOrder[i] !== originalOrder[i]) { changed = true; break; }
+	}
+	if (!changed) {
+		closeLapOverrideOptions();
+		return;
+	}
+	var selectedOverride = lapOverrides[selectedLapOverride];
+	var newLapOverrides = [lapOverrides[0]];
+	for (var i = 1; i < lapOverrides.length; i++) {
+		if (lapOverrides[i].lap !== undefined) newLapOverrides.push(lapOverrides[i]);
+	}
+	for (var i = 0; i < newOrder.length; i++) {
+		newLapOverrides.push(lapOverrides[newOrder[i]]);
+	}
+	for (var i = 1; i < newLapOverrides.length; i++) {
+		var lapOverride = newLapOverrides[i];
+		if (lapOverride.imgData && lapOverride.imgData.data && lapOverride.imgData.data.overrideRef != null) {
+			lapOverride.imgData.data.overrideKey = newLapOverrides.indexOf(lapOverride.imgData.data.overrideRef);
+		}
+	}
+	lapOverrides.length = 0;
+	for (var i = 0; i < newLapOverrides.length; i++) {
+		lapOverrides.push(newLapOverrides[i]);
+	}
+	selectedLapOverride = lapOverrides.indexOf(selectedOverride);
+	applyLapOverrideSelector();
+	closeLapOverrideOptions();
+	changes = true;
 }
 function selectOverrideTrigger($elt) {
 	// Reset condition UI when user manually switches trigger types

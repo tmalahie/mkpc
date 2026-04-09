@@ -456,6 +456,7 @@ if (isset($_GET['i'])) {
 					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a lap override':'Ajouter un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a lap override':'Changer un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-copy" href="javascript:showLapOverrideCopy()">'. ($language ? 'Copy an override':'Copier un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-reorder" href="javascript:showLapOverrideReorder()">'. ($language ? 'Reorder overrides':'Réordonner les modificateurs') .'</a>';
 					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
 					echo '</div>';
 					?>
@@ -608,6 +609,16 @@ if (isset($_GET['i'])) {
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options lapoverride-less-edit" onclick="showLapOverrideEdit()"><?php echo $language ? 'Next':'Suivant'; ?> &gt;</button>
 							<button class="options lapoverride-less-delete" onclick="removeLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-reorder">
+					<h1><?php echo $language ? 'Reorder overrides':'Réordonner les modificateurs'; ?></h1>
+					<div>
+						<ul id="lapoverride-reorder-list"></ul>
+						<div class="popup-buttons">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="applyLapOverrideReorder()"><?php echo $language ? 'Validate':'Valider'; ?></button>
 						</div>
 					</div>
 				</div>
