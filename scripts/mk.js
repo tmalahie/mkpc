@@ -5766,7 +5766,6 @@ var oMusicEmbed;
 
 
 var fSpriteScale = 0;
-var fLineScale = 0;
 
 // setup main container
 var oContainers = [document.createElement("div")];
@@ -5801,37 +5800,165 @@ if (pause && fInfos.player[1]) {
 // setup screen canvas for render mode 0.
 var oScreens = new Array();
 
-// array for screen strip descriptions
-var aStrips = new Array();
-
 var iCamHeight = 24;
 var iCamDist = 32;
 var iViewHeight = -10;
 var fFocal = 1 / Math.tan(Math.PI*Math.PI / 360);
 
+function initWebGL(canvas) {
+	const gl = canvas.getContext("webgl2");
+	if (!gl) return null;
+
+	const vsSource = `#version 300 es
+	precision mediump float;
+	in vec2 aPosition;
+	in vec2 aUV;
+	out vec2 vUV;
+	void main() {
+		vUV = vec2(${bSelectedMirror ? "1.0 - " : ""}aUV.x, 1.0 - aUV.y);
+		gl_Position = vec4(aPosition, 0.0, 1.0);
+	}
+	`;
+	const fsSource = `#version 300 es
+	precision mediump float;
+
+	uniform sampler2D uTexture;
+	uniform vec2 uPosition;
+	uniform vec3 uBgColor;
+	uniform float uAngle;
+	const float yOffset = 14.0;
+	const vec2 viewSize = vec2(600.0, 240.0);
+	const mat3 invH = mat3(
+		1.0, 0.0, 0.0,
+		5.75, 12.5, 11.5,
+		0.0, 0.0, 1.0
+	);
+
+	in vec2 vUV;
+	out vec4 outColor;
+
+	void main() {
+		vec3 p = vec3(vUV, 1.0);
+		vec3 src = invH * p;
+		src /= src.z;
+
+		vec2 origin = uPosition - vec2(viewSize.x * 0.5, viewSize.y);
+		vec2 pixelF = origin + src.xy * viewSize + vec2(0.0, yOffset);
+
+		float c = cos(uAngle);
+		float s = sin(uAngle);
+		vec2 rel = pixelF - uPosition;
+		rel = vec2(c * rel.x - s * rel.y, s * rel.x + c * rel.y);
+		pixelF = uPosition + rel;
+
+		ivec2 pixel = ivec2(floor(pixelF + 0.5));
+
+		bool outOfBounds = any(lessThan(pixel, ivec2(0))) ||
+						   any(greaterThanEqual(pixel, textureSize(uTexture, 0)));
+
+		if (outOfBounds) {
+			outColor = vec4(uBgColor, 1.0);
+		}
+		else {
+			outColor = texelFetch(uTexture, pixel, 0);
+		}
+	}
+	`;
+
+	function createShader(type, src) {
+		const s = gl.createShader(type);
+		gl.shaderSource(s, src);
+		gl.compileShader(s);
+		if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+			console.error(gl.getShaderInfoLog(s));
+			gl.deleteShader(s);
+			return null;
+		}
+		return s;
+	}
+
+	function createProgram(vs, fs) {
+		const p = gl.createProgram();
+		gl.attachShader(p, vs);
+		gl.attachShader(p, fs);
+		gl.linkProgram(p);
+		if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+			console.error(gl.getProgramInfoLog(p));
+			gl.deleteProgram(p);
+			return null;
+		}
+		return p;
+	}
+
+	const vs = createShader(gl.VERTEX_SHADER, vsSource);
+	const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+	if (!vs || !fs) return null;
+
+	const prog = createProgram(vs, fs);
+	if (!prog) return null;
+	gl.useProgram(prog);
+
+	const verts = new Float32Array([
+		-1,-1, 0,0,
+		 1,-1, 1,0,
+		-1, 1, 0,1,
+		-1, 1, 0,1,
+		 1,-1, 1,0,
+		 1, 1, 1,1
+	]);
+	const buf = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+	gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+	const aPosition = gl.getAttribLocation(prog, "aPosition");
+	const aUV = gl.getAttribLocation(prog, "aUV");
+	gl.enableVertexAttribArray(aPosition);
+	gl.enableVertexAttribArray(aUV);
+	gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 16, 0);
+	gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 16, 8);
+
+	const tex = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, tex);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+	return {
+		canvas: canvas,
+		gl: gl,
+		prog: prog,
+		buf: buf,
+		positionLoc: gl.getUniformLocation(prog, 'uPosition'),
+		angleLoc: gl.getUniformLocation(prog, "uAngle"),
+		bgColorLoc: gl.getUniformLocation(prog, "uBgColor")
+	};
+}
+
 function resetScreen() {
 	fSpriteScale = iScreenScale / 4;
-	fLineScale = 1/iScreenScale * iQuality;
 
-	aStrips = [];
+	for (var i = 0; i < strPlayer.length; i++) {
+		oContainers[i].style.width = iWidth * iScreenScale + "px";
+		oContainers[i].style.height = iHeight * iScreenScale + "px";
 
-	// change dimensions of main container
+		const canvas = document.createElement("canvas");
 
-	for (var i=0;i<strPlayer.length;i++) {
-		var oCtrChange = oContainers[i];
-		oCtrChange.style.width = (iWidth*iScreenScale)+"px";
-		oCtrChange.style.height = (iHeight*iScreenScale)+"px";
+		canvas.style.position = "absolute";
+		canvas.style.left = (-iScreenScale/2) + "px";
+		canvas.style.top = iScreenScale * 107 / 12 + "px";
+		canvas.style.width = (iWidth * iScreenScale + iScreenScale) + "px";
+		canvas.style.height = (iHeight * iScreenScale) + "px";
 
-		var oScreenCanvas = document.createElement("canvas");
-		oScreenCanvas.style.position = "absolute";
-		oScreens.push(oScreenCanvas);
-		oContainers[i].appendChild(oScreenCanvas);
-		oScreenCanvas.width=iWidth/fLineScale;
-		oScreenCanvas.height=iHeight/fLineScale;
-		oScreenCanvas.style.width = (iWidth*iScreenScale+iScreenScale)+"px";
-		oScreenCanvas.style.left = (-iScreenScale/2)+"px";
-		oScreenCanvas.style.top = iScreenScale+"px";
-		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
+		canvas.width = iWidth * iScreenScale;
+		canvas.height = iHeight * iScreenScale;
+
+		oScreens.push(canvas);
+		oContainers[i].appendChild(canvas);
+
+		var glInfo = initWebGL(canvas);
+		if (glInfo) oScreens[i].glInfo = glInfo;
+		else console.error("Failed to initialize WebGL");
 	}
 
 	var prevScreenBlur = 0;
@@ -5868,29 +5995,6 @@ function resetScreen() {
 		}
 	}
 
-	var fLastZ = 0;
-		// create horizontal strip descriptions
-	for (var iViewY=0;iViewY<iHeight;iViewY+=fLineScale) {
-		var iTotalY = iViewY + iViewHeight; // total height of point (on view) from the ground up
-		var iDeltaY = iCamHeight - iTotalY; // height of point relative to camera
-		var iPointZ = (iTotalY/(iDeltaY / iCamDist)); // distance to point on the map
-		var fScaleRatio = fFocal / (fFocal + iPointZ);
-		var iStripWidth = Math.floor(iWidth/fScaleRatio);
-		if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
-			if (iViewY == 0)
-				fLastZ = iPointZ - 1;
-			aStrips.push(
-				{
-					viewy : iViewY,
-					mapz : iPointZ,
-					scale : fScaleRatio,
-					stripwidth : iStripWidth,
-					mapzspan : iPointZ - fLastZ
-				}
-			)
-			fLastZ = iPointZ;
-		}
-	}
 	foreachLMap(function(lMap) {
 		updateBgLayers({},lMap, function(strImages, fixedScale) {
 			if (lMap === oMap)
@@ -5904,9 +6008,7 @@ function resetScreen() {
 		for (var j=0;j<prevScreenDelay;j++)
 			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
 	}
-	oViewCanvas = document.createElement("canvas");
-	oViewCanvas.width=iViewCanvasWidth;
-	oViewCanvas.height=iViewCanvasHeight;
+	mapCanvas = document.createElement("canvas");
 }
 
 function getFrameSettings(currentSettings) {
@@ -6643,11 +6745,7 @@ function rankingColor(getId) {
 	return "transparent";
 }
 
-
-var iViewCanvasHeight = 240;
-var iViewCanvasWidth = 600;
-var iViewYOffset = 10;
-var oViewCanvas;
+var mapCanvas;
 
 function Sprite(strSprite) {
 	var oCtSprites = new Array();
@@ -7416,7 +7514,6 @@ function clonePreviousScreen(i, oPlayer) {
 		prevScreenCur = 0;
 }
 function redrawCanvas(i, fCamera, lMap) {
-	var oViewContext = oViewCanvas.getContext("2d");
 	var oPlayer = fCamera.ref;
 	var bgcolor = lMap.bgcolor;
 	var lapTransitionOpacity, lapTransitionMap;
@@ -7434,71 +7531,60 @@ function redrawCanvas(i, fCamera, lMap) {
 		else
 			delete oPlayer.lastOverride;
 	}
-	oViewContext.fillStyle = "rgb("+ bgcolor +")";
-	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
-	oViewContext.save();
-	oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
-	if (bSelectedMirror)
-		oViewContext.scale(-1, 1);
-	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
+	const mapCtx = mapCanvas.getContext("2d");
+	mapCanvas.width = lMap.mapImg.width;
+	mapCanvas.height = lMap.mapImg.height;
 
-	var posX = fCamera.x, posY = fCamera.y;
-	drawMapImg(oViewContext, lMap, posX, posY);
+	drawMapImg(mapCtx, lMap, 0, 0);
 	if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
-		oViewContext.globalAlpha = lapTransitionOpacity;
-		drawMapImg(oViewContext, lapTransitionMap, posX, posY);
-		oViewContext.globalAlpha = 1;
+		mapCtx.globalAlpha = lapTransitionOpacity;
+		drawMapImg(mapCtx, lapTransitionMap, 0, 0);
+		mapCtx.globalAlpha = 1;
 	}
-	oViewContext.restore();
 
-	oScreens[i].getContext("2d").imageSmoothingEnabled = iSmooth;
+	const posX = fCamera.x;
+	const posY = fCamera.y;
 
-	var oScreenContext = oScreens[i].getContext("2d");
-
-	var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
-
-	for (var j=0;j<aStrips.length;j++) {
-
-		var oStrip = aStrips[j];
-
-		try {
-			oScreenContext.drawImage(
-				oViewCanvas,
-				(iViewCanvasWidth-oStrip.stripwidth)/2,
-				iViewCanvasYOffset - oStrip.mapz,
-				oStrip.stripwidth,
-				oStrip.mapzspan,
-
-				0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
-			);
-		}
-		catch (e) {}
-	}
+	const glInfo = oScreens[i].glInfo;
+	glInfo.canvas.width = iWidth * iScreenScale;
+	glInfo.canvas.height = iHeight * iScreenScale;
+	glInfo.gl.viewport(0, 0, glInfo.canvas.width, glInfo.canvas.height);
+	
+	glInfo.gl.texImage2D(glInfo.gl.TEXTURE_2D, 0, glInfo.gl.RGBA, glInfo.gl.RGBA, glInfo.gl.UNSIGNED_BYTE, mapCanvas);
+	
+	glInfo.gl.useProgram(glInfo.prog);
+    glInfo.gl.uniform2f(glInfo.positionLoc, posX - 0.5, posY - 0.5);
+	glInfo.gl.uniform1f(glInfo.angleLoc, (180 - fCamera.rotation) * Math.PI / 180);
+	glInfo.gl.uniform3f(glInfo.bgColorLoc, bgcolor[0] / 255, bgcolor[1] / 255, bgcolor[2] / 255);
+	
+	glInfo.gl.clearColor(1, 1, 1, 1);
+	glInfo.gl.clear(glInfo.gl.COLOR_BUFFER_BIT);
+	glInfo.gl.drawArrays(glInfo.gl.TRIANGLES, 0, 6);
 }
-function drawMapImg(oViewContext, lMap, posX, posY) {
+function drawMapImg(ctx, lMap, posX, posY) {
 	var oMapImg = lMap.mapImg;
 	if (oMapImg.image) {
-		oViewContext.drawImage(
+		ctx.drawImage(
 			oMapImg.image,
 			-posX,-posY
 		);
 	}
 	else {
-		oViewContext.drawImage(
+		ctx.drawImage(
 			oMapImg,
 			-posX,-posY
 		);
 	}
 	for (var j=0;j<lMap.assets.length;j++) {
 		var asset = lMap.assets[j];
-		oViewContext.drawImage(
+		ctx.drawImage(
 			asset.canvas,
 			asset.x-posX,asset.y-posY
 		);
 	}
 	if (lMap.sea)
-		lMap.sea.render(oViewContext,[posX,posY],1);
+		lMap.sea.render(ctx,[posX,posY],1);
 }
 
 function byteType(key) {
