@@ -20601,7 +20601,7 @@ function ai(oKart) {
 					else
 						oKart.nextAI = -1;
 				}
-				if (oKart.nextAI != -1)
+				if (oKart.aipoints[oKart.nextAI])
 					nextAi = oKart.aipoints[oKart.nextAI].slice(1);
 				else
 					nextAi = lastAi;
