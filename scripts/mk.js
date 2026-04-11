@@ -5826,32 +5826,45 @@ function initWebGL(canvas) {
 	uniform vec2 uPosition;
 	uniform vec3 uBgColor;
 	uniform float uAngle;
-	const float yOffset = 14.0;
-	const vec2 viewSize = vec2(600.0, 240.0);
-	const mat3 invH = mat3(
-		1.0, 0.0, 0.0,
-		5.75, 12.5, 11.5,
-		0.0, 0.0, 1.0
-	);
+
+	const float iHeight = ${iHeight}.0;
+	const float iWidth = ${iWidth}.0;
+	const float iCamHeight = ${iCamHeight}.0;
+	const float iCamDist = ${iCamDist}.0;
+	const float iViewHeight = ${iViewHeight}.0;
+	const float PI = ${Math.PI};
+	const float fFocal = 1.0 / tan(PI * PI / 360.0);
+	const float viewCanvasWidth = 600.0;
 
 	in vec2 vUV;
 	out vec4 outColor;
 
 	void main() {
-		vec3 p = vec3(vUV, 1.0);
-		vec3 src = invH * p;
-		src /= src.z;
+		float iViewY = iHeight * (1.0 - vUV.y);
+		float iTotalY = iViewY + iViewHeight;
+		float iDeltaY = iCamHeight - iTotalY;
 
-		vec2 origin = uPosition - vec2(viewSize.x * 0.5, viewSize.y);
-		vec2 pixelF = origin + src.xy * viewSize + vec2(0.0, yOffset);
+		if (iDeltaY <= 0.0) {
+			outColor = vec4(uBgColor, 1.0);
+			return;
+		}
+
+		float iPointZ = iTotalY * iCamDist / iDeltaY;
+		float fScaleRatio = fFocal / (fFocal + iPointZ);
+
+		if (fScaleRatio <= 0.0 || iWidth / fScaleRatio >= viewCanvasWidth) {
+			outColor = vec4(uBgColor, 1.0);
+			return;
+		}
+
+		float dx = iWidth * (vUV.x - 0.5) / fScaleRatio;
+		float dy = -1.0 - iPointZ;
 
 		float c = cos(uAngle);
 		float s = sin(uAngle);
-		vec2 rel = pixelF - uPosition;
-		rel = vec2(c * rel.x - s * rel.y, s * rel.x + c * rel.y);
-		pixelF = uPosition + rel;
+		vec2 mapPos = uPosition + vec2(c * dx - s * dy, s * dx + c * dy);
 
-		ivec2 pixel = ivec2(floor(pixelF + 0.5));
+		ivec2 pixel = ivec2(floor(mapPos));
 
 		bool outOfBounds = any(lessThan(pixel, ivec2(0))) ||
 						   any(greaterThanEqual(pixel, textureSize(uTexture, 0)));
@@ -5946,7 +5959,7 @@ function resetScreen() {
 
 		canvas.style.position = "absolute";
 		canvas.style.left = (-iScreenScale/2) + "px";
-		canvas.style.top = iScreenScale * 107 / 12 + "px";
+		canvas.style.top = iScreenScale + "px";
 		canvas.style.width = (iWidth * iScreenScale + iScreenScale) + "px";
 		canvas.style.height = (iHeight * iScreenScale) + "px";
 
@@ -7554,7 +7567,7 @@ function redrawCanvas(i, fCamera, lMap) {
 	glInfo.gl.texImage2D(glInfo.gl.TEXTURE_2D, 0, glInfo.gl.RGBA, glInfo.gl.RGBA, glInfo.gl.UNSIGNED_BYTE, mapCanvas);
 	
 	glInfo.gl.useProgram(glInfo.prog);
-    glInfo.gl.uniform2f(glInfo.positionLoc, posX - 0.5, posY - 0.5);
+    glInfo.gl.uniform2f(glInfo.positionLoc, posX, posY);
 	glInfo.gl.uniform1f(glInfo.angleLoc, (180 - fCamera.rotation) * Math.PI / 180);
 	glInfo.gl.uniform3f(glInfo.bgColorLoc, bgcolor[0] / 255, bgcolor[1] / 255, bgcolor[2] / 255);
 	
