@@ -147,9 +147,6 @@ if (isCup && (aAvailableMaps.length > 4))
 var iWidth = 80;
 var iHeight = 39;
 var SPF = 67;
-var iRendering = baseOptions["quality"];
-var iQuality, iSmooth;
-resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 2;
@@ -184,28 +181,6 @@ if (typeof shareLink !== "undefined") {
 }
 var $changeRace = document.getElementById("changeRace");
 var myCircuit = ($changeRace != null) && (!$changeRace.dataset || !$changeRace.dataset.collab);
-
-
-function setQuality(iValue) {
-	iRendering = iValue;
-	baseOptions["quality"] = iValue;
-	resetQuality();
-
-	if (iQuality == 5)
-		localStorage.removeItem("iQuality");
-	else
-		localStorage.setItem("iQuality", iValue);
-}
-function resetQuality() {
-	if (iRendering == 5) {
-		iQuality = 1;
-		iSmooth = false;
-	}
-	else {
-		iQuality = iRendering;
-		iSmooth = true;
-	}
-}
 
 function setFps(iValue) {
 	if (iValue == -2) {
@@ -6933,7 +6908,7 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 
 	var imageDims = new Image();
 	imageDims.src = strImage;
-	if (!iSmooth) imageDims.className = "pixelated";
+	imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
 		var oLayer = document.createElement("div");
 		oLayer.style.height = (10 * iScreenScale)+"px";
@@ -6941,7 +6916,7 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 		oLayer.style.position = "absolute";
 		(function(oLayer){deferRender(function(){oLayer.style.backgroundImage="url('"+strImage+"')"},300)})(oLayer);
 		oLayer.style.backgroundSize = "auto 100%";
-		if (!iSmooth) oLayer.className = "pixelated";
+		oLayer.className = "pixelated";
 
 		oContainers[i].appendChild(oLayer);
 		oLayers[i] = oLayer;
@@ -31952,36 +31927,6 @@ function editCommands(options) {
 	};
 	for (var key in allGraphicSettings)
 		showGraphicSetting(key, allGraphicSettings[key]);
-	{
-		var $controlSetting = document.createElement("label");
-		$controlSetting.style.marginLeft = "5px";
-		var $controlText = document.createElement("span");
-		$controlText.innerHTML = toLanguage("Quality:", "Qualité :");
-		$controlSetting.appendChild($controlText);
-		var $controlSelect = document.createElement("select");
-		$controlSelect.style.width = "auto";
-		$controlSelect.style.marginLeft = "6px";
-		$controlSelect.onchange = function() {
-			MarioKartControl.setQuality(+this.value);
-		};
-		var graphicOptions = [
-			[5, toLanguage("Pixelated","Pixelisé")],
-			[4, toLanguage("Low","Inférieure")],
-			[2, toLanguage("Medium","Moyenne")],
-			[1, toLanguage("High","Supérieure")]
-		];
-		for (var i=0;i<graphicOptions.length;i++) {
-			var graphicOption = graphicOptions[i];
-			var $controlOption = document.createElement("option");
-			$controlOption.value = graphicOption[0];
-			$controlOption.innerHTML = graphicOption[1];
-			$controlSelect.appendChild($controlOption);
-		}
-		if (localStorage.getItem("iQuality"))
-			$controlSelect.value = localStorage.getItem("iQuality");
-		$controlSetting.appendChild($controlSelect);
-		$controlSettings.appendChild($controlSetting);
-	}
 	showGraphicSetting('spd', toLanguage('Enable speedometer', 'Activer le compteur de vitesse'));
 	var $controlSettingsH2 = document.createElement("div");
 	$controlSettingsH2.className = "control-settings-info";
@@ -32065,29 +32010,6 @@ function editCommands(options) {
 			$controlSettingMotion = document.createElement("div");
 			$controlSettingMotion.className = "motion-trail-settings";
 
-			{
-				var $controlSetting = document.createElement("label");
-				var $controlText = document.createElement("span");
-				$controlText.innerHTML = toLanguage("Frame&nbsp;count:", "Nb&nbsp;frames&nbsp;:");
-				$controlSetting.appendChild($controlText);
-				var $controlSelect = document.createElement("select");
-				$controlSelect.style.width = "auto";
-				$controlSelect.style.marginLeft = "6px";
-				$controlSelect.onchange = function() {
-					currentSettings.framerad = this.value;
-					localStorage.setItem("settings", JSON.stringify(currentSettings));
-				};
-				for (var i=1;i<10;i++) {
-					var graphicOption = graphicOptions[i];
-					var $controlOption = document.createElement("option");
-					$controlOption.value = i;
-					$controlOption.innerHTML = i;
-					$controlSelect.appendChild($controlOption);
-				}
-				$controlSelect.value = currentFrameRad;
-				$controlSetting.appendChild($controlSelect);
-				$controlSettingMotion.appendChild($controlSetting);
-			}
 			{
 				var $controlSetting = document.createElement("label");
 				var $controlText = document.createElement("span");
@@ -33382,9 +33304,6 @@ function handleChatPos() {
 }
 
 window.MarioKartControl = {
-	setQuality : function(iValue) {
-		 setQuality(iValue);
-	},
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},
