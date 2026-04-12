@@ -5979,7 +5979,7 @@ function resetScreen() {
 	frameHandlers = new Array(nbFrames);
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
-	prevScreenDelay = frameSettings.framerad;
+	prevScreenDelay = frameSettings.framerad + 1;
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
@@ -6002,6 +6002,7 @@ function resetScreen() {
 			oPrevFrameStates[i][j] = {
 				container: oContainer2,
 				canvas: oContainer2.firstChild,
+				ctx: oContainer2.firstChild.getContext("2d", { willReadFrequently: true }), 
 				layer: [],
 				opacity: 0
 			}
@@ -7508,23 +7509,35 @@ function createMarker(oKart) {
 var prevScreenDelay;
 var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFade = 0;
 function clonePreviousScreen(i, oPlayer) {
-	if (!prevScreenDelay) return;
+  if (!prevScreenDelay) return;
 
-	var iPrevFrameStates = oPrevFrameStates[i];
-	iPrevFrameStates[prevScreenCur].canvas.getContext("2d").drawImage(
-	  oScreens[i], 0,0
-	);
-	for (var j=0;j<oBgLayers.length;j++)
-		iPrevFrameStates[prevScreenCur].layer[j].drawCurrentState();
-	iPrevFrameStates[prevScreenCur].opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
-	for (var j=0;j<prevScreenDelay;j++) {
-		var screenPos = (prevScreenCur-j + prevScreenDelay) % prevScreenDelay;
-		iPrevFrameStates[j].container.style.zIndex = prevScreenDelay-screenPos;
-		iPrevFrameStates[j].container.style.opacity = iPrevFrameStates[j].opacity * Math.pow(prevScreenFade, screenPos);
-	}
-	prevScreenCur++;
-	if (prevScreenCur >= prevScreenDelay)
-		prevScreenCur = 0;
+  var iPrevFrameStates = oPrevFrameStates[i];
+  var sourceCanvas = oScreens[i];
+  
+  var targetState = iPrevFrameStates[prevScreenCur];
+
+  var ctx = targetState.ctx;
+  ctx.save();
+  ctx.drawImage(sourceCanvas, 0,0);
+  ctx.restore();
+
+  for (var j = 0; j < oBgLayers.length; j++) {
+    targetState.layer[j].drawCurrentState();
+  }
+
+  targetState.opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed * prevScreenOpacity / 8));
+
+  for (var j = 0; j < prevScreenDelay; j++) {
+    var age = (prevScreenCur - j + prevScreenDelay) % prevScreenDelay;
+    var state = iPrevFrameStates[j];
+
+    state.container.style.zIndex = prevScreenDelay - age;
+    
+    state.container.style.opacity = state.opacity * Math.pow(prevScreenFade, age);
+		state.container.style.visibility = (age === 0) ? "hidden" : "";
+  }
+
+  prevScreenCur = (prevScreenCur + 1) % prevScreenDelay;
 }
 function redrawCanvas(i, fCamera, lMap) {
 	var oPlayer = fCamera.ref;
@@ -7560,8 +7573,6 @@ function redrawCanvas(i, fCamera, lMap) {
 	const posY = fCamera.y;
 
 	const glInfo = oScreens[i].glInfo;
-	glInfo.canvas.width = iWidth * iScreenScale;
-	glInfo.canvas.height = iHeight * iScreenScale;
 	glInfo.gl.viewport(0, 0, glInfo.canvas.width, glInfo.canvas.height);
 	
 	glInfo.gl.texImage2D(glInfo.gl.TEXTURE_2D, 0, glInfo.gl.RGBA, glInfo.gl.RGBA, glInfo.gl.UNSIGNED_BYTE, mapCanvas);
@@ -11881,7 +11892,6 @@ function render() {
 				ref: oPlayer.ref
 			};
 
-      		clonePreviousScreen(i, oPlayer);
 			redrawCanvas(i, fCamera, lMap);
 
 			if (oPlayer.time) {
@@ -12123,6 +12133,7 @@ function render() {
 				oBgLayers[j].draw(fRotation, i);
 			for (var j=0;j<fadingBgLayers.length;j++)
 				fadingBgLayers[j].draw(fRotation, i);
+      clonePreviousScreen(i, oPlayer);
 
 			if (oPlanCtn)
 				setPlanPos(frameState, lMap);
