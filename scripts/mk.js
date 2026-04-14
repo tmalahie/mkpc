@@ -14590,8 +14590,13 @@ var challengeRules = {
 			const fireballDecors = ["fireplant"];
 
 			for (let decorType in scope.value) {
-				if (decorType.startsWith("custom-"))
-					decorType = getDecorCustomData(decorType, oMap).type;
+				if (decorType.startsWith("custom-")) {
+					const customData = getDecorCustomData(decorType, oMap);
+					if (customData)
+						decorType = customData.type;
+					else
+						continue;
+				}
 
 				if (fireballsDecors.includes(decorType) && !scope.value.fireballs)
 					scope.value.fireballs = {};
