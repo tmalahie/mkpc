@@ -18417,7 +18417,7 @@ function move(getId, triggered) {
 						forbiddenItems["carapacenoire"] = 1;
 					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
 						forbiddenItems["carapacebleue"] = 1;
-					if ((oKart.place < aKarts.length) || items.eclair.length)
+					if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
 						forbiddenItems["bloops"] = 1;
@@ -26263,6 +26263,7 @@ function selectItemScreen(oScr, callback, options) {
 		"pow-start": options.powstart != 1,
 		"blueshell-start": options.blueshellstart != 1,
 		"lightning-start": options.lightningstart != 1,
+		"lightning-last": options.lightninglast != 0,
 		"prevent-doubleitem-x2": options.doubleitemx2 != 1
 	};
 
@@ -26295,6 +26296,8 @@ function selectItemScreen(oScr, callback, options) {
 			newDistribution.blueshellstart = 1;
 		if (!advancedOptions["lightning-start"])
 			newDistribution.lightningstart = 1;
+		if (!advancedOptions["lightning-last"])
+			newDistribution.lightninglast = 0;
 		if (!advancedOptions["prevent-doubleitem-x2"])
 			newDistribution.doubleitemx2 = 1;
 	}
@@ -26346,6 +26349,12 @@ function selectItemScreen(oScr, callback, options) {
 								'<input type="checkbox" id="item-options-lightning" name="prevent-lightning-x2" />'+
 							'</div>'+
 							'<label for="item-options-lightning">'+ toLanguage("Prevent 2 players from having a lightning item", "Empêcher 2 joueurs d'avoir un éclair") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-lightning-1" name="lightning-last" />'+
+							'</div>'+
+							'<label for="item-options-lightning-1">'+ toLanguage("Only player in last position can get a lightning item", "Seul le dernier joueur peut avoir un éclair") +'</label>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+
