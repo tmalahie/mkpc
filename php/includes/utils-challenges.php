@@ -387,6 +387,11 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'avoid_boomerang_break' => array(
+			'description' => $language ? 'without breaking any of your boomerangs' : 'sans casser aucun de vos boomerangs',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
@@ -1454,6 +1459,9 @@ function getChallengeItemNames(&$scope) {
 		),
 		'bobomb' => array(
 			'label' => $language ? 'a bobomb' : 'une bobomb'
+		),
+		'boomerang' => array(
+			'label' => $language ? 'a boomerang' : 'un boomerang'
 		),
         'pow' => array(
             'label' => $language ? 'a POW block' : 'un block POW'
