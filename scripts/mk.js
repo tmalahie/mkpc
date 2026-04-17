@@ -3625,6 +3625,40 @@ function handleEndRace() {
 	challengeCheck("end_game", events);
 	challengeCheck("end_gp", events);
 	clGlobalVars.nbcircuits++;
+
+	if (raceLog.items.length > 0) {
+		let text = "";
+
+		// single items
+		for (let spot = 1; spot <= aKarts.length; spot++) {
+			if (Object.keys(raceLog.getDefinedItemAtSpot(spot)).length === 0) {
+				text += `${spot}: -\n`;
+				continue;
+			}
+
+			text += `${spot}: `;
+			for (const itemName in raceLog.getDefinedItemAtSpot(spot)) {
+				const itemCount = raceLog.getItemSpot(spot, itemName);
+				const spotTotal = raceLog.getTotalSpot(spot);
+				const percent = ((itemCount / spotTotal) * 100).toFixed(2);
+				text += `${itemName}(${itemCount} / ${spotTotal} -> ${percent}%)  `;
+			}
+			text += "\n";
+		}
+
+		// totals
+		text += "\nTotal:\n";
+		for (let i = 0; i < raceLog.items.length; i++) {
+			const itemName = raceLog.items[i];
+			const itemTotal = raceLog.getItemTotal(itemName);
+			const allTotal = raceLog.data.total.all;
+			const percent = ((itemTotal / allTotal) * 100).toFixed(2);
+			text += `${itemName}: ${itemTotal} / ${allTotal} -> ${percent}%\n`;
+		}
+
+		alert(text);
+	}
+	raceLog.reset();
 }
 
 function startGame() {
@@ -6811,7 +6845,7 @@ function Sprite(strSprite) {
 	this[0].fadein = function(fadedelay) {
 		if (!that[0].unshown) {
 			var x = 0;
-			var dx = SPF/fadedelay;
+			var dx = oPlayers[0].autoplay ? 1 : SPF/fadedelay;
 			function showProgressively() {
 				if (x >= 1)
 					x = "";
@@ -6834,7 +6868,7 @@ function Sprite(strSprite) {
 				clearTimeout(that[0].fadeinhandler);
 				x = 0;
 			}
-			var dx = SPF/fadedelay;
+			var dx = oPlayers[0].autoplay ? 1 : SPF/fadedelay;
 			function removeProgressively() {
 				x -= dx;
 				if (x <= 0) {
@@ -9293,6 +9327,62 @@ var itemBehaviors = {
 }
 var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang"];
 var items = {};
+
+var raceLog = {
+	items: [],
+	data: {total: {all: 0}},
+
+	reset: function() {
+		this.enabled = false;
+		this.items = [];
+		this.data = {total: {all: 0}};
+		delete oPlayers[0].autoplay;
+	},
+
+	addTotal: function() {
+		this.data.total.all++;
+	},
+
+	addTotalSpot: function(spot) {
+		this.data[spot] ??= {}; // creates spot
+		this.data[spot].total ??= 0; // creates total at spot
+		this.data[spot].total++; // inc total at spot
+	},
+
+	getTotalSpot: function(spot) {
+		return this.data[spot].total;
+	},
+
+	addItemSpot: function(spot, item) {
+		this.data[spot] ??= {}; // creates spot
+		this.data[spot][item] ??= 0; // creates item at this spot
+		this.data[spot][item]++; // inc item at this spot
+	},
+
+	getItemSpot: function(spot, item) {
+		return this.data[spot][item] ?? 0;
+	},
+
+	addItemTotal: function(item) {
+		this.data.total[item] ??= 0; // creates total for item
+		this.data.total[item]++; // inc total for item
+	},
+
+	getItemTotal: function(item) {
+		return this.data.total[item] ??= 0;
+	},
+
+	getDefinedItemAtSpot: function(spot) {
+		const itemNames = {};
+
+		for (const key in this.data[spot]) 
+			if (key !== "total")
+				itemNames[key] = true;
+
+		return itemNames;
+	}
+};
+
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
 var decorBehaviors = {
@@ -18229,7 +18319,7 @@ function resetFall(oKart) {
 }
 
 function loseBall(i) {
-	if (course == "BB") {
+	if (course == "BB" && !aKarts[i].autoplay) {
 		var lg = aKarts[i].ballons.length-1;
 		if (!aKarts[i].tourne && aKarts[i].ballons[lg]) {
 			popBalloon(aKarts[i]);
@@ -18263,8 +18353,8 @@ function move(getId, triggered) {
 	clLocalVars.currentKart = oKart;
 	var lMap = getCurrentLMap(collisionLap);
 	if ((getId<strPlayer.length)) {
-		if (!oKart.cpu && !finishing) {
-			showTimer(timer*SPF);
+		if ((!oKart.cpu || oKart.autoplay) && !finishing) {
+			showTimer(timer * SPF * (oKart.autoplay ? 67 : 1));
 			if (!getId)
 				timer++;
 
@@ -18782,6 +18872,15 @@ function move(getId, triggered) {
 						iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 					}
 				}
+
+				raceLog.addTotal();
+				raceLog.addTotalSpot(oKart.place);
+
+				if (raceLog.items.includes(iObj)) {
+					raceLog.addItemSpot(oKart.place, iObj);
+					raceLog.addItemTotal(iObj);
+				}
+
 				/*if (oKart === oPlayers[0]) { // Uncomment to test all objs
 					if (!window.aaa) {
 						window.aaa = [];
@@ -19278,7 +19377,7 @@ function move(getId, triggered) {
 					oKart.finaltime = timeTrialMode() ? lapTimer : (new Date().getTime() - tnCourse);
 				if (kartIsPlayer(oKart) && !finishing) {
 					timerMS = lapTimer;
-					showTimer(timerMS);
+					showTimer(timerMS * (oKart.autoplay ? 67 : 1));
 
 					if (course != "CM")
 						document.getElementById("infoPlace"+getId).innerHTML = oKart.place;
@@ -19496,7 +19595,7 @@ function move(getId, triggered) {
 				if (oMap.sections)
 					if (oKart.billball>1) oKart.billball = 1;
 			}
-			else if (!(isOnline ? (sID||finishing):oKart.cpu)) {
+			else if (!(isOnline ? (sID||finishing):(oKart.cpu && !oKart.autoplay))) {
 				updateLapHud(sID);
 				if (!onlineSpectatorId) {
 					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
@@ -20085,7 +20184,7 @@ function move(getId, triggered) {
 
 function kartIsPlayer(oKart) {
 	if (!isOnline)
-		return !oKart.cpu;
+		return !oKart.cpu || oKart.autoplay;
 	if (onlineSpectatorId)
 		return false;
 	return (oKart == oPlayers[0]);
@@ -20676,6 +20775,25 @@ function processCode(cheatCode) {
 				return true;
 			}
 			return "balloon: Unknown error";
+
+		case "autoplay": // /autoplay (items)
+		case "fastforward":
+		case "fastforwards":
+		case "ff":
+			// plays the race automatically at high speed, used for simulating races abd test item distributions
+			// 'items' are items to display distribution results at the end of the race (must be sparated by a space)
+			raceLog.items = args.slice();
+
+			oPlayer.cpu = true;
+			oPlayer.autoplay = true;
+			oPlayer.maxspeed = 5.7;
+			oPlayer.maxspeed0 = oPlayer.maxspeed;
+
+			SPF = 1;
+			clearInterval(cycleHandler);
+			cycleHandler = null;
+			cycle();
+			return true;
 
         default:
             return "Error: This command doesn't exist";
