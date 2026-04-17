@@ -16188,7 +16188,8 @@ var itemDistributions = {
 			"carapace": 4,
 			"carapacerouge": 7,
 			"bobomb": 2,
-			"bananeX3": 1
+			"bananeX3": 1,
+			"boomerang": 2
 		}, {
 			"carapace": 1,
 			"bobomb": 2,
@@ -16196,7 +16197,8 @@ var itemDistributions = {
 			"carapaceX3": 2,
 			"banane": 1,
 			"fauxobjet": 1,
-			"carapacerouge": 4
+			"carapacerouge": 4,
+			"boomerang": 3
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -16218,12 +16220,14 @@ var itemDistributions = {
 			"bananeX3": 1,
 			"carapacerouge": 12,
 			"carapace": 6,
-			"bobomb": 4
+			"bobomb": 4,
+			"boomerang": 4
 		}, {
 			"carapacerouge": 8,
 			"carapace": 5,
 			"bobomb": 4,
-			"carapaceX3": 3
+			"carapaceX3": 3,
+			"boomerang": 4
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -16310,12 +16314,14 @@ var itemDistributions = {
 			"carapaceX3": 6,
 			"carapacerouge": 5,
 			"bobomb": 3,
-			"bloops": 2
+			"bloops": 2,
+			"boomerang": 3
 		}, {
 			"champi": 8,
 			"carapacerouge": 6,
 			"bobomb": 3,
-			"champiX3": 2
+			"champiX3": 2,
+			"boomerang": 3
 		}, {
 			"bobomb": 4,
 			"champi": 5,
@@ -16323,6 +16329,7 @@ var itemDistributions = {
 			"champiX3": 3,
 			"carapacerougeX3": 3,
 			"pow": 1,
+			"boomerang": 4
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
@@ -16389,18 +16396,21 @@ var itemDistributions = {
 			"champi": 3,
 			"poison": 4,
 			"bobomb": 8,
-			"bloops": 2
+			"bloops": 2,
+			"boomerang": 8
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
-			"bobomb": 8
+			"bobomb": 8,
+			"boomerang": 8
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
 			"bobomb": 6,
 			"champiX3": 1,
 			"carapacerougeX3": 6,
-			"pow": 2
+			"pow": 2,
+			"boomerang": 8
 		}, {
 			"champi": 4,
 			"champiX3": 3,
