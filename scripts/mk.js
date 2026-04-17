@@ -895,11 +895,11 @@ var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oEx
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
-	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(),
+	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(), oPlanBoomerangs = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(), oPlanCarapacesNoires = new Array(),
 	oPlanEtoiles = new Array(), oPlanMegas = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(),
+	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(), oPlanBoomerangs2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanMegas2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
@@ -1217,6 +1217,14 @@ function setPlanPos(frameState, lMap) {
 		setObject(oPlanEtoilesDrop[i],etoile.x,etoile.y, oObjWidth,oPlanSize, -1,100);
 		setObject(oPlanEtoilesDrop2[i],etoile.x,etoile.y, oObjWidth2,oPlanSize2, -1,100);
 		oPlanEtoilesDrop[i].style.zIndex = oPlanEtoilesDrop2[i].style.zIndex = 2;
+	}
+	syncObjects(oPlanBoomerangs,frameItems["boomerang"],"boomerang", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBoomerangs2,frameItems["boomerang"],"boomerang", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["boomerang"].length;i++) {
+		var boomerang = frameItems["boomerang"][i];
+		setObject(oPlanBoomerangs[i],boomerang.x,boomerang.y, oObjWidth,oPlanSize, boomerang.ref.team,100);
+		setObject(oPlanBoomerangs2[i],boomerang.x,boomerang.y, oObjWidth2,oPlanSize2, boomerang.ref.team,100);
+		oPlanBoomerangs[i].style.zIndex = oPlanBoomerangs2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team,defaultTeam) {
@@ -1561,6 +1569,7 @@ function resetPlan(lMap) {
 	oPlanBobOmbs.length = 0;
 	oPlanChampis.length = 0;
 	oPlanEtoilesDrop.length = 0;
+	oPlanBoomerangs.length = 0;
 
 	oPlanCarapaces.length = 0;
 	oPlanCarapacesRouges.length = 0;
@@ -1583,6 +1592,7 @@ function resetPlan(lMap) {
 	oPlanPoisons2.length = 0;
 	oPlanChampis2.length = 0;
 	oPlanEtoilesDrop2.length = 0;
+	oPlanBoomerangs2.length = 0;
 
 	oPlanCarapaces2.length = 0;
 	oPlanCarapacesRouges2.length = 0;
@@ -2901,6 +2911,31 @@ function arme(ID, backwards, forwards) {
 			case "pow" :
 			addNewItem(oKart, {type:"pow", owner:oKart.id});
 			break;
+
+			case "boomerang" :
+			const [uX, uY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
+			const uL = Math.hypot(uX, uY) || 1;
+
+			const boomerang = {
+				type: "boomerang",
+				owner: oKart.id,
+				team: oKart.team,
+				x: oKart.x + uX / uL,
+				y: oKart.y + uY / uL,
+				z: oKart.z + 2,
+				vx: uX,
+				vy: uY,
+				throw: oKart.boomerangArme ?? itemBehaviors.boomerang.MAX_USES,
+				frame: 0,
+				maxSpeed: Math.sqrt(uX * uX + uY * uY)
+			};
+			
+			if (oKart.boomerangArme === 1)
+				delete oKart.boomerangArme;
+
+			addNewItem(oKart, boomerang);
+			playDistSound(oKart, "musics/events/throw.mp3", 50);
+			break;
 		}
 
 		if (tpsUse)
@@ -2919,6 +2954,7 @@ function arme(ID, backwards, forwards) {
 			break;
 		case "billball":
 			newItem = "billball";
+			break;
 		}
 		if (newItem) {
 			if (oKart.arme !== newItem) {
@@ -2948,6 +2984,7 @@ function arme(ID, backwards, forwards) {
 						break;
 					case "billball":
 						updateItemCountdownHud(ID,oKart.billball/oKart.billball0);
+						break;
 					}
 				}
 			}
@@ -9092,9 +9129,169 @@ var itemBehaviors = {
 		"init": function(item) {
 			nextBlueShellCooldown = 450;
 		}
+	},
+	"boomerang": {
+		size: 0.90,
+		sync: [floatType("x"), floatType("y"), floatType("z"), floatType("vx"), floatType("vy"), intType("owner"), byteType("team"), byteType("throw"), intType("frame"), intType("maxSpeed")],
+		fadedelay: 200,
+		frminv: true,
+		
+		MAX_USES: 3,
+		FRAME_SLOWDOWN: 5,
+		FRAME_BACK: 12,
+		FRAME_BACK_Z: 7,
+
+		move: function(fSprite, ctx) {
+			const frameSlowdown = itemBehaviors[fSprite.type].FRAME_SLOWDOWN;
+			const frameBack = itemBehaviors[fSprite.type].FRAME_BACK;
+			const frameBackZ = itemBehaviors[fSprite.type].FRAME_BACK_Z;
+			let speedX, speedY;
+			fSprite.frame++;
+
+			// find owner
+			const owner = aKarts.find(function(kart) {
+				return kart.id === fSprite.owner;
+			});
+
+			collisionFloor = null;
+			collisionDecorHit = null;
+			collisionItem = fSprite;
+			collisionLap = getItemCollisionLap(fSprite);
+
+			// decor collision
+			if (fSprite.frame < frameBack || fSprite.throw <= 1)
+				canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, fSprite.vx, fSprite.vy);
+
+			// handle teleports
+			const tp = inTeleport(fSprite.x, fSprite.y);
+			if (tp) {
+				fSprite.x = tp[0];
+				fSprite.y = tp[1];
+				const theta = tp[2] * Math.PI / 2;
+				const speed = Math.hypot(fSprite.vx, fSprite.vy);
+				fSprite.vx = speed * Math.sin(theta);
+				fSprite.vy = speed * Math.cos(theta);
+			}
+
+			// slow down after throw
+			if (fSprite.frame >= frameSlowdown && fSprite.frame < frameBack && fSprite.throw > 1) {
+				fSprite.vx *= 0.80;
+				fSprite.vy *= 0.80;
+			}
+
+			// go back to sender
+			if (fSprite.frame >= frameBack && fSprite.throw > 1) {
+				const speed = fSprite.maxSpeed * (fSprite.frame - frameBack - 1) * 0.2;
+				const cappedSpeed = Math.min(speed, cappedRelSpeed() * 18);
+
+				// apply movement
+				const angle = Math.atan2(owner.y - fSprite.y, owner.x - fSprite.x);
+				speedX = Math.cos(angle) * cappedSpeed;
+				speedY = Math.sin(angle) * cappedSpeed;
+				fSprite.x += speedX;
+				fSprite.y += speedY;
+
+				// height
+				if (frameBack - fSprite.frame < fSprite.frame + frameBackZ) {
+					let speedZ = (owner.z - fSprite.z) / frameBackZ * 2;
+					speedZ = speedZ < 0 ? Math.max(-8, speedZ) : Math.min(8, speedZ);
+					fSprite.z += speedZ;
+				}
+				else
+					fSprite.z = owner.z;
+
+				fSprite.z = Math.max(0, fSprite.z);
+
+				if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: speedX, y: speedY}, fSprite)) {
+					// give back to owner
+					let key;
+					
+					if (!owner.arme) {
+						key = "arme";
+						owner.boomerangArme = fSprite.throw - 1;
+					}
+					else if (!owner.stash && oDoubleItemsEnabled) {
+						key = "stash";
+						owner.boomerangStash = fSprite.throw - 1;
+					}
+
+					if (key) {
+						owner[key] = "boomerang";
+						owner["roulette" + (key === "arme" ? "" : "2")] = 25;
+
+						if (kartIsPlayer(owner))
+							updateObjHud(oPlayers.indexOf(owner));
+					}
+					
+					detruit(fSprite);
+				}
+			}
+			// apply regular movement
+			else {
+				fSprite.x += fSprite.vx;
+				fSprite.y += fSprite.vy;
+				speedX = fSprite.vx;
+				speedY = fSprite.vy;
+			}
+			
+			// handle override change
+			checkItemLap(fSprite, {aPos: [fSprite.x, fSprite.y]});
+
+			// pierce ground items
+			if (fSprite.z < 12) {
+				while (touche_banane(fSprite.x, fSprite.y, [], speedX, speedY));
+				while (touche_cverte(fSprite.x, fSprite.y, [], speedX, speedY));
+				while (touche_crouge(fSprite.x, fSprite.y, [], speedX, speedY));
+			}
+
+			// break on explosions / boomerangs
+			let oSpriteExcept;
+			if (ctx && ctx.onlineSync)
+				oSpriteExcept = otherPlayerItems([]);
+
+			const bobombCol = fSprite.z < 12 && touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent: true, isBoomerang: true});
+			const blueShellCol = fSprite.z < 12 && touche_cbleue(fSprite.x, fSprite.y);
+			const boomerangCol = touche_boomerang({x: fSprite.x, y: fSprite.y, z: fSprite.z}, null, [fSprite], null, true, false);
+
+			if (bobombCol || blueShellCol || boomerangCol) {
+				if (kartIsPlayer(owner))
+					clLocalVars.boomerangBreak = true;
+
+				detruit(fSprite);
+			}
+
+			// last throw: destroy if max lifetime reached
+			if (fSprite.frame > 15 * 2.5 && fSprite.throw <= 1)
+				detruit(fSprite);
+
+			// last throw: destroy if out of track
+			const oob = fSprite.x < 0 || fSprite.y < 0 || fSprite.x > oMap.w || fSprite.y > oMap.h;
+			if (fSprite.throw <= 1 && oob)
+				detruit(fSprite);			
+
+			// sprite animation
+			for (let i = 0; i < oPlayers.length; i++)
+				fSprite.sprite[i].setState((fSprite.sprite[i].getState() + 1) % 4);
+		},
+
+		checkCollisions: function(fSprite, getId) {
+			const oKart = aKarts[getId];
+
+			if (oKart === oPlayers[0] || friendlyHit(oKart.team, fSprite.team))
+				return;
+
+			const moveDir = kartInstantSpeed(oKart);
+			const movement = {
+				x: moveDir[0],
+				y: moveDir[1]
+			};
+
+			if (touche_boomerang_aux({x: oKart.x, y: oKart.y, z: oKart.z}, movement, fSprite))
+				handleHardHit(getId);
+		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -12335,6 +12532,7 @@ function supprArme(i) {
 }
 function consumeItem(i) {
 	var oKart = aKarts[i];
+	passBoomerangThrows(oKart);
 	oKart.arme = oKart.stash;
 	oKart.stash = false;
 	oKart.roulette = oKart.roulette2;
@@ -12381,6 +12579,8 @@ function dropCurrentItem(oKart) {
 	delete oKart.champiType;
 	delete oKart.champior;
 	delete oKart.champior0;
+	delete oKart.boomerangArme;
+	delete oKart.boomerangStash;
 	var iKart = aKarts.indexOf(oKart);
 	for (let j = 0; j < 2; j++) {
 		var sArme = j == 0 ? oKart.arme : oKart.stash; 
@@ -12465,6 +12665,14 @@ function hasOnHoldItem(oKart) {
 	if (oKart.rotitem !== undefined)
 		return false;
 	return true;
+}
+
+// transfers boomerang throws from stash to arme
+function passBoomerangThrows(oKart) {
+	if (oKart.stash === "boomerang") {
+		oKart.boomerangArme = oKart.boomerangStash;
+		delete oKart.boomerangStash;
+	}
 }
 
 function stopDrifting(i, opts) {
@@ -14587,6 +14795,11 @@ var challengeRules = {
 			return true;
 		}
 	},
+	"avoid_boomerang_break": {
+		"success": function(scope) {
+			return !clLocalVars.boomerangBreak;
+		}
+	},
 	"no_item": {
 		"success": function(scope) {
 			return !clLocalVars.itemsUsed;
@@ -15290,6 +15503,7 @@ function reinitLocalVars() {
 		revDrifted: false,
 		stunted: false,
 		itemsGot: false,
+		boomerangBreak: false,
 		itemsUsed: false,
 		falls: 0,
 		jumps: 0,
@@ -16473,20 +16687,31 @@ function handleDecorHit(i,type, lMap) {
 		challengeCheck("each_decor_hit");
 	}
 }
-function touche_banane(iX, iY, iP) {
-	if (!iP) iP = [];
-	for (var i=0;i<items["banane"].length;i++) {
-		var oBox = items["banane"][i];
-		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
+function touche_banane(posX, posY, ignore, movementX, movementY) {
+	if (!ignore)
+		ignore = [];
+
 			const size = 4;
-			if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
-				if (itemInteractionsDisabled(oBox)) continue;
+
+	for (let i = 0; i < items.banane.length; i++) {
+		const oBox = items.banane[i];
+		if (itemInteractionsDisabled(oBox))
+			continue;
+
+		const rect = [oBox.x - size, oBox.y - size, size * 2, size * 2];
+
+		if ((ignore.indexOf(oBox) == -1) && oBox.z === 0) {
+			const inHitbox = pointInRectangle(posX, posY, rect);
+			const crossHitbox = movementX !== undefined && movementY !== undefined ? pointCrossRectangle(posX, posY, movementX, movementY, rect) : false;
+
+			if (inHitbox || crossHitbox) {
 				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
-				return (collisionTeam!=oBox.team);
+				detruit(oBox, isHitSound(oBox));
+				return (collisionTeam !== oBox.team);
 			}
 		}
 	}
+
 	return false;
 }
 function touche_poison(iX, iY, iP) {
@@ -16546,23 +16771,34 @@ function touche_fauxobjet(iX, iY, iP) {
 	return false;
 }
 
-function touche_cverte(iX, iY, iP) {
-	if (!iP) iP = [];
-	for (var i=0;i<items["carapace"].length;i++) {
-		var oBox = items["carapace"][i];
-		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (touche_cverte_aux(iX,iY, oBox))
-				return (collisionTeam!=oBox.team);
+function touche_cverte(posX, posY, ignore, movementX, movementY) {
+	if (!ignore)
+		ignore = [];
+
+	for (let i = 0; i < items.carapace.length; i++) {
+		const oBox = items.carapace[i];
+
+		if ((ignore.indexOf(oBox) == -1) && oBox.z === 0) {
+			if (touche_cverte_aux(posX, posY, oBox, movementX, movementY))
+				return (collisionTeam !== oBox.team);
 		}
 	}
+
 	return false;
 }
-function touche_cverte_aux(iX,iY, oBox) {
+function touche_cverte_aux(posX, posY, oBox, movementX, movementY) {
+	if (itemInteractionsDisabled(oBox))
+		return false;
+
 	const size = 4;
-	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
-		if (itemInteractionsDisabled(oBox)) return false;
+	const rect = [oBox.x - size, oBox.y - size, size * 2, size * 2];
+
+	const inHitbox = pointInRectangle(posX, posY, rect);
+	const crossHitbox = movementX !== undefined && movementY !== undefined ? pointCrossRectangle(posX, posY, movementX, movementY, rect) : false;
+
+	if (inHitbox || crossHitbox) {
 		handleHit(oBox);
-		detruit(oBox,isHitSound(oBox));
+		detruit(oBox, isHitSound(oBox));
 		return true;
 	}
 	return false;
@@ -16586,15 +16822,19 @@ function touche_cverte_future(iX, iY, iP) {
 	return false;
 }
 
-function touche_crouge(iX, iY, iP) {
-	if (!iP) iP = [];
-	for (var i=0;i<items["carapace-rouge"].length;i++) {
-		var oBox = items["carapace-rouge"][i];
-		if ((iP.indexOf(oBox) == -1)) {
-			if (touche_crouge_aux(iX,iY, oBox))
-				return (collisionTeam!=oBox.team);
+function touche_crouge(posX, posY, ignore, movementX, movementY) {
+	if (!ignore)
+		ignore = [];
+
+	for (let i = 0; i < items["carapace-rouge"].length; i++) {
+		const oBox = items["carapace-rouge"][i];
+
+		if ((ignore.indexOf(oBox) == -1)) {
+			if (touche_crouge_aux(posX, posY, oBox, movementX, movementY))
+				return (collisionTeam !== oBox.team);
 		}
 	}
+	
 	return false;
 }
 function touche_crouge_future(iX, iY, iP) {
@@ -16610,15 +16850,22 @@ function touche_crouge_future(iX, iY, iP) {
 	}
 	return false;
 }
-function touche_crouge_aux(iX,iY, oBox) {
-	var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
+function touche_crouge_aux(posX, posY, oBox, movementX, movementY) {
+	if (itemInteractionsDisabled(oBox))
+		return false;
+
 	const size = 4;
-	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y && oBox.z < 1.2)) {
-		if (itemInteractionsDisabled(oBox)) return false;
+	const rect = [oBox.x - size, oBox.y - size, size * 2, size * 2];
+	const isHitbox = ((oBox.owner === -1) || (oBox.aipoint === -2));
+	const inHitbox = isHitbox ? pointInRectangle(posX, posY, rect) : (posX === oBox.x && posY === oBox.y && oBox.z < 1.2);
+	const crossHitbox = movementX !== undefined && movementY !== undefined ? pointCrossRectangle(posX, posY, movementX, movementY, rect) : false;
+
+	if (inHitbox || crossHitbox) {
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
 		return true;
 	}
+	
 	return false;
 }
 function touche_bobomb(iX, iY, iP, opts) {
@@ -16627,6 +16874,7 @@ function touche_bobomb(iX, iY, iP, opts) {
 		var oBox = items["bobomb"][i];
 		if (!oBox.z && (iP.indexOf(oBox) == -1)) {
 			if (oBox.theta != -1) {
+				// put on track / thrown
 				if (touche_bobomb_aux(iX,iY, oBox, opts)) {
 					if (oBox.cooldown <= 0) {
 						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
@@ -16638,9 +16886,13 @@ function touche_bobomb(iX, iY, iP, opts) {
 						if (isOnline)
 							syncItems.push(oBox);
 					}
+
+					if (opts && opts.isBoomerang)
+						return true;
 				}
 			}
 			else {
+				// trailed
 				const size = 5;
 				if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 					for (j=0;j<aKarts.length;j++) {
@@ -16701,6 +16953,53 @@ function touche_cbleue_aux(iX,iY, oBox) {
 			return true;
 		}
 	}
+	return false;
+}
+
+function touche_boomerang(pos, movement, toIgnore, ownerId, breakBoomerangHit, hitStarOrBill) {
+	toIgnore ??= [];
+
+	for (let i = 0; i < items.boomerang.length; i++) {
+		const boomerang = items.boomerang[i];
+
+		if (boomerang.owner === ownerId || toIgnore.includes(boomerang))
+			continue;
+
+		const hitOtherBoomerang = touche_boomerang_aux(pos, movement, boomerang);
+		
+		if (hitOtherBoomerang) {
+			const res = collisionTeam !== boomerang.team;
+
+			// destroy this boomerang if hit a player in star / bill
+			if (hitStarOrBill)
+				detruit(boomerang);
+
+			// if another boomerang is hit, destroy it
+			if (breakBoomerangHit)
+				detruit(hitOtherBoomerang);
+
+			return res;
+		}
+	}
+
+	return false;
+}
+
+function touche_boomerang_aux(pos, movement, boomerang) {
+	if (itemInteractionsDisabled(boomerang))
+		return false;
+
+	const size = 8;
+	const rect = [boomerang.x - size, boomerang.y - size, size * 2, size * 2];
+	const inHitbox = pointInRectangle(pos.x, pos.y, rect);
+	const crossHitbox = movement ? pointCrossRectangle(pos.x, pos.y, movement.x, movement.y, rect) : false;
+	const inHeight = pos.z === null ? true : Math.abs(boomerang.z - pos.z) < 5;
+
+	if (inHeight && (inHitbox || crossHitbox)) {
+		handleHit(boomerang);
+		return boomerang;
+	}
+
 	return false;
 }
 
@@ -18371,6 +18670,9 @@ function move(getId, triggered) {
 				}
 			}
 		}
+		if (touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
+			if (!oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
 	}
 
 	var rScroller, rHeight, rSize;
@@ -18416,7 +18718,8 @@ function move(getId, triggered) {
 						eclair: 1,
 						bloops: 1,
 						pow: 1,
-						bananeX3: 1
+						bananeX3: 1,
+						boomerang: 1
 					};
 					if (itemDistribution.powx2 == 1) {
 						delete preventDuplicateItems["pow"];
@@ -18447,6 +18750,8 @@ function move(getId, triggered) {
 						forbiddenItems["bloops"] = 1;
 					if (items.pow.length || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
+					if (items.boomerang.length)
+						forbiddenItems["boomerang"] = 1;
 					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
 						if (oKart.arme === "champiX2")
 							forbiddenItems["champiX3"] = 1;
@@ -18840,6 +19145,8 @@ function move(getId, triggered) {
 				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
+				delete oKart.boomerangArme;
+				delete oKart.boomerangStash;
 				if (oKart.cpu) {
 					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
 						oKart.aipoint = lastCp.aipoint;
@@ -19640,6 +19947,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	if (oKart.boomerangArme && oKart.arme === "boomerang")
+		updateItemCountdownHud(getId, oKart.boomerangArme / itemBehaviors.boomerang.MAX_USES);
 	if (oKart.megachampi) {
 		oKart.megachampi--;
 		if (oKart.megachampi > 71)
