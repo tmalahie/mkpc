@@ -16791,7 +16791,7 @@ function touche_banane(posX, posY, ignore, movementX, movementY) {
 	if (!ignore)
 		ignore = [];
 
-			const size = 4;
+	const size = 4;
 
 	for (let i = 0; i < items.banane.length; i++) {
 		const oBox = items.banane[i];
@@ -16965,7 +16965,7 @@ function touche_crouge_aux(posX, posY, oBox, movementX, movementY) {
 		detruit(oBox,isHitSound(oBox));
 		return true;
 	}
-	
+
 	return false;
 }
 function touche_bobomb(iX, iY, iP, opts) {
@@ -26479,7 +26479,7 @@ function selectItemScreen(oScr, callback, options) {
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	
-	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
+	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang", "carapacerougeX3", "pow", "carapacebleue", "champiX3", "megachampi", "etoile", "champior", "billball", "eclair"];
 	const possibleItems = distribOrder.slice();
 	const battleForbidden = ["billball", "eclair"];
 
