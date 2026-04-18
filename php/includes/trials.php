@@ -1,13 +1,6 @@
 <?php
 include('getId.php');
 $trialConfigs = array(
-    'hidemsgcount' => array(
-        'eval' => function(&$scope) {        
-            if (in_array($scope['id'], array(1,2457,2843,3567,3586,5164,36925,40396,40764,73585,142608)))
-                return withoutTracking(false);
-            return $scope['range']() < 0.5;
-        }
-    )
 );
 
 function trialRange($key, $identifiant) {

@@ -1,5 +1,6 @@
 <?php
 require_once('utils-date.php');
+require_once('getRights.php');
 function bbcode($msg) {
 	global $language, $isNews;
 	static $smileyDict = null;
@@ -86,7 +87,7 @@ function print_forum_msg($message,$options=array()) {
 		echo '<a href="profil.php?id='.$message['auteur'].'">';
 		print_avatar($message['auteur'], 100);
 		echo '</a>';
-		if (isTrialDisabled('hidemsgcount'))
+		if (hasRight('moderator'))
 			print_nb_msgs($message['auteur']);
 		if (!$getAuteur['deleted']) {
 			print_league($getAuteur['pts_vs'],'vs');

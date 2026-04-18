@@ -179,8 +179,7 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 	);
 	echo "</li>";
 
-	require_once('../includes/trials.php');
-	if (isTrialDisabled('hidemsgcount')) {
+	if (hasRight('moderator')) {
 		echo "<li>";
 		echo F_(
 			'The most active member is <a href="{urlToProfile}">{topPlayer}</a> with <strong>{topPlayerMessagesWithCount}</strong> posted in total.',

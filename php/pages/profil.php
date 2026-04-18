@@ -375,8 +375,7 @@ include('../includes/menu.php');
 						echo '</div>';
 					}
 				}
-				require_once('../includes/trials.php');
-				if (isTrialDisabled('hidemsgcount')) {
+				if (hasRight('moderator')) {
 					$rkname = get_forum_rkname($getProfile['nbmessages']);
 					$rkimg = get_forum_rkimg($getProfile['nbmessages']);
 					echo '<div class="player-rank">';
