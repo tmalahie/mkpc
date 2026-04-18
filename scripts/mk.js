@@ -1146,8 +1146,7 @@ function setPlanPos(frameState, lMap) {
 								for (var i=0;i<iPlanDecor[type].length;i++) {
 									var iDecor = iPlanDecor[type][i];
 									if (res.map) {
-										if (iDecor.src === '')
-											iDecor.style.display = "";
+										iDecor.style.display = "";
 										iDecor.src = res.map;
 									}
 									else {
@@ -11021,8 +11020,7 @@ function initCustomDecorSprites(self, lMap) {
 			var iDecor = oPlanDecor[linkedType] && oPlanDecor[linkedType][i];
 			if (iDecor) {
 				if (linkedData.map) {
-					if (iDecor.src === '')
-						iDecor.style.display = "";
+					iDecor.style.display = "";
 					iDecor.src = linkedData.map;
 				}
 				else if (iDecor.src) {
@@ -11035,8 +11033,7 @@ function initCustomDecorSprites(self, lMap) {
 			iDecor = oPlanDecor2[linkedType] && oPlanDecor2[linkedType][i];
 			if (iDecor) {
 				if (linkedData.map) {
-					if (iDecor.src === '')
-						iDecor.style.display = "";
+					iDecor.style.display = "";
 					iDecor.src = linkedData.map;
 				}
 				else if (iDecor.src) {
