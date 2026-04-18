@@ -165,6 +165,11 @@ function compute_decor_sizes($type, $w,$h) {
     }
     return $res;
 }
+function decor_has_no_map_icon(&$decor) {
+    if (empty($decor['options'])) return false;
+    $options = json_decode($decor['options'], true);
+    return !empty($options['no_map_icon']);
+}
 function generate_decor_sprite_src($id) {
 	return 'dc-'.uniqid().'-'.$id;
 }
