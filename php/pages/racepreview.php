@@ -67,7 +67,9 @@ if (isset($id)) {
 						$customDecor = $decorExtra->{$type}->custom;
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
-						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
+						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites,options FROM mkdecors WHERE id='. $decorId))) {
+							if (decor_has_no_map_icon($customData))
+								continue;
 							$decorSrcs = decor_sprite_srcs($customData['sprites']);
 							$decorImg = @imagecreatefrompng($decorSrcs['ldir'].$decorSrcs['map']);
 						}

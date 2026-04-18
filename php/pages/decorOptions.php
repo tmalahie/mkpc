@@ -58,7 +58,7 @@ include('../includes/o_online.php');
 		<a class="advanced-option option-map" href="<?php echo $hasWriteGrants ? 'decorSprite.php?id='.urlencode($_GET['id']).$collabSuffix : 'javascript:void(0)'; ?>&amp;map">
 			<div class="option-bg">
 				<img src="images/maps/map3.png" alt="Map" />
-				<img id="ic-decor-preview" src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" style="width:<?php echo round(12*$sizeRatio); ?>px" />
+				<img id="ic-decor-preview" src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" style="width:<?php echo round(12*$sizeRatio); ?>px<?php if (decor_has_no_map_icon($decor)) echo ';visibility:hidden'; ?>" />
 				<div id="hitbox-preview"></div>
 			</div>
 			<div class="option-label"><?php

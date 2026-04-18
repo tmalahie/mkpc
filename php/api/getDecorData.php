@@ -11,7 +11,7 @@ if (isset($_GET['id'])) {
             'name' => $decor['name'],
             'hd' => $decorSrcs['hd'],
             'ld' => $decorSrcs['ld'],
-            'map' => $decorSrcs['map']
+            'map' => decor_has_no_map_icon($decor) ? '' : $decorSrcs['map']
         );
         if (isset($_GET['full'])) {
             $decorType = $decor['type'];
@@ -40,7 +40,7 @@ if (isset($_GET['id'])) {
                         'id' => $decorExtra['id'],
                         'hd' => $decorExtraSrcs['hd'],
                         'ld' => $decorExtraSrcs['ld'],
-                        'map' => $decorExtraSrcs['map'],
+                        'map' => decor_has_no_map_icon($decorExtra) ? '' : $decorExtraSrcs['map'],
                         'size' => get_decor_sizes($decorExtra),
                         'original_size' => decor_sprite_sizes($decorExtra['type'],default_decor_sprite_src($decorExtra['type']))
                     );

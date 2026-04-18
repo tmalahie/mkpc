@@ -67,7 +67,9 @@ if (isset($id)) {
 						$customDecor = $decorExtra->{$type}->custom;
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
-						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
+						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites,options FROM mkdecors WHERE id='. $decorId))) {
+							if (decor_has_no_map_icon($customData))
+								continue;
 							$decorSrcs = decor_sprite_srcs($customData['sprites']);
 							$decorImg = @imagecreatefrompng($decorSrcs['ldir'].$decorSrcs['map']);
 						}
@@ -88,8 +90,8 @@ if (isset($id)) {
 							foreach ($decorsData as $decorData) {
 								if ('assets/' === substr($actualType, 0,7)) {
 									if (isset($decorData[2]) && isset($decorData[3])) {
-										$rW = $decorData[2];
-										$rH = $decorData[3];
+										$rW = round($decorData[2]);
+										$rH = round($decorData[3]);
 										if (isset($decorData[4])) {
 											$rX = round($rW*$decorData[4][0]);
 											$rY = round($rH*$decorData[4][1]);

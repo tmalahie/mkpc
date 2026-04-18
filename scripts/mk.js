@@ -991,7 +991,10 @@ function setPlanPos(frameState, lMap) {
 							img.src = "images/map_icons/empty.png";
 							(function(img,type) {
 								getCustomDecorData(customData, function(res) {
-									img.src = res.map;
+									if (res.map)
+										img.src = res.map;
+									else
+										img.style.display = "none";
 									var newW, newH;
 									switch (type) {
 									case "flippers":
@@ -1142,7 +1145,15 @@ function setPlanPos(frameState, lMap) {
 								syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
 								for (var i=0;i<iPlanDecor[type].length;i++) {
 									var iDecor = iPlanDecor[type][i];
-									iDecor.src = res.map;
+									if (res.map) {
+										if (iDecor.src === '')
+											iDecor.style.display = "";
+										iDecor.src = res.map;
+									}
+									else {
+										iDecor.removeAttribute("src");
+										iDecor.style.display = "none";
+									}
 									iDecor.style.width = tObjWidth +"px";
 								}
 							});
@@ -11009,13 +11020,29 @@ function initCustomDecorSprites(self, lMap) {
 		for (var i=self.linkedSprite.start;i<self.linkedSprite.end;i++) {
 			var iDecor = oPlanDecor[linkedType] && oPlanDecor[linkedType][i];
 			if (iDecor) {
-				iDecor.src = linkedData.map;
+				if (linkedData.map) {
+					if (iDecor.src === '')
+						iDecor.style.display = "";
+					iDecor.src = linkedData.map;
+				}
+				else if (iDecor.src) {
+					iDecor.removeAttribute("src");
+					iDecor.style.display = "none";
+				}
 				iDecor.style.width = tObjWidth +"px";
 			}
 
 			iDecor = oPlanDecor2[linkedType] && oPlanDecor2[linkedType][i];
 			if (iDecor) {
-				iDecor.src = linkedData.map;
+				if (linkedData.map) {
+					if (iDecor.src === '')
+						iDecor.style.display = "";
+					iDecor.src = linkedData.map;
+				}
+				else if (iDecor.src) {
+					iDecor.removeAttribute("src");
+					iDecor.style.display = "none";
+				}
 				iDecor.style.width = tObjWidth2 +"px";
 			}
 		}

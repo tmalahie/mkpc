@@ -167,23 +167,37 @@ var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, 
 			<?php
 		}
 		else {
-			?>
+			$noMapIcon = decor_has_no_map_icon($decor);
+			if (!$noMapIcon) { ?>
 			<div>
 				<input type="file" required="required" name="sprites" />
 				<button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
 			</div>
 			<?php
-			if ($hasTransparency || ($spriteSrc !== $spriteSrcs['ld'])) {
-				?>
-				<div id="decor-current-img-preview">
-				<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
+			}
+			?>
+			<div id="decor-current-img-preview">
+			<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;
+			<?php if ($noMapIcon): ?>
+				<em><?php echo $language ? 'None':'Aucune'; ?></em>
+			<?php elseif ($hasTransparency || ($spriteSrc !== $spriteSrcs['ld'])): ?>
+				<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
 				<?php
 				if ($spriteSrc != $spriteSrcs['ld'])
 					echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type . htmlspecialchars($collabSuffix) .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
 				?>
-				</div>
-				<?php
-			}
+			<?php else: ?>
+				<em><?php echo $language ? 'Default':'Défaut'; ?></em>
+			<?php endif; ?>
+			</div>
+			<div id="map-icon-toggle">
+			<?php if ($noMapIcon): ?>
+				<a class="map-icon-enable" href="toggleDecorMapIcon.php?id=<?php echo $decorId . htmlspecialchars($collabSuffix); ?>&amp;enable"><?php echo $language ? 'Re-enable minimap icon':'Réactiver l\'icône de la mini-map'; ?></a>
+			<?php else: ?>
+				<a class="map-icon-disable" href="toggleDecorMapIcon.php?id=<?php echo $decorId . htmlspecialchars($collabSuffix); ?>" onclick="return confirm('<?php echo addslashes($language ? 'The decor icon will no longer appear on the minimap. Confirm?' : "L'icone du décor n'apparaitra plus sur la minimap. Confirmer ?"); ?>')"><?php echo $language ? 'Disable minimap icon':'Désactiver l\'icône de la mini-map'; ?></a>
+			<?php endif; ?>
+			</div>
+			<?php
 		}
 		?>
 		</form>
