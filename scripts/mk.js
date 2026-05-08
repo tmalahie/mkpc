@@ -8691,8 +8691,9 @@ var itemBehaviors = {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
-		cooldown0: 15,
+		cooldown0: 20,
 		cooldown1: 2,
+		orbitEnd: 6,
 		move: function(fSprite) {
 			var cible = -1;
 			if (fSprite.target != -1) {
@@ -8738,7 +8739,7 @@ var itemBehaviors = {
 								fMoveY /= fNewMove;
 
 								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+									fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
 							}
 							else
 								fSprite.cooldown--;
@@ -8759,21 +8760,41 @@ var itemBehaviors = {
 									fMoveY /= fNewMove;
 								}
 							}
-							var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
-							if (r < 0) r = 0;
-							var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
-							var theta = 2*Math.PI*r;
 							var pTheta = oKart.rotation*Math.PI/180;
-							var z0 = (15 + rZ0);
-							fSprite.z = z0 - rZ*Math.cos(theta);
-							fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
-							fMoveY += rX*Math.sin(theta)*Math.sin(pTheta);
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(Math.round(Math.random()));
+							var orbitRadiusH = 12;
+							var orbitRadiusV = 14;
+							var orbitBaseZ = 30;
+							if (fSprite.cooldown > itemBehavior.orbitEnd) {
+								var orbitR = (itemBehavior.cooldown0 - 1 - fSprite.cooldown)/(itemBehavior.cooldown0 - 2 - itemBehavior.orbitEnd);
+								var angle = (orbitR * 1.6 - 0.1)*Math.PI;
+								var spiralRampTicks = 3;
+								var orbitTicksElapsed = itemBehavior.cooldown0 - fSprite.cooldown;
+								var rampScale = Math.min(1, orbitTicksElapsed/spiralRampTicks);
+								var hOff = orbitRadiusH*rampScale*Math.cos(angle);
+								fMoveX += hOff*Math.cos(pTheta);
+								fMoveY -= hOff*Math.sin(pTheta);
+								var initialZ = 15;
+								fSprite.z = initialZ + rampScale*(orbitBaseZ + orbitRadiusV*Math.sin(angle) - initialZ);
+								for (var k=0;k<oPlayers.length;k++)
+									fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
+							}
+							else {
+								var bounceR = (itemBehavior.orbitEnd - fSprite.cooldown)/(itemBehavior.orbitEnd - itemBehavior.cooldown1);
+								if (bounceR < 0) bounceR = 0;
+								if (bounceR > 1) bounceR = 1;
+								var bounceLow = orbitBaseZ - orbitRadiusV;
+								var bouncePeak = orbitBaseZ + orbitRadiusV;
+								fSprite.z = bounceLow + (bouncePeak - bounceLow)*Math.sin(Math.PI*bounceR);
+								var spriteFrame = (bounceR < 0.75) ? 2 : 3;
+								for (var k=0;k<oPlayers.length;k++)
+									fSprite.sprite[k].setState(spriteFrame);
+							}
 							fSprite.cooldown--;
 							if (!fSprite.cooldown) {
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(0);
+								setTimeout(() => {
+									for (var k=0;k<oPlayers.length;k++)
+										fSprite.sprite[k].setState(0);
+								});
 							}
 						}
 
@@ -8852,7 +8873,7 @@ var itemBehaviors = {
 					}
 				}
 				for (var k=0;k<oPlayers.length;k++)
-					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+					fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
 			}
 		},
 		checkCollisions: function(fSprite, getId) {
