@@ -6669,7 +6669,7 @@ function Sprite(strSprite) {
 		oImg.alt = ".";
 		oImg.className = "pixelated";
 
-		oImg.src = getSpriteSrc(strSprite) + (strSprite==='carapace-bleue' ? '?reload=1' : '');
+		oImg.src = getSpriteSrc(strSprite) + (strSprite==='carapace-bleue' || strSprite==='poison' ? '?reload=1' : '');
 
 		var oSpriteCtr = document.createElement("div");
 		oSpriteCtr.style.width = "32px";
@@ -20007,7 +20007,7 @@ function updateObjHud(ID) {
 		}
 		var oItemHeight = i ? 2.5:4;
 		document.getElementById("scroller"+prefix+ID).style.visibility = isRoulette ? "visible" : "hidden";
-		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
+		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png'+(oArme==='poison'||oArme==='carapacerouge' ? '?reload=1':'')+'" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
 	}
 	var oScroller = document.getElementById("scroller"+ID);
 	var oObjet = document.getElementById("objet"+ID);
