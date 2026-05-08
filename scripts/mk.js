@@ -6669,7 +6669,7 @@ function Sprite(strSprite) {
 		oImg.alt = ".";
 		oImg.className = "pixelated";
 
-		oImg.src = getSpriteSrc(strSprite);
+		oImg.src = getSpriteSrc(strSprite) + (strSprite==='carapace-bleue' ? '?reload=1' : '');
 
 		var oSpriteCtr = document.createElement("div");
 		oSpriteCtr.style.width = "32px";
