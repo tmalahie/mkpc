@@ -150,6 +150,7 @@ var SPF = 67;
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 2;
+var bLegacyEngine;
 var vSfx = 1, vMusic = 1;
 {
 	var vSettings = localStorage.getItem("settings.vol");
@@ -1597,6 +1598,7 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	bLegacyEngine = localStorage.getItem("settings.engine") === "canvas";
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -5936,6 +5938,11 @@ function initWebGL(canvas) {
 function resetScreen() {
 	fSpriteScale = iScreenScale / 4;
 
+	if (bLegacyEngine) {
+		fLineScale = 1/iScreenScale;
+		aStrips = [];
+	}
+
 	for (var i = 0; i < strPlayer.length; i++) {
 		oContainers[i].style.width = iWidth * iScreenScale + "px";
 		oContainers[i].style.height = iHeight * iScreenScale + "px";
@@ -5948,15 +5955,23 @@ function resetScreen() {
 		canvas.style.width = (iWidth * iScreenScale + iScreenScale) + "px";
 		canvas.style.height = (iHeight * iScreenScale) + "px";
 
-		canvas.width = iWidth * iScreenScale;
-		canvas.height = iHeight * iScreenScale;
+		if (bLegacyEngine) {
+			canvas.width = iWidth/fLineScale;
+			canvas.height = iHeight/fLineScale;
+		}
+		else {
+			canvas.width = iWidth * iScreenScale;
+			canvas.height = iHeight * iScreenScale;
+		}
 
 		oScreens.push(canvas);
 		oContainers[i].appendChild(canvas);
 
-		var glInfo = initWebGL(canvas);
-		if (glInfo) oScreens[i].glInfo = glInfo;
-		else console.error("Failed to initialize WebGL");
+		if (!bLegacyEngine) {
+			var glInfo = initWebGL(canvas);
+			if (glInfo) oScreens[i].glInfo = glInfo;
+			else console.error("Failed to initialize WebGL");
+		}
 	}
 
 	var prevScreenBlur = 0;
@@ -5964,7 +5979,7 @@ function resetScreen() {
 	frameHandlers = new Array(nbFrames);
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
-	prevScreenDelay = frameSettings.framerad + 1;
+	prevScreenDelay = frameSettings.framerad + (bLegacyEngine ? 0 : 1);
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
@@ -6008,6 +6023,32 @@ function resetScreen() {
 			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
 	}
 	mapCanvas = document.createElement("canvas");
+
+	if (bLegacyEngine) {
+		var fLastZ = 0;
+		for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
+			var iTotalY = iViewY + iViewHeight;
+			var iDeltaY = iCamHeight - iTotalY;
+			var iPointZ = (iTotalY/(iDeltaY / iCamDist));
+			var fScaleRatio = fFocal / (fFocal + iPointZ);
+			var iStripWidth = Math.floor(iWidth/fScaleRatio);
+			if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
+				if (iViewY == 0)
+					fLastZ = iPointZ - 1;
+				aStrips.push({
+					viewy : iViewY,
+					mapz : iPointZ,
+					scale : fScaleRatio,
+					stripwidth : iStripWidth,
+					mapzspan : iPointZ - fLastZ
+				});
+				fLastZ = iPointZ;
+			}
+		}
+		oViewCanvas = document.createElement("canvas");
+		oViewCanvas.width = iViewCanvasWidth;
+		oViewCanvas.height = iViewCanvasHeight;
+	}
 }
 
 function getFrameSettings(currentSettings) {
@@ -6745,6 +6786,12 @@ function rankingColor(getId) {
 }
 
 var mapCanvas;
+var iViewCanvasWidth = 600;
+var iViewCanvasHeight = 240;
+var iViewYOffset = 10;
+var oViewCanvas;
+var aStrips = [];
+var fLineScale = 0;
 
 function Sprite(strSprite) {
 	var oCtSprites = new Array();
@@ -7519,7 +7566,7 @@ function clonePreviousScreen(i, oPlayer) {
     state.container.style.zIndex = prevScreenDelay - age;
     
     state.container.style.opacity = state.opacity * Math.pow(prevScreenFade, age);
-		state.container.style.visibility = (age === 0) ? "hidden" : "";
+		state.container.style.visibility = (age === 0 && !bLegacyEngine) ? "hidden" : "";
   }
 
   prevScreenCur = (prevScreenCur + 1) % prevScreenDelay;
@@ -7543,6 +7590,48 @@ function redrawCanvas(i, fCamera, lMap) {
 			delete oPlayer.lastOverride;
 	}
 
+	if (bLegacyEngine) {
+		var oViewContext = oViewCanvas.getContext("2d");
+		oViewContext.fillStyle = "rgb("+ bgcolor +")";
+		oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
+
+		oViewContext.save();
+		oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
+		if (bSelectedMirror)
+			oViewContext.scale(-1, 1);
+		oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
+
+		drawMapImg(oViewContext, lMap, fCamera.x, fCamera.y);
+		if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
+			oViewContext.globalAlpha = lapTransitionOpacity;
+			drawMapImg(oViewContext, lapTransitionMap, fCamera.x, fCamera.y);
+			oViewContext.globalAlpha = 1;
+		}
+		oViewContext.restore();
+
+		var oScreenContext = oScreens[i].getContext("2d");
+		oScreenContext.imageSmoothingEnabled = false;
+
+		var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
+
+		for (var j=0;j<aStrips.length;j++) {
+			var oStrip = aStrips[j];
+			try {
+				oScreenContext.drawImage(
+					oViewCanvas,
+					(iViewCanvasWidth-oStrip.stripwidth)/2,
+					iViewCanvasYOffset - oStrip.mapz,
+					oStrip.stripwidth,
+					oStrip.mapzspan,
+
+					0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+				);
+			}
+			catch (e) {}
+		}
+		return;
+	}
+
 	const mapCtx = mapCanvas.getContext("2d");
 	mapCanvas.width = lMap.mapImg.width;
 	mapCanvas.height = lMap.mapImg.height;
@@ -7559,14 +7648,14 @@ function redrawCanvas(i, fCamera, lMap) {
 
 	const glInfo = oScreens[i].glInfo;
 	glInfo.gl.viewport(0, 0, glInfo.canvas.width, glInfo.canvas.height);
-	
+
 	glInfo.gl.texImage2D(glInfo.gl.TEXTURE_2D, 0, glInfo.gl.RGBA, glInfo.gl.RGBA, glInfo.gl.UNSIGNED_BYTE, mapCanvas);
-	
+
 	glInfo.gl.useProgram(glInfo.prog);
     glInfo.gl.uniform2f(glInfo.positionLoc, posX, posY);
 	glInfo.gl.uniform1f(glInfo.angleLoc, (180 - fCamera.rotation) * Math.PI / 180);
 	glInfo.gl.uniform3f(glInfo.bgColorLoc, bgcolor[0] / 255, bgcolor[1] / 255, bgcolor[2] / 255);
-	
+
 	glInfo.gl.clearColor(1, 1, 1, 1);
 	glInfo.gl.clear(glInfo.gl.COLOR_BUFFER_BIT);
 	glInfo.gl.drawArrays(glInfo.gl.TRIANGLES, 0, 6);
@@ -31986,6 +32075,36 @@ function editCommands(options) {
 		}
 		$controlSettings.appendChild($controlSetting);
 	}
+	{
+		var $controlSetting = document.createElement("label");
+		$controlSetting.style.marginLeft = "5px";
+		$controlSetting.style.paddingTop = "4px";
+		var $controlText = document.createElement("span");
+		$controlText.innerHTML = toLanguage("Rendering engine", "Moteur de rendu");
+		$controlSetting.appendChild($controlText);
+		var $controlSelect = document.createElement("select");
+		$controlSelect.style.width = "auto";
+		$controlSelect.style.marginLeft = "8px";
+		var engineOptions = [
+			["webgl", "WebGL"],
+			["canvas", "Canvas"]
+		];
+		for (var i=0;i<engineOptions.length;i++) {
+			var $controlOption = document.createElement("option");
+			$controlOption.value = engineOptions[i][0];
+			$controlOption.innerHTML = engineOptions[i][1];
+			$controlSelect.appendChild($controlOption);
+		}
+		$controlSelect.value = (localStorage.getItem("settings.engine") === "canvas") ? "canvas" : "webgl";
+		$controlSelect.onchange = function() {
+			if (this.value === "canvas")
+				localStorage.setItem("settings.engine", "canvas");
+			else
+				localStorage.removeItem("settings.engine");
+		};
+		$controlSetting.appendChild($controlSelect);
+		$controlSettings.appendChild($controlSetting);
+	}
 	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
@@ -32163,6 +32282,7 @@ function editCommands(options) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("settings.vol");
+			localStorage.removeItem("settings.engine");
 			localStorage.removeItem("iQuality");
 			editCommands(options);
 		}
