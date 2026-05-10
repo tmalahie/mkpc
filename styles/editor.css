@@ -1747,6 +1747,15 @@ embed,#ytplayer {
 .save-actions {
 	margin: 5px auto;
 }
+.save-conflict .save-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+.save-conflict > .save-msg {
+	font-size: 0.75em;
+}
 .save-actions button {
 	cursor: pointer;
 	border: none;
@@ -1808,6 +1817,20 @@ embed,#ytplayer {
 }
 .save-actions button:active {
 	border-style: inset;
+}
+.save-conflict {
+	background-color: #fdecc8;
+	color: #a05a00;
+}
+.save-conflict button {
+	background-color: #f7c873;
+	color: #a05a00;
+}
+.save-conflict button:hover {
+	background-color: #ffd789;
+}
+.save-conflict button:focus {
+	border: outset 1px #d28a2b;
 }
 #toolbox select {
 	background-color: #127fdf;

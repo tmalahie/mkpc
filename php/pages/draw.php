@@ -73,6 +73,15 @@ if (isset($_GET['i'])) {
 		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
 		var isBattle = false;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
+		var dataVersion = "<?php
+			$loadedVersion = '';
+			if (isset($circuitData)) {
+				$loadedDecoded = json_decode($circuitData);
+				if ($loadedDecoded && isset($loadedDecoded->version))
+					$loadedVersion = $loadedDecoded->version;
+			}
+			echo $loadedVersion;
+		?>";
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
 		<?php

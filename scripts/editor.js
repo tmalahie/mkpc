@@ -5003,9 +5003,9 @@ function handleZoneRescale(zones, callback) {
 		}
 	});
 }
-function saveData() {
+function saveData(force) {
 	try {
-		_saveData();
+		_saveData(force);
 	}
 	catch (e) {
 		console.error(e);
@@ -5021,7 +5021,7 @@ function saveData() {
 		);
 	}
 }
-function _saveData() {
+function _saveData(force) {
 	storeCurrentLapOverride();
 	restoreLapOverride(0);
 	var payload = {main:{theme:document.getElementById("theme-selector").getValue()}};
@@ -5119,9 +5119,21 @@ function _saveData() {
 	var collab = new URLSearchParams(document.location.search).get("collab");
 	if (collab)
 		postData.collab = collab;
+	if (typeof dataVersion !== "undefined" && dataVersion !== null)
+		postData.expectedVersion = dataVersion;
+	if (force)
+		postData.force = 1;
 	req.send(JSON.stringify(postData));
 	req.onload = function() {
-		if (req.responseText == 1) {
+		var responseText = req.responseText;
+		var isSuccess = (responseText == 1) || (typeof responseText === "string" && responseText.indexOf("1:") === 0);
+		if (responseText == 2) {
+			showSaveConflictPopup($mask, $loading);
+			return;
+		}
+		if (isSuccess) {
+			if (typeof responseText === "string" && responseText.indexOf("1:") === 0)
+				dataVersion = responseText.substring(2);
 			$mask.removeChild($loading);
 			$mask.close = $mask.defaultClose;
 			changes = false;
@@ -5194,6 +5206,46 @@ function _saveData() {
 		$mask.appendChild($error);
 		$popupRetry.focus();
 	};
+}
+function showSaveConflictPopup($mask, $loading) {
+	$mask.removeChild($loading);
+	$mask.close = $mask.defaultClose;
+	var $conflict = document.createElement("div");
+	$conflict.onclick = function(e) {
+		e.stopPropagation();
+	};
+	$conflict.className = "save-popup save-status save-conflict";
+	var $popupMsg = document.createElement("div");
+	$popupMsg.className = "save-msg";
+	$popupMsg.innerHTML = '⚠️ '+ (language
+		? ((isBattle ?"The arena" : "The circuit") + (" has been modified somewhere else since you opened it in the editor.<br />If you save it, you may overwrite these modifications."))
+		: ((isBattle ? "L'arène a été modifiée" : "Le circuit a été modifié") + " ailleurs depuis que vous l'avez ouvert dans l'éditeur.<br />Si vous sauvegardez, vous risquez d'écraser ces modifications.")
+	);
+	$conflict.appendChild($popupMsg);
+	var $popupActions = document.createElement("div");
+	$popupActions.className = "save-actions";
+	var $popupOverride = document.createElement("button");
+	$popupOverride.innerHTML = language ? "Save anyway":"Sauvegarder quand même";
+	$popupOverride.onclick = function() {
+		$mask.defaultClose();
+		saveData(true);
+	};
+	$popupActions.appendChild($popupOverride);
+	var $popupReload = document.createElement("button");
+	$popupReload.innerHTML = language ? "Reload":"Recharger";
+	$popupReload.onclick = function() {
+		document.location.reload();
+	};
+	$popupActions.appendChild($popupReload);
+	var $popupCancel = document.createElement("button");
+	$popupCancel.innerHTML = language ? "Cancel":"Annuler";
+	$popupCancel.onclick = function() {
+		$mask.defaultClose();
+	};
+	$popupActions.appendChild($popupCancel);
+	$conflict.appendChild($popupActions);
+	$mask.appendChild($conflict);
+	$popupCancel.focus();
 }
 function restoreData(payload) {
 	for (var key in editorTools) {
