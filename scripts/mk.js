@@ -21962,12 +21962,12 @@ function getEndingSrc(playerName) {
 function getStarSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + "-star.png";
-	return "images/star/star_" + playerName +".png";
+	return "images/star/star_" + playerName +".png" + (playerName==='frere_marto' ? '?reload=1':'');
 }
 function getSpriteSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + ".png";
-	return "images/sprites/sprite_" + playerName +".png";
+	return "images/sprites/sprite_" + playerName +".png" + (playerName==='frere_marto' ? '?reload=1':'');
 }
 function getCustomDecorData(customData,callback) {
 	var id = customData.id, type = customData.type;
