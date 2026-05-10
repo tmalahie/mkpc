@@ -5,6 +5,7 @@ var formulaire;
 var baseCp, baseCp0, pUnlockMap;
 var customDecorData = {};
 var customBgData = {};
+var customOffroadData = {};
 var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
@@ -2226,8 +2227,16 @@ function initMap() {
 		}
 		if (lMap.horspistes) {
 			var nOffRoad = {};
-			for (var type in lMap.horspistes)
+			lMap.customOffroadProfiles = {};
+			for (var type in lMap.horspistes) {
 				nOffRoad[type] = classifyByShape(lMap.horspistes[type]);
+				if (type.indexOf("custom-") === 0) {
+					var customId = parseInt(type.slice(7), 10);
+					lMap.customOffroadProfiles[type] = {};
+					if (customId)
+						loadCustomOffroadProfile(customId, lMap, type);
+				}
+			}
 			lMap.horspistes = nOffRoad;
 		}
 		if (lMap.checkpoint) {
@@ -13959,6 +13968,27 @@ function ralenti(iX, iY) {
 	return false;
 }
 function getOffroadProps(oKart,hpType) {
+	if (typeof hpType === "string" && hpType.indexOf("custom-") === 0) {
+		var lMap = getCurrentLMap(collisionLap);
+		var entry = lMap && lMap.customOffroadProfiles && lMap.customOffroadProfiles[hpType];
+		if (!entry) return {speed:1.9+oKart.speedinc/2};
+		var strength = (entry.strength != null) ? entry.strength : 0.5;
+		if (strength < 0) strength = 0;
+		var baseSpeed = 5;
+		var minSpeed = 1.5;
+		var props = (strength >= 1)
+		  ? {speed: 20} // Arbitrary high speed so that offroad doesn't slow down
+			: {speed: baseSpeed - Math.sqrt(strength)*(baseSpeed-minSpeed) + oKart.speedinc/2};
+		if (entry.slippery) {
+			var factor = (entry.slipperyFactor != null) ? entry.slipperyFactor : 0.5;
+			if (factor < 0) factor = 0;
+			if (factor > 1) factor = 1;
+			props.sliding = factor * 8;
+		}
+		if (entry.drifting)
+			props.drifting = true;
+		return props;
+	}
 	switch (hpType) {
 		case "herbe" :
 			return {speed:1.9+oKart.speedinc/2};
@@ -18874,7 +18904,7 @@ function move(getId, triggered) {
 		nPosZ0 = collisionFloor.z;
 
 	if (!oKart.speedinc)
-		oKart.speed *= oKart.sliding ? 0.95:0.9;
+		oKart.speed *= oKart.hpProps && oKart.hpProps.sliding ? 0.95:0.9;
 
 	if (!oKart.cannon) {
 		if (handleCannon(oKart, inCannon(aPosX,aPosY, oKart.x,oKart.y))) {
@@ -18939,8 +18969,8 @@ function move(getId, triggered) {
 	}
 	if (!oKart.rail && !oKart.teleport && !oKart.billball && !oKart.cannon && !(oKart.z > 0 && oKart.heightinc >= 0))
 		checkRailEnter(getId, aPosX,aPosY,aPosZ);
-	oKart.sliding = undefined;
 	if (!oKart.z) {
+		oKart.hpProps = undefined;
 		if (!oKart.heightinc) {
 			if (!isActivelyGrinding(oKart))
 				oKart.ctrled = false;
@@ -19119,14 +19149,18 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
-				if (!oKart.protect && !oKart.champi && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY))) {
+				if (!oKart.protect && !oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY))) {
 					var hpProps = getOffroadProps(oKart,hpType);
-					hpProps.speed *= cappedRelSpeed();
-					if (hpProps.sliding)
-						oKart.sliding = hpProps.sliding;
-					if (oKart.speed > hpProps.speed)
-						oKart.speed = hpProps.speed;
-					stopDrifting(getId);
+					if ((oKart.turbodrift>oKart.turbodrift0*0.8 || oKart.speed <= 1.5) && !hpProps.drifting)
+						hpType = undefined;
+					else {
+						oKart.hpProps = hpProps;
+						var hpSpeed = hpProps.speed * cappedRelSpeed();
+						if (oKart.speed > hpSpeed)
+							oKart.speed = hpSpeed;
+						if (!hpProps.drifting)
+							stopDrifting(getId);
+					}
 				}
 				newShift = flowShift(fNewPosX, fNewPosY);
 				if (newShift) {
@@ -19155,6 +19189,8 @@ function move(getId, triggered) {
 		else
 			delete oKart.shift;
 	}
+	else if (oKart.z > jumpHeight0)
+		oKart.hpProps = undefined;
 	if (!oKart.cpu && (!kartReplaced || oKart.tombe))
 		updateSpeedometer(getId, aPosX,aPosY);
 	if (oKart.rail)
@@ -19726,6 +19762,14 @@ function move(getId, triggered) {
 		}
 		if (oKart.rail)
 			nSpeed = Math.max(nSpeed,railGlobalConfig.turboSpeed);
+		else if (oKart.hpProps) {
+			var hpProps = oKart.hpProps;
+			if (nSpeed > hpProps.speed) {
+				var hpStrength = (5-hpProps.speed)/4;
+				var hpFactor = 0.2 + 0.8*hpStrength - 0.2*Math.min(oKart.turbodrift,15)/15;
+				nSpeed = nSpeed*(1-hpFactor) + hpProps.speed*hpFactor;
+			}
+		}
 		if (oKart.speed > -nSpeed) {
 			oKart.maxspeed = nSpeed;
 			oKart.speed = Math.max(nSpeed*cappedRelSpeed(oKart), oKart.speed);
@@ -20107,8 +20151,8 @@ function handleDriftCpt(getId) {
 	}
 }
 function angleDrift(oKart) {
-	if (oKart.sliding && kartIsPlayer(oKart))
-		return oKart.rotinc*oKart.sliding;
+	if (oKart.hpProps && oKart.hpProps.sliding && kartIsPlayer(oKart))
+		return oKart.rotinc*oKart.hpProps.sliding + oKart.drift*6;
 	return oKart.drift*6;
 }
 function angleInc(oKart) {
@@ -22188,6 +22232,41 @@ function getSpriteSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + ".png";
 	return "images/sprites/sprite_" + playerName +".png" + (playerName==='frere_marto' ? '?reload=1':'');
+}
+function loadCustomOffroadProfile(id, lMap, customKey) {
+	function apply(data) {
+		if (!lMap.customOffroadProfiles) return;
+		if (data && data.profile) {
+			var p = data.profile;
+			lMap.customOffroadProfiles[customKey] = {
+				id: data.id,
+				name: data.name,
+				strength: (p.strength != null) ? p.strength : 1,
+				slippery: !!p.slippery,
+				slipperyFactor: p.slipperyFactor,
+				drifting: !!p.drifting
+			};
+		}
+	}
+	var cached = customOffroadData[id];
+	if (cached) {
+		if (cached.data !== undefined) {
+			apply(cached.data);
+			return;
+		}
+		cached.callbacks.push(apply);
+		return;
+	}
+	customOffroadData[id] = {callbacks: [apply]};
+	xhr("getOffroadProfile.php?id="+id, null, function(res) {
+		var data;
+		try { data = JSON.parse(res); } catch (e) { data = null; }
+		customOffroadData[id].data = data;
+		var cbs = customOffroadData[id].callbacks;
+		for (var i=0;i<cbs.length;i++) cbs[i](data);
+		cbs.length = 0;
+		return true;
+	});
 }
 function getCustomDecorData(customData,callback) {
 	var id = customData.id, type = customData.type;
