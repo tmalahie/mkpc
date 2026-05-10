@@ -9236,7 +9236,7 @@ var itemBehaviors = {
 
 				fSprite.z = Math.max(0, fSprite.z);
 
-				if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: speedX, y: speedY}, fSprite)) {
+				if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: -speedX, y: -speedY}, fSprite)) {
 					// give back to owner
 					let key;
 					
@@ -9273,9 +9273,9 @@ var itemBehaviors = {
 
 			// pierce ground items
 			if (fSprite.z < 12) {
-				while (touche_banane(fSprite.x, fSprite.y, [], speedX, speedY));
-				while (touche_cverte(fSprite.x, fSprite.y, [], speedX, speedY));
-				while (touche_crouge(fSprite.x, fSprite.y, [], speedX, speedY));
+				while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+				while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+				while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
 			}
 
 			// break on explosions / boomerangs
