@@ -63,7 +63,7 @@ include('../includes/menu.php');
                 'base_url' => 'https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/',
                 'res_url' => 'https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/',
                 'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'basic Mario Kart':'Mario Kart de départ'
+                'description' => $language ? 'Mario Kart original PoC':'Mario Kart de départ'
             ),
             array(
                 'author' => 'SNESMaps',
@@ -168,8 +168,8 @@ include('../includes/menu.php');
                 'description' => $language ? '<a href="images/sprites/sprite_skelerex.png">Dry Bones\' sprite</a>':'<a href="images/sprites/sprite_skelerex.png">sprite de Skelerex</a>'
             ),
             array(
-                'author' => 'Hoppingicon',
-                'base_url' => 'profil.php?id=26749',
+                'author' => 'VulpixTails',
+                'base_url' => 'profil.php?id=48454',
                 'for' => $language ? 'for':'pour le',
                 'description' => $language ? '<a href="images/sprites/sprite_frere_marto.png">Hammer Bro\'s sprite</a>':'<a href="images/sprites/sprite_frere_marto.png">sprite de Frère Marto</a>'
             ),
@@ -184,6 +184,19 @@ include('../includes/menu.php');
                 'base_url' => 'profil.php?id=36925',
                 'for' => $language ? 'for some':'pour certains',
                 'description' => $language ? '<a href="create.php">quick mode</a> themes':'thèmes du <a href="create.php">mode simplifié</a>'
+            ),
+            array(
+                'author' => 'Kernell',
+                'base_url' => 'profil.php?id=142461',
+                'for' => $language ? 'for':'pour les',
+                'description' => $language ? 'sprites of <a href="images/sprites/sprite_bobomb.png">bob-omb</a>, <a href="images/sprites/sprite_carapace-rouge.png">red shell</a>, and <a href="images/sprites/sprite_poison.png">poison</a>':'sprites du <a href="images/sprites/sprite_bobomb.png">bob-omb</a>, de la <a href="images/sprites/sprite_carapace-rouge.png">carapace rouge</a> et du <a href="images/sprites/sprite_poison.png">poison</a>'
+            ),
+            array(
+                'author' => 'BowserJr03',
+                'base_url' => 'profil.php?id=36925',
+                'for' => $language ? 'for':'pour le',
+                'res_url' => 'images/sprites/sprite_carapace-bleue.png',
+                'description' => $language ? 'blue shell\'s sprite':'sprite de la carapace bleue'
             )
         ),
         ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
@@ -241,6 +254,12 @@ include('../includes/menu.php');
                 'for' => $language ? 'for the':'pour le',
                 'res_url' => 'musics/endings/ending_diddy-kong.mp3',
                 'description' => $language ? 'theme of Diddy-Kong':'thème de Diddy-Kong'
+            ),
+            array(
+                'author' => 'Hoppingicon',
+                'base_url' => 'profil.php?id=26749',
+                'for' => $language ? 'for the music themes of':'pour les thèmes musicaux de',
+                'description' => $language ? '<a href="musics/endings/ending_waluigi.mp3">Waluigi</a>, <a href="musics/endings/ending_maskass.mp3">Shy Guy</a>, <a href="musics/endings/ending_skelerex.mp3">Dry Bones</a>, <a href="musics/endings/ending_funky-kong.mp3">Funky-Kong</a>, and <a href="musics/endings/ending_birdo.mp3">Birdo</a>':'<a href="musics/endings/ending_waluigi.mp3">Waluigi</a>, <a href="musics/endings/ending_maskass.mp3">Maskass</a>, <a href="musics/endings/ending_skelerex.mp3">Skelerex</a>, <a href="musics/endings/ending_funky-kong.mp3">Funky-Kong</a> et <a href="musics/endings/ending_birdo.mp3">Birdo</a>'
             )
             ),
             ($language ? 'Contributions to the development':'Contributions au développement') => array(
