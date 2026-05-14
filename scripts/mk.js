@@ -147,12 +147,10 @@ if (isCup && (aAvailableMaps.length > 4))
 var iWidth = 80;
 var iHeight = 39;
 var SPF = 67;
-var iRendering = baseOptions["quality"];
-var iQuality, iSmooth;
-resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 2;
+var bLegacyEngine;
 var vSfx = 1, vMusic = 1;
 {
 	var vSettings = localStorage.getItem("settings.vol");
@@ -184,28 +182,6 @@ if (typeof shareLink !== "undefined") {
 }
 var $changeRace = document.getElementById("changeRace");
 var myCircuit = ($changeRace != null) && (!$changeRace.dataset || !$changeRace.dataset.collab);
-
-
-function setQuality(iValue) {
-	iRendering = iValue;
-	baseOptions["quality"] = iValue;
-	resetQuality();
-
-	if (iQuality == 5)
-		localStorage.removeItem("iQuality");
-	else
-		localStorage.setItem("iQuality", iValue);
-}
-function resetQuality() {
-	if (iRendering == 5) {
-		iQuality = 1;
-		iSmooth = false;
-	}
-	else {
-		iQuality = iRendering;
-		iSmooth = true;
-	}
-}
 
 function setFps(iValue) {
 	if (iValue == -2) {
@@ -1373,7 +1349,7 @@ function initPlan(lMap) {
 	var oMapImg = lMap.mapImg;
 	if (oMapImg.src) {
 		oPlanImg = document.createElement("img");
-		oPlanImg.src = oMapImg.src;
+		oPlanImg.src = oMapImg._originalSrc || oMapImg.src;
 		oPlanImg.style.width = oPlanSize +"px";
 	}
 	else {
@@ -1388,7 +1364,7 @@ function initPlan(lMap) {
 
 	if (oMapImg.src) {
 		oPlanImg2 = document.createElement("img");
-		oPlanImg2.src = oMapImg.src;
+		oPlanImg2.src = oMapImg._originalSrc || oMapImg.src;
 	}
 	else {
 		oPlanImg2 = document.createElement("canvas");
@@ -1622,6 +1598,7 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	bLegacyEngine = localStorage.getItem("settings.engine") === "canvas";
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -2193,7 +2170,7 @@ function initMap() {
 							handleMapLoad(resolve);
 						};
 					}
-					oGif.src = mapSrc;
+					loadImageWithCorsProxyFallback(oGif, mapSrc);
 				}
 				else {
 					oMapImg = GIF();
@@ -2228,7 +2205,7 @@ function initMap() {
 						handleMapLoad(resolve);
 					};
 				}
-				oMapImg.src = mapSrc;
+				loadImageWithCorsProxyFallback(oMapImg, mapSrc);
 			}
 		});
 	});
@@ -4445,7 +4422,7 @@ function startGame() {
 						asset0.src = customData.type;
 						img.src = "images/map_icons/empty.png";
 						getCustomDecorData(customData, function(res) {
-							img.src = res.hd;
+							loadImageWithCorsProxyFallback(img, res.hd);
 							switch (key) {
 							case "flippers":
 							case "pointers":
@@ -5836,32 +5813,45 @@ function initWebGL(canvas) {
 	uniform vec2 uPosition;
 	uniform vec3 uBgColor;
 	uniform float uAngle;
-	const float yOffset = 14.0;
-	const vec2 viewSize = vec2(600.0, 240.0);
-	const mat3 invH = mat3(
-		1.0, 0.0, 0.0,
-		5.75, 12.5, 11.5,
-		0.0, 0.0, 1.0
-	);
+
+	const float iHeight = ${iHeight}.0;
+	const float iWidth = ${iWidth}.0;
+	const float iCamHeight = ${iCamHeight}.0;
+	const float iCamDist = ${iCamDist}.0;
+	const float iViewHeight = ${iViewHeight}.0;
+	const float PI = ${Math.PI};
+	const float fFocal = 1.0 / tan(PI * PI / 360.0);
+	const float viewCanvasWidth = 600.0;
 
 	in vec2 vUV;
 	out vec4 outColor;
 
 	void main() {
-		vec3 p = vec3(vUV, 1.0);
-		vec3 src = invH * p;
-		src /= src.z;
+		float iViewY = iHeight * (1.0 - vUV.y);
+		float iTotalY = iViewY + iViewHeight;
+		float iDeltaY = iCamHeight - iTotalY;
 
-		vec2 origin = uPosition - vec2(viewSize.x * 0.5, viewSize.y);
-		vec2 pixelF = origin + src.xy * viewSize + vec2(0.0, yOffset);
+		if (iDeltaY <= 0.0) {
+			outColor = vec4(uBgColor, 1.0);
+			return;
+		}
+
+		float iPointZ = iTotalY * iCamDist / iDeltaY;
+		float fScaleRatio = fFocal / (fFocal + iPointZ);
+
+		if (fScaleRatio <= 0.0 || iWidth / fScaleRatio >= viewCanvasWidth) {
+			outColor = vec4(uBgColor, 1.0);
+			return;
+		}
+
+		float dx = iWidth * (vUV.x - 0.5) / fScaleRatio;
+		float dy = -1.0 - iPointZ;
 
 		float c = cos(uAngle);
 		float s = sin(uAngle);
-		vec2 rel = pixelF - uPosition;
-		rel = vec2(c * rel.x - s * rel.y, s * rel.x + c * rel.y);
-		pixelF = uPosition + rel;
+		vec2 mapPos = uPosition + vec2(c * dx - s * dy, s * dx + c * dy);
 
-		ivec2 pixel = ivec2(floor(pixelF + 0.5));
+		ivec2 pixel = ivec2(floor(mapPos));
 
 		bool outOfBounds = any(lessThan(pixel, ivec2(0))) ||
 						   any(greaterThanEqual(pixel, textureSize(uTexture, 0)));
@@ -5948,6 +5938,11 @@ function initWebGL(canvas) {
 function resetScreen() {
 	fSpriteScale = iScreenScale / 4;
 
+	if (bLegacyEngine) {
+		fLineScale = 1/iScreenScale;
+		aStrips = [];
+	}
+
 	for (var i = 0; i < strPlayer.length; i++) {
 		oContainers[i].style.width = iWidth * iScreenScale + "px";
 		oContainers[i].style.height = iHeight * iScreenScale + "px";
@@ -5956,19 +5951,27 @@ function resetScreen() {
 
 		canvas.style.position = "absolute";
 		canvas.style.left = (-iScreenScale/2) + "px";
-		canvas.style.top = iScreenScale * 107 / 12 + "px";
+		canvas.style.top = iScreenScale + "px";
 		canvas.style.width = (iWidth * iScreenScale + iScreenScale) + "px";
 		canvas.style.height = (iHeight * iScreenScale) + "px";
 
-		canvas.width = iWidth * iScreenScale;
-		canvas.height = iHeight * iScreenScale;
+		if (bLegacyEngine) {
+			canvas.width = iWidth/fLineScale;
+			canvas.height = iHeight/fLineScale;
+		}
+		else {
+			canvas.width = iWidth * iScreenScale;
+			canvas.height = iHeight * iScreenScale;
+		}
 
 		oScreens.push(canvas);
 		oContainers[i].appendChild(canvas);
 
-		var glInfo = initWebGL(canvas);
-		if (glInfo) oScreens[i].glInfo = glInfo;
-		else console.error("Failed to initialize WebGL");
+		if (!bLegacyEngine) {
+			var glInfo = initWebGL(canvas);
+			if (glInfo) oScreens[i].glInfo = glInfo;
+			else console.error("Failed to initialize WebGL");
+		}
 	}
 
 	var prevScreenBlur = 0;
@@ -5976,7 +5979,7 @@ function resetScreen() {
 	frameHandlers = new Array(nbFrames);
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
-	prevScreenDelay = frameSettings.framerad;
+	prevScreenDelay = frameSettings.framerad + (bLegacyEngine ? 0 : 1);
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
@@ -5999,6 +6002,7 @@ function resetScreen() {
 			oPrevFrameStates[i][j] = {
 				container: oContainer2,
 				canvas: oContainer2.firstChild,
+				ctx: oContainer2.firstChild.getContext("2d", { willReadFrequently: true }), 
 				layer: [],
 				opacity: 0
 			}
@@ -6019,6 +6023,32 @@ function resetScreen() {
 			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
 	}
 	mapCanvas = document.createElement("canvas");
+
+	if (bLegacyEngine) {
+		var fLastZ = 0;
+		for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
+			var iTotalY = iViewY + iViewHeight;
+			var iDeltaY = iCamHeight - iTotalY;
+			var iPointZ = (iTotalY/(iDeltaY / iCamDist));
+			var fScaleRatio = fFocal / (fFocal + iPointZ);
+			var iStripWidth = Math.floor(iWidth/fScaleRatio);
+			if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
+				if (iViewY == 0)
+					fLastZ = iPointZ - 1;
+				aStrips.push({
+					viewy : iViewY,
+					mapz : iPointZ,
+					scale : fScaleRatio,
+					stripwidth : iStripWidth,
+					mapzspan : iPointZ - fLastZ
+				});
+				fLastZ = iPointZ;
+			}
+		}
+		oViewCanvas = document.createElement("canvas");
+		oViewCanvas.width = iViewCanvasWidth;
+		oViewCanvas.height = iViewCanvasHeight;
+	}
 }
 
 function getFrameSettings(currentSettings) {
@@ -6756,6 +6786,12 @@ function rankingColor(getId) {
 }
 
 var mapCanvas;
+var iViewCanvasWidth = 600;
+var iViewCanvasHeight = 240;
+var iViewYOffset = 10;
+var oViewCanvas;
+var aStrips = [];
+var fLineScale = 0;
 
 function Sprite(strSprite) {
 	var oCtSprites = new Array();
@@ -6929,7 +6965,7 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 
 	var imageDims = new Image();
 	imageDims.src = strImage;
-	if (!iSmooth) imageDims.className = "pixelated";
+	imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
 		var oLayer = document.createElement("div");
 		oLayer.style.height = (10 * iScreenScale)+"px";
@@ -6937,7 +6973,7 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 		oLayer.style.position = "absolute";
 		(function(oLayer){deferRender(function(){oLayer.style.backgroundImage="url('"+strImage+"')"},300)})(oLayer);
 		oLayer.style.backgroundSize = "auto 100%";
-		if (!iSmooth) oLayer.className = "pixelated";
+		oLayer.className = "pixelated";
 
 		oContainers[i].appendChild(oLayer);
 		oLayers[i] = oLayer;
@@ -7505,23 +7541,35 @@ function createMarker(oKart) {
 var prevScreenDelay;
 var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFade = 0;
 function clonePreviousScreen(i, oPlayer) {
-	if (!prevScreenDelay) return;
+  if (!prevScreenDelay) return;
 
-	var iPrevFrameStates = oPrevFrameStates[i];
-	iPrevFrameStates[prevScreenCur].canvas.getContext("2d").drawImage(
-	  oScreens[i], 0,0
-	);
-	for (var j=0;j<oBgLayers.length;j++)
-		iPrevFrameStates[prevScreenCur].layer[j].drawCurrentState();
-	iPrevFrameStates[prevScreenCur].opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
-	for (var j=0;j<prevScreenDelay;j++) {
-		var screenPos = (prevScreenCur-j + prevScreenDelay) % prevScreenDelay;
-		iPrevFrameStates[j].container.style.zIndex = prevScreenDelay-screenPos;
-		iPrevFrameStates[j].container.style.opacity = iPrevFrameStates[j].opacity * Math.pow(prevScreenFade, screenPos);
-	}
-	prevScreenCur++;
-	if (prevScreenCur >= prevScreenDelay)
-		prevScreenCur = 0;
+  var iPrevFrameStates = oPrevFrameStates[i];
+  var sourceCanvas = oScreens[i];
+  
+  var targetState = iPrevFrameStates[prevScreenCur];
+
+  var ctx = targetState.ctx;
+  ctx.save();
+  ctx.drawImage(sourceCanvas, 0,0);
+  ctx.restore();
+
+  for (var j = 0; j < oBgLayers.length; j++) {
+    targetState.layer[j].drawCurrentState();
+  }
+
+  targetState.opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed * prevScreenOpacity / 8));
+
+  for (var j = 0; j < prevScreenDelay; j++) {
+    var age = (prevScreenCur - j + prevScreenDelay) % prevScreenDelay;
+    var state = iPrevFrameStates[j];
+
+    state.container.style.zIndex = prevScreenDelay - age;
+    
+    state.container.style.opacity = state.opacity * Math.pow(prevScreenFade, age);
+		state.container.style.visibility = (age === 0 && !bLegacyEngine) ? "hidden" : "";
+  }
+
+  prevScreenCur = (prevScreenCur + 1) % prevScreenDelay;
 }
 function redrawCanvas(i, fCamera, lMap) {
 	var oPlayer = fCamera.ref;
@@ -7542,6 +7590,48 @@ function redrawCanvas(i, fCamera, lMap) {
 			delete oPlayer.lastOverride;
 	}
 
+	if (bLegacyEngine) {
+		var oViewContext = oViewCanvas.getContext("2d");
+		oViewContext.fillStyle = "rgb("+ bgcolor +")";
+		oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
+
+		oViewContext.save();
+		oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
+		if (bSelectedMirror)
+			oViewContext.scale(-1, 1);
+		oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
+
+		drawMapImg(oViewContext, lMap, fCamera.x, fCamera.y);
+		if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
+			oViewContext.globalAlpha = lapTransitionOpacity;
+			drawMapImg(oViewContext, lapTransitionMap, fCamera.x, fCamera.y);
+			oViewContext.globalAlpha = 1;
+		}
+		oViewContext.restore();
+
+		var oScreenContext = oScreens[i].getContext("2d");
+		oScreenContext.imageSmoothingEnabled = false;
+
+		var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
+
+		for (var j=0;j<aStrips.length;j++) {
+			var oStrip = aStrips[j];
+			try {
+				oScreenContext.drawImage(
+					oViewCanvas,
+					(iViewCanvasWidth-oStrip.stripwidth)/2,
+					iViewCanvasYOffset - oStrip.mapz,
+					oStrip.stripwidth,
+					oStrip.mapzspan,
+
+					0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+				);
+			}
+			catch (e) {}
+		}
+		return;
+	}
+
 	const mapCtx = mapCanvas.getContext("2d");
 	mapCanvas.width = lMap.mapImg.width;
 	mapCanvas.height = lMap.mapImg.height;
@@ -7557,17 +7647,15 @@ function redrawCanvas(i, fCamera, lMap) {
 	const posY = fCamera.y;
 
 	const glInfo = oScreens[i].glInfo;
-	glInfo.canvas.width = iWidth * iScreenScale;
-	glInfo.canvas.height = iHeight * iScreenScale;
 	glInfo.gl.viewport(0, 0, glInfo.canvas.width, glInfo.canvas.height);
-	
+
 	glInfo.gl.texImage2D(glInfo.gl.TEXTURE_2D, 0, glInfo.gl.RGBA, glInfo.gl.RGBA, glInfo.gl.UNSIGNED_BYTE, mapCanvas);
-	
+
 	glInfo.gl.useProgram(glInfo.prog);
-    glInfo.gl.uniform2f(glInfo.positionLoc, posX - 0.5, posY - 0.5);
+    glInfo.gl.uniform2f(glInfo.positionLoc, posX, posY);
 	glInfo.gl.uniform1f(glInfo.angleLoc, (180 - fCamera.rotation) * Math.PI / 180);
 	glInfo.gl.uniform3f(glInfo.bgColorLoc, bgcolor[0] / 255, bgcolor[1] / 255, bgcolor[2] / 255);
-	
+
 	glInfo.gl.clearColor(1, 1, 1, 1);
 	glInfo.gl.clear(glInfo.gl.COLOR_BUFFER_BIT);
 	glInfo.gl.drawArrays(glInfo.gl.TRIANGLES, 0, 6);
@@ -7595,6 +7683,37 @@ function drawMapImg(ctx, lMap, posX, posY) {
 	}
 	if (lMap.sea)
 		lMap.sea.render(ctx,[posX,posY],1);
+}
+function loadImageWithCorsProxyFallback(img, src) {
+	if (bLegacyEngine) {
+		img.src = src;
+		return;
+	}
+	// Set crossOrigin so canvases drawing this image stay untainted (required
+	// by WebGL texImage2D). If the remote server has no CORS headers the load
+	// will fail; in that case retry through our own proxy.
+	img.crossOrigin = "anonymous";
+	var existingError = img.onerror;
+	img._proxyAttempted = false;
+	img._originalSrc = src;
+	img.onerror = function(e) {
+		if (img._proxyAttempted) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		var crossOrigin = false;
+		try {
+			crossOrigin = new URL(src, location.href).origin !== location.origin;
+		}
+		catch (urlErr) {}
+		if (!crossOrigin) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		img._proxyAttempted = true;
+		img.src = "api/proxy.php?url=" + encodeURIComponent(src);
+	};
+	img.src = src;
 }
 
 function byteType(key) {
@@ -11921,7 +12040,6 @@ function render() {
 				ref: oPlayer.ref
 			};
 
-      		clonePreviousScreen(i, oPlayer);
 			redrawCanvas(i, fCamera, lMap);
 
 			if (oPlayer.time) {
@@ -12163,6 +12281,7 @@ function render() {
 				oBgLayers[j].draw(fRotation, i);
 			for (var j=0;j<fadingBgLayers.length;j++)
 				fadingBgLayers[j].draw(fRotation, i);
+      clonePreviousScreen(i, oPlayer);
 
 			if (oPlanCtn)
 				setPlanPos(frameState, lMap);
@@ -31987,6 +32106,36 @@ function editCommands(options) {
 		}
 		$controlSettings.appendChild($controlSetting);
 	}
+	{
+		var $controlSetting = document.createElement("label");
+		$controlSetting.style.marginLeft = "5px";
+		$controlSetting.style.paddingTop = "4px";
+		var $controlText = document.createElement("span");
+		$controlText.innerHTML = toLanguage("Rendering engine", "Moteur de rendu");
+		$controlSetting.appendChild($controlText);
+		var $controlSelect = document.createElement("select");
+		$controlSelect.style.width = "auto";
+		$controlSelect.style.marginLeft = "8px";
+		var engineOptions = [
+			["webgl", "WebGL"],
+			["canvas", "Canvas"]
+		];
+		for (var i=0;i<engineOptions.length;i++) {
+			var $controlOption = document.createElement("option");
+			$controlOption.value = engineOptions[i][0];
+			$controlOption.innerHTML = engineOptions[i][1];
+			$controlSelect.appendChild($controlOption);
+		}
+		$controlSelect.value = (localStorage.getItem("settings.engine") === "canvas") ? "canvas" : "webgl";
+		$controlSelect.onchange = function() {
+			if (this.value === "canvas")
+				localStorage.setItem("settings.engine", "canvas");
+			else
+				localStorage.removeItem("settings.engine");
+		};
+		$controlSetting.appendChild($controlSelect);
+		$controlSettings.appendChild($controlSetting);
+	}
 	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
@@ -31995,36 +32144,6 @@ function editCommands(options) {
 	};
 	for (var key in allGraphicSettings)
 		showGraphicSetting(key, allGraphicSettings[key]);
-	{
-		var $controlSetting = document.createElement("label");
-		$controlSetting.style.marginLeft = "5px";
-		var $controlText = document.createElement("span");
-		$controlText.innerHTML = toLanguage("Quality:", "Qualité :");
-		$controlSetting.appendChild($controlText);
-		var $controlSelect = document.createElement("select");
-		$controlSelect.style.width = "auto";
-		$controlSelect.style.marginLeft = "6px";
-		$controlSelect.onchange = function() {
-			MarioKartControl.setQuality(+this.value);
-		};
-		var graphicOptions = [
-			[5, toLanguage("Pixelated","Pixelisé")],
-			[4, toLanguage("Low","Inférieure")],
-			[2, toLanguage("Medium","Moyenne")],
-			[1, toLanguage("High","Supérieure")]
-		];
-		for (var i=0;i<graphicOptions.length;i++) {
-			var graphicOption = graphicOptions[i];
-			var $controlOption = document.createElement("option");
-			$controlOption.value = graphicOption[0];
-			$controlOption.innerHTML = graphicOption[1];
-			$controlSelect.appendChild($controlOption);
-		}
-		if (localStorage.getItem("iQuality"))
-			$controlSelect.value = localStorage.getItem("iQuality");
-		$controlSetting.appendChild($controlSelect);
-		$controlSettings.appendChild($controlSetting);
-	}
 	showGraphicSetting('spd', toLanguage('Enable speedometer', 'Activer le compteur de vitesse'));
 	var $controlSettingsH2 = document.createElement("div");
 	$controlSettingsH2.className = "control-settings-info";
@@ -32111,29 +32230,6 @@ function editCommands(options) {
 			{
 				var $controlSetting = document.createElement("label");
 				var $controlText = document.createElement("span");
-				$controlText.innerHTML = toLanguage("Frame&nbsp;count:", "Nb&nbsp;frames&nbsp;:");
-				$controlSetting.appendChild($controlText);
-				var $controlSelect = document.createElement("select");
-				$controlSelect.style.width = "auto";
-				$controlSelect.style.marginLeft = "6px";
-				$controlSelect.onchange = function() {
-					currentSettings.framerad = this.value;
-					localStorage.setItem("settings", JSON.stringify(currentSettings));
-				};
-				for (var i=1;i<10;i++) {
-					var graphicOption = graphicOptions[i];
-					var $controlOption = document.createElement("option");
-					$controlOption.value = i;
-					$controlOption.innerHTML = i;
-					$controlSelect.appendChild($controlOption);
-				}
-				$controlSelect.value = currentFrameRad;
-				$controlSetting.appendChild($controlSelect);
-				$controlSettingMotion.appendChild($controlSetting);
-			}
-			{
-				var $controlSetting = document.createElement("label");
-				var $controlText = document.createElement("span");
 				$controlText.innerHTML = toLanguage("Opacity:", "Opacité&nbsp;:");
 				$controlSetting.appendChild($controlText);
 				var $controlInput = document.createElement("input");
@@ -32217,6 +32313,7 @@ function editCommands(options) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("settings.vol");
+			localStorage.removeItem("settings.engine");
 			localStorage.removeItem("iQuality");
 			editCommands(options);
 		}
@@ -33425,9 +33522,6 @@ function handleChatPos() {
 }
 
 window.MarioKartControl = {
-	setQuality : function(iValue) {
-		 setQuality(iValue);
-	},
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},
