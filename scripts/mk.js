@@ -9208,7 +9208,13 @@ var itemBehaviors = {
 				const relSpeed = cappedRelSpeed();
 				const moveX = fSprite.vx * relSpeed / steps;
 				const moveY = fSprite.vy * relSpeed / steps;
-				const isCollide = !canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY);
+				const isOob = (
+					(fSprite.x + fSprite.vx < 4) ||
+					(fSprite.x + fSprite.vx > oMap.w - 4) ||
+					(fSprite.y + fSprite.vy < 4) ||
+					(fSprite.y + fSprite.vy > oMap.h - 4)
+				);
+				const isCollide = !canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY) && !isOob;
 
 				// destroy if last throw and second wall hit
 				if (isCollide && fSprite.throw === 1 && fSprite.collideFrame !== null && fSprite.frame > fSprite.collideFrame) {
@@ -9330,11 +9336,6 @@ var itemBehaviors = {
 			// last throw: destroy if max lifetime reached
 			if (fSprite.frame > 15 * 2.5 && fSprite.throw <= 1)
 				detruit(fSprite);
-
-			// last throw: destroy if out of track
-			const oob = fSprite.x < 0 || fSprite.y < 0 || fSprite.x > oMap.w || fSprite.y > oMap.h;
-			if (fSprite.throw <= 1 && oob)
-				detruit(fSprite);			
 
 			// sprite animation
 			for (let i = 0; i < oPlayers.length; i++)
