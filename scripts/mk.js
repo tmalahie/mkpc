@@ -8761,12 +8761,12 @@ var itemBehaviors = {
 								}
 							}
 							var pTheta = oKart.rotation*Math.PI/180;
-							var orbitRadiusH = 12;
-							var orbitRadiusV = 14;
-							var orbitBaseZ = 30;
+							var orbitRadiusH = 6;
+							var orbitRadiusV = 8;
+							var orbitBaseZ = 23;
 							if (fSprite.cooldown > itemBehavior.orbitEnd) {
 								var orbitR = (itemBehavior.cooldown0 - 1 - fSprite.cooldown)/(itemBehavior.cooldown0 - 2 - itemBehavior.orbitEnd);
-								var angle = (orbitR * 1.6 - 0.1)*Math.PI;
+								var angle = (orbitR * 1.5)*Math.PI;
 								var spiralRampTicks = 3;
 								var orbitTicksElapsed = itemBehavior.cooldown0 - fSprite.cooldown;
 								var rampScale = Math.min(1, orbitTicksElapsed/spiralRampTicks);
@@ -8775,8 +8775,10 @@ var itemBehaviors = {
 								fMoveY -= hOff*Math.sin(pTheta);
 								var initialZ = 15;
 								fSprite.z = initialZ + rampScale*(orbitBaseZ + orbitRadiusV*Math.sin(angle) - initialZ);
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
+								if ((itemBehavior.cooldown0-fSprite.cooldown-1) % 3 === 0) {
+									for (var k=0;k<oPlayers.length;k++)
+										fSprite.sprite[k].setState(1 - fSprite.sprite[k].getState());
+								}
 							}
 							else {
 								var bounceR = (itemBehavior.orbitEnd - fSprite.cooldown)/(itemBehavior.orbitEnd - itemBehavior.cooldown1);
@@ -8791,10 +8793,16 @@ var itemBehaviors = {
 							}
 							fSprite.cooldown--;
 							if (!fSprite.cooldown) {
-								setTimeout(() => {
-									for (var k=0;k<oPlayers.length;k++)
-										fSprite.sprite[k].setState(0);
-								});
+								for (var k=0;k<oPlayers.length;k++) {
+									(function(k) {
+										var oSpriteImg = fSprite.sprite[k].img;
+										function resetOnChange() {
+											fSprite.sprite[k].setState(0);
+											oSpriteImg.removeEventListener('load', resetOnChange);
+										}
+										oSpriteImg.addEventListener('load', resetOnChange);
+									})(k);
+								}
 							}
 						}
 
