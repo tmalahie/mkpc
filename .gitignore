@@ -17,3 +17,4 @@ node_modules/
 /.mcp.json
 /CLAUDE.md
 /.claude
+/docker-compose.override.yml

@@ -87,6 +87,34 @@ function xhr(page, send, onload, backoff) {
 	xhr_object.send(send);
 }
 
+function loadImageWithCorsProxyFallback(img, src) {
+	// Set crossOrigin so canvases drawing this image stay untainted (required
+	// by WebGL texImage2D). If the remote server has no CORS headers the load
+	// will fail; in that case retry through our own proxy.
+	img.crossOrigin = "anonymous";
+	var existingError = img.onerror;
+	img._proxyAttempted = false;
+	img._originalSrc = src;
+	img.onerror = function(e) {
+		if (img._proxyAttempted) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		var crossOrigin = false;
+		try {
+			crossOrigin = new URL(src, location.href).origin !== location.origin;
+		}
+		catch (urlErr) {}
+		if (!crossOrigin) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		img._proxyAttempted = true;
+		img.src = "api/proxy.php?url=" + encodeURIComponent(src);
+	};
+	img.src = src;
+}
+
 var selectPerso;
 if (typeof selectedTeams === 'undefined') {
 	var selectedTeams = 0;
@@ -1349,7 +1377,7 @@ function initPlan(lMap) {
 	var oMapImg = lMap.mapImg;
 	if (oMapImg.src) {
 		oPlanImg = document.createElement("img");
-		oPlanImg.src = oMapImg.src;
+		oPlanImg.src = oMapImg._originalSrc || oMapImg.src;
 		oPlanImg.style.width = oPlanSize +"px";
 	}
 	else {
@@ -1364,7 +1392,7 @@ function initPlan(lMap) {
 
 	if (oMapImg.src) {
 		oPlanImg2 = document.createElement("img");
-		oPlanImg2.src = oMapImg.src;
+		oPlanImg2.src = oMapImg._originalSrc || oMapImg.src;
 	}
 	else {
 		oPlanImg2 = document.createElement("canvas");
@@ -2170,7 +2198,7 @@ function initMap() {
 							handleMapLoad(resolve);
 						};
 					}
-					oGif.src = mapSrc;
+					loadImageWithCorsProxyFallback(oGif, mapSrc);
 				}
 				else {
 					oMapImg = GIF();
@@ -2205,7 +2233,7 @@ function initMap() {
 						handleMapLoad(resolve);
 					};
 				}
-				oMapImg.src = mapSrc;
+				loadImageWithCorsProxyFallback(oMapImg, mapSrc);
 			}
 		});
 	});
@@ -4422,7 +4450,7 @@ function startGame() {
 						asset0.src = customData.type;
 						img.src = "images/map_icons/empty.png";
 						getCustomDecorData(customData, function(res) {
-							img.src = res.hd;
+							loadImageWithCorsProxyFallback(img, res.hd);
 							switch (key) {
 							case "flippers":
 							case "pointers":
