@@ -6206,7 +6206,11 @@ var commonTools = {
 				return;
 			}
 			if ($itemsOption) $itemsOption.style.display = "";
-			initRouteSelector(document.getElementById("items-traject"), routeData.length);
+			var $itemsTraject = document.getElementById("items-traject");
+			var prevTraject = $itemsTraject.children.length ? +$itemsTraject.value : 0;
+			initRouteSelector($itemsTraject, routeData.length);
+			if (prevTraject >= 0 && prevTraject < routeData.length)
+				$itemsTraject.value = prevTraject;
 			self.state.selectedTool = 0;
 			if ($itemsOption && $itemsOption.className === "items-option-trajects")
 				self.state.selectedTool = 1;
@@ -6336,7 +6340,7 @@ var commonTools = {
 							showTrajectOptions("items");
 							return;
 						}
-						var msg = language ? "Move along route number (1-"+nbRoutes+", empty to stay still):" : "N° du trajet à suivre (1-"+nbRoutes+", vide pour rester fixe) :";
+						var msg = language ? "Enter route number (1-"+nbRoutes+"), or leave empty to reset to a static item" : "Entrer n° de trajet (1-"+nbRoutes+"), ou laisser vide pour réinitialiser à un objet immobile";
 						var defaultVal = (point.traject != null) ? (point.traject+1) : "";
 						var newTraject = prompt(msg, defaultVal);
 						if (newTraject == null) return;
@@ -6401,13 +6405,11 @@ var commonTools = {
 			if (armeExtra && armeExtra.route) {
 				var routeData = armeExtra.route;
 				if ((routeData.length != 1) || routeData[0].points.length) {
-					if (!payload.decorparams) payload.decorparams = {};
-					if (!payload.decorparams.extra) payload.decorparams.extra = {};
-					payload.decorparams.extra.arme = {
+					payload.itemparams = {
 						path: [],
 						closed: []
 					};
-					var armePayload = payload.decorparams.extra.arme;
+					var armePayload = payload.itemparams;
 					for (var i=0;i<routeData.length;i++) {
 						armePayload.path.push(polyToData(routeData[i].points));
 						armePayload.closed.push(routeData[i].closed ? 1:0);
@@ -6427,8 +6429,8 @@ var commonTools = {
 				}
 				self.data.points.push(iData);
 			}
-			if (payload.decorparams && payload.decorparams.extra && payload.decorparams.extra.arme) {
-				var armePayload = payload.decorparams.extra.arme;
+			if (payload.itemparams) {
+				var armePayload = payload.itemparams;
 				self.data.extra.arme = {route:[]};
 				for (var i=0;i<armePayload.path.length;i++)
 					self.data.extra.arme.route.push({points:dataToPoly(armePayload.path[i]),closed:armePayload.closed[i]});

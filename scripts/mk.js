@@ -1082,7 +1082,7 @@ function setPlanPos(frameState, lMap) {
 				var fArme = frameStateArme && frameStateArme[i];
 				var aX = fArme ? fArme.x : lMap.arme[i][0];
 				var aY = fArme ? fArme.y : lMap.arme[i][1];
-				posImg(iPlanObjects[i], aX,aY,Math.round(oPlayers[0].rotation), iObjWidth, iPlanSize);
+				posImg(iPlanObjects[i], aX,aY,180, iObjWidth, iPlanSize);
 			}
 		}
 	}
@@ -21400,8 +21400,7 @@ function moveItems() {
 	}
 	foreachLMap(function(lMap,pMap) {
 		if (pMap.arme) {
-			var armeExtra = lMap.decorparams && lMap.decorparams.extra && lMap.decorparams.extra.arme;
-			var paths = armeExtra && armeExtra.path;
+			var paths = lMap.itemparams && lMap.itemparams.path;
 			for (var j=0;j<pMap.arme.length;j++) {
 				var fSprite = pMap.arme[j];
 				var fItems = fSprite[2];
@@ -21435,9 +21434,15 @@ function moveItemBoxAlongPath(fSprite, paths) {
 				bestK = k;
 			}
 		}
+		var nextK = (bestK+1) % aipoints.length;
+		var aimK = aipoints[bestK], aimN = aipoints[nextK];
+		var okX = aimK[0]-fSprite[0], okY = aimK[1]-fSprite[1];
+		var onX = aimN[0]-fSprite[0], onY = aimN[1]-fSprite[1];
+		if (okX*onX + okY*onY < 0)
+			bestK = nextK;
 		fSprite[5] = bestK;
 	}
-	var speed = (fSprite[4] != null ? fSprite[4] : 1) * 4;
+	var speed = (fSprite[4] != null ? fSprite[4] : 1) * 3;
 	var x = fSprite[0], y = fSprite[1];
 	while (speed > 0) {
 		var aipoint = aipoints[fSprite[5]];
