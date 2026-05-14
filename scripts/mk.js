@@ -2913,22 +2913,25 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "boomerang" :
-			const [uX, uY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
-			const uL = Math.hypot(uX, uY) || 1;
+			const [velX, velY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
+			const [shiftX, shiftY] = dirShoot(oKart, backwards, 3.2);
 
+			const uL = Math.hypot(shiftX, shiftY) || 1;
+			const shiftDist = backwards ? 0 : (6 + uL);
+			
 			const boomerang = {
 				type: "boomerang",
 				owner: oKart.id,
 				team: oKart.team,
-				x: oKart.x + uX / uL,
-				y: oKart.y + uY / uL,
+				x: oKart.x + shiftDist * shiftX / uL,
+				y: oKart.y + shiftDist * shiftY / uL,
 				z: oKart.z + 2,
-				vx: uX,
-				vy: uY,
+				vx: velX,
+				vy: velY,
 				throw: oKart.boomerangArme ?? itemBehaviors.boomerang.MAX_USES,
 				frame: 0,
 				collideFrame: null,
-				maxSpeed: Math.sqrt(uX * uX + uY * uY)
+				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
 			
 			if (oKart.boomerangArme === 1)
