@@ -87,34 +87,6 @@ function xhr(page, send, onload, backoff) {
 	xhr_object.send(send);
 }
 
-function loadImageWithCorsProxyFallback(img, src) {
-	// Set crossOrigin so canvases drawing this image stay untainted (required
-	// by WebGL texImage2D). If the remote server has no CORS headers the load
-	// will fail; in that case retry through our own proxy.
-	img.crossOrigin = "anonymous";
-	var existingError = img.onerror;
-	img._proxyAttempted = false;
-	img._originalSrc = src;
-	img.onerror = function(e) {
-		if (img._proxyAttempted) {
-			if (typeof existingError === "function") existingError.call(img, e);
-			return;
-		}
-		var crossOrigin = false;
-		try {
-			crossOrigin = new URL(src, location.href).origin !== location.origin;
-		}
-		catch (urlErr) {}
-		if (!crossOrigin) {
-			if (typeof existingError === "function") existingError.call(img, e);
-			return;
-		}
-		img._proxyAttempted = true;
-		img.src = "api/proxy.php?url=" + encodeURIComponent(src);
-	};
-	img.src = src;
-}
-
 var selectPerso;
 if (typeof selectedTeams === 'undefined') {
 	var selectedTeams = 0;
@@ -7711,6 +7683,37 @@ function drawMapImg(ctx, lMap, posX, posY) {
 	}
 	if (lMap.sea)
 		lMap.sea.render(ctx,[posX,posY],1);
+}
+function loadImageWithCorsProxyFallback(img, src) {
+	if (bLegacyEngine) {
+		img.src = src;
+		return;
+	}
+	// Set crossOrigin so canvases drawing this image stay untainted (required
+	// by WebGL texImage2D). If the remote server has no CORS headers the load
+	// will fail; in that case retry through our own proxy.
+	img.crossOrigin = "anonymous";
+	var existingError = img.onerror;
+	img._proxyAttempted = false;
+	img._originalSrc = src;
+	img.onerror = function(e) {
+		if (img._proxyAttempted) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		var crossOrigin = false;
+		try {
+			crossOrigin = new URL(src, location.href).origin !== location.origin;
+		}
+		catch (urlErr) {}
+		if (!crossOrigin) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		img._proxyAttempted = true;
+		img.src = "api/proxy.php?url=" + encodeURIComponent(src);
+	};
+	img.src = src;
 }
 
 function byteType(key) {
