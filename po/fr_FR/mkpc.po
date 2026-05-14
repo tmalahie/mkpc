@@ -1169,7 +1169,7 @@ msgstr ""
 #: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">Nihilogic</a> for the <a href=\"{url_mario_kart}"
-"\">basic Mario Kart</a>"
+"\">Mario Kart original PoC</a>"
 msgstr ""
 "<a href=\"{url_main_site}\">Nihilogic</a> pour le <a href=\"{url_mario_kart}"
 "\">Mario Kart de départ</a>"

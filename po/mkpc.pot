@@ -1080,7 +1080,7 @@ msgstr ""
 #: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">Nihilogic</a> for the <a href=\"{url_mario_kart}"
-"\">basic Mario Kart</a>"
+"\">Mario Kart original PoC</a>"
 msgstr ""
 
 #: php/pages/index.php

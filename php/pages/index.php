@@ -245,7 +245,7 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed!") ?>
 				<ul>
 					<li>
-						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">basic Mario Kart</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
+						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">Mario Kart original PoC</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
 					</li>
 					<li>
 						<?= F_('<a href="{url_main_site}">SNESMaps</a> for the <a href="{url_mario_kart}">track images</a>', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
