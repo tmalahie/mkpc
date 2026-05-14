@@ -13,6 +13,22 @@ function proxy_fail($code) {
 	exit;
 }
 
+// Strip parameters from a Content-Type and validate against a strict
+// raster-image allow-list. Returns the canonical type or null on miss.
+function proxy_normalize_content_type($raw) {
+	if (!$raw) return null;
+	$semi = strpos($raw, ';');
+	$type = $semi === false ? $raw : substr($raw, 0, $semi);
+	$type = strtolower(trim($type));
+	static $allowed = array(
+		'image/png', 'image/jpeg', 'image/jpg', 'image/gif',
+		'image/webp', 'image/bmp',
+		'image/x-icon', 'image/vnd.microsoft.icon',
+		'image/apng', 'image/avif',
+	);
+	return in_array($type, $allowed, true) ? $type : null;
+}
+
 function proxy_send($contentType, $body) {
 	header('Access-Control-Allow-Origin: *');
 	header('Content-Type: ' . $contentType);
@@ -26,8 +42,8 @@ function proxy_serve_from_cache($path) {
 	if ($contents === false) return false;
 	$nl = strpos($contents, "\n");
 	if ($nl === false) return false;
-	$ct = substr($contents, 0, $nl);
-	if (stripos($ct, 'image/') !== 0) return false;
+	$ct = proxy_normalize_content_type(substr($contents, 0, $nl));
+	if (!$ct) return false;
 	proxy_send($ct, substr($contents, $nl + 1));
 	return true;
 }
@@ -111,6 +127,22 @@ if (!filter_var($ip, FILTER_VALIDATE_IP))
 	proxy_fail(502);
 if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))
 	proxy_fail(403);
+// FILTER_FLAG_NO_RES_RANGE doesn't reject IPv4-mapped IPv6 like
+// ::ffff:127.0.0.1, which would otherwise let curl connect to loopback.
+// Extract the embedded IPv4 from both IPv4-mapped (::ffff:a.b.c.d) and
+// the deprecated IPv4-compatible (::a.b.c.d) forms and re-validate.
+$packed = @inet_pton($ip);
+if ($packed !== false && strlen($packed) === 16) {
+	$prefix12 = substr($packed, 0, 12);
+	$mappedPrefix = str_repeat("\0", 10) . "\xff\xff";
+	$compatPrefix = str_repeat("\0", 12);
+	if ($prefix12 === $mappedPrefix || $prefix12 === $compatPrefix) {
+		$unpacked = unpack('N', substr($packed, 12));
+		$v4 = long2ip($unpacked[1]);
+		if (!filter_var($v4, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))
+			proxy_fail(403);
+	}
+}
 require_once('../includes/protections.php');
 preventRecursiveCalls();
 
@@ -149,7 +181,8 @@ if ($tooBig)
 	proxy_fail(413);
 if ($ok === false || $status < 200 || $status >= 300)
 	proxy_fail(502);
-if (!$contentType || stripos($contentType, 'image/') !== 0)
+$contentType = proxy_normalize_content_type($contentType);
+if (!$contentType)
 	proxy_fail(415);
 
 proxy_write_cache($cachePath, $contentType, $body);
