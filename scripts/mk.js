@@ -2927,6 +2927,7 @@ function arme(ID, backwards, forwards) {
 				vy: uY,
 				throw: oKart.boomerangArme ?? itemBehaviors.boomerang.MAX_USES,
 				frame: 0,
+				collideFrame: null,
 				maxSpeed: Math.sqrt(uX * uX + uY * uY)
 			};
 			
@@ -9174,11 +9175,18 @@ var itemBehaviors = {
 		FRAME_SLOWDOWN: 5,
 		FRAME_BACK: 12,
 		FRAME_BACK_Z: 7,
+		UPDATE_STEPS: 4,
 
 		move: function(fSprite, ctx) {
 			const frameSlowdown = itemBehaviors[fSprite.type].FRAME_SLOWDOWN;
 			const frameBack = itemBehaviors[fSprite.type].FRAME_BACK;
 			const frameBackZ = itemBehaviors[fSprite.type].FRAME_BACK_Z;
+			const steps = itemBehaviors[fSprite.type].UPDATE_STEPS;
+
+			const shouldCollideWalls = fSprite.frame < frameBack || fSprite.throw === 1;
+			const isSlowdown = fSprite.frame >= frameSlowdown && fSprite.frame < frameBack && fSprite.throw > 1;
+			const isGoBackSender = fSprite.frame >= frameBack && fSprite.throw > 1;
+
 			let speedX, speedY;
 			fSprite.frame++;
 
@@ -9187,111 +9195,133 @@ var itemBehaviors = {
 				return kart.id === fSprite.owner;
 			});
 
-			collisionFloor = null;
-			collisionDecorHit = null;
-			collisionItem = fSprite;
-			collisionLap = getItemCollisionLap(fSprite);
+			for (let step = 0; step < steps; step++) {
+				collisionFloor = null;
+				collisionDecorHit = null;
+				collisionItem = fSprite;
+				collisionLap = getItemCollisionLap(fSprite);
 
-			// decor collision
-			if (fSprite.frame < frameBack || fSprite.throw <= 1)
-				canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, fSprite.vx, fSprite.vy);
+				// decor & wall collisions
+				const relSpeed = cappedRelSpeed();
+				const moveX = fSprite.vx * relSpeed / steps;
+				const moveY = fSprite.vy * relSpeed / steps;
+				const isCollide = !canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY);
 
-			// handle teleports
-			const tp = inTeleport(fSprite.x, fSprite.y);
-			if (tp) {
-				fSprite.x = tp[0];
-				fSprite.y = tp[1];
-				const theta = tp[2] * Math.PI / 2;
-				const speed = Math.hypot(fSprite.vx, fSprite.vy);
-				fSprite.vx = speed * Math.sin(theta);
-				fSprite.vy = speed * Math.cos(theta);
-			}
-
-			// slow down after throw
-			if (fSprite.frame >= frameSlowdown && fSprite.frame < frameBack && fSprite.throw > 1) {
-				fSprite.vx *= 0.80;
-				fSprite.vy *= 0.80;
-			}
-
-			// go back to sender
-			if (fSprite.frame >= frameBack && fSprite.throw > 1) {
-				const speed = fSprite.maxSpeed * (fSprite.frame - frameBack - 1) * 0.2;
-				const cappedSpeed = Math.min(speed, cappedRelSpeed() * 18);
-
-				// apply movement
-				const angle = Math.atan2(owner.y - fSprite.y, owner.x - fSprite.x);
-				speedX = Math.cos(angle) * cappedSpeed;
-				speedY = Math.sin(angle) * cappedSpeed;
-				fSprite.x += speedX;
-				fSprite.y += speedY;
-
-				// height
-				if (frameBack - fSprite.frame < fSprite.frame + frameBackZ) {
-					let speedZ = (owner.z - fSprite.z) / frameBackZ * 2;
-					speedZ = speedZ < 0 ? Math.max(-8, speedZ) : Math.min(8, speedZ);
-					fSprite.z += speedZ;
-				}
-				else
-					fSprite.z = owner.z;
-
-				fSprite.z = Math.max(0, fSprite.z);
-
-				if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: -speedX, y: -speedY}, fSprite)) {
-					// give back to owner
-					let key;
-					
-					if (!owner.arme) {
-						key = "arme";
-						owner.boomerangArme = fSprite.throw - 1;
-					}
-					else if (!owner.stash && oDoubleItemsEnabled) {
-						key = "stash";
-						owner.boomerangStash = fSprite.throw - 1;
-					}
-
-					if (key) {
-						owner[key] = "boomerang";
-						owner["roulette" + (key === "arme" ? "" : "2")] = 25;
-
-						if (kartIsPlayer(owner))
-							updateObjHud(oPlayers.indexOf(owner));
-					}
-					
+				// destroy if last throw and second wall hit
+				if (isCollide && fSprite.throw === 1 && fSprite.collideFrame !== null && fSprite.frame > fSprite.collideFrame) {
 					detruit(fSprite);
+					break;
 				}
-			}
-			// apply regular movement
-			else {
-				fSprite.x += fSprite.vx;
-				fSprite.y += fSprite.vy;
-				speedX = fSprite.vx;
-				speedY = fSprite.vy;
-			}
-			
-			// handle override change
-			checkItemLap(fSprite, {aPos: [fSprite.x, fSprite.y]});
 
-			// pierce ground items
-			if (fSprite.z < 12) {
-				while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-				while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-				while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-			}
+				// wall bounce
+				if (shouldCollideWalls && isCollide && !collisionDecorHit) {
+					const [ux, uy] = getHorizontality(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY);
+					const m_u = fSprite.vx * ux + fSprite.vy * uy;
+					fSprite.vx = 2 * m_u * ux - fSprite.vx;
+					fSprite.vy = 2 * m_u * uy - fSprite.vy;
+					fSprite.collideFrame = fSprite.frame;
+				}
 
-			// break on explosions / boomerangs
-			let oSpriteExcept;
-			if (ctx && ctx.onlineSync)
-				oSpriteExcept = otherPlayerItems([]);
+				// handle teleports
+				const tp = inTeleport(fSprite.x, fSprite.y);
+				if (tp) {
+					fSprite.x = tp[0];
+					fSprite.y = tp[1];
+					const theta = tp[2] * Math.PI / 2;
+					const speed = Math.hypot(fSprite.vx, fSprite.vy);
+					fSprite.vx = speed * Math.sin(theta);
+					fSprite.vy = speed * Math.cos(theta);
+				}
 
-			const bobombCol = fSprite.z < 12 && touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent: true, isBoomerang: true});
-			const blueShellCol = fSprite.z < 12 && touche_cbleue(fSprite.x, fSprite.y);
-			const boomerangCol = touche_boomerang({x: fSprite.x, y: fSprite.y, z: fSprite.z}, null, [fSprite], null, true, false);
+				// slow down after throw
+				if (isSlowdown) {
+					const friction = Math.pow(0.80, 1 / steps);
+					fSprite.vx *= friction;
+					fSprite.vy *= friction;
+				}
 
-			if (bobombCol || blueShellCol || boomerangCol) {
-				if (kartIsPlayer(owner))
-					clLocalVars.boomerangBreak = true;
+				// go back to sender
+				if (isGoBackSender) {
+					const speed = fSprite.maxSpeed * (fSprite.frame - frameBack - 1) * 0.2;
+					const cappedSpeed = Math.min(speed, cappedRelSpeed() * 18);
 
-				detruit(fSprite);
+					// apply movement
+					const angle = Math.atan2(owner.y - fSprite.y, owner.x - fSprite.x);
+					speedX = Math.cos(angle) * cappedSpeed;
+					speedY = Math.sin(angle) * cappedSpeed;
+					fSprite.x += speedX / steps;
+					fSprite.y += speedY / steps;
+
+					// height
+					if (frameBack - fSprite.frame < fSprite.frame + frameBackZ) {
+						let speedZ = (owner.z - fSprite.z) / frameBackZ * 2;
+						speedZ = speedZ < 0 ? Math.max(-8, speedZ) : Math.min(8, speedZ);
+						fSprite.z += speedZ / steps;
+					}
+					else
+						fSprite.z = owner.z;
+
+					fSprite.z = Math.max(0, fSprite.z);
+
+					if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: -speedX, y: -speedY}, fSprite) && step === 0) {
+						// give back to owner
+						let key;
+						
+						// update uses
+						if (!owner.arme) {
+							key = "arme";
+							owner.boomerangArme = fSprite.throw - 1;
+						}
+						else if (!owner.stash && oDoubleItemsEnabled) {
+							key = "stash";
+							owner.boomerangStash = fSprite.throw - 1;
+						}
+
+						// give back item
+						if (key) {
+							owner[key] = "boomerang";
+							owner["roulette" + (key === "arme" ? "" : "2")] = 25;
+
+							if (kartIsPlayer(owner))
+								updateObjHud(oPlayers.indexOf(owner));
+						}
+						
+						detruit(fSprite);
+					}
+				}
+				// apply regular movement
+				else {
+					fSprite.x += fSprite.vx / steps;
+					fSprite.y += fSprite.vy / steps;
+					speedX = fSprite.vx / steps;
+					speedY = fSprite.vy / steps;
+				}
+				
+				// handle override change
+				checkItemLap(fSprite, {aPos: [fSprite.x, fSprite.y]});
+
+				// pierce ground items
+				if (fSprite.z < 12) {
+					while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+					while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+					while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+				}
+
+				// break on explosions / boomerangs
+				let oSpriteExcept;
+				if (ctx && ctx.onlineSync)
+					oSpriteExcept = otherPlayerItems([]);
+
+				const bobombCol = fSprite.z < 12 && touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent: true, isBoomerang: true});
+				const blueShellCol = fSprite.z < 12 && touche_cbleue(fSprite.x, fSprite.y);
+				const boomerangCol = touche_boomerang({x: fSprite.x, y: fSprite.y, z: fSprite.z}, null, [fSprite], null, true, false);
+
+				if (bobombCol || blueShellCol || boomerangCol) {
+					if (kartIsPlayer(owner))
+						clLocalVars.boomerangBreak = true;
+
+					detruit(fSprite);
+				}	
 			}
 
 			// last throw: destroy if max lifetime reached
