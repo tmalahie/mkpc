@@ -5969,8 +5969,13 @@ function resetScreen() {
 
 		if (!bLegacyEngine) {
 			var glInfo = initWebGL(canvas);
-			if (glInfo) oScreens[i].glInfo = glInfo;
-			else console.error("Failed to initialize WebGL");
+			if (glInfo && glInfo.gl) oScreens[i].glInfo = glInfo;
+			else {
+				console.error("Failed to initialize WebGL, falling back to legacy engine");
+				bLegacyEngine = true;
+				fLineScale = 1/iScreenScale;
+				aStrips = [];
+			}
 		}
 	}
 
