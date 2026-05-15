@@ -5986,7 +5986,7 @@ function resetScreen() {
 	frameHandlers = new Array(nbFrames);
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
-	prevScreenDelay = frameSettings.framerad + (bLegacyEngine ? 0 : 1);
+	prevScreenDelay = frameSettings.framerad;
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
@@ -6080,12 +6080,10 @@ function getFrameSettings(currentSettings) {
 		}
 	}
 
-	var defaultframerad = Math.floor(iFps/2);
-	var framerad = (currentSettings.framerad >= 0) ? +currentSettings.framerad : defaultframerad;
+	var framerad = +currentSettings.framerad || 0;
 	return {
 		frameint: frameint,
 		framerad: framerad,
-		defaultframerad: defaultframerad,
 		frameblur: currentSettings.frameblur || "1",
 		frameopacity: (currentSettings.frameopacity >= 0) ? +currentSettings.frameopacity : 0.39/(framerad+1),
 		framefade: (currentSettings.framefade >= 0) ? +currentSettings.framefade : 1
@@ -32202,7 +32200,7 @@ function editCommands(options) {
 		function applyMotionToggle() {
 			$controlSettingMotion.style.display = currentSettings.framerad != 0 ? "block" : "none";
 		}
-		var currentFrameRad = frameSettings.framerad || frameSettings.defaultframerad;
+		var currentFrameRad = frameSettings.framerad || Math.floor(iFps/2);
 		{
 			var $controlSetting = document.createElement("label");
 			$controlSetting.style.display = "inline-block";
