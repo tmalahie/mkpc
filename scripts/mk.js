@@ -147,12 +147,10 @@ if (isCup && (aAvailableMaps.length > 4))
 var iWidth = 80;
 var iHeight = 39;
 var SPF = 67;
-var iRendering = baseOptions["quality"];
-var iQuality, iSmooth;
-resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 2;
+var bLegacyEngine;
 var vSfx = 1, vMusic = 1;
 {
 	var vSettings = localStorage.getItem("settings.vol");
@@ -184,28 +182,6 @@ if (typeof shareLink !== "undefined") {
 }
 var $changeRace = document.getElementById("changeRace");
 var myCircuit = ($changeRace != null) && (!$changeRace.dataset || !$changeRace.dataset.collab);
-
-
-function setQuality(iValue) {
-	iRendering = iValue;
-	baseOptions["quality"] = iValue;
-	resetQuality();
-
-	if (iQuality == 5)
-		localStorage.removeItem("iQuality");
-	else
-		localStorage.setItem("iQuality", iValue);
-}
-function resetQuality() {
-	if (iRendering == 5) {
-		iQuality = 1;
-		iSmooth = false;
-	}
-	else {
-		iQuality = iRendering;
-		iSmooth = true;
-	}
-}
 
 function setFps(iValue) {
 	if (iValue == -2) {
@@ -1381,7 +1357,7 @@ function initPlan(lMap) {
 	var oMapImg = lMap.mapImg;
 	if (oMapImg.src) {
 		oPlanImg = document.createElement("img");
-		oPlanImg.src = oMapImg.src;
+		oPlanImg.src = oMapImg._originalSrc || oMapImg.src;
 		oPlanImg.style.width = oPlanSize +"px";
 	}
 	else {
@@ -1396,7 +1372,7 @@ function initPlan(lMap) {
 
 	if (oMapImg.src) {
 		oPlanImg2 = document.createElement("img");
-		oPlanImg2.src = oMapImg.src;
+		oPlanImg2.src = oMapImg._originalSrc || oMapImg.src;
 	}
 	else {
 		oPlanImg2 = document.createElement("canvas");
@@ -1632,6 +1608,7 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	bLegacyEngine = localStorage.getItem("settings.engine") === "canvas";
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -2203,7 +2180,7 @@ function initMap() {
 							handleMapLoad(resolve);
 						};
 					}
-					oGif.src = mapSrc;
+					loadImageWithCorsProxyFallback(oGif, mapSrc);
 				}
 				else {
 					oMapImg = GIF();
@@ -2238,7 +2215,7 @@ function initMap() {
 						handleMapLoad(resolve);
 					};
 				}
-				oMapImg.src = mapSrc;
+				loadImageWithCorsProxyFallback(oMapImg, mapSrc);
 			}
 		});
 	});
@@ -4520,7 +4497,7 @@ function startGame() {
 						asset0.src = customData.type;
 						img.src = "images/map_icons/empty.png";
 						getCustomDecorData(customData, function(res) {
-							img.src = res.hd;
+							loadImageWithCorsProxyFallback(img, res.hd);
 							switch (key) {
 							case "flippers":
 							case "pointers":
@@ -5851,7 +5828,6 @@ var oMusicEmbed;
 
 
 var fSpriteScale = 0;
-var fLineScale = 0;
 
 // setup main container
 var oContainers = [document.createElement("div")];
@@ -5886,37 +5862,191 @@ if (pause && fInfos.player[1]) {
 // setup screen canvas for render mode 0.
 var oScreens = new Array();
 
-// array for screen strip descriptions
-var aStrips = new Array();
-
 var iCamHeight = 24;
 var iCamDist = 32;
 var iViewHeight = -10;
 var fFocal = 1 / Math.tan(Math.PI*Math.PI / 360);
 
+function initWebGL(canvas) {
+	const gl = canvas.getContext("webgl2");
+	if (!gl) return null;
+
+	const vsSource = `#version 300 es
+	precision mediump float;
+	in vec2 aPosition;
+	in vec2 aUV;
+	out vec2 vUV;
+	void main() {
+		vUV = vec2(${bSelectedMirror ? "1.0 - " : ""}aUV.x, 1.0 - aUV.y);
+		gl_Position = vec4(aPosition, 0.0, 1.0);
+	}
+	`;
+	const fsSource = `#version 300 es
+	precision mediump float;
+
+	uniform sampler2D uTexture;
+	uniform vec2 uPosition;
+	uniform vec3 uBgColor;
+	uniform float uAngle;
+
+	const float iHeight = ${iHeight}.0;
+	const float iWidth = ${iWidth}.0;
+	const float iCamHeight = ${iCamHeight}.0;
+	const float iCamDist = ${iCamDist}.0;
+	const float iViewHeight = ${iViewHeight}.0;
+	const float PI = ${Math.PI};
+	const float fFocal = 1.0 / tan(PI * PI / 360.0);
+	const float viewCanvasWidth = 600.0;
+
+	in vec2 vUV;
+	out vec4 outColor;
+
+	void main() {
+		float iViewY = iHeight * (1.0 - vUV.y);
+		float iTotalY = iViewY + iViewHeight;
+		float iDeltaY = iCamHeight - iTotalY;
+
+		if (iDeltaY <= 0.0) {
+			outColor = vec4(uBgColor, 1.0);
+			return;
+		}
+
+		float iPointZ = iTotalY * iCamDist / iDeltaY;
+		float fScaleRatio = fFocal / (fFocal + iPointZ);
+
+		if (fScaleRatio <= 0.0 || iWidth / fScaleRatio >= viewCanvasWidth) {
+			outColor = vec4(uBgColor, 1.0);
+			return;
+		}
+
+		float dx = iWidth * (vUV.x - 0.5) / fScaleRatio;
+		float dy = -1.0 - iPointZ;
+
+		float c = cos(uAngle);
+		float s = sin(uAngle);
+		vec2 mapPos = uPosition + vec2(c * dx - s * dy, s * dx + c * dy);
+
+		ivec2 pixel = ivec2(floor(mapPos));
+
+		bool outOfBounds = any(lessThan(pixel, ivec2(0))) ||
+						   any(greaterThanEqual(pixel, textureSize(uTexture, 0)));
+
+		if (outOfBounds) {
+			outColor = vec4(uBgColor, 1.0);
+		}
+		else {
+			outColor = texelFetch(uTexture, pixel, 0);
+		}
+	}
+	`;
+
+	function createShader(type, src) {
+		const s = gl.createShader(type);
+		gl.shaderSource(s, src);
+		gl.compileShader(s);
+		if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+			console.error(gl.getShaderInfoLog(s));
+			gl.deleteShader(s);
+			return null;
+		}
+		return s;
+	}
+
+	function createProgram(vs, fs) {
+		const p = gl.createProgram();
+		gl.attachShader(p, vs);
+		gl.attachShader(p, fs);
+		gl.linkProgram(p);
+		if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+			console.error(gl.getProgramInfoLog(p));
+			gl.deleteProgram(p);
+			return null;
+		}
+		return p;
+	}
+
+	const vs = createShader(gl.VERTEX_SHADER, vsSource);
+	const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+	if (!vs || !fs) return null;
+
+	const prog = createProgram(vs, fs);
+	if (!prog) return null;
+	gl.useProgram(prog);
+
+	const verts = new Float32Array([
+		-1,-1, 0,0,
+		 1,-1, 1,0,
+		-1, 1, 0,1,
+		-1, 1, 0,1,
+		 1,-1, 1,0,
+		 1, 1, 1,1
+	]);
+	const buf = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+	gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+	const aPosition = gl.getAttribLocation(prog, "aPosition");
+	const aUV = gl.getAttribLocation(prog, "aUV");
+	gl.enableVertexAttribArray(aPosition);
+	gl.enableVertexAttribArray(aUV);
+	gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 16, 0);
+	gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 16, 8);
+
+	const tex = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, tex);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+	return {
+		canvas: canvas,
+		gl: gl,
+		prog: prog,
+		buf: buf,
+		positionLoc: gl.getUniformLocation(prog, 'uPosition'),
+		angleLoc: gl.getUniformLocation(prog, "uAngle"),
+		bgColorLoc: gl.getUniformLocation(prog, "uBgColor")
+	};
+}
+
 function resetScreen() {
 	fSpriteScale = iScreenScale / 4;
-	fLineScale = 1/iScreenScale * iQuality;
 
-	aStrips = [];
+	if (bLegacyEngine) {
+		fLineScale = 1/iScreenScale;
+		aStrips = [];
+	}
 
-	// change dimensions of main container
+	for (var i = 0; i < strPlayer.length; i++) {
+		oContainers[i].style.width = iWidth * iScreenScale + "px";
+		oContainers[i].style.height = iHeight * iScreenScale + "px";
 
-	for (var i=0;i<strPlayer.length;i++) {
-		var oCtrChange = oContainers[i];
-		oCtrChange.style.width = (iWidth*iScreenScale)+"px";
-		oCtrChange.style.height = (iHeight*iScreenScale)+"px";
+		const canvas = document.createElement("canvas");
 
-		var oScreenCanvas = document.createElement("canvas");
-		oScreenCanvas.style.position = "absolute";
-		oScreens.push(oScreenCanvas);
-		oContainers[i].appendChild(oScreenCanvas);
-		oScreenCanvas.width=iWidth/fLineScale;
-		oScreenCanvas.height=iHeight/fLineScale;
-		oScreenCanvas.style.width = (iWidth*iScreenScale+iScreenScale)+"px";
-		oScreenCanvas.style.left = (-iScreenScale/2)+"px";
-		oScreenCanvas.style.top = iScreenScale+"px";
-		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
+		canvas.style.position = "absolute";
+		canvas.style.left = (-iScreenScale/2) + "px";
+		canvas.style.top = iScreenScale + "px";
+		canvas.style.width = (iWidth * iScreenScale + iScreenScale) + "px";
+		canvas.style.height = (iHeight * iScreenScale) + "px";
+
+		if (bLegacyEngine) {
+			canvas.width = iWidth/fLineScale;
+			canvas.height = iHeight/fLineScale;
+		}
+		else {
+			canvas.width = iWidth * iScreenScale;
+			canvas.height = iHeight * iScreenScale;
+		}
+
+		oScreens.push(canvas);
+		oContainers[i].appendChild(canvas);
+
+		if (!bLegacyEngine) {
+			var glInfo = initWebGL(canvas);
+			if (glInfo) oScreens[i].glInfo = glInfo;
+			else console.error("Failed to initialize WebGL");
+		}
 	}
 
 	var prevScreenBlur = 0;
@@ -5924,7 +6054,7 @@ function resetScreen() {
 	frameHandlers = new Array(nbFrames);
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
-	prevScreenDelay = frameSettings.framerad;
+	prevScreenDelay = frameSettings.framerad + (bLegacyEngine ? 0 : 1);
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
@@ -5947,35 +6077,13 @@ function resetScreen() {
 			oPrevFrameStates[i][j] = {
 				container: oContainer2,
 				canvas: oContainer2.firstChild,
+				ctx: oContainer2.firstChild.getContext("2d", { willReadFrequently: true }), 
 				layer: [],
 				opacity: 0
 			}
 		}
 	}
 
-	var fLastZ = 0;
-		// create horizontal strip descriptions
-	for (var iViewY=0;iViewY<iHeight;iViewY+=fLineScale) {
-		var iTotalY = iViewY + iViewHeight; // total height of point (on view) from the ground up
-		var iDeltaY = iCamHeight - iTotalY; // height of point relative to camera
-		var iPointZ = (iTotalY/(iDeltaY / iCamDist)); // distance to point on the map
-		var fScaleRatio = fFocal / (fFocal + iPointZ);
-		var iStripWidth = Math.floor(iWidth/fScaleRatio);
-		if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
-			if (iViewY == 0)
-				fLastZ = iPointZ - 1;
-			aStrips.push(
-				{
-					viewy : iViewY,
-					mapz : iPointZ,
-					scale : fScaleRatio,
-					stripwidth : iStripWidth,
-					mapzspan : iPointZ - fLastZ
-				}
-			)
-			fLastZ = iPointZ;
-		}
-	}
 	foreachLMap(function(lMap) {
 		updateBgLayers({},lMap, function(strImages, fixedScale) {
 			if (lMap === oMap)
@@ -5989,9 +6097,33 @@ function resetScreen() {
 		for (var j=0;j<prevScreenDelay;j++)
 			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
 	}
-	oViewCanvas = document.createElement("canvas");
-	oViewCanvas.width=iViewCanvasWidth;
-	oViewCanvas.height=iViewCanvasHeight;
+	mapCanvas = document.createElement("canvas");
+
+	if (bLegacyEngine) {
+		var fLastZ = 0;
+		for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
+			var iTotalY = iViewY + iViewHeight;
+			var iDeltaY = iCamHeight - iTotalY;
+			var iPointZ = (iTotalY/(iDeltaY / iCamDist));
+			var fScaleRatio = fFocal / (fFocal + iPointZ);
+			var iStripWidth = Math.floor(iWidth/fScaleRatio);
+			if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
+				if (iViewY == 0)
+					fLastZ = iPointZ - 1;
+				aStrips.push({
+					viewy : iViewY,
+					mapz : iPointZ,
+					scale : fScaleRatio,
+					stripwidth : iStripWidth,
+					mapzspan : iPointZ - fLastZ
+				});
+				fLastZ = iPointZ;
+			}
+		}
+		oViewCanvas = document.createElement("canvas");
+		oViewCanvas.width = iViewCanvasWidth;
+		oViewCanvas.height = iViewCanvasHeight;
+	}
 }
 
 function getFrameSettings(currentSettings) {
@@ -6728,11 +6860,13 @@ function rankingColor(getId) {
 	return "transparent";
 }
 
-
-var iViewCanvasHeight = 240;
+var mapCanvas;
 var iViewCanvasWidth = 600;
+var iViewCanvasHeight = 240;
 var iViewYOffset = 10;
 var oViewCanvas;
+var aStrips = [];
+var fLineScale = 0;
 
 function Sprite(strSprite) {
 	var oCtSprites = new Array();
@@ -6744,7 +6878,7 @@ function Sprite(strSprite) {
 		oImg.alt = ".";
 		oImg.className = "pixelated";
 
-		oImg.src = getSpriteSrc(strSprite);
+		oImg.src = getSpriteSrc(strSprite) + (strSprite==='carapace-bleue' || strSprite==='poison' ? '?reload=1' : '');
 
 		var oSpriteCtr = document.createElement("div");
 		oSpriteCtr.style.width = "32px";
@@ -6906,7 +7040,7 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 
 	var imageDims = new Image();
 	imageDims.src = strImage;
-	if (!iSmooth) imageDims.className = "pixelated";
+	imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
 		var oLayer = document.createElement("div");
 		oLayer.style.height = (10 * iScreenScale)+"px";
@@ -6914,7 +7048,7 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 		oLayer.style.position = "absolute";
 		(function(oLayer){deferRender(function(){oLayer.style.backgroundImage="url('"+strImage+"')"},300)})(oLayer);
 		oLayer.style.backgroundSize = "auto 100%";
-		if (!iSmooth) oLayer.className = "pixelated";
+		oLayer.className = "pixelated";
 
 		oContainers[i].appendChild(oLayer);
 		oLayers[i] = oLayer;
@@ -7482,26 +7616,37 @@ function createMarker(oKart) {
 var prevScreenDelay;
 var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFade = 0;
 function clonePreviousScreen(i, oPlayer) {
-	if (!prevScreenDelay) return;
+  if (!prevScreenDelay) return;
 
-	var iPrevFrameStates = oPrevFrameStates[i];
-	iPrevFrameStates[prevScreenCur].canvas.getContext("2d").drawImage(
-	  oScreens[i], 0,0
-	);
-	for (var j=0;j<oBgLayers.length;j++)
-		iPrevFrameStates[prevScreenCur].layer[j].drawCurrentState();
-	iPrevFrameStates[prevScreenCur].opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
-	for (var j=0;j<prevScreenDelay;j++) {
-		var screenPos = (prevScreenCur-j + prevScreenDelay) % prevScreenDelay;
-		iPrevFrameStates[j].container.style.zIndex = prevScreenDelay-screenPos;
-		iPrevFrameStates[j].container.style.opacity = iPrevFrameStates[j].opacity * Math.pow(prevScreenFade, screenPos);
-	}
-	prevScreenCur++;
-	if (prevScreenCur >= prevScreenDelay)
-		prevScreenCur = 0;
+  var iPrevFrameStates = oPrevFrameStates[i];
+  var sourceCanvas = oScreens[i];
+  
+  var targetState = iPrevFrameStates[prevScreenCur];
+
+  var ctx = targetState.ctx;
+  ctx.save();
+  ctx.drawImage(sourceCanvas, 0,0);
+  ctx.restore();
+
+  for (var j = 0; j < oBgLayers.length; j++) {
+    targetState.layer[j].drawCurrentState();
+  }
+
+  targetState.opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed * prevScreenOpacity / 8));
+
+  for (var j = 0; j < prevScreenDelay; j++) {
+    var age = (prevScreenCur - j + prevScreenDelay) % prevScreenDelay;
+    var state = iPrevFrameStates[j];
+
+    state.container.style.zIndex = prevScreenDelay - age;
+    
+    state.container.style.opacity = state.opacity * Math.pow(prevScreenFade, age);
+		state.container.style.visibility = (age === 0 && !bLegacyEngine) ? "hidden" : "";
+  }
+
+  prevScreenCur = (prevScreenCur + 1) % prevScreenDelay;
 }
 function redrawCanvas(i, fCamera, lMap) {
-	var oViewContext = oViewCanvas.getContext("2d");
 	var oPlayer = fCamera.ref;
 	var bgcolor = lMap.bgcolor;
 	var lapTransitionOpacity, lapTransitionMap;
@@ -7519,71 +7664,131 @@ function redrawCanvas(i, fCamera, lMap) {
 		else
 			delete oPlayer.lastOverride;
 	}
-	oViewContext.fillStyle = "rgb("+ bgcolor +")";
-	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
-	oViewContext.save();
-	oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
-	if (bSelectedMirror)
-		oViewContext.scale(-1, 1);
-	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
+	if (bLegacyEngine) {
+		var oViewContext = oViewCanvas.getContext("2d");
+		oViewContext.fillStyle = "rgb("+ bgcolor +")";
+		oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
-	var posX = fCamera.x, posY = fCamera.y;
-	drawMapImg(oViewContext, lMap, posX, posY);
-	if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
-		oViewContext.globalAlpha = lapTransitionOpacity;
-		drawMapImg(oViewContext, lapTransitionMap, posX, posY);
-		oViewContext.globalAlpha = 1;
-	}
-	oViewContext.restore();
+		oViewContext.save();
+		oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
+		if (bSelectedMirror)
+			oViewContext.scale(-1, 1);
+		oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
 
-	oScreens[i].getContext("2d").imageSmoothingEnabled = iSmooth;
-
-	var oScreenContext = oScreens[i].getContext("2d");
-
-	var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
-
-	for (var j=0;j<aStrips.length;j++) {
-
-		var oStrip = aStrips[j];
-
-		try {
-			oScreenContext.drawImage(
-				oViewCanvas,
-				(iViewCanvasWidth-oStrip.stripwidth)/2,
-				iViewCanvasYOffset - oStrip.mapz,
-				oStrip.stripwidth,
-				oStrip.mapzspan,
-
-				0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
-			);
+		drawMapImg(oViewContext, lMap, fCamera.x, fCamera.y);
+		if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
+			oViewContext.globalAlpha = lapTransitionOpacity;
+			drawMapImg(oViewContext, lapTransitionMap, fCamera.x, fCamera.y);
+			oViewContext.globalAlpha = 1;
 		}
-		catch (e) {}
+		oViewContext.restore();
+
+		var oScreenContext = oScreens[i].getContext("2d");
+		oScreenContext.imageSmoothingEnabled = false;
+
+		var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
+
+		for (var j=0;j<aStrips.length;j++) {
+			var oStrip = aStrips[j];
+			try {
+				oScreenContext.drawImage(
+					oViewCanvas,
+					(iViewCanvasWidth-oStrip.stripwidth)/2,
+					iViewCanvasYOffset - oStrip.mapz,
+					oStrip.stripwidth,
+					oStrip.mapzspan,
+
+					0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+				);
+			}
+			catch (e) {}
+		}
+		return;
 	}
+
+	const mapCtx = mapCanvas.getContext("2d");
+	mapCanvas.width = lMap.mapImg.width;
+	mapCanvas.height = lMap.mapImg.height;
+
+	drawMapImg(mapCtx, lMap, 0, 0);
+	if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
+		mapCtx.globalAlpha = lapTransitionOpacity;
+		drawMapImg(mapCtx, lapTransitionMap, 0, 0);
+		mapCtx.globalAlpha = 1;
+	}
+
+	const posX = fCamera.x;
+	const posY = fCamera.y;
+
+	const glInfo = oScreens[i].glInfo;
+	glInfo.gl.viewport(0, 0, glInfo.canvas.width, glInfo.canvas.height);
+
+	glInfo.gl.texImage2D(glInfo.gl.TEXTURE_2D, 0, glInfo.gl.RGBA, glInfo.gl.RGBA, glInfo.gl.UNSIGNED_BYTE, mapCanvas);
+
+	glInfo.gl.useProgram(glInfo.prog);
+    glInfo.gl.uniform2f(glInfo.positionLoc, posX, posY);
+	glInfo.gl.uniform1f(glInfo.angleLoc, (180 - fCamera.rotation) * Math.PI / 180);
+	glInfo.gl.uniform3f(glInfo.bgColorLoc, bgcolor[0] / 255, bgcolor[1] / 255, bgcolor[2] / 255);
+
+	glInfo.gl.clearColor(1, 1, 1, 1);
+	glInfo.gl.clear(glInfo.gl.COLOR_BUFFER_BIT);
+	glInfo.gl.drawArrays(glInfo.gl.TRIANGLES, 0, 6);
 }
-function drawMapImg(oViewContext, lMap, posX, posY) {
+function drawMapImg(ctx, lMap, posX, posY) {
 	var oMapImg = lMap.mapImg;
 	if (oMapImg.image) {
-		oViewContext.drawImage(
+		ctx.drawImage(
 			oMapImg.image,
 			-posX,-posY
 		);
 	}
 	else {
-		oViewContext.drawImage(
+		ctx.drawImage(
 			oMapImg,
 			-posX,-posY
 		);
 	}
 	for (var j=0;j<lMap.assets.length;j++) {
 		var asset = lMap.assets[j];
-		oViewContext.drawImage(
+		ctx.drawImage(
 			asset.canvas,
 			asset.x-posX,asset.y-posY
 		);
 	}
 	if (lMap.sea)
-		lMap.sea.render(oViewContext,[posX,posY],1);
+		lMap.sea.render(ctx,[posX,posY],1);
+}
+function loadImageWithCorsProxyFallback(img, src) {
+	if (bLegacyEngine) {
+		img.src = src;
+		return;
+	}
+	// Set crossOrigin so canvases drawing this image stay untainted (required
+	// by WebGL texImage2D). If the remote server has no CORS headers the load
+	// will fail; in that case retry through our own proxy.
+	img.crossOrigin = "anonymous";
+	var existingError = img.onerror;
+	img._proxyAttempted = false;
+	img._originalSrc = src;
+	img.onerror = function(e) {
+		if (img._proxyAttempted) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		var crossOrigin = false;
+		try {
+			crossOrigin = new URL(src, location.href).origin !== location.origin;
+		}
+		catch (urlErr) {}
+		if (!crossOrigin) {
+			if (typeof existingError === "function") existingError.call(img, e);
+			return;
+		}
+		img._proxyAttempted = true;
+		img.src = "api/proxy.php?url=" + encodeURIComponent(src);
+	};
+	img.src = src;
 }
 
 function byteType(key) {
@@ -8766,8 +8971,9 @@ var itemBehaviors = {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
-		cooldown0: 15,
+		cooldown0: 20,
 		cooldown1: 2,
+		orbitEnd: 6,
 		move: function(fSprite) {
 			var cible = -1;
 			if (fSprite.target != -1) {
@@ -8813,7 +9019,7 @@ var itemBehaviors = {
 								fMoveY /= fNewMove;
 
 								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+									fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
 							}
 							else
 								fSprite.cooldown--;
@@ -8834,21 +9040,49 @@ var itemBehaviors = {
 									fMoveY /= fNewMove;
 								}
 							}
-							var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
-							if (r < 0) r = 0;
-							var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
-							var theta = 2*Math.PI*r;
 							var pTheta = oKart.rotation*Math.PI/180;
-							var z0 = (15 + rZ0);
-							fSprite.z = z0 - rZ*Math.cos(theta);
-							fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
-							fMoveY += rX*Math.sin(theta)*Math.sin(pTheta);
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(Math.round(Math.random()));
+							var orbitRadiusH = 6;
+							var orbitRadiusV = 8;
+							var orbitBaseZ = 23;
+							if (fSprite.cooldown > itemBehavior.orbitEnd) {
+								var orbitR = (itemBehavior.cooldown0 - 1 - fSprite.cooldown)/(itemBehavior.cooldown0 - 2 - itemBehavior.orbitEnd);
+								var angle = (orbitR * 1.5)*Math.PI;
+								var spiralRampTicks = 3;
+								var orbitTicksElapsed = itemBehavior.cooldown0 - fSprite.cooldown;
+								var rampScale = Math.min(1, orbitTicksElapsed/spiralRampTicks);
+								var hOff = orbitRadiusH*rampScale*Math.cos(angle);
+								fMoveX += hOff*Math.cos(pTheta);
+								fMoveY -= hOff*Math.sin(pTheta);
+								var initialZ = 15;
+								fSprite.z = initialZ + rampScale*(orbitBaseZ + orbitRadiusV*Math.sin(angle) - initialZ);
+								if ((itemBehavior.cooldown0-fSprite.cooldown-1) % 3 === 0) {
+									for (var k=0;k<oPlayers.length;k++)
+										fSprite.sprite[k].setState(1 - fSprite.sprite[k].getState());
+								}
+							}
+							else {
+								var bounceR = (itemBehavior.orbitEnd - fSprite.cooldown)/(itemBehavior.orbitEnd - itemBehavior.cooldown1);
+								if (bounceR < 0) bounceR = 0;
+								if (bounceR > 1) bounceR = 1;
+								var bounceLow = orbitBaseZ - orbitRadiusV;
+								var bouncePeak = orbitBaseZ + orbitRadiusV;
+								fSprite.z = bounceLow + (bouncePeak - bounceLow)*Math.sin(Math.PI*bounceR);
+								var spriteFrame = (bounceR < 0.75) ? 2 : 3;
+								for (var k=0;k<oPlayers.length;k++)
+									fSprite.sprite[k].setState(spriteFrame);
+							}
 							fSprite.cooldown--;
 							if (!fSprite.cooldown) {
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(0);
+								for (var k=0;k<oPlayers.length;k++) {
+									(function(k) {
+										var oSpriteImg = fSprite.sprite[k].img;
+										function resetOnChange() {
+											fSprite.sprite[k].setState(0);
+											oSpriteImg.removeEventListener('load', resetOnChange);
+										}
+										oSpriteImg.addEventListener('load', resetOnChange);
+									})(k);
+								}
 							}
 						}
 
@@ -8927,7 +9161,7 @@ var itemBehaviors = {
 					}
 				}
 				for (var k=0;k<oPlayers.length;k++)
-					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+					fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
 			}
 		},
 		checkCollisions: function(fSprite, getId) {
@@ -12127,7 +12361,6 @@ function render() {
 				ref: oPlayer.ref
 			};
 
-      		clonePreviousScreen(i, oPlayer);
 			redrawCanvas(i, fCamera, lMap);
 
 			if (oPlayer.time) {
@@ -12369,6 +12602,7 @@ function render() {
 				oBgLayers[j].draw(fRotation, i);
 			for (var j=0;j<fadingBgLayers.length;j++)
 				fadingBgLayers[j].draw(fRotation, i);
+      clonePreviousScreen(i, oPlayer);
 
 			if (oPlanCtn)
 				setPlanPos(frameState, lMap);
@@ -20438,7 +20672,7 @@ function updateObjHud(ID) {
 		}
 		var oItemHeight = i ? 2.5:4;
 		document.getElementById("scroller"+prefix+ID).style.visibility = isRoulette ? "visible" : "hidden";
-		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
+		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png'+(oArme==='poison'||oArme==='carapacerouge' ? '?reload=1':'')+'" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
 	}
 	var oScroller = document.getElementById("scroller"+ID);
 	var oObjet = document.getElementById("objet"+ID);
@@ -22412,12 +22646,12 @@ function getEndingSrc(playerName) {
 function getStarSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + "-star.png";
-	return "images/star/star_" + playerName +".png";
+	return "images/star/star_" + playerName +".png" + (playerName==='frere_marto' ? '?reload=1':'');
 }
 function getSpriteSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + ".png";
-	return "images/sprites/sprite_" + playerName +".png";
+	return "images/sprites/sprite_" + playerName +".png" + (playerName==='frere_marto' ? '?reload=1':'');
 }
 function getCustomDecorData(customData,callback) {
 	var id = customData.id, type = customData.type;
@@ -32343,6 +32577,36 @@ function editCommands(options) {
 		}
 		$controlSettings.appendChild($controlSetting);
 	}
+	{
+		var $controlSetting = document.createElement("label");
+		$controlSetting.style.marginLeft = "5px";
+		$controlSetting.style.paddingTop = "4px";
+		var $controlText = document.createElement("span");
+		$controlText.innerHTML = toLanguage("Rendering engine", "Moteur de rendu");
+		$controlSetting.appendChild($controlText);
+		var $controlSelect = document.createElement("select");
+		$controlSelect.style.width = "auto";
+		$controlSelect.style.marginLeft = "8px";
+		var engineOptions = [
+			["webgl", "WebGL"],
+			["canvas", "Canvas"]
+		];
+		for (var i=0;i<engineOptions.length;i++) {
+			var $controlOption = document.createElement("option");
+			$controlOption.value = engineOptions[i][0];
+			$controlOption.innerHTML = engineOptions[i][1];
+			$controlSelect.appendChild($controlOption);
+		}
+		$controlSelect.value = (localStorage.getItem("settings.engine") === "canvas") ? "canvas" : "webgl";
+		$controlSelect.onchange = function() {
+			if (this.value === "canvas")
+				localStorage.setItem("settings.engine", "canvas");
+			else
+				localStorage.removeItem("settings.engine");
+		};
+		$controlSetting.appendChild($controlSelect);
+		$controlSettings.appendChild($controlSetting);
+	}
 	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
@@ -32351,36 +32615,6 @@ function editCommands(options) {
 	};
 	for (var key in allGraphicSettings)
 		showGraphicSetting(key, allGraphicSettings[key]);
-	{
-		var $controlSetting = document.createElement("label");
-		$controlSetting.style.marginLeft = "5px";
-		var $controlText = document.createElement("span");
-		$controlText.innerHTML = toLanguage("Quality:", "Qualité :");
-		$controlSetting.appendChild($controlText);
-		var $controlSelect = document.createElement("select");
-		$controlSelect.style.width = "auto";
-		$controlSelect.style.marginLeft = "6px";
-		$controlSelect.onchange = function() {
-			MarioKartControl.setQuality(+this.value);
-		};
-		var graphicOptions = [
-			[5, toLanguage("Pixelated","Pixelisé")],
-			[4, toLanguage("Low","Inférieure")],
-			[2, toLanguage("Medium","Moyenne")],
-			[1, toLanguage("High","Supérieure")]
-		];
-		for (var i=0;i<graphicOptions.length;i++) {
-			var graphicOption = graphicOptions[i];
-			var $controlOption = document.createElement("option");
-			$controlOption.value = graphicOption[0];
-			$controlOption.innerHTML = graphicOption[1];
-			$controlSelect.appendChild($controlOption);
-		}
-		if (localStorage.getItem("iQuality"))
-			$controlSelect.value = localStorage.getItem("iQuality");
-		$controlSetting.appendChild($controlSelect);
-		$controlSettings.appendChild($controlSetting);
-	}
 	showGraphicSetting('spd', toLanguage('Enable speedometer', 'Activer le compteur de vitesse'));
 	var $controlSettingsH2 = document.createElement("div");
 	$controlSettingsH2.className = "control-settings-info";
@@ -32467,29 +32701,6 @@ function editCommands(options) {
 			{
 				var $controlSetting = document.createElement("label");
 				var $controlText = document.createElement("span");
-				$controlText.innerHTML = toLanguage("Frame&nbsp;count:", "Nb&nbsp;frames&nbsp;:");
-				$controlSetting.appendChild($controlText);
-				var $controlSelect = document.createElement("select");
-				$controlSelect.style.width = "auto";
-				$controlSelect.style.marginLeft = "6px";
-				$controlSelect.onchange = function() {
-					currentSettings.framerad = this.value;
-					localStorage.setItem("settings", JSON.stringify(currentSettings));
-				};
-				for (var i=1;i<10;i++) {
-					var graphicOption = graphicOptions[i];
-					var $controlOption = document.createElement("option");
-					$controlOption.value = i;
-					$controlOption.innerHTML = i;
-					$controlSelect.appendChild($controlOption);
-				}
-				$controlSelect.value = currentFrameRad;
-				$controlSetting.appendChild($controlSelect);
-				$controlSettingMotion.appendChild($controlSetting);
-			}
-			{
-				var $controlSetting = document.createElement("label");
-				var $controlText = document.createElement("span");
 				$controlText.innerHTML = toLanguage("Opacity:", "Opacité&nbsp;:");
 				$controlSetting.appendChild($controlText);
 				var $controlInput = document.createElement("input");
@@ -32573,6 +32784,7 @@ function editCommands(options) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("settings.vol");
+			localStorage.removeItem("settings.engine");
 			localStorage.removeItem("iQuality");
 			editCommands(options);
 		}
@@ -33781,9 +33993,6 @@ function handleChatPos() {
 }
 
 window.MarioKartControl = {
-	setQuality : function(iValue) {
-		 setQuality(iValue);
-	},
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},

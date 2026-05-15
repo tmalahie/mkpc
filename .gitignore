@@ -14,3 +14,7 @@ node_modules/
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/.mcp.json
+/CLAUDE.md
+/.claude
+/docker-compose.override.yml
