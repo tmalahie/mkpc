@@ -7641,6 +7641,8 @@ function redrawCanvas(i, fCamera, lMap) {
 	mapCanvas.width = lMap.mapImg.width;
 	mapCanvas.height = lMap.mapImg.height;
 
+	mapCtx.fillStyle = "rgb("+ bgcolor +")";
+	mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
 	drawMapImg(mapCtx, lMap, 0, 0);
 	if (lapTransitionMap && (lapTransitionMap.mapImg !== lMap.mapImg)) {
 		mapCtx.globalAlpha = lapTransitionOpacity;
