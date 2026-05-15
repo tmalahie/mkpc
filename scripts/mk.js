@@ -822,6 +822,7 @@ if (!pause) {
 }
 
 var strPlayer = new Array();
+var timerElements = [];
 var oMap;
 var lMaps, pMaps;
 var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
@@ -1656,6 +1657,7 @@ function loadMap() {
 		var shadowShift2 = Math.round(iScreenScale/4) +"px";
 		oTemps.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
 		hudScreen.appendChild(oTemps);
+		timerElements[i] = oTemps;
 
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
@@ -18181,7 +18183,7 @@ function loseBall(i) {
 function showTimer(timeMS) {
 	var tps = timeStr(timeMS);
 	for (var i=0;i<strPlayer.length;i++)
-		document.getElementById("temps"+i).innerHTML = tps;
+		timerElements[i].textContent = tps;
 }
 
 function move(getId, triggered) {
@@ -18194,7 +18196,6 @@ function move(getId, triggered) {
 	var lMap = getCurrentLMap(collisionLap);
 	if ((getId<strPlayer.length)) {
 		if (!oKart.cpu && !finishing) {
-			showTimer(timer*SPF);
 			if (!getId)
 				timer++;
 
@@ -20287,18 +20288,15 @@ function updateLapHud(sID) {
 		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
 }
 function timeStr(timeMS) {
-	var timeMins = Math.floor(timeMS/60000);
-	timeMS -= timeMins*60000;
-	timeMins += "";
-	var timeSecs = Math.floor(timeMS/1000);
-	timeMS -= timeSecs*1000;
-	timeSecs += "";
-	if (timeSecs.length < 2)
-		timeSecs = "0"+ timeSecs;
-	timeMS += "";
-	while (timeMS.length < 3)
-		timeMS = "0"+ timeMS;
-	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+	var timeMins = Math.floor(timeMS / 60000);
+	var timeSecs = Math.floor((timeMS % 60000) / 1000);
+	var timeMs = timeMS % 1000;
+	var sMins = timeMins + "";
+	var sSecs = timeSecs < 10 ? "0" + timeSecs : "" + timeSecs;
+	if (timeMs < 10) timeMs = "00" + timeMs;
+	else if (timeMs < 100) timeMs = "0" + timeMs;
+	else timeMs = "" + timeMs;
+	return sMins + "'" + sSecs + '"' + timeMs;
 }
 function updateSpeedometer(getId, aPosX,aPosY) {
 	if (!$speedometerVals[getId]) return;
@@ -21754,6 +21752,7 @@ function runOneFrame() {
 		if (refreshDatas)
 			resetDatas();
 		handleAudio();
+		showTimer(timer*SPF);
 		render();
 	}
 	catch (e) {
