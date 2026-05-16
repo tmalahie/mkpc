@@ -8430,7 +8430,7 @@ var itemBehaviors = {
 					fSprite.vy = cSpeed * Math.cos(theta);
 					delete fSprite.rail;
 				}
-				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, fSprite.z, oSpriteExcept) || touche_crouge(roundX2, roundY2, fSprite.z, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, fSprite.z, oSpriteExcept) || touche_crouge(roundX2, roundY2, fSprite.z, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSprite.z, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSprite.z, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
@@ -8863,7 +8863,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionFloor = null;
 				collisionLap = getItemCollisionLap(fSprite);
-				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, z0))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSprite.z, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSprite.z, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, z0))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSprite.z, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSprite.z, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, fSprite, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, fSprite.z, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -16778,20 +16778,21 @@ function touche_fauxobjet(iX, iY, iP) {
 	return false;
 }
 
-function touche_cverte(iX, iY, iP) {
+function touche_cverte(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace"].length;i++) {
 		var oBox = items["carapace"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (touche_cverte_aux(iX,iY, oBox))
+			if (touche_cverte_aux(iX,iY,iZ, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_cverte_aux(iX,iY, oBox) {
+function touche_cverte_aux(iX,iY,iZ, oBox) {
 	const size = 4;
-	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
+	const heightDiff = Math.abs(oBox.z - iZ);
+	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size && heightDiff < 5) {
 		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
@@ -16800,7 +16801,7 @@ function touche_cverte_aux(iX,iY, oBox) {
 	return false;
 }
 
-function touche_cverte_future(iX, iY, iP) {
+function touche_cverte_future(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	var steps = 4;
 	var relSpeed = cappedRelSpeed()/steps;
@@ -16810,7 +16811,7 @@ function touche_cverte_future(iX, iY, iP) {
 			for (var j=1;j<=steps;j++) {
 				var fMoveX = oBox.vx*j*relSpeed, fMoveY = oBox.vy*j*relSpeed;
 				var fNewPosX = iX - fMoveX, fNewPosY = iY - fMoveY;
-				if (touche_cverte_aux(fNewPosX,fNewPosY, oBox))
+				if (touche_cverte_aux(fNewPosX,fNewPosY,iZ, oBox))
 					return (collisionTeam!=oBox.team);
 			}
 		}
@@ -18493,7 +18494,7 @@ function move(getId, triggered) {
 				var cc = fSelectedClass;
 				if (oKart.rail) cc *= 2;
 
-				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems)))))
+				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems))))
 					if (!oKart.protect && !oKart.frminv)
 						handleHardHit(getId);
 				if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
@@ -18624,6 +18625,10 @@ function move(getId, triggered) {
 				}
 			}
 		}
+		if ((touche_cverte(fNewPosX, fNewPosY, oKart.z, oKartItems) || touche_cverte(oKart.x, oKart.y, oKart.z, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKart.z, oKartItems))))
+			if (!oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
+
 		if (touche_crouge(oKart.x, oKart.y, oKart.z, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKart.z, oKartItems)))
 			if (!oKart.protect && !oKart.frminv)
 				handleHardHit(getId);
