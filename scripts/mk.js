@@ -17252,12 +17252,13 @@ function places(j,aRankScores,force) {
 		if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
 			place++;
 	}
-	if (!oKart.loose)
+	if (!oKart.loose && oKart.place != place) {
 		oKart.place = place;
-	if (finishing) return;
-	var sID = getScreenPlayerIndex(j);
-	if (sID < oPlayers.length)
-		document.getElementById("infoPlace"+sID).innerHTML = place;
+		if (finishing) return;
+		var sID = getScreenPlayerIndex(j);
+		if (sID < oPlayers.length)
+			document.getElementById("infoPlace"+sID).textContent = place;
+	}
 }
 
 function getLastCp(kart) {
