@@ -2876,7 +2876,8 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "pow" :
-			addNewItem(oKart, {type:"pow", owner:oKart.id});
+			if (canSpawnPow())
+				addNewItem(oKart, {type: "pow", owner: oKart.id});
 			break;
 		}
 
@@ -7911,14 +7912,6 @@ var itemBehaviors = {
 			}
 
 			if (!fSprite.sprites) {
-				// don't remove pow if previous pow is in its waiting animation
-				const shouldDelete = (items.pow.length > 1 && itemDistribution.powx2 != 1) ||
-									 (items.pow.length === 2 && items.pow[0].countstate < 9);
-
-				if (shouldDelete) {
-					detruit(fSprite);
-					return;
-				}
 				fSprite.countdown = 0;
 				fSprite.countstate = 0;
 				let oKartOwner = aKarts.find(function(oKartOwner) {
@@ -17018,6 +17011,27 @@ function playPow(i, oKart, oKartOwner, fSprite) {
     }
 }
 
+function canSpawnPow() {
+	// if more than 1 POW allowed
+	if (itemDistribution.powx2 === 1)
+		return true;
+
+	// if no POW in play
+	if (items.pow.length === 0)
+		return true;
+
+	// if POW in play but in its ending phase
+	if (isLastPowDisappearing())
+		return true;
+
+	return false;
+}
+
+// if last POW on screen is in its disappearing phase
+function isLastPowDisappearing() {
+	return items.pow.length > 0 && items.pow[items.pow.length - 1].countstate === 9;
+}
+
 function dropBoxDecorLoot(obj, pos, distrib) {
 	// default drop distribution
 	if (!distrib)
@@ -18684,7 +18698,7 @@ function move(getId, triggered) {
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
 						forbiddenItems["bloops"] = 1;
-					if (items.pow.length || nextPowCooldown > 0)
+					if ((items.pow.length && !isLastPowDisappearing()) || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
 					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
 						if (oKart.arme === "champiX2")
