@@ -26348,7 +26348,8 @@ function selectItemScreen(oScr, callback, options) {
 		var oImg = document.createElement("img");
 		oImg.src = "images/items/"+possibleItems[i]+".png";
 		oImg.alt = possibleItems[i];
-		oImg.style.width = (iScreenScale*2) +"px";
+		oImg.style.height = (iScreenScale*2) +"px";
+		oImg.style.marginTop = iScreenScale +"px";
 		oTd.appendChild(oImg);
 		oTr.appendChild(oTd);
 	}
