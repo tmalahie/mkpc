@@ -21058,7 +21058,8 @@ function processCode(cheatCode) {
 			}
 			return "balloon: Unknown error";
 
-		case "autoplay": // /autoplay (items)
+		// Comment to play tracks automatically whcile testing the item distribution
+		/*case "autoplay": // /autoplay (items)
 		case "fastforward":
 		case "fastforwards":
 		case "ff":
@@ -21078,7 +21079,7 @@ function processCode(cheatCode) {
 			return true;
 
         default:
-            return "Error: This command doesn't exist";
+            return "Error: This command doesn't exist";*/
     }
 }
 
