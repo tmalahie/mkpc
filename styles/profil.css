@@ -527,6 +527,7 @@ a.circuit-comment:hover .circuit-comment-infos {
 }
 .persos-container ul {
 	list-style-image: url(../images/bullet.png);
+	word-wrap: break-word;
 }
 .persos-container ul li.new-section {
 	margin-top: 8px;
@@ -626,6 +627,7 @@ a.circuit-comment:hover .circuit-comment-infos {
 	display: inline-block;
 	text-decoration: none;
 	text-align: left;
+	word-wrap: break-word;
 }
 .following-topics a:hover h2 {
 	color: #0A0;
