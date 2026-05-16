@@ -16261,7 +16261,7 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1,
 			"bloops": 1,
-			"pow": 0
+			"pow": 1
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
