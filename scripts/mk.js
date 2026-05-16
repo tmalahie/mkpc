@@ -9555,6 +9555,17 @@ var itemBehaviors = {
 				if (ctx && ctx.onlineSync)
 					oSpriteExcept = otherPlayerItems([]);
 
+				if (fSprite.sfx) {
+					var oPlayer = getPlayerAtScreen(0);
+					var distToPlayer = Math.hypot(fSprite.x-oPlayer.x, fSprite.y-oPlayer.y);
+					if (fSprite.sfx.volume || distToPlayer < 100) {
+						if (distToPlayer < 150)
+							fSprite.sfx.volume = Math.min(1, 20/distToPlayer)*vSfx;
+						else
+							fSprite.sfx.volume = 0;
+					}
+				}
+
 				const bobombCol = fSprite.z < 12 && touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent: true, isBoomerang: true});
 				const blueShellCol = fSprite.z < 12 && touche_cbleue(fSprite.x, fSprite.y);
 				const boomerangCol = touche_boomerang({x: fSprite.x, y: fSprite.y, z: fSprite.z}, null, [fSprite], null, true, false);
@@ -9590,6 +9601,15 @@ var itemBehaviors = {
 
 			if (touche_boomerang_aux({x: oKart.x, y: oKart.y, z: oKart.z}, movement, fSprite))
 				handleHardHit(getId);
+		},
+
+		init: function(fSprite) {
+			fSprite.sfx = playIfShould(oPlayers[0], "musics/events/boomerang.mp3");
+			if (fSprite.sfx) fSprite.sfx.volume = 0;
+		},
+
+		del: function(fSprite) {
+			removeIfExists(fSprite.sfx);
 		}
 	}
 }
@@ -21456,7 +21476,7 @@ function ai(oKart) {
 			if (oKart.horizontality) {
 				var xp = direction(0,oKart.rotation), yp = direction(1,oKart.rotation);
 				var xc = oKart.horizontality[0], yc = oKart.horizontality[1];
-				if ((Math.abs(xp*yc-yp*xc) > 0.1) || (oKart.lastAItime > 150))
+				if ((Math.abs(xp*yc-yp*xc) > 0.1) || (oKart.lastAItime > 200))
 					oKart.rotinc = oKart.decision*fMaxRotInCp;
 			}
 			else
