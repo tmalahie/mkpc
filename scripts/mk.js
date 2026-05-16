@@ -9442,13 +9442,7 @@ var itemBehaviors = {
 				const relSpeed = cappedRelSpeed();
 				const moveX = fSprite.vx * relSpeed / steps;
 				const moveY = fSprite.vy * relSpeed / steps;
-				const isOob = (
-					(fSprite.x + fSprite.vx < 4) ||
-					(fSprite.x + fSprite.vx > oMap.w - 4) ||
-					(fSprite.y + fSprite.vy < 4) ||
-					(fSprite.y + fSprite.vy > oMap.h - 4)
-				);
-				const isCollide = !canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY) && !isOob;
+				const isCollide = !canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY);
 
 				// destroy if last throw and second wall hit
 				if (isCollide && fSprite.throw === 1 && fSprite.collideFrame !== null && fSprite.frame > fSprite.collideFrame) {
