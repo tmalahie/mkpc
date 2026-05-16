@@ -1308,10 +1308,34 @@ form.game-popup .game-popup-body > div > label {
 	display: flex;
 	flex-direction: column;
 }
-.item-options-screen form {
+.item-options-screen .item-options-fakeform {
 	display: flex;
 	flex-direction: column;
 	overflow-y: hidden;
+}
+.item-options-screen .item-options-itemgroup {
+	display: flex;
+	gap: 8px;
+}
+.item-options-screen .item-options-item {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgb(122, 122, 223);
+	border-radius: 5px;
+
+	border: 3px solid transparent;
+	filter: brightness(0.75);
+	transition: 0.1s;
+}
+.item-options-screen .item-options-item.item-options-active {
+	border: 3px solid white;
+	filter: none;
+	transition: 0.1s;
+}
+.item-options-screen .item-options-text {
+	margin-block-start: 0;
+	margin-block-end: 0;
 }
 .item-options-screen .item-options {
 	padding: 0.75em 2em 0 1em;

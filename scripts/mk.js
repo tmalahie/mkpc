@@ -26589,97 +26589,70 @@ function selectItemScreen(oScr, callback, options) {
 		oMoreOptions.style.top = -Math.round(iScreenScale/4)+"px";
 		oMoreOptions.style.fontSize = Math.round(iScreenScale*2) +"px";
 		oMoreOptions.onclick = function(e) {
+			function initHtmlBtnToggle(button) {
+				button.onclick = (event) => {
+					event.currentTarget.classList.toggle("item-options-active");
+				};
+			}
+
+			function getItemBtnHtml(imgPath, paramName) {
+				const itemBtnCss = "width: "+(iScreenScale * 2)+"px; height: "+(iScreenScale * 2)+"px; padding: "+(iScreenScale / 2)+"px";
+				return `<div id="${paramName}" class="item-options-item" style="${itemBtnCss}"> <img src="images/items/${imgPath}" style="width: 100%;"> </div>`;
+			}
+
 			e.preventDefault();
 			var oOptionsScreen = document.createElement("div");
 			oOptionsScreen.className = "fsmask item-options-screen";
 			oOptionsScreen.style.fontSize = (iScreenScale*2) +"px";
-			oOptionsScreen.innerHTML = '<form>'+
+			oOptionsScreen.innerHTML = '<div class="item-options-fakeform">'+
 				'<div class="item-options">'+
 					'<div class="item-optgroup">'+
 						'<div class="item-option">'+
-							'<label for="item-options-algorithm">'+ toLanguage("Distribution based on", "Distribution basée sur") +'</label>'+
+							'<label for="algorithm">'+ toLanguage("Distribution based on", "Distribution basée sur") +'</label>'+
 							'<div>'+
-								'<select id="item-options-algorithm" name="algorithm">'+
+								'<select id="algorithm">'+
 									'<option value="rank">'+ toLanguage("Player rank", "Position du joueur") +'</option>'+
 									'<option value="dist">'+ toLanguage("Distance to 1st", "Distance au 1er") +'</option>'+
-									'<option value="">'+ toLanguage("Rank+distance", "Position+distance") +'</option>'+
+									'<option value="">'+ toLanguage("Rank + distance", "Position + distance") +'</option>'+
 								'</select>'+
 							'</div>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+
-						'<h2>'+ toLanguage("Concurrent items", "Objets simultanés") +'</h2>'+
+						'<h2>Specific item settings</h2>'+
+						'<h4 class="item-options-text">'+ toLanguage("Prevent 2 items to be in play at once:", "Empêcher 2 objets d'être en jeu en même temps :") +'</h4>'+
+						'<div class="item-options-itemgroup">'+
+							getItemBtnHtml("pow.png", "prevent-pow-x2")+
+							getItemBtnHtml("carapacebleue.png", "prevent-blueshell-x2")+
+							getItemBtnHtml("eclair.png", "prevent-lightning-x2")+
+						'</div>'+
+
+						'<h4 class="item-options-text">'+ toLanguage("30s cooldown after use:", "30s de délai après utilisation :") + '</h4>'+
+						'<div class="item-options-itemgroup">'+
+							getItemBtnHtml("pow.png", "pow-cooldown")+
+							getItemBtnHtml("carapacebleue.png", "blueshell-cooldown")+
+							getItemBtnHtml("eclair.png", "lightning-cooldown")+
+						'</div>'+
+
+						'<h4 class="item-options-text">'+ toLanguage("Prevent appearing before 25s:", "Aucune apparition aux premières 25s :") + '</h4>'+
+						'<div class="item-options-itemgroup">'+
+							getItemBtnHtml("pow.png", "pow-start")+
+							getItemBtnHtml("carapacebleue.png", "blueshell-start")+
+							getItemBtnHtml("eclair.png", "lightning-start")+
+						'</div>'+
+						'<br>'+
+						'<h2>Other settings</h2>'+
 						'<div class="item-option">'+
 							'<div>'+
-								'<input type="checkbox" id="item-options-pow" name="prevent-pow-x2" />'+
+								'<input type="checkbox" id="lightning-last" />'+
 							'</div>'+
-							'<label for="item-options-pow">'+ toLanguage("Prevent 2 players from having a POW block", "Empêcher 2 joueurs d'avoir un block POW") +'</label>'+
+							'<label for="lightning-last">'+ toLanguage("Only player in last position can get a lightning", "Seul le dernier joueur peut avoir un éclair") +'</label>'+
 						'</div>'+
 						'<div class="item-option">'+
 							'<div>'+
-								'<input type="checkbox" id="item-options-blueshell" name="prevent-blueshell-x2" />'+
+								'<input type="checkbox" id="prevent-doubleitem-x2" />'+
 							'</div>'+
-							'<label for="item-options-blueshell">'+ toLanguage("Prevent 2 players from having a blue shell", "Empêcher 2 joueurs d'avoir une carapace bleue") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning" name="prevent-lightning-x2" />'+
-							'</div>'+
-							'<label for="item-options-lightning">'+ toLanguage("Prevent 2 players from having a lightning item", "Empêcher 2 joueurs d'avoir un éclair") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning-1" name="lightning-last" />'+
-							'</div>'+
-							'<label for="item-options-lightning-1">'+ toLanguage("Only player in last position can get a lightning item", "Seul le dernier joueur peut avoir un éclair") +'</label>'+
-						'</div>'+
-					'</div>'+
-					'<div class="item-optgroup">'+
-						'<h2>'+ toLanguage("Cooldown", "Cooldown") +'</h2>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-pow2" name="pow-cooldown" />'+
-							'</div>'+
-							'<label for="item-options-pow2">'+ toLanguage("Min time frame of 30s between 2 POW blocks", "Empêcher 2 blocks POW à moins de 30s d'intervalle") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-blueshell2" name="blueshell-cooldown" />'+
-							'</div>'+
-							'<label for="item-options-blueshell2">'+ toLanguage("Min time frame of 30s between 2 blue shells", "Empêcher 2 carapaces bleues à moins de 30s d'intervalle") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning2" name="lightning-cooldown" />'+
-							'</div>'+
-							'<label for="item-options-lightning2">'+ toLanguage("Min time frame of 30s between 2 lightnings", "Empêcher 2 éclairs à moins de 30s d'intervalle") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-pow0" name="pow-start" />'+
-							'</div>'+
-							'<label for="item-options-pow0">'+ toLanguage("No POW block before 25s of race", "Pas de block POW avant 25s de course") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-blueshell0" name="blueshell-start" />'+
-							'</div>'+
-							'<label for="item-options-blueshell0">'+ toLanguage("No blue shell before 25s of race", "Pas de carapace bleue avant 25s de course") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning0" name="lightning-start" />'+
-							'</div>'+
-							'<label for="item-options-lightning0">'+ toLanguage("No lightning item before 25s of race", "Pas d'éclair avant 25s de course") +'</label>'+
-						'</div>'+
-					'</div>'+
-					'<div class="item-optgroup">'+
-						'<h2>'+ toLanguage("Double items", "Double objets") +'</h2>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-doubleitem" name="prevent-doubleitem-x2" />'+
-							'</div>'+
-							'<label for="item-options-doubleitem">'+ toLanguage("Prevent a player from having twice the same item", "Empêcher un joueur d'avoir le même objet en double") +'</label>'+
+							'<label for="prevent-doubleitem-x2">'+ toLanguage("Prevent a player from having twice the same item", "Empêcher un joueur d'avoir le même objet en double") +'</label>'+
 						'</div>'+
 					'</div>'+
 				'</div>'+
@@ -26687,34 +26660,72 @@ function selectItemScreen(oScr, callback, options) {
 					'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
 					'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
 				'</siv>'+
-			'</form>';
+			'</div>';
+
 			oOptionsScreen.querySelector(".item-submit a").onclick = function() {
 				oScr2.removeChild(oOptionsScreen);
 				return false;
 			};
-			var $form = oOptionsScreen.querySelector("form");
-			$form.onsubmit = function(e) {
-				e.preventDefault();
-				for (var key in advancedOptions) {
-					var $input = $form.elements[key];
-					if ($input.type === "checkbox")
-						advancedOptions[key] = $input.checked;
-					else
-						advancedOptions[key] = $input.value;
+
+			// save params
+			oOptionsScreen.querySelector(".item-submit input[type='submit']").onclick = function() {
+				for (const key in advancedOptions) {
+					const elem = oOptionsScreen.querySelector(`#${key}`);
+
+					switch (elem.tagName) {
+						case "SELECT":
+							advancedOptions[key] = elem[elem.selectedIndex].value;
+							break;
+
+						case "INPUT":
+							advancedOptions[key] = elem.checked;
+							break;
+
+						case "DIV":
+							advancedOptions[key] = elem.classList.contains("item-options-active");
+							break;
+
+						default:
+							break;
+					}
 				}
 				oScr2.removeChild(oOptionsScreen);
 			};
-			for (var key in advancedOptions) {
-				var $input = $form.elements[key];
-				if (options.readOnly)
-					$input.disabled = true;
-				if ($input.type === "checkbox")
-					$input.checked = !!advancedOptions[key];
-				else
-					$input.value = advancedOptions[key];
+
+			// init buttons event
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#prevent-pow-x2"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#prevent-blueshell-x2"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#prevent-lightning-x2"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#pow-cooldown"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#blueshell-cooldown"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#lightning-cooldown"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#pow-start"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#blueshell-start"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#lightning-start"));
+
+			// init params
+			for (const key in advancedOptions) {
+				const elem = oOptionsScreen.querySelector(`#${key}`);
+
+				switch (elem.tagName) {
+					case "SELECT":
+						elem.value = advancedOptions[key];
+						break;
+
+					case "INPUT":
+						if (advancedOptions[key])
+							elem.checked = true;
+						break;
+
+					case "DIV":
+						if (advancedOptions[key])
+							elem.classList.toggle("item-options-active");
+						break;
+
+					default:
+						break;
+				}
 			}
-			if (options.readOnly)
-				oOptionsScreen.querySelector('.item-submit input[type="submit"]').style.display = "none";
 			oScr2.appendChild(oOptionsScreen);
 		}
 		oSetForm.appendChild(oMoreOptions);
