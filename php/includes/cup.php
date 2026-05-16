@@ -3,6 +3,7 @@ include('getId.php');
 include('language.php');
 $cids = array();
 $editting = true;
+$cOptions = isset($_GET['opt']) ? $_GET['opt']:null;
 $readOnly = false;
 include('initdb.php');
 require_once('collabUtils.php');
@@ -27,6 +28,8 @@ if (isset($_GET['cid'])) {
 		$readOnly = !$hasWriteGrants;
 		for ($i=0;$i<4;$i++)
 			$cids[$i] = $getCup['circuit'. $i];
+		if (null === $cOptions)
+			$cOptions = isset($getCup['options']) ? $getCup['options'] : null;
 	}
 	else
 		$editting = false;
@@ -67,6 +70,11 @@ var isBattle = <?php echo $isBattle ? 1:0; ?>;
 <?php
 if (isset($cids))
 	echo 'var cids = '. json_encode($cids) .';';
+?>
+var cp = <?php include('getPersos.php'); ?>;
+<?php
+require_once('rosterNames.php');
+echo 'var cpNames = '. json_encode(getCharacterNamesMap(), JSON_UNESCAPED_UNICODE) .';';
 ?>
 </script>
 <script type="text/javascript" src="scripts/cup.js"></script>
@@ -147,7 +155,8 @@ if (isset($cids))
 		elseif ($nbCircuits < 4)
 			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. $trackBuilderPage .'">here</a> to create other ones.':'Vous n\'avez pas encore partagé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. $trackBuilderPage .'">ici</a> pour en créer de nouveaux.') .'</em>';
 		?>
-		<form method="get" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" onsubmit="return handleFormSubmit(event)" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
+		<div class="editor-content editor-content-active">
 			<div id="table-container">
 				<table id="table-circuits">
 					<tbody>
@@ -176,8 +185,24 @@ if (isset($cids))
 				if (isset($collab))
 					echo '<input type="hidden" name="collab" value="'. htmlspecialchars($collab['key']) .'" />';
 				?>
+				<input type="hidden" id="cup-options" name="opt" value="<?php if ($cOptions !== null) echo htmlspecialchars($cOptions) ?>" />
 				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
+				<?php if (!$isBattle) { ?>
+				<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced&nbsp;options':'Options&nbsp;avancées'; ?></a>
+				<?php } ?>
 			</p>
+		</div>
+		<?php if (!$isBattle) { ?>
+		<div class="editor-content">
+			<h1><?php echo $language ? 'Advanced options':'Options avancées'; ?></h1>
+			<h2><?php echo $language ? 'Grand Prix options:':'Options Grand Prix :'; ?> <a id="reset-gp-options" href="javascript:resetGpOptions()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
+			<div id="gp-options"></div>
+			<p>
+				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
+				<a class="editor-switch-options" href="javascript:showEditorContent(0)"><?php echo $language ? 'Back':'Retour'; ?></a>
+			</p>
+		</div>
+		<?php } ?>
 		</form>
 		<?php
 		printCollabImportPopup($isBattle ? 'arena' : 'circuit', $mode, $isBattle);

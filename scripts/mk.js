@@ -31,6 +31,10 @@ else {
 		if (!cupOpts) cupOpts = {};
 	}
 }
+if (cupOpts.gp && cupOpts.gp.cc != null) {
+	selectedCc = String(cupOpts.gp.cc);
+	selectedMirror = !!cupOpts.gp.mirror;
+}
 if (typeof dCircuits === 'undefined') {
 	var dCircuits = lCircuits;
 }
@@ -824,7 +828,7 @@ if (!pause) {
 var strPlayer = new Array();
 var oMap;
 var lMaps, pMaps;
-var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+var iDificulty = (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length) ? (4 + cupOpts.gp.cpus[0].difficulty * 0.5) : 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
 var iRecord;
 var iTrajet;
 var jTrajets;
@@ -3933,6 +3937,8 @@ function startGame() {
 	if (!itemDistribution.value)
 		itemDistribution = { value: itemDistribution };
 	ptsDistribution = selectedPtDistrib;
+	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.points && cupOpts.gp.points.length)
+		ptsDistribution = { value: cupOpts.gp.points.slice() };
 
 	if (!isTT) {
 		foreachLMap(function(lMap,pMap) {
@@ -25079,7 +25085,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 								}
 							}
 							aPlayers.sort(function(){return 0.5-Math.random()});
-							var nbPlayers = (course!="GP") ? fInfos.nbPlayers : 8;
+							var gpNbPlayers = (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length) ? (cupOpts.gp.cpus.length + 1) : 8;
+							var nbPlayers = (course!="GP") ? fInfos.nbPlayers : gpNbPlayers;
 							if (aPlayers.length < nbPlayers) {
 								var aLength = aPlayers.length;
 								aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
@@ -25100,6 +25107,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							}
 							var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
 							aPlayers.splice(0,oSuppr);
+							if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus) {
+								for (var i=0;i<cupOpts.gp.cpus.length && i<aPlayers.length;i++) {
+									var pickedDriver = cupOpts.gp.cpus[i].driver;
+									if (pickedDriver && cp[pickedDriver])
+										aPlayers[i] = pickedDriver;
+								}
+							}
 						}
 						aPlaces = [];
 						aTeams = [];
@@ -29319,7 +29333,9 @@ function selectRaceScreen(cup) {
 	}
 	else {
 		if (course == "GP") {
-			if (page != "MK")
+			if (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length)
+				iDificulty = 4 + cupOpts.gp.cpus[0].difficulty * 0.5;
+			else if (page != "MK")
 				iDificulty = 5;
 			else {
 				var cupNb = Math.floor(cup/4)%5;

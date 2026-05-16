@@ -26,7 +26,9 @@ function getSubmitMsg() {
 		}
 		return "";
 	}
-	return (selectedCircuits.length != 4) ? (language ? ("You must select 4 "+(isBattle ? "arenas":"circuits")):("Vous devez sélectionner 4 "+(isBattle ? "arènes":"circuits"))):"";
+	if (selectedCircuits.length != 4)
+		return (language ? ("You must select 4 "+(isBattle ? "arenas":"circuits")):("Vous devez sélectionner 4 "+(isBattle ? "arènes":"circuits")));
+	return "";
 }
 function selectCircuit(tr, isAuto) {
 	if (readOnly && !isAuto) return;
@@ -59,27 +61,28 @@ function initGUI() {
 	if (editting) {
 		for (var i=0;i<cids.length;i++)
 			selectTr(cids[i]);
-		if (isMCups) {
-			var $cupOptions = document.getElementById("cup-options");
-			if ($cupOptions.value) {
-				try {
-					var cupOptions = JSON.parse($cupOptions.value);
-					if (cupOptions && cupOptions.keyid) {
-						cupOptions = JSON.parse(sessionStorage.getItem("cupopt."+cupOptions.keyid));
-						$cupOptions.value = JSON.stringify(cupOptions);
-					}
-					if (cupOptions) {
-						if (cupOptions.icons) cupIcons = cupOptions.icons;
-						if (cupOptions.lines) cupLines = cupOptions.lines;
-						if (cupOptions.pages) cupPages = cupOptions.pages;
-						if (typeof characterRoster !== "undefined")
-							persoList = characterRoster;
-						if (cupOptions.customchars === 0)
-							document.getElementById("customchars").checked = false;
-					}
+		var $cupOptions = document.getElementById("cup-options");
+		if ($cupOptions && $cupOptions.value) {
+			try {
+				var cupOptions = JSON.parse($cupOptions.value);
+				if (cupOptions && cupOptions.keyid) {
+					cupOptions = JSON.parse(sessionStorage.getItem("cupopt."+cupOptions.keyid));
+					$cupOptions.value = JSON.stringify(cupOptions);
 				}
-				catch (e) {
+				if (cupOptions) {
+					if (cupOptions.icons) cupIcons = cupOptions.icons;
+					if (cupOptions.lines) cupLines = cupOptions.lines;
+					if (cupOptions.pages) cupPages = cupOptions.pages;
+					if (typeof characterRoster !== "undefined")
+						persoList = characterRoster;
+					if (cupOptions.customchars === 0) {
+						var $customChars = document.getElementById("customchars");
+						if ($customChars) $customChars.checked = false;
+					}
+					if (cupOptions.gp) gpOpts = cupOptions.gp;
 				}
+			}
+			catch (e) {
 			}
 		}
 	}
@@ -128,8 +131,11 @@ function initFancyTitle($prettyTitle) {
 }
 function showEditorContent(id) {
 	if (id == 1) {
-		updateCupImgGUI();
-		updateCupPersosGUI();
+		if (isMCups) {
+			updateCupImgGUI();
+			updateCupPersosGUI();
+		}
+		updateGpOptionsGUI();
 	}
 	document.querySelector(".editor-content.editor-content-active").classList.remove("editor-content-active");
 	document.querySelectorAll(".editor-content")[id].classList.add("editor-content-active");
@@ -167,11 +173,14 @@ function previewImg(e,src) {
 var cupIcons = [];
 var cupLines = [];
 var persoList;
+var gpOpts = {};
 var actualIcons, actualLines;
 var allCups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
 var cupPage = 0;
 var cupPages = [];
 function resetCupOptions(full) {
+	var $cupOptions = document.getElementById("cup-options");
+	if (!$cupOptions) return;
 	if (isMCups) {
 		var nbCups = selectedCircuits.length;
 		var cups_per_line = 6;
@@ -241,8 +250,10 @@ function resetCupOptions(full) {
 				}
 			}
 		}
+	}
 
-		var cupOptions = {};
+	var cupOptions = {};
+	if (isMCups) {
 		if (cupIcons.length)
 			cupOptions.icons = actualIcons;
 		if (cupLines.length)
@@ -251,20 +262,31 @@ function resetCupOptions(full) {
 			cupOptions.pages = cupPages;
 			cupOptions.lines = actualLines;
 		}
-		if (persoList) {
-			cupOptions.persos = persoList.map(function(data) {
-				if (data.id)
-					return data.id;
-				return data.sprites;
-			});
-		}
-		if (!document.getElementById("customchars").checked)
-			cupOptions.customchars = 0;
-		var cupOptionsJSON = JSON.stringify(cupOptions);
-		if (cupOptionsJSON === "{}")
-			cupOptionsJSON = "";
-		document.getElementById("cup-options").value = cupOptionsJSON;
 	}
+	if (persoList) {
+		cupOptions.persos = persoList.map(function(data) {
+			if (data.id)
+				return data.id;
+			return data.sprites;
+		});
+	}
+	var $customChars = document.getElementById("customchars");
+	if ($customChars && !$customChars.checked)
+		cupOptions.customchars = 0;
+	if (gpOpts && hasGpOpts(gpOpts))
+		cupOptions.gp = gpOpts;
+	var cupOptionsJSON = JSON.stringify(cupOptions);
+	if (cupOptionsJSON === "{}")
+		cupOptionsJSON = "";
+	$cupOptions.value = cupOptionsJSON;
+}
+function hasGpOpts(opts) {
+	if (!opts) return false;
+	for (var k in opts) {
+		if (opts[k] != null && opts[k] !== "")
+			return true;
+	}
+	return false;
 }
 function resetCupAppearance() {
 	if (confirm(language ? "Reset cup appearance to default?":"Rétablir l'apparence par défaut ?")) {
@@ -280,6 +302,236 @@ function resetCharacterRoster() {
 		persoList = undefined;
 		updateCupPersosGUI();
 	}
+}
+function resetGpOptions() {
+	if (confirm(language ? "Reset Grand Prix options to default?":"Rétablir les options Grand Prix par défaut ?")) {
+		gpOpts = {};
+		updateGpOptionsGUI();
+		resetCupOptions();
+		updateSubmitMsg();
+	}
+}
+var GP_DEFAULT_NB_CPUS = 7;
+var GP_MIN_CPUS = 1;
+var GP_MAX_CPUS = 11;
+var GP_DEFAULT_DIFFICULTY = 2;
+var gpDifficultyLabels = ["Easy", "Medium", "Difficult", "Extreme", "Impossible"];
+var gpDifficultyLabelsFr = ["Facile", "Moyen", "Difficile", "Extrême", "Impossible"];
+var gpCcOptions = [
+	{ value: "50",    label: "50cc" },
+	{ value: "100",   label: "100cc" },
+	{ value: "150",   label: "150cc" },
+	{ value: "150m",  label: language ? "150cc mirror":"150cc miroir" },
+	{ value: "200",   label: "200cc" }
+];
+function defaultGpCpu() {
+	return { driver: "", difficulty: GP_DEFAULT_DIFFICULTY };
+}
+function defaultGpPoints(nbRacers) {
+	var base = [10, 8, 6, 4, 3, 2, 1];
+	var res = [];
+	for (var i=0;i<nbRacers;i++) {
+		if (i < base.length) res.push(base[i]);
+		else res.push(0);
+	}
+	return res;
+}
+function ensureGpCpus() {
+	if (gpOpts.cpus) return;
+	gpOpts.cpus = [];
+	for (var i=0;i<GP_DEFAULT_NB_CPUS;i++)
+		gpOpts.cpus.push(defaultGpCpu());
+}
+function syncGpPoints() {
+	var target = gpOpts.cpus.length + 1;
+	if (!gpOpts.points) gpOpts.points = defaultGpPoints(target);
+	while (gpOpts.points.length < target) gpOpts.points.push(0);
+	if (gpOpts.points.length > target) gpOpts.points.length = target;
+}
+function ordinalLabel(i) {
+	if (language) {
+		var n = i+1;
+		if (n === 1) return "1st";
+		if (n === 2) return "2nd";
+		if (n === 3) return "3rd";
+		return n + "th";
+	}
+	return (i+1) + (i === 0 ? "er" : "e");
+}
+function gpDriverList() {
+	var res = [];
+	for (var p in cp) {
+		var name = (typeof cpNames !== "undefined" && cpNames[p]) ? cpNames[p] : p;
+		res.push({ id: p, name: name });
+	}
+	return res;
+}
+function updateGpOptionsGUI() {
+	var $gpOptions = document.getElementById("gp-options");
+	if (!$gpOptions) return;
+	ensureGpCpus();
+	syncGpPoints();
+	$gpOptions.innerHTML = "";
+
+	function appendOption($select, value, label, selectedValue) {
+		var $opt = document.createElement("option");
+		$opt.value = value;
+		$opt.innerHTML = label;
+		if (String(selectedValue) === String(value))
+			$opt.selected = "selected";
+		$select.appendChild($opt);
+	}
+
+	// --- CC dropdown (extension on top of mockup) ---
+	var $ccBox = document.createElement("div");
+	$ccBox.className = "gp-options-row";
+	var $ccLabel = document.createElement("span");
+	$ccLabel.className = "gp-options-label";
+	$ccLabel.appendChild(document.createTextNode(language ? "Speed class:" : "Cylindrée :"));
+	$ccBox.appendChild($ccLabel);
+	var $cc = document.createElement("select");
+	var ccSelected = (gpOpts.cc != null) ? (gpOpts.cc + (gpOpts.mirror ? "m":"")) : "";
+	appendOption($cc, "", language ? "Default" : "Par défaut", ccSelected);
+	for (var i=0;i<gpCcOptions.length;i++)
+		appendOption($cc, gpCcOptions[i].value, gpCcOptions[i].label, ccSelected);
+	$cc.onchange = function() {
+		if (this.value === "") {
+			gpOpts.cc = null;
+			gpOpts.mirror = null;
+		}
+		else {
+			gpOpts.cc = parseInt(this.value, 10);
+			gpOpts.mirror = (this.value.charAt(this.value.length-1) === "m") ? 1 : null;
+		}
+		resetCupOptions();
+		updateSubmitMsg();
+	};
+	$ccBox.appendChild($cc);
+	$gpOptions.appendChild($ccBox);
+
+	// --- CPUs section ---
+	var $cpus = document.createElement("fieldset");
+	$cpus.className = "gp-options-cpus";
+	var $cpusLegend = document.createElement("legend");
+	$cpusLegend.innerHTML = language ? "CPUs" : "CPU";
+	$cpus.appendChild($cpusLegend);
+	var $cpusHelp = document.createElement("p");
+	$cpusHelp.className = "gp-options-help";
+	$cpusHelp.innerHTML = language ? "Select CPU drivers and set their difficulty" : "Sélectionnez les persos CPU et leur difficulté";
+	$cpus.appendChild($cpusHelp);
+
+	var drivers = gpDriverList();
+	var diffLabels = language ? gpDifficultyLabels : gpDifficultyLabelsFr;
+	for (var i=0;i<gpOpts.cpus.length;i++) (function(i) {
+		var cpu = gpOpts.cpus[i];
+		var $row = document.createElement("div");
+		$row.className = "gp-cpu-row";
+		var $label = document.createElement("span");
+		$label.className = "gp-cpu-label";
+		$label.innerHTML = (language ? "CPU " : "CPU ") + (i+1) + ":";
+		$row.appendChild($label);
+
+		var $driver = document.createElement("select");
+		appendOption($driver, "", language ? "Random" : "Aléatoire", cpu.driver || "");
+		for (var d=0;d<drivers.length;d++)
+			appendOption($driver, drivers[d].id, drivers[d].name, cpu.driver || "");
+		$driver.onchange = function() {
+			cpu.driver = this.value;
+			resetCupOptions();
+		};
+		$row.appendChild($driver);
+
+		var $diff = document.createElement("select");
+		for (var d=0;d<diffLabels.length;d++)
+			appendOption($diff, d, diffLabels[d], cpu.difficulty);
+		$diff.onchange = function() {
+			cpu.difficulty = +this.value;
+			resetCupOptions();
+		};
+		$row.appendChild($diff);
+		$cpus.appendChild($row);
+	})(i);
+
+	var $cpusButtons = document.createElement("div");
+	$cpusButtons.className = "gp-cpu-buttons";
+	var $addCpu = document.createElement("button");
+	$addCpu.type = "button";
+	$addCpu.className = "gp-add-cpu";
+	$addCpu.innerHTML = language ? "Add CPU" : "Ajouter un CPU";
+	$addCpu.disabled = (gpOpts.cpus.length >= GP_MAX_CPUS);
+	$addCpu.onclick = function() {
+		if (gpOpts.cpus.length >= GP_MAX_CPUS) return;
+		gpOpts.cpus.push(defaultGpCpu());
+		syncGpPoints();
+		updateGpOptionsGUI();
+		resetCupOptions();
+	};
+	$cpusButtons.appendChild($addCpu);
+	var $rmCpu = document.createElement("button");
+	$rmCpu.type = "button";
+	$rmCpu.className = "gp-remove-cpu";
+	$rmCpu.innerHTML = language ? "Remove CPU" : "Retirer un CPU";
+	$rmCpu.disabled = (gpOpts.cpus.length <= GP_MIN_CPUS);
+	$rmCpu.onclick = function() {
+		if (gpOpts.cpus.length <= GP_MIN_CPUS) return;
+		gpOpts.cpus.pop();
+		syncGpPoints();
+		updateGpOptionsGUI();
+		resetCupOptions();
+	};
+	$cpusButtons.appendChild($rmCpu);
+	$cpus.appendChild($cpusButtons);
+	$gpOptions.appendChild($cpus);
+
+	// --- Distributions section ---
+	var $dist = document.createElement("fieldset");
+	$dist.className = "gp-options-dist";
+	var $distLegend = document.createElement("legend");
+	$distLegend.innerHTML = language ? "Distributions" : "Distributions";
+	$dist.appendChild($distLegend);
+
+	var $editItems = document.createElement("button");
+	$editItems.type = "button";
+	$editItems.className = "gp-edit-items";
+	$editItems.innerHTML = language ? "Edit items" : "Modifier les objets";
+	$editItems.onclick = function() { openItemDistribEditor(); };
+	$dist.appendChild($editItems);
+
+	var $pointHeader = document.createElement("h3");
+	$pointHeader.innerHTML = language ? "Point Distribution" : "Distribution des points";
+	$dist.appendChild($pointHeader);
+
+	for (var i=0;i<gpOpts.points.length;i++) (function(i) {
+		var $row = document.createElement("div");
+		$row.className = "gp-point-row";
+		var $label = document.createElement("label");
+		$label.htmlFor = "gp-point-" + i;
+		$label.innerHTML = ordinalLabel(i) + ":";
+		$row.appendChild($label);
+		var $input = document.createElement("input");
+		$input.id = "gp-point-" + i;
+		$input.type = "number";
+		$input.min = 0;
+		$input.value = gpOpts.points[i];
+		$input.oninput = function() {
+			var v = parseInt(this.value, 10);
+			if (isNaN(v) || v < 0) v = 0;
+			gpOpts.points[i] = v;
+			resetCupOptions();
+		};
+		$row.appendChild($input);
+		$dist.appendChild($row);
+	})(i);
+
+	$gpOptions.appendChild($dist);
+
+	var $reset = document.getElementById("reset-gp-options");
+	if ($reset) $reset.style.display = hasGpOpts(gpOpts) ? "" : "none";
+}
+function openItemDistribEditor() {
+	alert(language
+		? "Use the 'Custom...' option in the VS-mode item distribution selector to create distributions. They'll appear here in a future update."
+		: "Utilisez l'option \"Personnalisé...\" dans le sélecteur de distribution VS pour créer des distributions. Elles apparaîtront ici dans une mise à jour future.");
 }
 function updateCupImgGUI() {
 	resetCupOptions();
@@ -821,7 +1073,11 @@ function handleFormSubmit(e) {
 		var key = Math.random().toString(16).substring(2);
 		sessionStorage.setItem("cupopt."+key, optVal);
 		var optValJson = JSON.parse(optVal);
-		$form.elements["opt"].value = JSON.stringify({ "keyid":key, persos: optValJson.persos });
+		var slim = { "keyid":key };
+		if (optValJson.persos) slim.persos = optValJson.persos;
+		if (optValJson.gp) slim.gp = optValJson.gp;
+		if (optValJson.customchars === 0) slim.customchars = 0;
+		$form.elements["opt"].value = JSON.stringify(slim);
 	}
 }
 function selectOptionTab(id) {

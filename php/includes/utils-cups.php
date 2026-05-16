@@ -145,6 +145,7 @@ function getTrackPayloads($options) {
             $pNote = $getCup['note'];
             $pNotes = $getCup['nbnotes'];
             $cDate = $getCup['publication_date'];
+            $cOptions = isset($getCup['options']) ? $getCup['options'] : null;
             $creationData = $getCup;
             $cShared = true;
             for ($i=0;$i<4;$i++) {
@@ -199,6 +200,8 @@ function getTrackPayloads($options) {
                 'mode' => $creationMode,
             );
         }
+        $cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
+        if ($cOptions) $cOptions = json_encode($cOptions);
         $edittingCircuit = true;
     }
     elseif (isset($_GET['mid0'])) { // Multicups being created

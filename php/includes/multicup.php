@@ -66,6 +66,10 @@ if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
 ?>
 var cp = <?php include('getPersos.php'); ?>;
+<?php
+require_once('rosterNames.php');
+echo 'var cpNames = '. json_encode(getCharacterNamesMap(), JSON_UNESCAPED_UNICODE) .';';
+?>
 var collabCharPlaceholder = "<?php
 $collabPlaceholder = array(
 	'type' => 'mkchars',
@@ -178,7 +182,9 @@ include('handleCupOptions.php');
 					<?php echo $language ? 'Multicup appearance':'Apparence de votre coupe'; ?>
 				</div><div onclick="selectOptionTab(1)">
 					<?php echo $language ? 'Character roster':'Liste des persos'; ?>
-				</div>
+				</div><?php if (!$isBattle) { ?><div onclick="selectOptionTab(2)">
+					<?php echo $language ? 'Grand Prix':'Grand Prix'; ?>
+				</div><?php } ?>
 			</div>
 			<div id="option-containers">
 				<div class="option-container-selected">
@@ -203,6 +209,12 @@ include('handleCupOptions.php');
 						?>">[?]</a></span>
 					</div>
 				</div>
+				<?php if (!$isBattle) { ?>
+				<div>
+					<h2><?php echo $language ? 'Grand Prix options:':'Options Grand Prix :'; ?> <a id="reset-gp-options" href="javascript:resetGpOptions()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
+					<div id="gp-options"></div>
+				</div>
+				<?php } ?>
 			</div>
 			<p>
 				<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></div>

@@ -97,20 +97,13 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 	if (isset($challenge))
 		$chRules = getChallengeRulesByType($challenge);
 	ob_start();
-	include('../includes/getPersos.php');
-	$listPersos = json_decode(ob_get_clean());
-	ob_start();
 	include('../includes/getLocks.php');
 	$unlocked = json_decode(ob_get_clean());
 	$persoOptions = array();
 	$i = 0;
-	foreach ($listPersos as $persoId => $value) {
-		if ($unlocked[$i]) {
-			$persoOptions[] = array(
-				'label' => getCharacterName($persoId),
-				'value' => $persoId
-			);
-		}
+	foreach (getCharacterNamesMap() as $persoId => $label) {
+		if ($unlocked[$i])
+			$persoOptions[] = array('label' => $label, 'value' => $persoId);
 		$i++;
 	}
 	$persoOptions[] = array(

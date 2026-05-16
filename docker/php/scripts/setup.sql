@@ -657,6 +657,7 @@ CREATE TABLE `mkcups` (
   `circuit3` int(10) unsigned NOT NULL,
   `nom` tinytext NOT NULL,
   `auteur` tinytext NOT NULL,
+  `options` text NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `publication_date` (`publication_date`),
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
