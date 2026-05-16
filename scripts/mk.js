@@ -9544,11 +9544,7 @@ var itemBehaviors = {
 					while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
 				}
 
-				// break on explosions / boomerangs
-				let oSpriteExcept;
-				if (ctx && ctx.onlineSync)
-					oSpriteExcept = otherPlayerItems([]);
-
+				// refresh SFX sound
 				if (fSprite.sfx) {
 					var oPlayer = getPlayerAtScreen(0);
 					var distToPlayer = Math.hypot(fSprite.x-oPlayer.x, fSprite.y-oPlayer.y);
@@ -9559,6 +9555,11 @@ var itemBehaviors = {
 							fSprite.sfx.volume = 0;
 					}
 				}
+
+				// break on explosions / boomerangs
+				let oSpriteExcept;
+				if (ctx && ctx.onlineSync)
+					oSpriteExcept = otherPlayerItems([]);
 
 				const bobombCol = fSprite.z < 12 && touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent: true, isBoomerang: true});
 				const blueShellCol = fSprite.z < 12 && touche_cbleue(fSprite.x, fSprite.y);
@@ -9599,7 +9600,10 @@ var itemBehaviors = {
 
 		init: function(fSprite) {
 			fSprite.sfx = playIfShould(oPlayers[0], "musics/events/boomerang.mp3");
-			if (fSprite.sfx) fSprite.sfx.volume = 0;
+			if (fSprite.sfx) {
+				fSprite.sfx.volume = 0;
+				fSprite.sfx.loop = true;
+			}
 		},
 
 		del: function(fSprite) {
