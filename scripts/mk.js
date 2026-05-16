@@ -8430,7 +8430,7 @@ var itemBehaviors = {
 					fSprite.vy = cSpeed * Math.cos(theta);
 					delete fSprite.rail;
 				}
-				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, fSprite.z, oSpriteExcept) || touche_crouge(roundX2, roundY2, fSprite.z, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
@@ -8564,14 +8564,15 @@ var itemBehaviors = {
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
-			function canTarget(fSprite, oKart) {
+			function canRedTargetPlayer(fSprite, oKart) {
 				if (!oKart) return false;
 				const isOwner = oKart.id == fSprite.owner;
 				const isHurt = oKart.tourne;
 				const fellOff = oKart.fell;
 				const inCannon = oKart.cannon;
 				const isDead = oKart.loose;
-				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead);
+				const heightDiff = Math.abs(oKart.z - fSprite.z);
+				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead && heightDiff < 18);
 			}
 
 			var fNewPosX;
@@ -8632,7 +8633,7 @@ var itemBehaviors = {
 						var tCible = aKarts.find(function(oKart) {
 							return oKart.id == fSprite.target;
 						});
-						if (!canTarget(fSprite, tCible)) {
+						if (!canRedTargetPlayer(fSprite, tCible)) {
 							fSprite.target = -1;
 							return;
 						}
@@ -8760,7 +8761,7 @@ var itemBehaviors = {
 
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
-								if (canTarget(fSprite, pCible)) {
+								if (canRedTargetPlayer(fSprite, pCible)) {
 									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
@@ -8862,7 +8863,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionFloor = null;
 				collisionLap = getItemCollisionLap(fSprite);
-				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, z0))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, z0))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSprite.z, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSprite.z, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -8883,7 +8884,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if ((oKart.z < maxItemHitboxZ) && touche_crouge_aux(oKart.x,oKart.y, fSprite)) {
+			if ((oKart.z < maxItemHitboxZ) && touche_crouge_aux(oKart.x,oKart.y,oKart.z, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team))
 					handleHardHit(getId);
 			}
@@ -16817,34 +16818,35 @@ function touche_cverte_future(iX, iY, iP) {
 	return false;
 }
 
-function touche_crouge(iX, iY, iP) {
+function touche_crouge(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
 		if ((iP.indexOf(oBox) == -1)) {
-			if (touche_crouge_aux(iX,iY, oBox))
+			if (touche_crouge_aux(iX,iY,iZ, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_crouge_future(iX, iY, iP) {
+function touche_crouge_future(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z && (oBox.owner == 0) && (oBox.aipoint == -2)) {
 			var fMoveX = oBox.vx/2, fMoveY = oBox.vy/2;
 			var fNewPosX = iX - fMoveX, fNewPosY = iY - fMoveY;
-			if (touche_crouge_aux(fNewPosX,fNewPosY, oBox))
+			if (touche_crouge_aux(fNewPosX,fNewPosY,iZ, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_crouge_aux(iX,iY, oBox) {
+function touche_crouge_aux(iX,iY,iZ, oBox) {
 	var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
 	const size = 4;
-	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y && oBox.z < 1.2)) {
+	
+	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size && iZ < 1.2) : (iX == oBox.x && iY == oBox.y)) {
 		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
@@ -18472,6 +18474,7 @@ function move(getId, triggered) {
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
+		var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
@@ -18487,12 +18490,10 @@ function move(getId, triggered) {
 					setStarState(oKart, 80);
 				}
 
-				var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
-
 				var cc = fSelectedClass;
 				if (oKart.rail) cc *= 2;
 
-				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKartItems))))
+				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems)))))
 					if (!oKart.protect && !oKart.frminv)
 						handleHardHit(getId);
 				if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
@@ -18623,6 +18624,9 @@ function move(getId, triggered) {
 				}
 			}
 		}
+		if (touche_crouge(oKart.x, oKart.y, oKart.z, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKart.z, oKartItems)))
+			if (!oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
 	}
 
 	var rScroller, rHeight, rSize;
