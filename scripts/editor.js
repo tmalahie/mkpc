@@ -2944,6 +2944,25 @@ function getLapOverrideLabel(lapId) {
 	var lapOverride = lapOverrides[lapId];
 	return formatLapOverride(lapOverride);
 }
+function escapeHtml(str) {
+	return String(str).replace(/[&<>"']/g, function(c) {
+		return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+	});
+}
+function getChallengeDisplayName(challengeId) {
+	if (typeof circuitChallenges !== "undefined") {
+		for (var i=0;i<circuitChallenges.length;i++) {
+			if (circuitChallenges[i].id === challengeId) {
+				if (circuitChallenges[i].name)
+					return circuitChallenges[i].name;
+				if (circuitChallenges[i].description)
+					return circuitChallenges[i].description;
+				break;
+			}
+		}
+	}
+	return "#"+ challengeId;
+}
 function formatLapOverride(lapOverride) {
 	var lapNumber = lapOverride.lap, lapCheckpoint = lapOverride.checkpoint;
 	if (lapNumber !== undefined) {
@@ -2956,6 +2975,9 @@ function formatLapOverride(lapOverride) {
 			return language ? "CP "+ lapNumber : "CP "+ lapNumber;
 		}
 		return language ? "Lap "+ lapNumber : "Tour "+ lapNumber;
+	}
+	if (lapOverride.challenge !== undefined) {
+		return (language ? "Challenge: " : "Défi : ") + escapeHtml(getChallengeDisplayName(lapOverride.challenge));
 	}
 	if (lapOverride.time !== undefined)
 		return formatTimer(lapOverride.time);
@@ -3040,7 +3062,7 @@ function initLapOverrideOptions() {
 	document.getElementById("lapoverride-btn-add").style.display = "block";
 	document.getElementById("lapoverride-btn-edit").style.display = (lapOverrides.length > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-copy").style.display = (lapOverrides.length > 1) ? "block" : "none";
-	var reorderableCount = lapOverrides.filter(function(o) { return o.lap === undefined && o !== lapOverrides[0]; }).length;
+	var reorderableCount = lapOverrides.filter(function(o) { return o.lap === undefined && o.challenge === undefined && o !== lapOverrides[0]; }).length;
 	document.getElementById("lapoverride-btn-reorder").style.display = (reorderableCount > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-remove").style.display = (lapOverrides.length > 1) ? "block" : "none";
 }
@@ -3245,6 +3267,42 @@ function renderLapOverrideAdd() {
 	}
 	$overrideImpactAllCheck.checked = !!(editingLapOverride && editingLapOverride.impactAll);
 	handleImpactAllState();
+
+	var $challengeList = document.getElementById("lapoverride-challenge-list");
+	var $challengeTrigger = document.querySelector('.lapoverride-trigger[data-value="challenge"]');
+	var $challengeEmpty = document.getElementById("lapoverride-challenge-empty");
+	if ($challengeList) {
+		$challengeList.innerHTML = "";
+		var availableChallenges = (typeof circuitChallenges !== "undefined") ? circuitChallenges : [];
+		var usedChallenges = {};
+		for (var i=0;i<lapOverrides.length;i++) {
+			var lo = lapOverrides[i];
+			if (lo === editingLapOverride) continue;
+			if (lo.challenge !== undefined)
+				usedChallenges[lo.challenge] = true;
+		}
+		var hasOption = false;
+		for (var i=0;i<availableChallenges.length;i++) {
+			var ch = availableChallenges[i];
+			if (usedChallenges[ch.id]) continue;
+			var $option = document.createElement("option");
+			$option.value = ch.id;
+			$option.textContent = getChallengeDisplayName(ch.id);
+			$challengeList.appendChild($option);
+			hasOption = true;
+		}
+		$challengeList.style.display = hasOption ? "" : "none";
+		if ($challengeEmpty)
+			$challengeEmpty.style.display = hasOption ? "none" : "block";
+		if ($challengeTrigger) {
+			var hasAnyChallenge = availableChallenges.length > 0;
+			$challengeTrigger.style.display = hasAnyChallenge ? "" : "none";
+		}
+		if (editingLapOverride && editingLapOverride.challenge !== undefined) {
+			overrideType = "challenge";
+			$challengeList.value = editingLapOverride.challenge;
+		}
+	}
 	
 	// Restore condition checkboxes for zone and time overrides
 	var $conditionCheckZone = document.getElementById("lapoverride-condition-check-zone");
@@ -3562,6 +3620,7 @@ function showLapOverrideReorder() {
 	$list.innerHTML = "";
 	for (var lapKey = 1; lapKey < lapOverrides.length; lapKey++) {
 		if (lapOverrides[lapKey].lap !== undefined) continue;
+		if (lapOverrides[lapKey].challenge !== undefined) continue;
 		var $item = document.createElement("li");
 		$item.dataset.key = lapKey;
 		$item.draggable = true;
@@ -3607,7 +3666,7 @@ function applyLapOverrideReorder() {
 	}
 	var originalOrder = [];
 	for (var i = 1; i < lapOverrides.length; i++) {
-		if (lapOverrides[i].lap === undefined) originalOrder.push(i);
+		if (lapOverrides[i].lap === undefined && lapOverrides[i].challenge === undefined) originalOrder.push(i);
 	}
 	var changed = false;
 	for (var i = 0; i < newOrder.length; i++) {
@@ -3624,6 +3683,9 @@ function applyLapOverrideReorder() {
 	}
 	for (var i = 0; i < newOrder.length; i++) {
 		newLapOverrides.push(lapOverrides[newOrder[i]]);
+	}
+	for (var i = 1; i < lapOverrides.length; i++) {
+		if (lapOverrides[i].challenge !== undefined) newLapOverrides.push(lapOverrides[i]);
 	}
 	for (var i = 1; i < newLapOverrides.length; i++) {
 		var lapOverride = newLapOverrides[i];
@@ -3793,7 +3855,7 @@ function assignLapOverrideOpts(opts) {
 		var endTimeCheck = document.getElementById("lapoverride-end-time-check").checked;
 		if (endTime && endTimeCheck)
 			opts.endTime = parseTimer(endTime);
-		
+
 		var $conditionCheck = document.getElementById("lapoverride-condition-check-time");
 		if ($conditionCheck && $conditionCheck.checked) {
 			var $conditionCheckboxes = document.querySelectorAll("#lapoverride-condition-list-time input[type='checkbox']:checked");
@@ -3804,6 +3866,12 @@ function assignLapOverrideOpts(opts) {
 				opts.requiredOverrides = requiredOverrides;
 			}
 		}
+		break;
+	case "challenge":
+		var $challengeList = document.getElementById("lapoverride-challenge-list");
+		if (!$challengeList || !$challengeList.value)
+			throw new Error(language ? "No challenge selected" : "Aucun défi sélectionné");
+		opts.challenge = +$challengeList.value;
 	}
 }
 function lapOverrideExists(opts) {
@@ -3819,6 +3887,10 @@ function lapOverrideExists(opts) {
 		}
 		if (lapOverride.zone !== undefined) {
 			if (lapOverride.zone === opts.zone)
+				return lapOverride;
+		}
+		if (lapOverride.challenge !== undefined) {
+			if (lapOverride.challenge === opts.challenge)
 				return lapOverride;
 		}
 	}
@@ -4047,12 +4119,21 @@ function initLapOverride(meta, oldLapOverride) {
 	else if (meta.time !== undefined) {
 		while (newLapOverride < lapOverrides.length) {
 			var lapOverride = lapOverrides[newLapOverride];
+			if (lapOverride.challenge !== undefined) break;
 			if (lapOverride.time > meta.time) break;
 			if (lapOverride.time === meta.time && lapOverride.endTime < (meta.endTime || Infinity)) break;
 			newLapOverride++;
 		}
 	}
-	else if (meta.zone !== undefined)
+	else if (meta.zone !== undefined) {
+		if (oldLapOverride === undefined) {
+			newLapOverride = lapOverrides.length;
+			while (newLapOverride > 0 && lapOverrides[newLapOverride-1].challenge !== undefined)
+				newLapOverride--;
+		}
+		else newLapOverride = oldLapOverride;
+	}
+	else if (meta.challenge !== undefined)
 		newLapOverride = (oldLapOverride === undefined) ? lapOverrides.length : oldLapOverride;
 	lapOverrides.splice(newLapOverride, 0, {
 		lap: meta.lap,
@@ -4067,6 +4148,7 @@ function initLapOverride(meta, oldLapOverride) {
 		endDelay: meta.endDelay,
 		impactAll: meta.impactAll,
 		requiredOverrides: meta.requiredOverrides,
+		challenge: meta.challenge,
 		imgData: meta.imgData,
 		modesData: meta.modesData || {}
 	});
@@ -5056,6 +5138,7 @@ function _saveData() {
 			zoneMeta: lapOverride.zoneMeta, endZoneMeta: lapOverride.endZoneMeta,
 			endOnExit: lapOverride.endOnExit, endDelay: lapOverride.endDelay, impactAll: lapOverride.impactAll,
 			requiredOverrides: lapOverride.requiredOverrides,
+			challenge: lapOverride.challenge,
 			modes: enabledModes
 		};
 		if (!payload.lapOverrides) payload.lapOverrides = [];
@@ -5858,7 +5941,9 @@ var commonTools = {
 				else
 					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
 			}
-			document.getElementById("checkpoint-respawn-reset").style.display = "";
+			var $checkpointRespawn = document.getElementById("checkpoint-respawn-reset");
+			if ($checkpointRespawn)
+				$checkpointRespawn.style.display = "";
 		},
 		"click" : function(self,point,extra) {
 			var respawnNode = self.state.respawnNode;

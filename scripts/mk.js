@@ -1898,9 +1898,16 @@ function initMap() {
 	pMaps = [oMap];
 	if (oMap.lapOverrides) {
 		var mapOverrides = oMap.lapOverrides;
+		for (var i=0;i<mapOverrides.length;i++) {
+			var lapOverride = mapOverrides[i];
+			if (lapOverride.challenge !== undefined && clSelected && clSelected.id === lapOverride.challenge)
+				Object.assign(oMap, lapOverride);
+		}
 		var lapOverrides = [];
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
+			if (lapOverride.challenge !== undefined)
+				continue;
 			if (lapOverride.lap !== undefined) {
 				var prevId = lMaps.length-1;
 				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
@@ -2092,6 +2099,9 @@ function initMap() {
 				var lMap = getCurrentLMap(lapId);
 				if (lMap.parentOverrideId === i) return true;
 				return false;
+			}
+			else if (lapOverride.challenge !== undefined) {
+				return !!(clSelected && clSelected.id === lapOverride.challenge);
 			}
 			else {
 				return oKart.conditionOverrides && oKart.conditionOverrides.some(function(i) {
