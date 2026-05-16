@@ -20296,15 +20296,24 @@ function timeStr(timeMS) {
 	else timeMs = "" + timeMs;
 	return sMins + "'" + sSecs + '"' + timeMs;
 }
-function updateSpeedometer(getId, aPosX,aPosY) {
-	if (!$speedometerVals[getId]) return;
-	var oKart = aKarts[getId];
-	var speedKmH = Math.hypot(oKart.x - aPosX, oKart.y - aPosY) * 10;
-	if (oKart.speed < 0)
-		speedKmH = -speedKmH;
-	if (oKart.tombe)
-		speedKmH = 0;
-	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
+function updateSpeedometer(getId, aPosX, aPosY) {
+    var $val = $speedometerVals[getId];
+    if (!$val) return;
+    var oKart = aKarts[getId];
+    var speedString;
+    if (oKart.tombe) {
+        speedString = "0.0";
+    } else {
+        var dx = oKart.x - aPosX, dy = oKart.y - aPosY;
+		var tenths = Math.round(Math.sqrt(dx*dx + dy*dy) * 100);
+		var intPart = Math.floor(tenths / 10);
+		var dec = tenths % 10;
+		speedString = intPart + '.' + dec;
+    }
+
+    if ($val.textContent !== speedString) {
+        $val.textContent = speedString;
+    }
 }
 
 function handleWrongWay(oKart) {
