@@ -3709,11 +3709,15 @@ function startGame() {
 		var joueur = aPlayers[i];
 		var inc = i+nbPlayers;
 		var oPlace = aPlaces[inc];
-		var depart = (iDificulty-4)*2+Math.round(Math.random());
+		var kartDifficulty = iDificulty;
+		if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus[i] && cupOpts.gp.cpus[i].difficulty != null)
+			kartDifficulty = 4 + cupOpts.gp.cpus[i].difficulty * 0.5;
+		var depart = (kartDifficulty-4)*2+Math.round(Math.random());
 		if (course == "BB")
 			depart = 2;
 		var oEnemy = {
 			id : inc,
+			difficulty : kartDifficulty,
 
 			speed : 0,
 			speedinc : 0.5,
@@ -16953,15 +16957,16 @@ function touche_cbleue_aux(iX,iY, oBox) {
 
 function powCpuDodge(oKart) {
 	let dodgeZ = oKart.z;
+	let kartDif = oKart.difficulty != null ? oKart.difficulty : iDificulty;
 
 	if (!oKart.jumped) {
-		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
+		let n = Math.pow(2, -(kartDif - 4)) * 0.5;
 
 		if (Math.random() < n)
 			return;
 
 		else {
-			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
+			dodgeZ = 1 - n + Math.random() * (kartDif / 12);
 			if (dodgeZ < 0) dodgeZ = 0.1;
 			else if (dodgeZ > 1) dodgeZ = 1;
 		}
@@ -19683,7 +19688,8 @@ function move(getId, triggered) {
 					}
 				}
 			}
-			var rSpeed = iDificulty, influence = 1;
+			var kartDif = oKart.difficulty != null ? oKart.difficulty : iDificulty;
+			var rSpeed = kartDif, influence = 1;
 			if (nCpus > 0) {
 				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
@@ -19704,9 +19710,9 @@ function move(getId, triggered) {
 					oKart.distToFirstCache = 0;
 				influence = Math.pow(0.96, 6*(apparentId/nCpus-0.5));
 			}
-			rSpeed *= influence*iDificulty/5;
+			rSpeed *= influence*kartDif/5;
 			var rRatio = 1.25;
-			if ((iDificulty > 4.75) && (aKarts.length > 8))
+			if ((kartDif > 4.75) && (aKarts.length > 8))
 				rRatio *= Math.log(1+100*aKarts.length/8)/5.5;
 			if (oKart.maxspeed0 > rSpeed*rRatio) oKart.maxspeed0 = rSpeed*rRatio;
 			else if (oKart.maxspeed0 < rSpeed) oKart.maxspeed0 = rSpeed;
@@ -21169,7 +21175,7 @@ function ai(oKart) {
 				oKart.rotincdir = 0;
 				var oRail = oKart.rail;
 				var canTrick = false;
-				if ((oRail.boostcpt >= railGlobalConfig.miniTurboCpt) && (iDificulty > 4) && oRail.init) {
+				if ((oRail.boostcpt >= railGlobalConfig.miniTurboCpt) && ((oKart.difficulty != null ? oKart.difficulty : iDificulty) > 4) && oRail.init) {
 					var safeDist = oRail.boostcpt >= railGlobalConfig.superTurboCpt ? 150 : 120;
 					if ((distToAim >= safeDist) && (angleToAim <= 10))
 						canTrick = true;
@@ -21323,7 +21329,7 @@ function ai(oKart) {
 			}
 		}
 	}
-	if (oMap.jumpable && (iDificulty > 4)) {
+	if (oMap.jumpable && ((oKart.difficulty != null ? oKart.difficulty : iDificulty) > 4)) {
 		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
 			if (speedToAim >= 8) {
 				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
