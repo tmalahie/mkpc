@@ -1996,7 +1996,34 @@ embed,#ytplayer {
 .main-decor a:hover {
 	color: #049;
 }
-
+.noarrow::-webkit-outer-spin-button,
+.noarrow::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+.noarrow {
+  	-moz-appearance: textfield;
+}
+.distrib-form {
+	position: absolute;
+}
+.distrib-row {
+	display: flex;
+}
+.distrib-cell {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid white;
+	background-color: black;
+}
+.distrib-input {
+	border: none;
+	background-color: black;
+	box-sizing: border-box;
+	color: white;
+	text-align: center;
+}
 
 @keyframes progressive-fade {
 	15% {

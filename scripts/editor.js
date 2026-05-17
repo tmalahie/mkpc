@@ -2690,6 +2690,111 @@ function boostTypeChanged(type) {
 	else
 		$boostSize.style.display = "none";
 }
+function boxItemDistrib(decorData) {
+	console.log("box decor data", decorData);
+
+	const items = ["banane", "carapace", "carapacerouge", "fauxobjet", "champi", "poison", "etoile", "bobomb"];
+	const screenCoords = getScreenCoords({x: decorData.pos.x, y: decorData.pos.y});
+	const cellSize = 24 * zoomLevel;
+	const fontSize = cellSize / 2
+
+	// form
+	const form = document.createElement("form");
+	form.className = "distrib-form";
+	form.style.left = screenCoords.x + "px";
+	form.style.top = screenCoords.y + "px";
+
+	// items
+	const itemCont = document.createElement("div");
+	itemCont.className = "distrib-row";
+	for (const item of items) {
+		const cell = document.createElement("div");
+		cell.className = "distrib-cell";
+		cell.style.width = cellSize + "px";
+		cell.style.height = cellSize + "px";
+
+		const img = document.createElement("img");
+		img.src = `images/items/${item}.png`;
+		img.style.width = (cellSize * 0.75) + "px";
+
+		cell.appendChild(img);
+		itemCont.appendChild(cell);
+	}
+
+	// inputs
+	const inputCont = document.createElement("div");
+	inputCont.className = "distrib-row";
+	for (const item of items) {
+		const cell = document.createElement("div");
+		cell.className = "distrib-cell";
+		cell.style.width = cellSize + "px";
+		cell.style.height = cellSize + "px";
+
+		const input = document.createElement("input");
+		input.id = `distrib-item-${item}`;
+		input.className = "distrib-input noarrow";
+		input.type = "number";
+		input.min = 0;
+		input.max = 99;
+		input.step = 1;
+		input.style.width = cellSize + "px";
+		input.style.height = cellSize + "px";
+		input.style.fontSize = fontSize + "px";
+		
+		if (decorData.items && decorData.items[item])
+			input.value = decorData.items[item];
+
+		cell.appendChild(input);
+		inputCont.appendChild(cell);
+	}
+
+	// buttons
+	const btnConf = document.createElement("button");
+	btnConf.type = "submit";
+	btnConf.className = "toolbox-button";
+	btnConf.textContent = "OK";
+	btnConf.style.fontSize = fontSize + "px";
+
+	const btnBack = document.createElement("button");
+	btnBack.type = "button";
+	btnBack.className = "toolbox-button";
+	btnBack.textContent = language ? "Cancel" : "Annuler";
+	btnBack.style.fontSize = fontSize + "px";
+
+	btnBack.onclick = () => {
+		form.remove();
+	};
+
+	form.onsubmit = (event) => {
+		event.preventDefault();
+
+		if (!form.checkValidity()) {
+			form.reportValidity();
+			return;
+    	}
+
+		const distrib = {};
+		for (const item of items) {
+			const value = Number(form.querySelector(`#distrib-item-${item}`).value);
+			if (!value)
+				continue;
+
+			distrib[item] = value;
+		}		
+
+		decorData.items = distrib;
+		if (decorData.items && Object.keys(distrib).length === 0)
+			delete decorData.items;
+
+		form.remove();
+	};
+
+	form.appendChild(itemCont);
+	form.appendChild(inputCont);
+	form.appendChild(btnConf);
+	form.appendChild(btnBack);
+	document.body.appendChild(form);
+}
 function initTrajectOptions() {
 	document.getElementById("traject-menu").style.display = "block";
 	document.getElementById("traject-more").style.display = "none";
@@ -7069,6 +7174,14 @@ var commonTools = {
 							}
 						});
 					}
+					else if (getActualDecorType(self.state.type) === "box") {
+						menuOptions.splice(1, 0, {
+							text: (language ? "Dropped items..." : "Objets lâchés..."),
+							click: function() {
+								boxItemDistrib(decorData);
+							}
+						});
+					}
 					return showContextOnElt(e,box,menuOptions);
 				};
 				if (circle)
@@ -7225,6 +7338,13 @@ var commonTools = {
 								if (decorsData[i].speed !== 1)
 									decorParams.speed = decorsData[i].speed||0;
 								payload.decorparams[type].push(decorParams);
+								break;
+							case "box":
+								console.log("save box", decorsData[i]);
+								const distrib = decorsData[i].items;
+								if (distrib)
+									payload.decor[type][payload.decor[type].length - 1].push(distrib);
+								break;
 							}
 						}
 					}
@@ -7307,6 +7427,12 @@ var commonTools = {
 						decorData.speed = decorParams.speed
 						if (decorData.speed == null)
 							decorData.speed = 1;
+						break;
+					case "box":
+						if (decorsPayload[i][2])
+							decorData.items = decorsPayload[i][2];
+						console.log("restore box", decorsPayload[i], decorData);
+						break;
 					}
 					selfData[type].push(decorData);
 				}
