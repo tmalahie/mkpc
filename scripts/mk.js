@@ -1898,16 +1898,17 @@ function initMap() {
 	pMaps = [oMap];
 	if (oMap.lapOverrides) {
 		var mapOverrides = oMap.lapOverrides;
-		for (var i=0;i<mapOverrides.length;i++) {
-			var lapOverride = mapOverrides[i];
-			if (lapOverride.challenge !== undefined && clSelected && clSelected.id === lapOverride.challenge)
-				Object.assign(oMap, lapOverride);
-		}
 		var lapOverrides = [];
+		var conditionPayloadIds = [];
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
-			if (lapOverride.challenge !== undefined)
+			if (lapOverride.challenge !== undefined) {
+				if (clSelected && clSelected.id === lapOverride.challenge) {
+					oMap.conditionOverrides.push(lapOverride);
+					conditionPayloadIds.push(i+1);
+				}
 				continue;
+			}
 			if (lapOverride.lap !== undefined) {
 				var prevId = lMaps.length-1;
 				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
@@ -1924,8 +1925,10 @@ function initMap() {
 					processZoneMeta(lapOverride.endZoneMeta);
 				}
 				oMap.conditionOverrides.push(lapOverride);
+				conditionPayloadIds.push(i+1);
 			}
 		}
+		oMap.conditionPayloadIds = conditionPayloadIds;
 		oMap.lapOverrides = lapOverrides;
 		var sMaps = [];
 		for (var i=0;i<lMaps.length;i++)
@@ -2030,14 +2033,13 @@ function initMap() {
 		function initDisabledInteractions() {
 			var _disabledLapsInteractions = {};
 			var allOverrides = [{}].concat(mapOverrides);
-			var nbLapOverrides = 1 + oMap.lapOverrides.length;
 			function getAllOverridesIds(i) {
 				var lMap = lMaps[i];
 				var lapIds = [];
 				if (lMap.parentOverrideId !== undefined) {
 					lapIds.push(lMap.parentOverrideId);
 					for (var j=0;j<lMap.conditionOverrideIds.length;j++)
-						lapIds.push(nbLapOverrides + lMap.conditionOverrideIds[j]);
+						lapIds.push(conditionPayloadIds[lMap.conditionOverrideIds[j]]);
 				}
 				else
 					lapIds.push(i);
@@ -2087,8 +2089,17 @@ function initMap() {
 		initDisabledInteractions();
 
 		if (oMap.conditionOverrides.length) {
-			for (var i=0;i<oMap.conditionOverrides.length;i++)
+			var initialConditionOverrides = [];
+			for (var i=0;i<oMap.conditionOverrides.length;i++) {
 				initSubOverrides(0, [i],i.toString(), true);
+				if (oMap.conditionOverrides[i].challenge != null)
+					initialConditionOverrides.push(i);
+			}
+			if (initialConditionOverrides.length) {
+				oMap.initialConditionOverrides = initialConditionOverrides;
+				oMap.initialConditionOverridesHash = initialConditionOverrides.join(",");
+				initSubOverrides(0, initialConditionOverrides, oMap.initialConditionOverridesHash, true);
+			}
 		}
 		isOverrideActive = function(oKart, i) {
 			var lapOverride = i ? mapOverrides[i-1] : { lap: 1 };
@@ -3763,7 +3774,8 @@ function startGame() {
 			aipoints : oMap.aipoints[0],
 			maxspeed : 5.7,
 			maxspeed0: 5.7,
-			conditionOverrides: []
+			conditionOverrides: oMap.initialConditionOverrides ? oMap.initialConditionOverrides.slice() : [],
+			conditionOverridesHash: oMap.initialConditionOverridesHash
 		};
 		if (isOnline) {
 			oEnemy.id = aIDs[i];
@@ -4013,7 +4025,8 @@ function startGame() {
 					aipoints : oMap.aipoints[0],
 					maxspeed : 5.7,
 					maxspeed0 : 5.7,
-					conditionOverrides: [],
+					conditionOverrides: oMap.initialConditionOverrides ? oMap.initialConditionOverrides.slice() : [],
+					conditionOverridesHash: oMap.initialConditionOverridesHash,
 
 					place : 1
 				});
@@ -11489,6 +11502,8 @@ function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
 				return false;
 		}
 	}
+	if (oOverride.challenge != null)
+		return true;
 	if (oOverride.time != null) {
 		var gameTime = getActualGameTimeMS();
 		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))

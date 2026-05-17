@@ -3062,7 +3062,7 @@ function initLapOverrideOptions() {
 	document.getElementById("lapoverride-btn-add").style.display = "block";
 	document.getElementById("lapoverride-btn-edit").style.display = (lapOverrides.length > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-copy").style.display = (lapOverrides.length > 1) ? "block" : "none";
-	var reorderableCount = lapOverrides.filter(function(o) { return o.lap === undefined && o.challenge === undefined && o !== lapOverrides[0]; }).length;
+	var reorderableCount = lapOverrides.filter(function(o) { return o.lap === undefined && o !== lapOverrides[0]; }).length;
 	document.getElementById("lapoverride-btn-reorder").style.display = (reorderableCount > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-remove").style.display = (lapOverrides.length > 1) ? "block" : "none";
 }
@@ -3620,7 +3620,6 @@ function showLapOverrideReorder() {
 	$list.innerHTML = "";
 	for (var lapKey = 1; lapKey < lapOverrides.length; lapKey++) {
 		if (lapOverrides[lapKey].lap !== undefined) continue;
-		if (lapOverrides[lapKey].challenge !== undefined) continue;
 		var $item = document.createElement("li");
 		$item.dataset.key = lapKey;
 		$item.draggable = true;
@@ -3666,7 +3665,7 @@ function applyLapOverrideReorder() {
 	}
 	var originalOrder = [];
 	for (var i = 1; i < lapOverrides.length; i++) {
-		if (lapOverrides[i].lap === undefined && lapOverrides[i].challenge === undefined) originalOrder.push(i);
+		if (lapOverrides[i].lap === undefined) originalOrder.push(i);
 	}
 	var changed = false;
 	for (var i = 0; i < newOrder.length; i++) {
@@ -3683,9 +3682,6 @@ function applyLapOverrideReorder() {
 	}
 	for (var i = 0; i < newOrder.length; i++) {
 		newLapOverrides.push(lapOverrides[newOrder[i]]);
-	}
-	for (var i = 1; i < lapOverrides.length; i++) {
-		if (lapOverrides[i].challenge !== undefined) newLapOverrides.push(lapOverrides[i]);
 	}
 	for (var i = 1; i < newLapOverrides.length; i++) {
 		var lapOverride = newLapOverrides[i];
@@ -4119,20 +4115,13 @@ function initLapOverride(meta, oldLapOverride) {
 	else if (meta.time !== undefined) {
 		while (newLapOverride < lapOverrides.length) {
 			var lapOverride = lapOverrides[newLapOverride];
-			if (lapOverride.challenge !== undefined) break;
 			if (lapOverride.time > meta.time) break;
 			if (lapOverride.time === meta.time && lapOverride.endTime < (meta.endTime || Infinity)) break;
 			newLapOverride++;
 		}
 	}
-	else if (meta.zone !== undefined) {
-		if (oldLapOverride === undefined) {
-			newLapOverride = lapOverrides.length;
-			while (newLapOverride > 0 && lapOverrides[newLapOverride-1].challenge !== undefined)
-				newLapOverride--;
-		}
-		else newLapOverride = oldLapOverride;
-	}
+	else if (meta.zone !== undefined)
+		newLapOverride = (oldLapOverride === undefined) ? lapOverrides.length : oldLapOverride;
 	else if (meta.challenge !== undefined)
 		newLapOverride = (oldLapOverride === undefined) ? lapOverrides.length : oldLapOverride;
 	lapOverrides.splice(newLapOverride, 0, {
