@@ -83,19 +83,19 @@ h2 {
     background-color: #48b;
 	opacity: 0.5;
 }
-#option-containers h2 a {
+#option-containers h2 a, .editor-content > h2 #reset-gp-options {
 	color: #77B;
 	font-size: 0.8em;
 	position: relative;
 	top: -0.1em;
 }
-#option-containers h2 a:hover {
+#option-containers h2 a:hover, .editor-content > h2 #reset-gp-options:hover {
 	color: #AAD;
 }
-.complete #option-containers h2 a {
+.complete #option-containers h2 a, .complete .editor-content > h2 #reset-gp-options {
 	color: #9AD;
 }
-.complete #option-containers h2 a:hover {
+.complete #option-containers h2 a:hover, .complete .editor-content > h2 #reset-gp-options:hover {
 	color: #89B;
 }
 .simplified #global-infos {
@@ -358,15 +358,23 @@ h2 {
 	max-width: 460px;
 	text-align: left;
 }
-.gp-options-row {
-	color: white;
+.gp-base-row {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	margin: 0.5em 0;
+	gap: 0.5em;
+	margin: 0.25em 0;
+	cursor: pointer;
 }
-.gp-options-label {
-	margin-right: 1em;
+.gp-base-row select {
+	background-color: #DDF;
+	border-radius: 3px;
+	padding: 0.1em 0.2em;
+	min-width: 10em;
+}
+.gp-cpu-list, .gp-points-list {
+	margin: 0.3em 0 0.6em 0.5em;
+	padding-left: 0.6em;
+	border-left: solid 2px rgba(70,70,120, 0.25);
 }
 #gp-options fieldset {
 	background-color: rgb(192,192,204);
@@ -391,9 +399,14 @@ h2 {
 		-1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
 }
 .gp-options-help {
-	margin: 0 0 0.6em;
+	margin: 0.3em 0 1em;
 	font-size: 0.85em;
 	color: #335;
+	display: flex;
+	gap: 0.4em;
+}
+.gp-options-help img {
+	height: 1em;
 }
 .gp-cpu-row {
 	display: grid;
@@ -443,27 +456,9 @@ h2 {
 	background-color: #aaa;
 	cursor: not-allowed;
 }
-.gp-edit-items {
-	background-color: #DDF;
-	color: #003;
-	border: solid 1px #99a;
-	border-radius: 4px;
-	padding: 0.35em 0.9em;
-	cursor: pointer;
-	margin-bottom: 0.5em;
-	font-weight: bold;
-}
-.gp-edit-items:hover {
-	background-color: #CCF;
-}
-.gp-options-dist h3 {
-	margin: 0.6em 0 0.3em;
-	font-size: 1em;
-	font-weight: bold;
-}
 .gp-point-row {
 	display: grid;
-	grid-template-columns: 3.5em 1fr;
+	grid-template-columns: 2em 1fr;
 	align-items: center;
 	gap: 0.5em;
 	margin: 0.15em 0;

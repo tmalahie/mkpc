@@ -284,7 +284,7 @@ function getTrackPayloads($options) {
             $cupById = array();
             $getAllCups = getCreationDataQuery(array(
                 'table' => 'mkcups',
-                'select' => 'c.id,c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3,s.prefix',
+                'select' => 'c.id,c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3,c.options,s.prefix',
                 'where' => 'c.id IN ('. implode(',',$cupIDs) .')'
             ));
             while ($getCup = mysql_fetch_array($getAllCups)) {
@@ -316,6 +316,10 @@ function getTrackPayloads($options) {
                     );
                     if ($cupObj['prefix'])
                         $cupPayload['prefix'] = $cupObj['prefix'];
+                    if (!empty($cupObj['options'])) {
+                        $opts = json_decode($cupObj['options']);
+                        if ($opts) $cupPayload['options'] = $opts;
+                    }
                     $cupPayloads[] = $cupPayload;
                 }
             }

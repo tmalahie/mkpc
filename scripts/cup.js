@@ -317,6 +317,23 @@ var GP_MAX_CPUS = 11;
 var GP_DEFAULT_DIFFICULTY = 2;
 var gpDifficultyLabels = ["Easy", "Medium", "Difficult", "Extreme", "Impossible"];
 var gpDifficultyLabelsFr = ["Facile", "Moyen", "Difficile", "Extrême", "Impossible"];
+function gpDefaultLabel(name) {
+	return (language ? "Default (" : "Défaut (") + name + ")";
+}
+var gpItemDistribNames = language
+	? ["Standard", "Aggressive mode", "Bob-ombs", "Mushrooms", "None"]
+	: ["Classique", "Mode explosif", "Bob-ombs", "Champis", "Aucun"];
+function getCustomItemDistribs() {
+	try {
+		var raw = localStorage.getItem("itemsets");
+		if (!raw) return [];
+		var parsed = JSON.parse(raw);
+		return (parsed && parsed.VS) ? parsed.VS : [];
+	}
+	catch (e) {
+		return [];
+	}
+}
 var gpCcOptions = [
 	{ value: "50",    label: "50cc" },
 	{ value: "100",   label: "100cc" },
@@ -325,7 +342,7 @@ var gpCcOptions = [
 	{ value: "200",   label: "200cc" }
 ];
 function defaultGpCpu() {
-	return { driver: "", difficulty: GP_DEFAULT_DIFFICULTY };
+	return { driver: "", difficulty: null };
 }
 function defaultGpPoints(nbRacers) {
 	var base = [10, 8, 6, 4, 3, 2, 1];
@@ -343,8 +360,8 @@ function ensureGpCpus() {
 		gpOpts.cpus.push(defaultGpCpu());
 }
 function syncGpPoints() {
-	var target = gpOpts.cpus.length + 1;
-	if (!gpOpts.points) gpOpts.points = defaultGpPoints(target);
+	if (!gpOpts.points) return;
+	var target = (gpOpts.cpus ? gpOpts.cpus.length : GP_DEFAULT_NB_CPUS) + 1;
 	while (gpOpts.points.length < target) gpOpts.points.push(0);
 	if (gpOpts.points.length > target) gpOpts.points.length = target;
 }
@@ -369,8 +386,6 @@ function gpDriverList() {
 function updateGpOptionsGUI() {
 	var $gpOptions = document.getElementById("gp-options");
 	if (!$gpOptions) return;
-	ensureGpCpus();
-	syncGpPoints();
 	$gpOptions.innerHTML = "";
 
 	function appendOption($select, value, label, selectedValue) {
@@ -381,19 +396,56 @@ function updateGpOptionsGUI() {
 			$opt.selected = "selected";
 		$select.appendChild($opt);
 	}
+	function makeBaseRow(labelText) {
+		var $row = document.createElement("label");
+		$row.className = "gp-base-row";
+		var $label = document.createElement("span");
+		$label.className = "gp-base-label";
+		$label.appendChild(document.createTextNode(labelText));
+		$row.appendChild($label);
+		return $row;
+	}
 
-	// --- CC dropdown (extension on top of mockup) ---
-	var $ccBox = document.createElement("div");
-	$ccBox.className = "gp-options-row";
-	var $ccLabel = document.createElement("span");
-	$ccLabel.className = "gp-options-label";
-	$ccLabel.appendChild(document.createTextNode(language ? "Speed class:" : "Cylindrée :"));
-	$ccBox.appendChild($ccLabel);
+	var diffLabels = language ? gpDifficultyLabels : gpDifficultyLabelsFr;
+	var globalDifficulty = (gpOpts.difficulty != null) ? gpOpts.difficulty : GP_DEFAULT_DIFFICULTY;
+	var defaultLabel = language ? "Default" : "Par défaut";
+	var customLabel = language ? "Custom..." : "Personnalisé...";
+
+	var $base = document.createElement("fieldset");
+	$base.className = "gp-options-base";
+	var $baseLegend = document.createElement("legend");
+	$base.appendChild($baseLegend);
+	var $baseHelp = document.createElement("p");
+	$baseHelp.className = "gp-options-help";
+	$baseHelp.innerHTML = ('<img src="images/cups/cup1.png" alt="" />') + (language ? "These settings only apply to <strong>Grand Prix</strong> mode." : "Ces réglages s'appliquent uniquement au mode <strong>Grand Prix</strong>.");
+	$base.appendChild($baseHelp);
+
+	// Difficulty
+	var $diffRow = makeBaseRow(language ? "Difficulty:" : "Difficulté :");
+	var $diffGlobal = document.createElement("select");
+	var diffGlobalSelected = (gpOpts.difficulty != null && gpOpts.difficulty !== GP_DEFAULT_DIFFICULTY) ? gpOpts.difficulty : "";
+	for (var i=0;i<diffLabels.length;i++) {
+		var diffIsDefault = (i === GP_DEFAULT_DIFFICULTY);
+		appendOption($diffGlobal, diffIsDefault ? "" : i, diffIsDefault ? gpDefaultLabel(diffLabels[i]) : diffLabels[i], diffGlobalSelected);
+	}
+	$diffGlobal.onchange = function() {
+		gpOpts.difficulty = (this.value === "") ? null : +this.value;
+		updateGpOptionsGUI();
+		resetCupOptions();
+		updateSubmitMsg();
+	};
+	$diffRow.appendChild($diffGlobal);
+	$base.appendChild($diffRow);
+
+	// Speed class
+	var $ccRow = makeBaseRow(language ? "Speed class:" : "Cylindrée :");
 	var $cc = document.createElement("select");
-	var ccSelected = (gpOpts.cc != null) ? (gpOpts.cc + (gpOpts.mirror ? "m":"")) : "";
-	appendOption($cc, "", language ? "Default" : "Par défaut", ccSelected);
-	for (var i=0;i<gpCcOptions.length;i++)
-		appendOption($cc, gpCcOptions[i].value, gpCcOptions[i].label, ccSelected);
+	var ccRaw = (gpOpts.cc != null) ? (gpOpts.cc + (gpOpts.mirror ? "m":"")) : "";
+	var ccSelected = (ccRaw === "150") ? "" : ccRaw;
+	for (var i=0;i<gpCcOptions.length;i++) {
+		var ccIsDefault = (gpCcOptions[i].value === "150");
+		appendOption($cc, ccIsDefault ? "" : gpCcOptions[i].value, ccIsDefault ? gpDefaultLabel(gpCcOptions[i].label) : gpCcOptions[i].label, ccSelected);
+	}
 	$cc.onchange = function() {
 		if (this.value === "") {
 			gpOpts.cc = null;
@@ -406,132 +458,216 @@ function updateGpOptionsGUI() {
 		resetCupOptions();
 		updateSubmitMsg();
 	};
-	$ccBox.appendChild($cc);
-	$gpOptions.appendChild($ccBox);
+	$ccRow.appendChild($cc);
+	$base.appendChild($ccRow);
 
-	// --- CPUs section ---
-	var $cpus = document.createElement("fieldset");
-	$cpus.className = "gp-options-cpus";
-	var $cpusLegend = document.createElement("legend");
-	$cpusLegend.innerHTML = language ? "CPUs" : "CPU";
-	$cpus.appendChild($cpusLegend);
-	var $cpusHelp = document.createElement("p");
-	$cpusHelp.className = "gp-options-help";
-	$cpusHelp.innerHTML = language ? "Select CPU drivers and set their difficulty" : "Sélectionnez les persos CPU et leur difficulté";
-	$cpus.appendChild($cpusHelp);
-
-	var drivers = gpDriverList();
-	var diffLabels = language ? gpDifficultyLabels : gpDifficultyLabelsFr;
-	for (var i=0;i<gpOpts.cpus.length;i++) (function(i) {
-		var cpu = gpOpts.cpus[i];
-		var $row = document.createElement("div");
-		$row.className = "gp-cpu-row";
-		var $label = document.createElement("span");
-		$label.className = "gp-cpu-label";
-		$label.innerHTML = (language ? "CPU " : "CPU ") + (i+1) + ":";
-		$row.appendChild($label);
-
-		var $driver = document.createElement("select");
-		appendOption($driver, "", language ? "Random" : "Aléatoire", cpu.driver || "");
-		for (var d=0;d<drivers.length;d++)
-			appendOption($driver, drivers[d].id, drivers[d].name, cpu.driver || "");
-		$driver.onchange = function() {
-			cpu.driver = this.value;
-			resetCupOptions();
-		};
-		$row.appendChild($driver);
-
-		var $diff = document.createElement("select");
-		for (var d=0;d<diffLabels.length;d++)
-			appendOption($diff, d, diffLabels[d], cpu.difficulty);
-		$diff.onchange = function() {
-			cpu.difficulty = +this.value;
-			resetCupOptions();
-		};
-		$row.appendChild($diff);
-		$cpus.appendChild($row);
-	})(i);
-
-	var $cpusButtons = document.createElement("div");
-	$cpusButtons.className = "gp-cpu-buttons";
-	var $addCpu = document.createElement("button");
-	$addCpu.type = "button";
-	$addCpu.className = "gp-add-cpu";
-	$addCpu.innerHTML = language ? "Add CPU" : "Ajouter un CPU";
-	$addCpu.disabled = (gpOpts.cpus.length >= GP_MAX_CPUS);
-	$addCpu.onclick = function() {
-		if (gpOpts.cpus.length >= GP_MAX_CPUS) return;
-		gpOpts.cpus.push(defaultGpCpu());
+	// CPU drivers (Default / Custom...)
+	var $cpusRow = makeBaseRow(language ? "CPU drivers:" : "Persos CPU :");
+	var $cpusSelect = document.createElement("select");
+	$cpusSelect.className = "gp-cpus-mode";
+	var cpusMode = gpOpts.cpus ? "custom" : "default";
+	appendOption($cpusSelect, "default", language ? "Default (random)" : "Défault (aléatoire)", cpusMode);
+	appendOption($cpusSelect, "custom", customLabel, cpusMode);
+	$cpusSelect.onchange = function() {
+		if (this.value === "custom")
+			ensureGpCpus();
+		else
+			gpOpts.cpus = null;
 		syncGpPoints();
 		updateGpOptionsGUI();
 		resetCupOptions();
+		updateSubmitMsg();
 	};
-	$cpusButtons.appendChild($addCpu);
-	var $rmCpu = document.createElement("button");
-	$rmCpu.type = "button";
-	$rmCpu.className = "gp-remove-cpu";
-	$rmCpu.innerHTML = language ? "Remove CPU" : "Retirer un CPU";
-	$rmCpu.disabled = (gpOpts.cpus.length <= GP_MIN_CPUS);
-	$rmCpu.onclick = function() {
-		if (gpOpts.cpus.length <= GP_MIN_CPUS) return;
-		gpOpts.cpus.pop();
-		syncGpPoints();
+	$cpusRow.appendChild($cpusSelect);
+	$base.appendChild($cpusRow);
+
+	if (gpOpts.cpus) {
+		var $cpuList = document.createElement("div");
+		$cpuList.className = "gp-cpu-list";
+		var $cpusHelp = document.createElement("p");
+		$cpusHelp.className = "gp-options-help";
+		$cpusHelp.innerHTML = language ? "Select CPU drivers and override difficulty per CPU if needed" : "Sélectionnez les persos CPU et surchargez leur difficulté au besoin";
+		$cpuList.appendChild($cpusHelp);
+
+		var drivers = gpDriverList();
+		for (var i=0;i<gpOpts.cpus.length;i++) (function(i) {
+			var cpu = gpOpts.cpus[i];
+			var $row = document.createElement("div");
+			$row.className = "gp-cpu-row";
+			var $label = document.createElement("span");
+			$label.className = "gp-cpu-label";
+			$label.innerHTML = (language ? "CPU " : "CPU ") + (i+1) + ":";
+			$row.appendChild($label);
+
+			var $driver = document.createElement("select");
+			appendOption($driver, "", language ? "Random" : "Aléatoire", cpu.driver || "");
+			for (var d=0;d<drivers.length;d++)
+				appendOption($driver, drivers[d].id, drivers[d].name, cpu.driver || "");
+			$driver.onchange = function() {
+				cpu.driver = this.value;
+				resetCupOptions();
+			};
+			$row.appendChild($driver);
+
+			var $diff = document.createElement("select");
+			var diffSelected = (cpu.difficulty != null && cpu.difficulty !== globalDifficulty) ? cpu.difficulty : "";
+			for (var d=0;d<diffLabels.length;d++) {
+				var dIsDefault = (d === globalDifficulty);
+				appendOption($diff, dIsDefault ? "" : d, dIsDefault ? gpDefaultLabel(diffLabels[d]) : diffLabels[d], diffSelected);
+			}
+			$diff.onchange = function() {
+				cpu.difficulty = (this.value === "") ? null : +this.value;
+				resetCupOptions();
+			};
+			$row.appendChild($diff);
+			$cpuList.appendChild($row);
+		})(i);
+
+		var $cpusButtons = document.createElement("div");
+		$cpusButtons.className = "gp-cpu-buttons";
+		var $addCpu = document.createElement("button");
+		$addCpu.type = "button";
+		$addCpu.className = "gp-add-cpu";
+		$addCpu.innerHTML = language ? "Add CPU" : "Ajouter un CPU";
+		$addCpu.disabled = (gpOpts.cpus.length >= GP_MAX_CPUS);
+		$addCpu.onclick = function() {
+			if (gpOpts.cpus.length >= GP_MAX_CPUS) return;
+			gpOpts.cpus.push(defaultGpCpu());
+			syncGpPoints();
+			updateGpOptionsGUI();
+			resetCupOptions();
+		};
+		$cpusButtons.appendChild($addCpu);
+		var $rmCpu = document.createElement("button");
+		$rmCpu.type = "button";
+		$rmCpu.className = "gp-remove-cpu";
+		$rmCpu.innerHTML = language ? "Remove CPU" : "Retirer un CPU";
+		$rmCpu.disabled = (gpOpts.cpus.length <= GP_MIN_CPUS);
+		$rmCpu.onclick = function() {
+			if (gpOpts.cpus.length <= GP_MIN_CPUS) return;
+			gpOpts.cpus.pop();
+			syncGpPoints();
+			updateGpOptionsGUI();
+			resetCupOptions();
+		};
+		$cpusButtons.appendChild($rmCpu);
+		$cpuList.appendChild($cpusButtons);
+		$base.appendChild($cpuList);
+	}
+
+	// Item distribution
+	var $itemsRow = makeBaseRow(language ? "Items distribution:" : "Distribution des objets :");
+	var $items = document.createElement("select");
+	$items.id = "gp-items";
+	var itemsSel = "";
+	if (gpOpts.items) {
+		if (gpOpts.items.index != null)
+			itemsSel = (gpOpts.items.index === 0) ? "" : "b" + gpOpts.items.index;
+		else if (gpOpts.items.value) itemsSel = "c" + (gpOpts.items.name || "");
+	}
+	for (var i=0;i<gpItemDistribNames.length;i++) {
+		var itemIsDefault = (i === 0);
+		appendOption($items, itemIsDefault ? "" : ("b" + i), itemIsDefault ? gpDefaultLabel(gpItemDistribNames[i]) : gpItemDistribNames[i], itemsSel);
+	}
+	var customs = getCustomItemDistribs();
+	var customNames = {};
+	if (customs.length) {
+		var $optGroup = document.createElement("optgroup");
+		$optGroup.label = language ? "Custom" : "Personnalisés";
+		for (var i=0;i<customs.length;i++) {
+			customNames[customs[i].name] = 1;
+			var $opt = document.createElement("option");
+			$opt.value = "c" + customs[i].name;
+			$opt.innerHTML = customs[i].name;
+			if ("c" + customs[i].name === itemsSel)
+				$opt.selected = "selected";
+			$optGroup.appendChild($opt);
+		}
+		$items.appendChild($optGroup);
+	}
+	// Orphan fallback: if the saved custom distribution no longer exists in
+	// localStorage (user deleted it), keep a "Custom" option carrying the saved
+	// data so the cup setting isn't silently lost.
+	if (gpOpts.items && gpOpts.items.value && !customNames[gpOpts.items.name || ""]) {
+		var $orphan = document.createElement("option");
+		$orphan.value = "o";
+		$orphan.innerHTML = language ? "Custom" : "Personnalisé";
+		$orphan.selected = "selected";
+		$items.insertBefore($orphan, $items.firstChild.nextSibling);
+		itemsSel = "o";
+	}
+	$items.onchange = function() {
+		if (this.value === "")
+			gpOpts.items = null;
+		else if (this.value === "o")
+			return; // orphan placeholder; keep gpOpts.items as-is
+		else if (this.value.charAt(0) === "b")
+			gpOpts.items = { index: parseInt(this.value.substring(1), 10) };
+		else {
+			var name = this.value.substring(1);
+			var customs = getCustomItemDistribs();
+			var picked = null;
+			for (var i=0;i<customs.length;i++) {
+				if (customs[i].name === name) { picked = customs[i]; break; }
+			}
+			gpOpts.items = picked ? { name: picked.name, value: picked.value } : null;
+		}
+		resetCupOptions();
+	};
+	$itemsRow.appendChild($items);
+	$base.appendChild($itemsRow);
+
+	// Point distribution (Default / Custom...)
+	var $ptsRow = makeBaseRow(language ? "Points distribution:" : "Distribution des points :");
+	var $ptsSelect = document.createElement("select");
+	$ptsSelect.className = "gp-points-mode";
+	var ptsMode = gpOpts.points ? "custom" : "default";
+	appendOption($ptsSelect, "default", defaultLabel, ptsMode);
+	appendOption($ptsSelect, "custom", customLabel, ptsMode);
+	$ptsSelect.onchange = function() {
+		if (this.value === "custom") {
+			var nbCpus = gpOpts.cpus ? gpOpts.cpus.length : GP_DEFAULT_NB_CPUS;
+			gpOpts.points = defaultGpPoints(nbCpus + 1);
+		}
+		else
+			gpOpts.points = null;
 		updateGpOptionsGUI();
 		resetCupOptions();
 	};
-	$cpusButtons.appendChild($rmCpu);
-	$cpus.appendChild($cpusButtons);
-	$gpOptions.appendChild($cpus);
+	$ptsRow.appendChild($ptsSelect);
+	$base.appendChild($ptsRow);
 
-	// --- Distributions section ---
-	var $dist = document.createElement("fieldset");
-	$dist.className = "gp-options-dist";
-	var $distLegend = document.createElement("legend");
-	$distLegend.innerHTML = language ? "Distributions" : "Distributions";
-	$dist.appendChild($distLegend);
+	if (gpOpts.points) {
+		var $ptsList = document.createElement("div");
+		$ptsList.className = "gp-points-list";
+		for (var i=0;i<gpOpts.points.length;i++) (function(i) {
+			var $row = document.createElement("div");
+			$row.className = "gp-point-row";
+			var $label = document.createElement("label");
+			$label.htmlFor = "gp-point-" + i;
+			$label.innerHTML = ordinalLabel(i) + ":";
+			$row.appendChild($label);
+			var $input = document.createElement("input");
+			$input.id = "gp-point-" + i;
+			$input.type = "number";
+			$input.min = 0;
+			$input.value = gpOpts.points[i];
+			$input.oninput = function() {
+				var v = parseInt(this.value, 10);
+				if (isNaN(v) || v < 0) v = 0;
+				gpOpts.points[i] = v;
+				resetCupOptions();
+			};
+			$row.appendChild($input);
+			$ptsList.appendChild($row);
+		})(i);
+		$base.appendChild($ptsList);
+	}
 
-	var $editItems = document.createElement("button");
-	$editItems.type = "button";
-	$editItems.className = "gp-edit-items";
-	$editItems.innerHTML = language ? "Edit items" : "Modifier les objets";
-	$editItems.onclick = function() { openItemDistribEditor(); };
-	$dist.appendChild($editItems);
-
-	var $pointHeader = document.createElement("h3");
-	$pointHeader.innerHTML = language ? "Point Distribution" : "Distribution des points";
-	$dist.appendChild($pointHeader);
-
-	for (var i=0;i<gpOpts.points.length;i++) (function(i) {
-		var $row = document.createElement("div");
-		$row.className = "gp-point-row";
-		var $label = document.createElement("label");
-		$label.htmlFor = "gp-point-" + i;
-		$label.innerHTML = ordinalLabel(i) + ":";
-		$row.appendChild($label);
-		var $input = document.createElement("input");
-		$input.id = "gp-point-" + i;
-		$input.type = "number";
-		$input.min = 0;
-		$input.value = gpOpts.points[i];
-		$input.oninput = function() {
-			var v = parseInt(this.value, 10);
-			if (isNaN(v) || v < 0) v = 0;
-			gpOpts.points[i] = v;
-			resetCupOptions();
-		};
-		$row.appendChild($input);
-		$dist.appendChild($row);
-	})(i);
-
-	$gpOptions.appendChild($dist);
+	$gpOptions.appendChild($base);
 
 	var $reset = document.getElementById("reset-gp-options");
 	if ($reset) $reset.style.display = hasGpOpts(gpOpts) ? "" : "none";
-}
-function openItemDistribEditor() {
-	alert(language
-		? "Use the 'Custom...' option in the VS-mode item distribution selector to create distributions. They'll appear here in a future update."
-		: "Utilisez l'option \"Personnalisé...\" dans le sélecteur de distribution VS pour créer des distributions. Elles apparaîtront ici dans une mise à jour future.");
 }
 function updateCupImgGUI() {
 	resetCupOptions();

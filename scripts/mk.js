@@ -31,10 +31,6 @@ else {
 		if (!cupOpts) cupOpts = {};
 	}
 }
-if (cupOpts.gp && cupOpts.gp.cc != null) {
-	selectedCc = String(cupOpts.gp.cc);
-	selectedMirror = !!cupOpts.gp.mirror;
-}
 if (typeof dCircuits === 'undefined') {
 	var dCircuits = lCircuits;
 }
@@ -828,7 +824,16 @@ if (!pause) {
 var strPlayer = new Array();
 var oMap;
 var lMaps, pMaps;
-var iDificulty = (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length) ? (4 + cupOpts.gp.cpus[0].difficulty * 0.5) : 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+var iDificulty = (cupOpts && cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+function applyMulticupCupOpts(cupIdx) {
+	if (typeof cupPayloads === 'undefined' || !cupPayloads[cupIdx]) return;
+	cupOpts = cupPayloads[cupIdx].options || {};
+	if (course == "GP" && cupOpts.gp && cupOpts.gp.cc != null) {
+		fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
+		bSelectedMirror = !!cupOpts.gp.mirror;
+	}
+	iDificulty = (cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5;
+}
 var iRecord;
 var iTrajet;
 var jTrajets;
@@ -3936,6 +3941,13 @@ function startGame() {
 	}
 
 	itemDistribution = selectedItemDistrib;
+	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.items) {
+		var pickedItems = cupOpts.gp.items;
+		if (pickedItems.index != null)
+			itemDistribution = itemDistributions[getItemMode()][pickedItems.index];
+		else if (pickedItems.value)
+			itemDistribution = { name: pickedItems.name, value: pickedItems.value };
+	}
 	if (!itemDistribution)
 		itemDistribution = itemDistributions[getItemMode()][0];
 	if (!itemDistribution.value)
@@ -19689,8 +19701,10 @@ function move(getId, triggered) {
 				}
 			}
 			var kartDif = oKart.difficulty != null ? oKart.difficulty : iDificulty;
+			var firstCpuDif = firstCpu && firstCpu.difficulty != null ? firstCpu.difficulty : iDificulty;
+			var sameDifficulty = (kartDif === firstCpuDif);
 			var rSpeed = kartDif, influence = 1;
-			if (nCpus > 0) {
+			if (nCpus > 0 && sameDifficulty) {
 				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
 					if (distToFirst) {
@@ -19710,6 +19724,8 @@ function move(getId, triggered) {
 					oKart.distToFirstCache = 0;
 				influence = Math.pow(0.96, 6*(apparentId/nCpus-0.5));
 			}
+			else
+				oKart.distToFirstCache = 0;
 			rSpeed *= influence*kartDif/5;
 			var rRatio = 1.25;
 			if ((kartDif > 4.75) && (aKarts.length > 8))
@@ -25035,6 +25051,10 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							localStorage.removeItem("mirror");
 					}
 				}
+				else if (cupOpts && cupOpts.gp && cupOpts.gp.cc != null) {
+					fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
+					bSelectedMirror = !!cupOpts.gp.mirror;
+				}
 				else {
 					fSelectedClass = 1;
 					bSelectedMirror = false;
@@ -28902,6 +28922,7 @@ function selectMapScreen(opts) {
 			}
 
 			oPImg.onclick = function() {
+				applyMulticupCupOpts(this.alt);
 				clearMapScreen();
 				hadInputDuringRace = true;
 				selectRaceScreen(this.alt*4);
@@ -29339,8 +29360,8 @@ function selectRaceScreen(cup) {
 	}
 	else {
 		if (course == "GP") {
-			if (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length)
-				iDificulty = 4 + cupOpts.gp.cpus[0].difficulty * 0.5;
+			if (cupOpts && cupOpts.gp && cupOpts.gp.difficulty != null)
+				iDificulty = 4 + cupOpts.gp.difficulty * 0.5;
 			else if (page != "MK")
 				iDificulty = 5;
 			else {
