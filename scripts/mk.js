@@ -10402,7 +10402,16 @@ var decorBehaviors = {
 	},
 	box:{
 		breaking:true,
-		bonus:true
+		bonus:true,
+		preinit: function(decorsData) {
+			for (let i = 0; i < decorsData.length; i++) {
+				const decorData = decorsData[i];
+				const distrib = decorData[2];
+
+				if (distrib)
+					decorData.push(...[undefined, distrib]);
+			}
+		}
 	},
 	snowman:{
 		breaking:true,
@@ -13436,7 +13445,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						if ((collisionPlayer.speed > 4 || iP) && canBreak) {
 							handleDecorHit(i,type, lMap);
 							if (decorBehavior.bonus && clientSideDrop)
-								dropBoxDecorLoot(collisionFrom, dropPos);
+								dropBoxDecorLoot(collisionFrom, dropPos, oBox[4]);
 							if (collisionPlayer.turbodrift && !decorBehavior.transparent && !iP)
 								collisionPlayer.turbodrift = 0;
 						}
@@ -13447,7 +13456,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						if (decorBehavior.damagingItems[collisionItem.type]) {
 							handleDecorHit(i,type, lMap);
 							if (decorBehavior.bonus && clientSideDrop)
-								dropBoxDecorLoot(collisionFrom, dropPos);
+								dropBoxDecorLoot(collisionFrom, dropPos, oBox[4]);
 						}
 					}
 
@@ -17021,7 +17030,7 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 function dropBoxDecorLoot(obj, pos, distrib) {
 	// default drop distribution
 	if (!distrib)
-		distrib = course == "CM" ? {"champi": 1} : {"champi": 0.5, "banane": 0.5};
+		distrib = course == "CM" ? {"champi": 1} : {"champi": 1, "banane": 1};
 
 	// get total probability
 	let total = 0;
@@ -17037,9 +17046,8 @@ function dropBoxDecorLoot(obj, pos, distrib) {
 		sum += distrib[itemType];
 		if (rng < sum) {
 			// if obj is not a player, find it
-			if (!obj.personnage) {
+			if (!obj.personnage)
 				obj = aKarts.find(oKart => oKart.id === obj.owner);
-			}
 
 			item = {
 				type: itemType,
