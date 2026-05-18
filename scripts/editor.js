@@ -2691,9 +2691,7 @@ function boostTypeChanged(type) {
 		$boostSize.style.display = "none";
 }
 function boxItemDistrib(decorData) {
-	console.log("box decor data", decorData);
-
-	const items = ["banane", "carapace", "carapacerouge", "fauxobjet", "champi", "poison", "etoile", "bobomb"];
+	const items = ["fauxobjet", "banane", "carapace", "carapacerouge", "champi", "poison", "etoile", "bobomb"];
 	const screenCoords = getScreenCoords({x: decorData.pos.x, y: decorData.pos.y});
 	const cellSize = 24 * zoomLevel;
 	const fontSize = cellSize / 2
@@ -6939,6 +6937,10 @@ var commonTools = {
 							if (decorData.r)
 								self.click(self,{x:decorData.pos.x+decorData.r,y:decorData.pos.y},{});
 							break;
+						case "box":
+							if (decorData.items)
+								self.data.decors[type][i].items = decorData.items;
+							break;
 						}
 					}
 					switch (actualType) {
@@ -7340,7 +7342,6 @@ var commonTools = {
 								payload.decorparams[type].push(decorParams);
 								break;
 							case "box":
-								console.log("save box", decorsData[i]);
 								const distrib = decorsData[i].items;
 								if (distrib)
 									payload.decor[type][payload.decor[type].length - 1].push(distrib);
@@ -7431,7 +7432,6 @@ var commonTools = {
 					case "box":
 						if (decorsPayload[i][2])
 							decorData.items = decorsPayload[i][2];
-						console.log("restore box", decorsPayload[i], decorData);
 						break;
 					}
 					selfData[type].push(decorData);
