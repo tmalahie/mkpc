@@ -5858,7 +5858,16 @@ var commonTools = {
 				else
 					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
 			}
-			document.getElementById("checkpoint-respawn-reset").style.display = "";
+			let checkpointRespawnReset = document.getElementById("checkpoint-respawn-reset");
+			if(checkpointRespawnReset) {
+				checkpointRespawnReset.style.display = "";
+			}
+			else {
+				console.log(
+					"%cCheckpoint respawn reset button not found, it won't be displayed",
+					"background: rgba(70, 175, 227, 0.18); color: #1f4f6b; padding: 2px 6px; border-radius: 3px;"
+				);
+			}
 		},
 		"click" : function(self,point,extra) {
 			var respawnNode = self.state.respawnNode;
