@@ -20321,7 +20321,7 @@ function updateSpeedometer(getId, aPosX, aPosY) {
 		var tenths = Math.round(Math.sqrt(dx*dx + dy*dy) * 100);
 		var intPart = Math.floor(tenths / 10);
 		var dec = tenths % 10;
-		speedString = intPart + '.' + dec;
+		speedString = (oKart.speed < 0 ? "-" : "") + intPart + '.' + dec;
     }
 
     if ($val.textContent !== speedString) {
