@@ -16201,18 +16201,19 @@ var itemDistributions = {
 			"fauxobjet": 4,
 			"banane": 5,
 			"carapacerouge": 1,
-			"carapace": 4
+			"carapace": 4,
+			"poison": 3
 		}, {
+			"banane": 1,
 			"carapace": 4,
 			"carapacerouge": 7,
 			"bobomb": 2,
-			"bananeX3": 1
+			"bananeX3": 1,
+			"poison": 1
 		}, {
-			"carapace": 1,
 			"bobomb": 2,
 			"carapace": 4,
 			"carapaceX3": 2,
-			"banane": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 4
 		}, {
@@ -16228,10 +16229,11 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
 		value: [{
-			"fauxobjet": 1,
+			"fauxobjet": 2,
 			"banane": 3,
 			"carapacerouge": 3,
-			"carapace": 5
+			"carapace": 5,
+			"poison": 1
 		}, {
 			"bananeX3": 1,
 			"carapacerouge": 12,
