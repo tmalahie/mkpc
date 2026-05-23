@@ -120,7 +120,7 @@ if (isset($profileId)) {
 			}
 		}
 		function plural($nb) {
-			return ($nb != 1) ? 's':'';
+			return ($nb !== 1) ? 's':'';
 		}
 		function controlLength($str,$maxLength) {
 			$pts = '...';
@@ -320,11 +320,12 @@ include('../includes/menu.php');
 				</div>
 				<?php
 				$pts = $getInfos['pts_vs'];
+				$s = $pts > 1;
 				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs!=5000) AND (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
 				$place = 1+$place['cnt'];
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
-					echo '<strong>'. $pts . ' pts</strong> ';
+					echo '<strong>'. $pts . ' point'.$s.'</strong> ';
 					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
@@ -333,7 +334,7 @@ include('../includes/menu.php');
 				$place = 1+$place['cnt'];
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';
-					echo '<strong>'. $pts . ' pts</strong> ';
+					echo '<strong>'. $pts . ' point'.$s.'</strong> ';
 					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
@@ -348,9 +349,9 @@ include('../includes/menu.php');
 						echo '<img src="images/cups/cup1.png" alt="Challenges" />';
 						$s = ($pts>=2) ? 's':'';
 						if ($language)
-							echo '<strong>'. $pts . ' pt'. $s .'</strong>';
+							echo '<strong>'. $pts . ' point'. $s .'</strong>';
 						else
-							echo '<strong>'. $pts . ' pt'. $s .'</strong>';
+							echo '<strong>'. $pts . ' point'. $s .'</strong>';
 						if ($nbClSucceess['nb'] || !$nbClCreate['nb']) {
 							$s = ($nbClSucceess['nb']>=2) ? 's':'';
 							echo ' - <strong>'. $nbClSucceess['nb'] .' '. ($language ? 'challenge':'défi') . $s .'</strong> '. ($language ? 'won':'réussi'.$s);
@@ -369,7 +370,7 @@ include('../includes/menu.php');
 						echo '<div class="player-league">';
 						echo '<img src="images/records.png" alt="Time trial" />';
 						echo $cc . ($language ? 'cc:':'cc :');
-						echo ' <strong>'. $getTtRank['score'] . ' pt'. plural($getTtRank['score']) .'</strong>';
+						echo ' <strong>'. $getTtRank['score'] . ' point'. plural($getTtRank['score']) .'</strong>';
 						echo ' - <strong>'. $recordByCc['nb'] . ' record'. plural($recordByCc['nb']) .'</strong>';
 						echo ' - '. toPlace($getTtRank['rank']);
 						echo '</div>';
@@ -516,7 +517,7 @@ include('../includes/menu.php');
 					$oneData = true;
 					?>
 					<div>
-						<?php echo ($language ? 'Last connection':'Dernière connexion '); ?>: <strong><?php echo $language ? $getProfile['last_connect'] : preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['last_connect']); ?></strong>
+						<?php echo ($language ? 'Last online':'Dernière connexion '); ?>: <strong><?php echo $language ? $getProfile['last_connect'] : preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['last_connect']); ?></strong>
 					</div>
 					<?php
 				}
@@ -643,7 +644,7 @@ include('../includes/menu.php');
 				<?php
 			}
 			else
-				echo '<h2><em>'. ($language ? 'No message on the forum':'Aucun message sur le forum') .'</em></h2>';
+				echo '<h2><em>'. ($language ? 'No messages on the forum':'Aucun message sur le forum') .'</em></h2>';
 			?>
 			<hr />
 			<?php
@@ -885,7 +886,7 @@ include('../includes/menu.php');
 					return "images/sprites/sprite_" . $playerName . ".png";
 				}
 				?>
-				<h2><?php echo $language ? 'Best scores in time trial:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
+				<h2><?php echo $language ? 'Best time trial records:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
 				<table class="clm-records">
 					<tr>
 						<td><?php echo $language ? 'Rank':'Place'; ?></td>

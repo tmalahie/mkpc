@@ -1185,7 +1185,7 @@ msgstr ""
 #: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">Khinsider</a> for the <a href=\"{url_mario_kart}"
-"\">musics</a>"
+"\">music</a>"
 msgstr ""
 "<a href=\"{url_main_site}\">Khinsider</a> pour les <a href=\"{url_mario_kart}"
 "\">musiques</a>"

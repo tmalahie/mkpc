@@ -1433,7 +1433,7 @@ function getChallengeItemNames(&$scope) {
 	global $language;
 	$clItemMapping = array(
 		'fauxobjet' => array(
-			'label' => $language ? 'a fake item box' : 'une fausse boite à objet'
+			'label' => $language ? 'a fake item box' : 'une fausse boîte à objet'
 		),
 		'banane' => array(
 			'label' => $language ? 'a banana' : 'une banane'
@@ -1445,20 +1445,20 @@ function getChallengeItemNames(&$scope) {
 			'label' => $language ? 'a red shell' : 'une carapace rouge'
 		),
 		'champi' => array(
-			'label' => $language ? 'a mushroom' : 'un champi',
+			'label' => $language ? 'a mushroom' : 'un champignon',
 			'course' => array('battle')
 		),
 		'poison' => array(
-			'label' => $language ? 'a poison mushroom' : 'un champi poison'
+			'label' => $language ? 'a poison mushroom' : 'un champi-poison'
 		),
 		'bobomb' => array(
-			'label' => $language ? 'a bobomb' : 'une bobomb'
+			'label' => $language ? 'a bob-omb' : 'une bob-omb'
 		),
         'pow' => array(
-            'label' => $language ? 'a POW block' : 'un block POW'
+            'label' => $language ? 'a POW block' : 'un bloc POW'
         ),
 		'megachampi' => array(
-			'label' => $language ? 'a mega mushroom' : 'un mega champi'
+			'label' => $language ? 'a mega mushroom' : 'un méga champi'
 		),
 		'etoile' => array(
 			'label' => $language ? 'a star' : 'une étoile'

@@ -59,15 +59,20 @@ foreach ($get as $k => $getk)
 				This page displays the ranking of the players with the most points in the MKPC challenge mode
 				<a href="#null" onclick="document.getElementById('ranking_info').style.display=document.getElementById('ranking_info').style.display?'':'block';return false" style="position:relative;top:-1px">[Read more]</a>.
 				<div id="ranking_info">
-					<a href="challengesList.php">Challenges</a> are actions to perform in the game (Ex: &quot;Complete a track in less than 1:30&quot;).
+					<a href="challengesList.php">Challenges</a> are tasks to perform on a track (Ex: &quot;Complete a track in less than 1:30&quot;).
 					They are created by members thanks to the <strong>challenge editor</strong>. Anyone can create challenges, including you!<br />
 					When you complete a challenge, you win a certain amount of <strong>challenge points</strong> depending on the difficulty of the challenge. Your position in the ranking is determined by your number of challenge points.
 					<ul>
 						<?php
 						$challengeDifficulties = getChallengeDifficulties();
 						$challengeRewards = getChallengeRewards();
-						foreach ($challengeDifficulties as $i=>$difficulty)
-							echo '<li>A challenge <strong>'. $difficulty .'</strong> gives you <strong>'. $challengeRewards[$i] .' pt'. ($challengeRewards[$i]>=2 ? 's':'') .'</strong>.</li>';
+						$clColors = getChallengeColors();
+						$cssShadow = "0px 0px 1px black;";
+						for ($i = 0; $i < 5; $i++) {
+							$clPoints = $challengeRewards[$i];
+							$clPlural = $clPoints > 1 ? "s" : "";
+							echo "<li><span style='color: ".$clColors[$i]."; text-shadow: ".$cssShadow."'>".$challengeDifficulties[$i]."</span> challenges reward <b>".$clPoints." point".$clPlural."</b>.";
+						}
 						?>
 					</ul>
 				</div>
@@ -80,15 +85,20 @@ foreach ($get as $k => $getk)
 				Cette page affiche le classement des joueurs ayant le plus de points dans le mode défis de MKPC
 				<a href="#null" onclick="document.getElementById('ranking_info').style.display=document.getElementById('ranking_info').style.display?'':'block';return false" style="position:relative;top:-1px">[En savoir plus]</a>.
 				<div id="ranking_info">
-					Les <a href="challengesList.php">défis</a> sont des actions à réaliser sur le jeu (Ex : &quot;Finir un circuit en moins de 1:30&quot;).
+					Les <a href="challengesList.php">défis</a> sont des tâches à réaliser sur un circuit (Ex : &quot;Finir un circuit en moins de 1:30&quot;).
 					Ils sont créés par les membres via l'<strong>éditeur de défis</strong>. N'importe qui peut créer des défis, vous aussi !<br />
 					Lorsque vous réussissez un défi, vous gagnez un certain nombre de <strong>points défis</strong> en fonction de la difficulté. Ce sont ces points défis qui déterminent votre place dans le classement.
 					<ul>
 						<?php
 						$challengeDifficulties = getChallengeDifficulties();
 						$challengeRewards = getChallengeRewards();
-						foreach ($challengeDifficulties as $i=>$difficulty)
-							echo '<li>Un défi <strong>'. $difficulty .'</strong> rapporte <strong>'. $challengeRewards[$i] .' pt'. ($challengeRewards[$i]>=2 ? 's':'') .'</strong>.</li>';
+						$clColors = getChallengeColors();
+						$cssShadow = "0px 0px 1px black;";
+						for ($i = 0; $i < 5; $i++) {
+							$clPoints = $challengeRewards[$i];
+							$clPlural = $clPoints > 1 ? "s" : "";
+							echo "<li>Les défis <span style='color: ".$clColors[$i]."; text-shadow: ".$cssShadow."'>".lcfirst($challengeDifficulties[$i])."s</span> rapportent <b>".$clPoints." point".$clPlural."</b>.";
+						}
 						?>
 					</ul>
 				</div>

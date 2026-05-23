@@ -15910,7 +15910,7 @@ function showChallengeRewardPopup(reward) {
 	oDiv.style.fontSize = (iScreenScale*2) +"px";
 	oDiv.style.opacity = 0;
 	var challengeTitle = language ? 'New character unlocked!':'Nouveau perso débloqué !';
-	var challengeCongrats = language ? 'You can now play with <strong>'+ reward.name +'</strong>!':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
+	var challengeCongrats = language ? 'You can now play as <strong>'+ reward.name +'</strong>!':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
 	var challengeImg = document.createElement("img");
 	challengeImg.src = getSpriteSrc(reward.sprites);
 	challengeImg.alt = reward.name;
@@ -16227,7 +16227,7 @@ var itemDistributions = {
 			"bloops": 1
 		}]
 	}, {
-		name: toLanguage("Explosive mode", "Mode explosif"),
+		name: toLanguage("Frantic mode", "Mode explosif"),
 		value: [{
 			"fauxobjet": 2,
 			"banane": 3,
@@ -16383,7 +16383,7 @@ var itemDistributions = {
 			"champior": 5
 		}]
 	}, {
-		name: toLanguage("Aggressive mode", "Mode explosif"),
+		name: toLanguage("Frantic mode", "Mode explosif"),
 		"value": [{
 			"fauxobjet": 5,
 			"banane": 2,
