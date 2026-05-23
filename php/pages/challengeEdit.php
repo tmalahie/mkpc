@@ -1526,21 +1526,15 @@ $(function() {
 });
 function getItemOptions() {
 	if (clCourse === "battle")
-		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops","pow"];
+		return ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior"];
 	else
-		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","pow","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+		return ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
 }
 function getItemHitOptions() {
-	/*           fakeItem,   banana,    shell ,     red-shell , bobomb , pow ,  blue shell   , megamushroom, star */
-	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","pow","carapacebleue","megachampi","etoile"];
 	if (clCourse === "battle")
-		res.push("champi"); // mushroom
-	else {
-		res.push("billball"); //bulletball
-		res.push("eclair"); // lightning
-		res.push("poison");
-	}
-	return res;
+		return ["fauxobjet", "banane", "carapace", "carapacerouge", "champi", "poison", "bobomb", "pow", "carapacebleue", "megachampi", "etoile"];
+	else
+		return ["fauxobjet", "banane", "carapace", "carapacerouge", "poison", "bobomb", "pow", "carapacebleue", "megachampi", "etoile", "billball", "eclair"];
 }
 </script>
 </head>

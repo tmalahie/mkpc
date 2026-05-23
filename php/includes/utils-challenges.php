@@ -1449,8 +1449,7 @@ function getChallengeItemNames(&$scope) {
 			'course' => array('battle')
 		),
 		'poison' => array(
-			'label' => $language ? 'a poison mushroom' : 'un champi poison',
-			'course' => array('vs')
+			'label' => $language ? 'a poison mushroom' : 'un champi poison'
 		),
 		'bobomb' => array(
 			'label' => $language ? 'a bobomb' : 'une bobomb'
