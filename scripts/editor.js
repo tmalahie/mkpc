@@ -2759,8 +2759,20 @@ function boxItemDistrib(decorData) {
 	btnBack.textContent = language ? "Cancel" : "Annuler";
 	btnBack.style.fontSize = fontSize + "px";
 
+	const btnInfo = document.createElement("button");
+	btnInfo.type = "button";
+	btnInfo.className = "toolbox-button";
+	btnInfo.textContent = "?";
+	btnInfo.style.fontSize = fontSize + "px";
+
 	btnBack.onclick = () => {
 		form.remove();
+	};
+
+	btnInfo.onclick = () => {
+		alert(language
+			? "In Time trial, the distribution will be ignored. Crates will only drop turbo mushrooms."
+			: "En mode Contre-la-montre, la distribution sera ignorée. Les boîtes ne lâcheront que des champignons turbo.");
 	};
 
 	form.onsubmit = (event) => {
@@ -2791,6 +2803,7 @@ function boxItemDistrib(decorData) {
 	form.appendChild(inputCont);
 	form.appendChild(btnConf);
 	form.appendChild(btnBack);
+	form.appendChild(btnInfo);
 	document.body.appendChild(form);
 }
 function initTrajectOptions() {
