@@ -2993,7 +2993,7 @@ function showOffroadTransfer() {
 	refreshOffroadTransferOptions(editorTool);
 }
 function refreshOffroadTransferOptions(editorTool) {
-	var profiles = (editorTool && editorTool.customProfiles) || [];
+	var profiles = customOffroadProfiles;
 	var ids = ["transferFrom", "transferTo"];
 	for (var k=0;k<ids.length;k++) {
 		var $select = document.getElementById(ids[k]);
@@ -3028,11 +3028,11 @@ function closeTransferOffroad() {
 	document.getElementById('mask-transfer').close();
 }
 var customOffroadLibrary = [];
+var customOffroadProfiles = [];
 var customOffroadFormMode = "new";
 var customOffroadEditingId = null;
 function showCustomOffroadProfile() {
 	var editorTool = editorTools.offroad;
-	if (!editorTool.customProfiles) editorTool.customProfiles = [];
 	document.getElementById("offroad-type").selectedIndex = editorTool.state.type;
 	var $modal = document.getElementById("custom-offroad-profile");
 	if ($modal.parentNode) $modal.parentNode.removeChild($modal);
@@ -3121,15 +3121,15 @@ function libraryEntryById(id) {
 	}
 	return null;
 }
-function hydrateCustomOffroadProfile(editorTool, profileIdx, id) {
+function hydrateCustomOffroadProfile(profileIdx, id) {
 	xhr("getOffroadProfile.php?id="+id, null, function(res) {
 		var entry;
 		try { entry = JSON.parse(res); } catch (e) { entry = null; }
-		var profile = editorTool.customProfiles && editorTool.customProfiles[profileIdx];
+		var profile = customOffroadProfiles[profileIdx];
 		if (!profile || profile.id !== id) return true;
 		if (entry && entry.profile) {
 			var refreshed = profileFromLibraryEntry(entry);
-			editorTool.customProfiles[profileIdx] = refreshed;
+			customOffroadProfiles[profileIdx] = refreshed;
 			var $select = document.getElementById("offroad-type");
 			if ($select) {
 				var dataIdx = hpTypes.length + profileIdx;
@@ -3178,19 +3178,18 @@ function selectLibraryOffroadProfile(id) {
 }
 function useCustomOffroadProfile(entry) {
 	var editorTool = editorTools.offroad;
-	if (!editorTool.customProfiles) editorTool.customProfiles = [];
 	var existingIdx = -1;
-	for (var i=0;i<editorTool.customProfiles.length;i++) {
-		if (editorTool.customProfiles[i].id && editorTool.customProfiles[i].id === entry.id) {
+	for (var i=0;i<customOffroadProfiles.length;i++) {
+		if (customOffroadProfiles[i].id && customOffroadProfiles[i].id === entry.id) {
 			existingIdx = i;
 			break;
 		}
 	}
 	if (existingIdx < 0) {
 		var profile = profileFromLibraryEntry(entry);
-		existingIdx = editorTool.customProfiles.length;
-		editorTool.customProfiles.push(profile);
-		while (editorTool.data.length < hpTypes.length + editorTool.customProfiles.length)
+		existingIdx = customOffroadProfiles.length;
+		customOffroadProfiles.push(profile);
+		while (editorTool.data.length < hpTypes.length + customOffroadProfiles.length)
 			editorTool.data.push([]);
 		addCustomOffroadOption(existingIdx, profile.name);
 	}
@@ -3264,12 +3263,10 @@ function submitCustomOffroadProfileForm() {
 	});
 }
 function updateCircuitProfileFromLibrary(entry) {
-	var editorTool = editorTools.offroad;
-	if (!editorTool.customProfiles) return;
-	for (var i=0;i<editorTool.customProfiles.length;i++) {
-		if (editorTool.customProfiles[i].id === entry.id) {
+	for (var i=0;i<customOffroadProfiles.length;i++) {
+		if (customOffroadProfiles[i].id === entry.id) {
 			var refreshed = profileFromLibraryEntry(entry);
-			editorTool.customProfiles[i] = refreshed;
+			customOffroadProfiles[i] = refreshed;
 			var $select = document.getElementById("offroad-type");
 			if ($select) {
 				var dataIdx = hpTypes.length + i;
@@ -5963,12 +5960,11 @@ var commonTools = {
 			self.data = [];
 			for (var i=0;i<hpTypes.length;i++)
 				self.data.push([]);
-			self.customProfiles = [];
 		},
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			var offroadType = +document.getElementById("offroad-type").value;
-			var oldData = self.data[offroadType];
+			var oldData = self.data[offroadType] || [];
 			self.data[offroadType] = [];
 			self.state.type = offroadType;
 			self.state.data = self.data[offroadType];
@@ -6101,22 +6097,20 @@ var commonTools = {
 					payload.horspistes[hpTypes[i]] = iPayload;
 				}
 			}
-			if (self.customProfiles && self.customProfiles.length) {
-				for (var i=0;i<self.customProfiles.length;i++) {
-					var profile = self.customProfiles[i];
-					if (!profile.id) continue;
-					var iData = self.data[hpTypes.length + i] || [];
-					if (!iData.length) continue;
-					var shapes = [];
-					for (var j=0;j<iData.length;j++)
-						shapes.push(shapeToData(iData[j]));
-					payload.horspistes["custom-"+profile.id] = shapes;
-				}
+			for (var i=0;i<customOffroadProfiles.length;i++) {
+				var profile = customOffroadProfiles[i];
+				if (!profile.id) continue;
+				var iData = self.data[hpTypes.length + i] || [];
+				if (!iData.length) continue;
+				var shapes = [];
+				for (var j=0;j<iData.length;j++)
+					shapes.push(shapeToData(iData[j]));
+				payload.horspistes["custom-"+profile.id] = shapes;
 			}
 		},
 		"restore" : function(self,payload) {
-			self.customProfiles = [];
-			self.data = [];
+			var isOverride = !!payload.meta;
+			self.data.length = 0;
 			for (var i=0;i<hpTypes.length;i++) {
 				var iPayload = (payload.horspistes || {})[hpTypes[i]];
 				var iData = [];
@@ -6127,32 +6121,45 @@ var commonTools = {
 				self.data.push(iData);
 			}
 			var $select = document.getElementById("offroad-type");
-			if ($select) {
+			if (!isOverride && $select) {
 				var existingOpts = $select.querySelectorAll('option.custom-offroad-option');
 				for (var i=0;i<existingOpts.length;i++)
 					existingOpts[i].parentNode.removeChild(existingOpts[i]);
 			}
+			while (self.data.length < hpTypes.length + customOffroadProfiles.length)
+				self.data.push([]);
 			if (payload.horspistes) {
 				for (var key in payload.horspistes) {
 					if (key.indexOf("custom-") !== 0) continue;
 					var id = parseInt(key.slice(7), 10);
 					if (!id) continue;
-					var profileIdx = self.customProfiles.length;
-					self.customProfiles.push({
-						id: id,
-						name: (language ? "Loading..." : "Chargement..."),
-						strength: 1,
-						slippery: false,
-						drifting: false
-					});
+					var profileIdx = -1;
+					for (var p=0;p<customOffroadProfiles.length;p++) {
+						if (customOffroadProfiles[p].id === id) { profileIdx = p; break; }
+					}
+					var isNewProfile = (profileIdx < 0);
+					if (isNewProfile) {
+						profileIdx = customOffroadProfiles.length;
+						customOffroadProfiles.push({
+							id: id,
+							name: (language ? "Loading..." : "Chargement..."),
+							strength: 1,
+							slippery: false,
+							drifting: false
+						});
+					}
 					var keyShapes = payload.horspistes[key] || [];
 					var iData = [];
 					for (var j=0;j<keyShapes.length;j++)
 						iData.push(dataToShape(keyShapes[j]));
-					self.data.push(iData);
-					if ($select)
-						addCustomOffroadOption(profileIdx, self.customProfiles[profileIdx].name);
-					hydrateCustomOffroadProfile(self, profileIdx, id);
+					while (self.data.length <= hpTypes.length + profileIdx)
+						self.data.push([]);
+					self.data[hpTypes.length + profileIdx] = iData;
+					if (isNewProfile) {
+						if ($select)
+							addCustomOffroadOption(profileIdx, customOffroadProfiles[profileIdx].name);
+						hydrateCustomOffroadProfile(profileIdx, id);
+					}
 				}
 			}
 		},
