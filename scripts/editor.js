@@ -2691,7 +2691,7 @@ function boostTypeChanged(type) {
 		$boostSize.style.display = "none";
 }
 function boxItemDistrib(decorData) {
-	const items = ["fauxobjet", "banane", "carapace", "carapacerouge", "champi", "poison", "etoile", "bobomb"];
+	const items = ["fauxobjet", "banane", "carapace", "carapace-rouge", "champi", "poison", "etoile", "bobomb"];
 	const screenCoords = getScreenCoords({x: decorData.pos.x, y: decorData.pos.y});
 	const cellSize = 24 * zoomLevel;
 	const fontSize = cellSize / 2
@@ -2712,7 +2712,7 @@ function boxItemDistrib(decorData) {
 		cell.style.height = cellSize + "px";
 
 		const img = document.createElement("img");
-		img.src = `images/items/${item}.png`;
+		img.src = `images/items/${item.replace("-", "")}.png`; // for carapace-rouge: img is carapacerouge, dropped item is carapace-rouge
 		img.style.width = (cellSize * 0.75) + "px";
 
 		cell.appendChild(img);
@@ -6940,6 +6940,8 @@ var commonTools = {
 						case "box":
 							if (decorData.items)
 								self.data.decors[type][i].items = decorData.items;
+							if (decorData.throw)
+								self.data.decors[type][i].throw = decorData.throw;
 							break;
 						}
 					}
@@ -7183,6 +7185,13 @@ var commonTools = {
 								boxItemDistrib(decorData);
 							}
 						});
+						menuOptions.splice(2, 0, {
+							text: (language ? `Throw dropped items ${decorData.throw ? "✓" : "×"}` : `Lancer les objets lâchés ${decorData.throw ? "✓" : "×"}`),
+							click: function() {
+								decorData.throw ??= false;
+								decorData.throw = !decorData.throw;
+							}
+						});
 					}
 					return showContextOnElt(e,box,menuOptions);
 				};
@@ -7342,9 +7351,11 @@ var commonTools = {
 								payload.decorparams[type].push(decorParams);
 								break;
 							case "box":
-								const distrib = decorsData[i].items;
-								if (distrib)
-									payload.decor[type][payload.decor[type].length - 1].push(distrib);
+								const decorIdx = payload.decor[type].length - 1;
+								if (decorsData[i].items)
+									payload.decor[type][decorIdx][2] = decorsData[i].items;
+								if (decorsData[i].throw)
+									payload.decor[type][decorIdx][3] = decorsData[i].throw;
 								break;
 							}
 						}
@@ -7430,8 +7441,10 @@ var commonTools = {
 							decorData.speed = 1;
 						break;
 					case "box":
-						if (decorsPayload[i][2])
+						if (decorsPayload[i][2]) // items
 							decorData.items = decorsPayload[i][2];
+						if (decorsPayload[i][3]) // throw
+							decorData.throw = decorsPayload[i][3];
 						break;
 					}
 					selfData[type].push(decorData);
