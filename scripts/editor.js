@@ -2771,8 +2771,8 @@ function boxItemDistrib(decorData) {
 
 	btnInfo.onclick = () => {
 		alert(language
-			? "In Time trial, the distribution will be ignored. Crates will only drop turbo mushrooms."
-			: "En mode Contre-la-montre, la distribution sera ignorée. Les boîtes ne lâcheront que des champignons turbo.");
+			? "In Time trial, the item distribution will be ignored as crates will only drop turbo mushrooms. However if a crate does not have turbo mushrooms to in its distribution, they will not drop anything."
+			: "En mode Contre-la-montre, la distribution d'objets sera ignorée car seuls les champignons turbos peuvent y être lâchés. Cependant si la caisse ne possède pas de champignon turbo dans sa distribution, elle ne lâchera aucun objet.");
 	};
 
 	form.onsubmit = (event) => {
