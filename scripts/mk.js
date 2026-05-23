@@ -822,6 +822,7 @@ if (!pause) {
 }
 
 var strPlayer = new Array();
+var timerElements = [];
 var oMap;
 var lMaps, pMaps;
 var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
@@ -1656,6 +1657,7 @@ function loadMap() {
 		var shadowShift2 = Math.round(iScreenScale/4) +"px";
 		oTemps.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
 		hudScreen.appendChild(oTemps);
+		timerElements[i] = oTemps;
 
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
@@ -1694,10 +1696,16 @@ function loadMap() {
 			oObjet.style.height = Math.round(iScreenScale * 18/3) +"px";
 			oObjet.style.visibility = "visible";
 		}
-		var oRoulette = document.createElement("div");
-		oRoulette.id = "roulette"+i;
-		oRoulette.className = "itemChamber";
-		oObjet.appendChild(oRoulette);
+		var oMainRoulette = document.createElement("div");
+		oMainRoulette.id = "roulette"+i;
+		oMainRoulette.className = "itemChamber";
+		var oItemImg = document.createElement("img");
+		oItemImg.className = "pixelated";
+		oItemImg.style.display = "none";
+		oItemImg.style.height = Math.round(iScreenScale*4) +"px";
+		oMainRoulette.appendChild(oItemImg);
+		oMainRoulette.itemImg = oItemImg;
+		oObjet.appendChild(oMainRoulette);
 		var oCountdown = document.createElement("div");
 		oCountdown.id = "countdown"+i;
 		oCountdown.style.position = "absolute";
@@ -1720,10 +1728,16 @@ function loadMap() {
 			oReserve.style.height = Math.round(iScreenScale * 18/5) +"px";
 			oReserve.style.visibility = "hidden";
 		}
-		var oRoulette = document.createElement("div");
-		oRoulette.id = "roulette2"+i;
-		oRoulette.className = "itemChamber";
-		oReserve.appendChild(oRoulette);
+		var oReserveRoulette = document.createElement("div");
+		oReserveRoulette.id = "roulette2"+i;
+		oReserveRoulette.className = "itemChamber";
+		var oItemImg = document.createElement("img");
+		oItemImg.className = "pixelated";
+		oItemImg.style.display = "none";
+		oItemImg.style.height = Math.round(iScreenScale*2.5) +"px";
+		oReserveRoulette.appendChild(oItemImg);
+		oReserveRoulette.itemImg = oItemImg;
+		oReserve.appendChild(oReserveRoulette);
 		hudScreen.appendChild(oReserve);
 
 		var lakitu = document.createElement("div");
@@ -1795,6 +1809,20 @@ function loadMap() {
 		$mkScreen.appendChild(hudScreen);
 
 		hudScreens[i] = hudScreen;
+		var rTurner = oScroller.getElementsByTagName("div")[0];
+		var rTurner2 = oScroller2.getElementsByTagName("div")[0];
+		rTurner.dataset = rTurner.dataset || {};
+		rTurner2.dataset = rTurner2.dataset || {};
+		rTurner.dataset.h = oScroller.getElementsByClassName("aObjet").length * Math.round(iScreenScale*4);
+		rTurner2.dataset.h = oScroller2.getElementsByClassName("aObjet").length * Math.round(iScreenScale*2.5);
+		itemHudElements[i] = {
+			roulettes: [oMainRoulette, oReserveRoulette],
+			scrollers: [oScroller, oScroller2],
+			turners: [rTurner, rTurner2],
+			objet: oObjet,
+			reserve: oReserve,
+			countdown: oCountdown
+		};
 
 		if (onlineSpectatorId) {
 			oTemps.style.display = "none";
@@ -2907,7 +2935,7 @@ function arme(ID, backwards, forwards) {
 				if (kartIsPlayer(oKart)) {
 					switch (newItem) {
 					case "champior":
-						var $img = document.getElementById("roulette"+ID).getElementsByTagName("img")[0];
+						var $img = itemHudElements[ID].roulettes[0].itemImg;
 						var t = 0;
 						function rescale() {
 							t++;
@@ -4476,7 +4504,7 @@ function startGame() {
 	setTimeout(function() {
 		if (oPlanDiv) oPlanDiv.style.opacity = "";
 		if (oPlanDiv2) oPlanDiv2.style.opacity = "";
-		render();
+		updateState(); resetRenderClock(); renderFrame(1);
 	}, 300);
 
 	if (bMusic && !onlineSpectatorState) {
@@ -5174,7 +5202,7 @@ function startGame() {
 						moveDecor();
 						oPlayers[0].cpu = true;
 						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
-						render();
+						updateState(); resetRenderClock(); renderFrame(1);
 					}
 					for (i=0;i<aKarts.length;i++) {
 						aKarts[i].cpu = true;
@@ -5981,10 +6009,9 @@ function resetScreen() {
 
 	var prevScreenBlur = 0;
 	nbFrames = iFps;
-	frameHandlers = new Array(nbFrames);
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
-	prevScreenDelay = frameSettings.framerad + (bLegacyEngine ? 0 : 1);
+	prevScreenDelay = frameSettings.framerad;
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
@@ -6078,12 +6105,10 @@ function getFrameSettings(currentSettings) {
 		}
 	}
 
-	var defaultframerad = Math.floor(iFps/2);
-	var framerad = (currentSettings.framerad >= 0) ? +currentSettings.framerad : defaultframerad;
+	var framerad = +currentSettings.framerad || 0;
 	return {
 		frameint: frameint,
 		framerad: framerad,
-		defaultframerad: defaultframerad,
 		frameblur: currentSettings.frameblur || "1",
 		frameopacity: (currentSettings.frameopacity >= 0) ? +currentSettings.frameopacity : 0.39/(framerad+1),
 		framefade: (currentSettings.framefade >= 0) ? +currentSettings.framefade : 1
@@ -6094,6 +6119,7 @@ function interruptGame() {
 	pause = true;
 	clearInterval(cycleHandler);
 	cycleHandler = null;
+	stopRenderLoop();
 }
 function reprendre(debug) {
 	if(pause) {
@@ -11326,7 +11352,7 @@ function getApparentRotation(oPlayer) {
 	return res;
 }
 
-var lastState, lastStateTime, lastStateChange;
+var lastState, lastStateChange;
 function getLastObj(lastObjs,i,currentObj) {
 	if (lastObjs[i] && lastObjs[i].ref === currentObj.ref)
 		return lastObjs[i];
@@ -11376,7 +11402,11 @@ function interpolateStateRound(x1,x2,tFrame) {
 	return Math.round(interpolateState(x1,x2,tFrame));
 }
 var nbFrames = 1;
-var frameHandlers;
+var currentState;
+var rAFId;
+var renderedFrames;
+var stateTime;
+var lastRenderTime;
 var oSpecCam;
 function handleLapChange(prevLapId,lapId, getId,prevId) {
 	var oKart = aKarts[getId];
@@ -11406,7 +11436,6 @@ function handleLapChange(prevLapId,lapId, getId,prevId) {
 			since: 0
 		};
 	}
-	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
 	if (pMap) {
@@ -11552,11 +11581,6 @@ function shouldUntriggerOverride(lMap,oOverride, aX,aY, oKart) {
 }
 function resetRenderState() {
 	lastState = undefined;
-	clearPendingFrames();
-}
-function clearPendingFrames() {
-	for (var i=0;i<frameHandlers.length;i++)
-		clearTimeout(frameHandlers[i]);
 }
 function resetAiPoints(oKart, lMap,nMap) {
 	if (oKart.cpu) {
@@ -11800,14 +11824,17 @@ function updateItemLap(lMap, fSprite, callback) {
 		if (!nMap.aipoints.length || !nMap.aipoints[fSprite.aimap].length) fSprite.aipoint = -1;
 	}
 }
-function render() {
-	var currentState = {
+
+function updateState() {
+	if (currentState)
+		lastState = currentState;
+	currentState = {
 		karts: [],
 		decor: [],
 		items: {}
-	}
+	};
 	if (oSpecCam) {
-		if (!oSpecCam.isSetup()) return;
+		if (!oSpecCam.isSetup()) return null;
 		currentState.cam = {
 			x: oSpecCam.pos.x,
 			y: oSpecCam.pos.y,
@@ -11881,426 +11908,408 @@ function render() {
 		}
 	}
 	if (!lastState) lastState = currentState;
+}
 
-	function renderFrame(frame) {
-		var frameState;
-		var currentStateTime = new Date().getTime();
-		var tFrame = 1/nbFrames;
-		var lastFrame = (frame == nbFrames);
-		if (lastFrame)
-			lastState = currentState;
-		if (nbFrames == 1) {
-			frameState = currentState;
-			frameState.players = [];
-		}
-		else {
-			if (frame > 1) {
-				tFrame += (currentStateTime - lastStateTime) / SPF;
-				if (tFrame*nbFrames >= (frame+1))
-					return; // Frame skip
-				if (tFrame > 1)
-					tFrame = 1;
-			}
-			else
-				lastStateTime = currentStateTime;
-			frameState = {
-				karts: [],
-				players: [],
-				decor: [],
-				items: {}
+function resetRenderClock() {
+	stateTime = performance.now();
+	renderedFrames = 0;
+}
+
+function renderFrame(tFrame) {
+	var frameState;
+	if (nbFrames == 1) {
+		frameState = currentState;
+		frameState.players = [];
+	}
+	else {
+		frameState = {
+			karts: [],
+			players: [],
+			decor: [],
+			items: {}
+		};
+		if (currentState.cam) {
+			var lastCam = lastState.cam, currentCam = currentState.cam;
+			if (!lastCam) lastCam = currentCam;
+			frameState.cam = {
+				x: interpolateState(lastCam.x,currentCam.x,tFrame),
+				y: interpolateState(lastCam.y,currentCam.y,tFrame),
+				rotation: interpolateStateAngle(lastCam.rotation,currentCam.rotation,tFrame),
 			};
-			if (currentState.cam) {
-				var lastCam = lastState.cam, currentCam = currentState.cam;
-				if (!lastCam) lastCam = currentCam;
-				frameState.cam = {
-					x: interpolateState(lastCam.x,currentCam.x,tFrame),
-					y: interpolateState(lastCam.y,currentCam.y,tFrame),
-					rotation: interpolateStateAngle(lastCam.rotation,currentCam.rotation,tFrame),
-				};
-			}
-			for (var i=0;i<currentState.karts.length;i++) {
-				var currentObj = currentState.karts[i];
-				var lastObj = getLastObj(lastState.karts,i,currentObj);
-				if (!currentObj.ref.progressiveView)
-					lastObj.changeView = currentObj.changeView;
-				if (currentObj.tombe && !lastObj.tombe)
-					lastObj.tombe = currentObj.tombe;
-				if (currentObj.figstate && !lastObj.figstate)
-					lastObj.figstate = currentObj.figstate;
-				if (currentObj.tourne && !lastObj.tourne)
-					lastObj.tourne = currentObj.tourne;
-				frameState.karts.push({
-					ref: currentObj.ref,
-					x: interpolateState(lastObj.x,currentObj.x,tFrame),
-					y: interpolateState(lastObj.y,currentObj.y,tFrame),
-					z: interpolateState(lastObj.z,currentObj.z,tFrame),
-					speed: interpolateState(lastObj.speed,currentObj.speed,tFrame),
-					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
-					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
-					size: interpolateState(lastObj.size,currentObj.size,tFrame),
-					tourne: interpolateStateRound(lastObj.tourne,currentObj.tourne,tFrame),
-					figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
-					time: interpolateState(lastObj.time,currentObj.time,tFrame),
-					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
-					roulette2: interpolateState(lastObj.roulette2,currentObj.roulette2,tFrame),
-					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
-					teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
-				});
-			}
-			for (var p=0;p<oPlayers.length;p++) {
-				var currentStateDecor = currentState.decor[p];
-				var lastStateDecor = lastState.decor[p];
-				if (!currentStateDecor || !lastStateDecor) continue;
-				var frameStateDecor = {};
-				for (var type in currentStateDecor) {
-					frameStateDecor[type] = [];
-					for (var i=0;i<currentStateDecor[type].length;i++) {
-						var currentObj = currentStateDecor[type][i];
-						var lastObj = getLastObj(lastStateDecor[type],i,currentObj);
-						frameStateDecor[type].push({
-							ref: currentObj.ref,
-							x: interpolateState(lastObj.x,currentObj.x,tFrame),
-							y: interpolateState(lastObj.y,currentObj.y,tFrame),
-							z: interpolateState(lastObj.z,currentObj.z,tFrame),
-						});
-					}
-				}
-				frameState.decor[p] = frameStateDecor;
-			}
-			for (var type in currentState.items) {
-				frameState.items[type] = [];
-				for (var i=0;i<currentState.items[type].length;i++) {
-					var currentObj = currentState.items[type][i];
-					var lastObj = getLastObj(lastState.items[type],i,currentObj);
-					frameState.items[type].push({
+		}
+		for (var i=0;i<currentState.karts.length;i++) {
+			var currentObj = currentState.karts[i];
+			var lastObj = getLastObj(lastState.karts,i,currentObj);
+			if (!currentObj.ref.progressiveView)
+				lastObj.changeView = currentObj.changeView;
+			if (currentObj.tombe && !lastObj.tombe)
+				lastObj.tombe = currentObj.tombe;
+			if (currentObj.figstate && !lastObj.figstate)
+				lastObj.figstate = currentObj.figstate;
+			if (currentObj.tourne && !lastObj.tourne)
+				lastObj.tourne = currentObj.tourne;
+			frameState.karts.push({
+				ref: currentObj.ref,
+				x: interpolateState(lastObj.x,currentObj.x,tFrame),
+				y: interpolateState(lastObj.y,currentObj.y,tFrame),
+				z: interpolateState(lastObj.z,currentObj.z,tFrame),
+				speed: interpolateState(lastObj.speed,currentObj.speed,tFrame),
+				rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
+				changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
+				size: interpolateState(lastObj.size,currentObj.size,tFrame),
+				tourne: interpolateStateRound(lastObj.tourne,currentObj.tourne,tFrame),
+				figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
+				time: interpolateState(lastObj.time,currentObj.time,tFrame),
+				roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
+				roulette2: interpolateState(lastObj.roulette2,currentObj.roulette2,tFrame),
+				tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
+				teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
+			});
+		}
+		for (var p=0;p<oPlayers.length;p++) {
+			var currentStateDecor = currentState.decor[p];
+			var lastStateDecor = lastState.decor[p];
+			if (!currentStateDecor || !lastStateDecor) continue;
+			var frameStateDecor = {};
+			for (var type in currentStateDecor) {
+				frameStateDecor[type] = [];
+				for (var i=0;i<currentStateDecor[type].length;i++) {
+					var currentObj = currentStateDecor[type][i];
+					var lastObj = getLastObj(lastStateDecor[type],i,currentObj);
+					frameStateDecor[type].push({
 						ref: currentObj.ref,
 						x: interpolateState(lastObj.x,currentObj.x,tFrame),
 						y: interpolateState(lastObj.y,currentObj.y,tFrame),
 						z: interpolateState(lastObj.z,currentObj.z,tFrame),
-						size: interpolateState(lastObj.size,currentObj.size,tFrame)
 					});
 				}
 			}
+			frameState.decor[p] = frameStateDecor;
 		}
-		for (var i=0;i<oPlayers.length;i++)
-			frameState.players.push(frameState.karts[i]);
-		for (var i=0;i<frameState.players.length;i++) {
-			var oPlayer = frameState.players[i];
-			if (oSpecCam)
-				oPlayer = frameState.karts[oSpecCam.playerId];
-			var lapId = getCurrentLapId(oPlayer.ref);
-			var lMap = getCurrentLMap(lapId);
+		for (var type in currentState.items) {
+			frameState.items[type] = [];
+			for (var i=0;i<currentState.items[type].length;i++) {
+				var currentObj = currentState.items[type][i];
+				var lastObj = getLastObj(lastState.items[type],i,currentObj);
+				frameState.items[type].push({
+					ref: currentObj.ref,
+					x: interpolateState(lastObj.x,currentObj.x,tFrame),
+					y: interpolateState(lastObj.y,currentObj.y,tFrame),
+					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					size: interpolateState(lastObj.size,currentObj.size,tFrame)
+				});
+			}
+		}
+	}
+	for (var i=0;i<oPlayers.length;i++)
+		frameState.players.push(frameState.karts[i]);
+	for (var i=0;i<frameState.players.length;i++) {
+		var oPlayer = frameState.players[i];
+		if (oSpecCam)
+			oPlayer = frameState.karts[oSpecCam.playerId];
+		var lapId = getCurrentLapId(oPlayer.ref);
+		var lMap = getCurrentLMap(lapId);
 
-			var posX = oPlayer.x;
-			var posY = oPlayer.y;
-			var fRotation = getApparentRotation(oPlayer);
-			if (frameState.cam) {
-				posX = frameState.cam.x;
-				posY = frameState.cam.y;
-				fRotation = frameState.cam.rotation;
-			}
-			if (oPlayer.tombe) {
-				if (oPlayer.tombe > 10) {
-					if (oPlayer.tombe == 20 && !lastFrame) {
-						posX = interpolateState(lastState.karts[i].x,oPlayer.ref.aX, tFrame);
-						posY = interpolateState(lastState.karts[i].y,oPlayer.ref.aY, tFrame);
-						oPlayer.x = posX;
-						oPlayer.y = posY;
-						oPlayer.z = 0;
-						oPlayer.rotation = oPlayer.ref.aRotation;
-						oPlayer.ref.sprite[i].img.style.opacity = 1-tFrame;
-						fRotation = getApparentRotation(oPlayer);
-					}
-					else {
-						posX = oPlayer.ref.aX;
-						posY = oPlayer.ref.aY;
-						fRotation = getApparentRotation({
-							rotation: oPlayer.ref.aRotation,
-							changeView: oPlayer.changeView
-						});
-					}
-				}
-				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
-			}
-			else if (oPlayer.teleport) {
-				if (oPlayer.teleport > 3) {
-					posX = oPlayer.ref.aX;
-					posY = oPlayer.ref.aY;
+		var posX = oPlayer.x;
+		var posY = oPlayer.y;
+		var fRotation = getApparentRotation(oPlayer);
+		if (frameState.cam) {
+			posX = frameState.cam.x;
+			posY = frameState.cam.y;
+			fRotation = frameState.cam.rotation;
+		}
+		if (oPlayer.tombe) {
+			if (oPlayer.tombe > 10) {
+				if (oPlayer.tombe == 20) {
+					posX = interpolateState(lastState.karts[i].x,oPlayer.ref.aX, tFrame);
+					posY = interpolateState(lastState.karts[i].y,oPlayer.ref.aY, tFrame);
+					oPlayer.x = posX;
+					oPlayer.y = posY;
+					oPlayer.z = 0;
 					oPlayer.rotation = oPlayer.ref.aRotation;
+					oPlayer.ref.sprite[i].img.style.opacity = 1-tFrame;
+					fRotation = getApparentRotation(oPlayer);
 				}
 				else {
-					posX = oPlayer.ref.x;
-					posY = oPlayer.ref.y;
-					oPlayer.rotation = oPlayer.ref.rotation;
-				}
-				fRotation = getApparentRotation(oPlayer);
-				if (oPlayer.ref.teleport)
-					oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
-			}
-			//posX = aKarts[1].x;
-			//posY = aKarts[1].y;
-			//fRotation = aKarts[1].rotation;
-			var fCamera = {
-				x: posX,
-				y: posY,
-				rotation: fRotation,
-				ref: oPlayer.ref
-			};
-
-			redrawCanvas(i, fCamera, lMap);
-
-			if (oPlayer.time) {
-				var $lakitu = document.getElementById("lakitu"+i);
-				if ($lakitu) {
-					$lakitu.style.left = Math.round(iScreenScale * (20-oPlayer.time/5))+"px";
-					$lakitu.style.top = Math.round((-(Math.abs(oPlayer.time - 20)) + 18) * (iScreenScale - 2)) +"px";
+					posX = oPlayer.ref.aX;
+					posY = oPlayer.ref.aY;
+					fRotation = getApparentRotation({
+						rotation: oPlayer.ref.aRotation,
+						changeView: oPlayer.changeView
+					});
 				}
 			}
-			for (var j=0;j<oRoulettesPrefixes.length;j++) {
-				var prefix = oRoulettesPrefixes[j];
-				var oRouletteCnt = oPlayer["roulette"+prefix];
-				if (oRouletteCnt && oRouletteCnt < 25) {
-					var rTurner = document.getElementById("scroller"+prefix+i).getElementsByTagName("div")[0];
-					var rHeight = +rTurner.dataset.h;
-					var rSize = +rTurner.dataset.s;
-					var rSpeed = +rTurner.dataset.v;
-					var nTop = (parseInt(rTurner.style.top) + Math.round(iScreenScale*rSpeed/nbFrames));
-					if (nTop > 0)
-						nTop += rSize-rHeight;
-					rTurner.style.top = nTop +"px";
+			oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
+		}
+		else if (oPlayer.teleport) {
+			if (oPlayer.teleport > 3) {
+				posX = oPlayer.ref.aX;
+				posY = oPlayer.ref.aY;
+				oPlayer.rotation = oPlayer.ref.aRotation;
+			}
+			else {
+				posX = oPlayer.ref.x;
+				posY = oPlayer.ref.y;
+				oPlayer.rotation = oPlayer.ref.rotation;
+			}
+			fRotation = getApparentRotation(oPlayer);
+			if (oPlayer.ref.teleport)
+				oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
+		}
+		//posX = aKarts[1].x;
+		//posY = aKarts[1].y;
+		//fRotation = aKarts[1].rotation;
+		var fCamera = {
+			x: posX,
+			y: posY,
+			rotation: fRotation,
+			ref: oPlayer.ref
+		};
+
+		redrawCanvas(i, fCamera, lMap);
+
+		if (oPlayer.time) {
+			var $lakitu = document.getElementById("lakitu"+i);
+			if ($lakitu) {
+				$lakitu.style.left = Math.round(iScreenScale * (20-oPlayer.time/5))+"px";
+				$lakitu.style.top = Math.round((-(Math.abs(oPlayer.time - 20)) + 18) * (iScreenScale - 2)) +"px";
+			}
+		}
+		for (var j=0;j<oRoulettesPrefixes.length;j++) {
+			var prefix = oRoulettesPrefixes[j];
+			var oRouletteCnt = oPlayer["roulette"+prefix];
+			if (oRouletteCnt && oRouletteCnt < 25) {
+				var rTurner = itemHudElements[i].turners[j];
+				var rHeight = +rTurner.dataset.h;
+				var rSize = +rTurner.dataset.s;
+				var rSpeed = +rTurner.dataset.v;
+				var nTop = (parseInt(rTurner.style.top) + Math.round(iScreenScale*rSpeed/nbFrames));
+				if (nTop > 0)
+					nTop += rSize-rHeight;
+				rTurner.style.top = nTop +"px";
+			}
+		}
+
+		var fSprite;
+
+		for (var j=0;j<frameState.karts.length;j++) {
+			fSprite = frameState.karts[j];
+			var fSpriteRef = fSprite.ref;
+			var lap2 = getCurrentLapId(fSpriteRef);
+			var jCamera = fCamera;
+			if (lapInteractionsDisabled(lapId,lap2)) {
+				fSpriteRef.sprite[i].noInteract = true;
+				fSpriteRef.sprite[i].div.classList.add("nointeract");
+			}
+			else if (fSpriteRef.sprite[i].noInteract) {
+				delete fSpriteRef.sprite[i].noInteract;
+				fSpriteRef.sprite[i].div.classList.remove("nointeract");
+			}
+			var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
+
+			var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
+			if (iAngleStep > 21) iAngleStep -= 22;
+
+			var isActualPlayer = (fSprite == oPlayer) && !oSpecCam;
+
+			if (!fSprite.changeView) {
+				if (fSprite.figstate && !(fSpriteRef.rail && fSpriteRef.rail.shiftTilt))
+					iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
+				else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
+					iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
+				else if (isActualPlayer) {
+					if (fSpriteRef.rotincdir && !fSprite.tourne)
+						iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
+					else if (!fSprite.tourne)
+						iAngleStep = 0;
 				}
 			}
 
-			var fSprite;
+			fSpriteRef.sprite[i].setState(iAngleStep);
+			fSpriteRef.sprite[i].render(fCamera, fSprite);
 
-			for (var j=0;j<frameState.karts.length;j++) {
-				fSprite = frameState.karts[j];
-				var fSpriteRef = fSprite.ref;
-				var lap2 = getCurrentLapId(fSpriteRef);
-				var jCamera = fCamera;
-				if (lapInteractionsDisabled(lapId,lap2)) {
-					fSpriteRef.sprite[i].noInteract = true;
-					fSpriteRef.sprite[i].div.classList.add("nointeract");
+			if (course == "BB") {
+				var nbBallons = fSpriteRef.ballons.length;
+				var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSpriteRef.sprite[i].h-32)/5));
+				var fShift = 2.5*getMirrorFactor();
+				for (k=0;k<nbBallons;k++) {
+					fSpriteRef.ballons[k][i].render(jCamera, {
+						x: fSprite.x-(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(1,fRotation),
+						y: fSprite.y+(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(0,fRotation),
+						z: fHauteur,
+						size: fTaille
+					});
 				}
-				else if (fSpriteRef.sprite[i].noInteract) {
-					delete fSpriteRef.sprite[i].noInteract;
-					fSpriteRef.sprite[i].div.classList.remove("nointeract");
+			}
+
+			if (fSpriteRef.driftinc) {
+				if (!fSpriteRef.z || (fSpriteRef.driftSprite[i].div.style.display === "block")) {
+					fSpriteRef.driftSprite[i].render(jCamera, {
+						x: fSprite.x,
+						y: fSprite.y,
+						z: fSprite.z,
+						size: fSprite.size/2
+					});
 				}
-				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
+			}
+			else
+				fSpriteRef.driftSprite[i].div.style.display = "none";
 
-				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
-				if (iAngleStep > 21) iAngleStep -= 22;
-
-				var isActualPlayer = (fSprite == oPlayer) && !oSpecCam;
-
-				if (!fSprite.changeView) {
-					if (fSprite.figstate && !(fSpriteRef.rail && fSpriteRef.rail.shiftTilt))
-						iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
-					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
-						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
-					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.tourne)
-							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
-						else if (!fSprite.tourne)
-							iAngleStep = 0;
-					}
-				}
-
-				fSpriteRef.sprite[i].setState(iAngleStep);
-				fSpriteRef.sprite[i].render(fCamera, fSprite);
-
-				if (course == "BB") {
-					var nbBallons = fSpriteRef.ballons.length;
-					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSpriteRef.sprite[i].h-32)/5));
-					var fShift = 2.5*getMirrorFactor();
-					for (k=0;k<nbBallons;k++) {
-						fSpriteRef.ballons[k][i].render(jCamera, {
-							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(1,fRotation),
-							y: fSprite.y+(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(0,fRotation),
-							z: fHauteur,
-							size: fTaille
-						});
-					}
-				}
-
-				if (fSpriteRef.driftinc) {
-					if (!fSpriteRef.z || (fSpriteRef.driftSprite[i].div.style.display === "block")) {
-						fSpriteRef.driftSprite[i].render(jCamera, {
-							x: fSprite.x,
-							y: fSprite.y,
+			if (fSpriteRef.rail) {
+				var oRail = fSpriteRef.rail;
+				if ((oRail.boostcpt >= railGlobalConfig.sparkCpt) && !oRail.exiting) {
+					if (!fSpriteRef.z || (oRail.boostSprite[i].div.style.display === "block")) {
+						var fShift = 0.3*oRail.side + 0.7*fSpriteRef.rotincdir;
+						oRail.boostSprite[i].render(jCamera, {
+							x: fSprite.x-fShift*fSprite.size*direction(1,fRotation),
+							y: fSprite.y+fShift*fSprite.size*direction(0,fRotation),
 							z: fSprite.z,
 							size: fSprite.size/2
 						});
 					}
 				}
 				else
-					fSpriteRef.driftSprite[i].div.style.display = "none";
-
-				if (fSpriteRef.rail) {
-					var oRail = fSpriteRef.rail;
-					if ((oRail.boostcpt >= railGlobalConfig.sparkCpt) && !oRail.exiting) {
-						if (!fSpriteRef.z || (oRail.boostSprite[i].div.style.display === "block")) {
-							var fShift = 0.3*oRail.side + 0.7*fSpriteRef.rotincdir;
-							oRail.boostSprite[i].render(jCamera, {
-								x: fSprite.x-fShift*fSprite.size*direction(1,fRotation),
-								y: fSprite.y+fShift*fSprite.size*direction(0,fRotation),
-								z: fSprite.z,
-								size: fSprite.size/2
-							});
-						}
-					}
-					else
-						oRail.boostSprite[i].div.style.display = "none";
-				}
-
-				if (fSpriteRef.wrongWaySprite && (i === j)) {
-					var shiftT0 = 10, shiftT1 = 20, shiftT = 30;
-					var shiftX, shiftY;
-					var tF = interpolateState(-1,0, tFrame);
-					var tW = fSpriteRef.wrongWaySince + tF - shiftT0;
-					fSpriteRef.wrongWaySprite[i].setState(Math.floor((tW%8)/4));
-					if (tW < shiftT1) {
-						var tR = tW/shiftT1;
-						shiftX = 15 * (Math.pow(tR,0.7) - 1);
-						shiftY = 40*(1-tR);
-					}
-					else {
-						tW -= shiftT1;
-						var tR = (tW%shiftT)/shiftT;
-						var aW = 5, aH = 10;
-						var cosT = Math.cos(2*Math.PI*tR);
-						var sinT = Math.sin(2*Math.PI*tR);
-						var cos2t1 = 1 + cosT*cosT;
-						shiftX = aW*sinT/cos2t1;
-						shiftY = -aH*cosT*sinT/cos2t1;
-					}
-					shiftX -= 2;
-					if (fSpriteRef.rightWaySince) {
-						var shiftTf = 10;
-						var tU = (fSpriteRef.rightWaySince+tF)/shiftTf;
-						shiftY += 50*tU;
-					}
-					fSpriteRef.wrongWaySprite[i].render(jCamera, {
-						x: fSprite.x - shiftX*direction(1,fRotation),
-						y: fSprite.y + shiftX*direction(0,fRotation),
-						z: 20 + shiftY
-					});
-				}
-
-				if (!isActualPlayer) {
-					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
-						fSpriteRef.marker.render(i, jCamera, fSprite);
-				}
+					oRail.boostSprite[i].div.style.display = "none";
 			}
 
-
-			for (var j=0;j<lMap.arme.length;j++) {
-				fSprite = lMap.arme[j];
-				var fItems = fSprite[2];
-				if (fItems.active) {
-					for (var k=0;k<fItems.box.length;k++) {
-						var kSprite = fItems.box[k];
-						kSprite[i].render(fCamera, {
-							x: fSprite[0],
-							y: fSprite[1],
-							z: k*4.5
-						});
-					}
+			if (fSpriteRef.wrongWaySprite && (i === j)) {
+				var shiftT0 = 10, shiftT1 = 20, shiftT = 30;
+				var shiftX, shiftY;
+				var tF = interpolateState(-1,0, tFrame);
+				var tW = fSpriteRef.wrongWaySince + tF - shiftT0;
+				fSpriteRef.wrongWaySprite[i].setState(Math.floor((tW%8)/4));
+				if (tW < shiftT1) {
+					var tR = tW/shiftT1;
+					shiftX = 15 * (Math.pow(tR,0.7) - 1);
+					shiftY = 40*(1-tR);
 				}
+				else {
+					tW -= shiftT1;
+					var tR = (tW%shiftT)/shiftT;
+					var aW = 5, aH = 10;
+					var cosT = Math.cos(2*Math.PI*tR);
+					var sinT = Math.sin(2*Math.PI*tR);
+					var cos2t1 = 1 + cosT*cosT;
+					shiftX = aW*sinT/cos2t1;
+					shiftY = -aH*cosT*sinT/cos2t1;
+				}
+				shiftX -= 2;
+				if (fSpriteRef.rightWaySince) {
+					var shiftTf = 10;
+					var tU = (fSpriteRef.rightWaySince+tF)/shiftTf;
+					shiftY += 50*tU;
+				}
+				fSpriteRef.wrongWaySprite[i].render(jCamera, {
+					x: fSprite.x - shiftX*direction(1,fRotation),
+					y: fSprite.y + shiftX*direction(0,fRotation),
+					z: 20 + shiftY
+				});
 			}
 
-			if (lMap.coins) {
-				for (var j=0;j<lMap.coins.length;j++) {
-					fSprite = lMap.coins[j];
-					var fRotRad = fCamera.rotation * Math.PI / 180;
-					var cosTheta = Math.abs(Math.cos(fSprite.theta-fRotRad));
-					fSprite.sprite[i].w = 24*cosTheta;
-					fSprite.sprite[i].z = (cosTheta-1)*0.5;
-					fSprite.sprite[i].render(fCamera, {
-						x: fSprite.x,
-						y: fSprite.y
+			if (!isActualPlayer) {
+				if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
+					fSpriteRef.marker.render(i, jCamera, fSprite);
+			}
+		}
+
+
+		for (var j=0;j<lMap.arme.length;j++) {
+			fSprite = lMap.arme[j];
+			var fItems = fSprite[2];
+			if (fItems.active) {
+				for (var k=0;k<fItems.box.length;k++) {
+					var kSprite = fItems.box[k];
+					kSprite[i].render(fCamera, {
+						x: fSprite[0],
+						y: fSprite[1],
+						z: k*4.5
 					});
 				}
 			}
+		}
 
-			var frameStateDecor = frameState.decor[i] || frameState.decor[0];
-			for (var type in frameStateDecor) {
-				for (var j=0;j<frameStateDecor[type].length;j++) {
-					fSprite = frameStateDecor[type][j];
-					if (fSprite.ref[2][0].unshown) continue;
-					fSprite.ref[2][i].render(fCamera, {
-						x: fSprite.x,
-						y: fSprite.y,
-						z: fSprite.z,
-						size: 1.2
-					});
+		if (lMap.coins) {
+			for (var j=0;j<lMap.coins.length;j++) {
+				fSprite = lMap.coins[j];
+				var fRotRad = fCamera.rotation * Math.PI / 180;
+				var cosTheta = Math.abs(Math.cos(fSprite.theta-fRotRad));
+				fSprite.sprite[i].w = 24*cosTheta;
+				fSprite.sprite[i].z = (cosTheta-1)*0.5;
+				fSprite.sprite[i].render(fCamera, {
+					x: fSprite.x,
+					y: fSprite.y
+				});
+			}
+		}
+
+		var frameStateDecor = frameState.decor[i] || frameState.decor[0];
+		for (var type in frameStateDecor) {
+			for (var j=0;j<frameStateDecor[type].length;j++) {
+				fSprite = frameStateDecor[type][j];
+				if (fSprite.ref[2][0].unshown) continue;
+				fSprite.ref[2][i].render(fCamera, {
+					x: fSprite.x,
+					y: fSprite.y,
+					z: fSprite.z,
+					size: 1.2
+				});
+			}
+		}
+
+		for (var key in frameState.items) {
+			for (var j=0;j<frameState.items[key].length;j++) {
+				fSprite = frameState.items[key][j];
+				var fSpriteRef = fSprite.ref;
+				var itemBehavior = itemBehaviors[key];
+				if (itemBehavior.render)
+					itemBehavior.render(fSpriteRef,i);
+				if (fSpriteRef.sprite) {
+					var lap2 = getItemCollisionLap(fSpriteRef);
+					if (lapInteractionsDisabled(lapId,lap2)) {
+						fSpriteRef.sprite[i].noInteract = true;
+						fSpriteRef.sprite[i].div.classList.add("nointeract");
+					}
+					else if (fSpriteRef.sprite[i].noInteract) {
+						delete fSpriteRef.sprite[i].noInteract;
+						fSpriteRef.sprite[i].div.classList.remove("nointeract");
+					}
+					fSpriteRef.sprite[i].render(fCamera, fSprite);
+				}
+			}
+		}
+
+		for (var j=0;j<aKarts.length;j++) {
+				var oKart = aKarts[j];
+				var oSprite = oKart.sprite[i];
+				if (oKart.figstate > 0 && oKart.figuring) {
+					if (!oSprite.div.hallowed) {
+						oSprite.div.hallowed = true;
+						oSprite.div.style.backgroundImage = "url('images/halo.png')";
+						oSprite.div.style.backgroundRepeat = "no-repeat";
+						oSprite.div.style.backgroundSize = "contain";
+						oSprite.img.style.opacity = 0.7;
+					}
+				}
+				else if (oSprite.div.hallowed) {
+					oSprite.div.hallowed = false;
+					oSprite.div.style.backgroundImage = "";
+					oSprite.div.style.backgroundRepeat = "";
+					oSprite.div.style.backgroundSize = "";
+					oSprite.img.style.opacity = 1;
 				}
 			}
 
-			for (var key in frameState.items) {
-				for (var j=0;j<frameState.items[key].length;j++) {
-					fSprite = frameState.items[key][j];
-					var fSpriteRef = fSprite.ref;
-					if (lastFrame) {
-						var itemBehavior = itemBehaviors[key];
-						if (itemBehavior.render)
-							itemBehavior.render(fSpriteRef,i);
-					}
-					if (fSpriteRef.sprite) {
-						var lap2 = getItemCollisionLap(fSpriteRef);
-						if (lapInteractionsDisabled(lapId,lap2)) {
-							fSpriteRef.sprite[i].noInteract = true;
-							fSpriteRef.sprite[i].div.classList.add("nointeract");
-						}
-						else if (fSpriteRef.sprite[i].noInteract) {
-							delete fSpriteRef.sprite[i].noInteract;
-							fSpriteRef.sprite[i].div.classList.remove("nointeract");
-						}
-						fSpriteRef.sprite[i].render(fCamera, fSprite);
-					}
-				}
-			}
-
-			if (lastFrame) {
-				for (var j=0;j<aKarts.length;j++) {
-					var oKart = aKarts[j];
-					var oSprite = oKart.sprite[i];
-					if (oKart.figstate > 0 && oKart.figuring) {
-						if (!oSprite.div.hallowed) {
-							oSprite.div.hallowed = true;
-							oSprite.div.style.backgroundImage = "url('images/halo.png')";
-							oSprite.div.style.backgroundRepeat = "no-repeat";
-							oSprite.div.style.backgroundSize = "contain";
-							oSprite.img.style.opacity = 0.7;
-						}
-					}
-					else if (oSprite.div.hallowed) {
-						oSprite.div.hallowed = false;
-						oSprite.div.style.backgroundImage = "";
-						oSprite.div.style.backgroundRepeat = "";
-						oSprite.div.style.backgroundSize = "";
-						oSprite.img.style.opacity = 1;
-					}
-				}
-			}
-
-			for (var j=0;j<oBgLayers.length;j++)
-				oBgLayers[j].draw(fRotation, i);
-			for (var j=0;j<fadingBgLayers.length;j++)
-				fadingBgLayers[j].draw(fRotation, i);
+		for (var j=0;j<oBgLayers.length;j++)
+			oBgLayers[j].draw(fRotation, i);
+		for (var j=0;j<fadingBgLayers.length;j++)
+			fadingBgLayers[j].draw(fRotation, i);
       clonePreviousScreen(i, oPlayer);
 
-			if (oPlanCtn)
-				setPlanPos(frameState, lMap);
-		}
+		if (oPlanCtn)
+			setPlanPos(frameState, lMap);
 	}
-	for (var i=1;i<nbFrames;i++) {
-		(function(i) {
-			frameHandlers[i] = setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
-		})(i);
-	}
-	renderFrame(1);
 }
+
 function hideLapSprites(lMap, sID) {
 	for (var j=0;j<lMap.arme.length;j++) {
 		var fSprite = lMap.arme[j];
@@ -17254,12 +17263,13 @@ function places(j,aRankScores,force) {
 		if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
 			place++;
 	}
-	if (!oKart.loose)
+	if (!oKart.loose && oKart.place != place) {
 		oKart.place = place;
-	if (finishing) return;
-	var sID = getScreenPlayerIndex(j);
-	if (sID < oPlayers.length)
-		document.getElementById("infoPlace"+sID).innerHTML = place;
+		if (finishing) return;
+		var sID = getScreenPlayerIndex(j);
+		if (sID < oPlayers.length)
+			document.getElementById("infoPlace"+sID).textContent = place;
+	}
 }
 
 function getLastCp(kart) {
@@ -18082,8 +18092,8 @@ function resetDatas() {
 					document.getElementById("compteur0").innerHTML = "";
 					for (var i=0;i<oRoulettesPrefixes.length;i++) {
 						var prefix = oRoulettesPrefixes[i];
-						document.getElementById("roulette"+prefix+0).innerHTML = "";
-						document.getElementById("scroller"+prefix+0).style.visibility = "hidden";
+						itemHudElements[0].roulettes[i].innerHTML = "";
+						itemHudElements[0].scrollers[i].style.visibility = "hidden";
 					}
 					updateItemCountdownHud(0, null);
 					var lakitu = document.getElementById("lakitu0");
@@ -18183,7 +18193,7 @@ function loseBall(i) {
 function showTimer(timeMS) {
 	var tps = timeStr(timeMS);
 	for (var i=0;i<strPlayer.length;i++)
-		document.getElementById("temps"+i).innerHTML = tps;
+		timerElements[i].textContent = tps;
 }
 
 function move(getId, triggered) {
@@ -18196,7 +18206,6 @@ function move(getId, triggered) {
 	var lMap = getCurrentLMap(collisionLap);
 	if ((getId<strPlayer.length)) {
 		if (!oKart.cpu && !finishing) {
-			showTimer(timer*SPF);
 			if (!getId)
 				timer++;
 
@@ -18732,17 +18741,12 @@ function move(getId, triggered) {
 				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
 					oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
 				if (kartIsPlayer(oKart)) {
-					var prefix = oRoulettesPrefixes[oSlotId];
-					var rScroller = document.getElementById("scroller"+prefix+getId);
-					var rTurner = rScroller.getElementsByTagName("div")[0];
-					var rHeight = rTurner.offsetHeight;
+					var rTurner = itemHudElements[getId].turners[oSlotId];
+					var rHeight = +rTurner.dataset.h;
 					var rSize = iScreenScale*7;
-					if (!rTurner.dataset)
-						rTurner.dataset = {};
-					rTurner.dataset.h = rHeight;
 					rTurner.dataset.s = rSize;
 					rTurner.dataset.v = oSlotId ? 1.2 : 2;
-					document.getElementById("scroller"+prefix+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
+					rTurner.style.top = -Math.floor(Math.random()*rHeight) +"px";
 					updateObjHud(getId);
 					clLocalVars.itemsGot = true;
 
@@ -20210,10 +20214,12 @@ function handleDecorExplosions(fSprite, callback) {
 	});
 }
 
+var itemHudElements = [];
 var oRoulettesPrefixes = ["", "2"];
 var oArmeKeys = ["arme", "stash"];
 function updateObjHud(ID) {
 	var oKart = aKarts[ID];
+	var hud = itemHudElements[ID];
 	for (var i=0;i<oRoulettesPrefixes.length;i++) {
 		var prefix = oRoulettesPrefixes[i];
 		var oArmeKey = oArmeKeys[i];
@@ -20225,22 +20231,28 @@ function updateObjHud(ID) {
 			else
 				isArme = true;
 		}
-		var oItemHeight = i ? 2.5:4;
-		document.getElementById("scroller"+prefix+ID).style.visibility = isRoulette ? "visible" : "hidden";
-		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png'+(oArme==='poison'||oArme==='carapacerouge' ? '?reload=1':'')+'" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
+		var img = hud.roulettes[i].itemImg;
+		hud.scrollers[i].style.visibility = isRoulette ? "visible" : "hidden";
+		if (isArme) {
+			img.alt = oArme;
+			img.src = 'images/items/'+oArme+'.png'+(oArme==='poison'||oArme==='carapacerouge' ? '?reload=1':'');
+			img.style.display = "";
+		} else {
+			img.style.display = "none";
+		}
 	}
-	var oScroller = document.getElementById("scroller"+ID);
-	var oObjet = document.getElementById("objet"+ID);
+	var oScroller = hud.scrollers[0];
+	var oObjet = hud.objet;
 	var oScrollPadding = 1;
 	if (oKart.stash) {
-		document.getElementById("reserve"+ID).style.visibility = "visible";
+		hud.reserve.style.visibility = "visible";
 		oObjet.style.left = Math.round(iScreenScale*3) +"px";
 		oObjet.style.top = Math.round(iScreenScale*3) +"px";
 		oScroller.style.left = Math.round(iScreenScale*3) +"px";
 		oScroller.style.top = Math.round(iScreenScale*3 + iScreenScale*oScrollPadding) +"px";
 	}
 	else {
-		document.getElementById("reserve"+ID).style.visibility = "hidden";
+		hud.reserve.style.visibility = "hidden";
 		oObjet.style.left = Math.round(iScreenScale) +"px";
 		oObjet.style.top = Math.round(iScreenScale) +"px";
 		oScroller.style.left = iScreenScale +"px";
@@ -20248,7 +20260,7 @@ function updateObjHud(ID) {
 	}
 }
 function updateItemCountdownHud(ID, progress) {
-	var $countdown = document.getElementById("countdown"+ID);
+	var $countdown = itemHudElements[ID] && itemHudElements[ID].countdown;
 	if (!$countdown) return;
 	if (progress > 0) {
 		$countdown.style.display = "block";
@@ -20289,28 +20301,34 @@ function updateLapHud(sID) {
 		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
 }
 function timeStr(timeMS) {
-	var timeMins = Math.floor(timeMS/60000);
-	timeMS -= timeMins*60000;
-	timeMins += "";
-	var timeSecs = Math.floor(timeMS/1000);
-	timeMS -= timeSecs*1000;
-	timeSecs += "";
-	if (timeSecs.length < 2)
-		timeSecs = "0"+ timeSecs;
-	timeMS += "";
-	while (timeMS.length < 3)
-		timeMS = "0"+ timeMS;
-	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+	var timeMins = Math.floor(timeMS / 60000);
+	var timeSecs = Math.floor((timeMS % 60000) / 1000);
+	var timeMs = timeMS % 1000;
+	var sMins = timeMins + "";
+	var sSecs = timeSecs < 10 ? "0" + timeSecs : "" + timeSecs;
+	if (timeMs < 10) timeMs = "00" + timeMs;
+	else if (timeMs < 100) timeMs = "0" + timeMs;
+	else timeMs = "" + timeMs;
+	return sMins + "'" + sSecs + '"' + timeMs;
 }
-function updateSpeedometer(getId, aPosX,aPosY) {
-	if (!$speedometerVals[getId]) return;
-	var oKart = aKarts[getId];
-	var speedKmH = Math.hypot(oKart.x - aPosX, oKart.y - aPosY) * 10;
-	if (oKart.speed < 0)
-		speedKmH = -speedKmH;
-	if (oKart.tombe)
-		speedKmH = 0;
-	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
+function updateSpeedometer(getId, aPosX, aPosY) {
+    var $val = $speedometerVals[getId];
+    if (!$val) return;
+    var oKart = aKarts[getId];
+    var speedString;
+    if (oKart.tombe) {
+        speedString = "0.0";
+    } else {
+        var dx = oKart.x - aPosX, dy = oKart.y - aPosY;
+		var tenths = Math.round(Math.sqrt(dx*dx + dy*dy) * 100);
+		var intPart = Math.floor(tenths / 10);
+		var dec = tenths % 10;
+		speedString = (oKart.speed < 0 ? "-" : "") + intPart + '.' + dec;
+    }
+
+    if ($val.textContent !== speedString) {
+        $val.textContent = speedString;
+    }
 }
 
 function handleWrongWay(oKart) {
@@ -21671,11 +21689,41 @@ var cycleHandler;
 function cycle() {
 	cycleHandler = setInterval(runOneFrame,SPF);
 	runOneFrame();
+	startRenderLoop();
 }
+
+function onAnimationFrame(now) {
+	rAFId = requestAnimationFrame(onAnimationFrame);
+	if (!currentState) return;
+
+	var tFrame = Math.min((now - stateTime) / SPF, 1);
+	if (tFrame * nbFrames >= renderedFrames) {
+		lastRenderTime = performance.now();
+		renderFrame(tFrame);
+		renderedFrames++;
+	}
+}
+
+function startRenderLoop() {
+	stateTime = performance.now();
+	renderedFrames = 0;
+	if (rAFId) cancelAnimationFrame(rAFId);
+	rAFId = requestAnimationFrame(onAnimationFrame);
+}
+
+function stopRenderLoop() {
+	if (rAFId) {
+		cancelAnimationFrame(rAFId);
+		rAFId = null;
+	}
+}
+
 var decorPos = [];
 var lastErrorTs = 0;
 function runOneFrame() {
 	try {
+		resetRenderClock();
+
 		handleGamepadEvents();
 		if (!timeTrialMode()) {
 			for (var i=0;i<aKarts.length;i++)
@@ -21749,6 +21797,7 @@ function runOneFrame() {
 		}
 		moveItems();
 		moveDecor();
+
 		if (oSpecCam)
 			oSpecCam.move();
 		if (!oPlayers[0].cpu && !oPlayers[0].loose)
@@ -21756,7 +21805,9 @@ function runOneFrame() {
 		if (refreshDatas)
 			resetDatas();
 		handleAudio();
-		render();
+		showTimer(timer*SPF);
+
+		updateState();
 	}
 	catch (e) {
 		console.error(e);
@@ -21957,8 +22008,9 @@ document.onkeydown = function(e) {
 	}
 	if (onlineSpectatorId) {
 		var res = handleSpectatorInput(e);
-		if (res === false)
-			render();
+		if (res === false) {
+			updateState(); resetRenderClock(); renderFrame(1);
+		}
 		return res;
 	}
 	var gameAction = getGameAction(e);
@@ -32205,7 +32257,7 @@ function editCommands(options) {
 		function applyMotionToggle() {
 			$controlSettingMotion.style.display = currentSettings.framerad != 0 ? "block" : "none";
 		}
-		var currentFrameRad = frameSettings.framerad || frameSettings.defaultframerad;
+		var currentFrameRad = frameSettings.framerad || Math.floor(iFps/2);
 		{
 			var $controlSetting = document.createElement("label");
 			$controlSetting.style.display = "inline-block";
