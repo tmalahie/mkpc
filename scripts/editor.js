@@ -2792,15 +2792,17 @@ function showTrajectAdd() {
 		addTraject();
 		return;
 	}
-	switch (key) {
-	case "aipoints":
-		$trajectList.selectedIndex = editorTool.state.traject+1;
-		document.getElementById("traject-advanced-options").style.display = "";
-		document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
-		break;
-	default:
-		document.getElementById("traject-advanced-options").style.display = "none";
-		document.getElementById("traject-bill").checked = false;
+	if (!isBattle) {
+		switch (key) {
+		case "aipoints":
+			$trajectList.selectedIndex = editorTool.state.traject+1;
+			document.getElementById("traject-advanced-options").style.display = "";
+			document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
+			break;
+		default:
+			document.getElementById("traject-advanced-options").style.display = "none";
+			document.getElementById("traject-bill").checked = false;
+		}
 	}
 }
 function addTraject() {
@@ -2811,7 +2813,7 @@ function addTraject() {
 	var trajectData = getTrajectData(editorTool,key);
 	var maxCp = trajectData.length;
 	var $trajectBill = document.getElementById("traject-bill");
-	var isBb = $trajectBill.checked;
+	var isBb = $trajectBill && $trajectBill.checked;
 	var newTraject;
 	if (trajectVal != -1)
 		newTraject = deepCopy(trajectData[trajectVal]);
