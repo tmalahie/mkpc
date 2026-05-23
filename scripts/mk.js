@@ -825,14 +825,60 @@ var strPlayer = new Array();
 var oMap;
 var lMaps, pMaps;
 var iDificulty = (cupOpts && cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+var gpDefaultRoster = false;
+function buildCpuRoster() {
+	aPlayers = [];
+	for (var joueurs in cp) {
+		if (pUnlockMap[joueurs])
+			aPlayers.push(joueurs);
+	}
+	aPlayers.sort(function(){return 0.5-Math.random()});
+	var gpNbPlayers = (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length) ? (cupOpts.gp.cpus.length + 1) : 8;
+	var nbPlayers = (course!="GP") ? fInfos.nbPlayers : gpNbPlayers;
+	if (aPlayers.length < nbPlayers) {
+		var aLength = aPlayers.length;
+		aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
+		for (var i=aLength;i<aPlayers.length;i++)
+			aPlayers[i] = aPlayers[i%aLength];
+	}
+	else {
+		for (var i=0;i<aPlayers.length;i++) {
+			var joueur = aPlayers[i];
+			for (var j=0;j<strPlayer.length;j++) {
+				if (strPlayer[j] == joueur) {
+					aPlayers.splice(i,1);
+					i--;
+					break;
+				}
+			}
+		}
+	}
+	var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
+	aPlayers.splice(0,oSuppr);
+	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus) {
+		for (var i=0;i<cupOpts.gp.cpus.length && i<aPlayers.length;i++) {
+			var pickedDriver = cupOpts.gp.cpus[i].driver;
+			if (pickedDriver && cp[pickedDriver])
+				aPlayers[i] = pickedDriver;
+		}
+	}
+}
 function applyMulticupCupOpts(cupIdx) {
 	if (typeof cupPayloads === 'undefined' || !cupPayloads[cupIdx]) return;
 	cupOpts = cupPayloads[cupIdx].options || {};
-	if (course == "GP" && cupOpts.gp && cupOpts.gp.cc != null) {
-		fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
-		bSelectedMirror = !!cupOpts.gp.mirror;
+	if (course == "GP") {
+		if (cupOpts.gp && cupOpts.gp.cc != null) {
+			fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
+			bSelectedMirror = !!cupOpts.gp.mirror;
+		}
+		else {
+			fSelectedClass = getRelSpeedFromCc(+selectedCc);
+			bSelectedMirror = selectedMirror;
+		}
+		iDificulty = (cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5;
+		if (gpDefaultRoster)
+			buildCpuRoster();
 	}
-	iDificulty = (cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5;
 }
 var iRecord;
 var iTrajet;
@@ -25076,6 +25122,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					else {
 						aPlayers = [];
 						var waitBeforeStart;
+						gpDefaultRoster = false;
 						if (isCustomSel) {
 							for (var i=strPlayer.length-1;i>=oContainers.length;i--)
 								aPlayers.push(strPlayer[i]);
@@ -25103,43 +25150,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							};
 						}
 						else {
-							var i = 0;
-							for (joueurs in cp) {
-								if (pUnlockMap[joueurs]) {
-									aPlayers.push(joueurs);
-									i++;
-								}
-							}
-							aPlayers.sort(function(){return 0.5-Math.random()});
-							var gpNbPlayers = (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length) ? (cupOpts.gp.cpus.length + 1) : 8;
-							var nbPlayers = (course!="GP") ? fInfos.nbPlayers : gpNbPlayers;
-							if (aPlayers.length < nbPlayers) {
-								var aLength = aPlayers.length;
-								aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
-								for (var i=aLength;i<aPlayers.length;i++)
-									aPlayers[i] = aPlayers[i%aLength];
-							}
-							else {
-								for (var i=0;i<aPlayers.length;i++) {
-									var joueur = aPlayers[i];
-									for (var j=0;j<strPlayer.length;j++) {
-										if (strPlayer[j] == joueur) {
-											aPlayers.splice(i,1);
-											i--;
-											break;
-										}
-									}
-								}
-							}
-							var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
-							aPlayers.splice(0,oSuppr);
-							if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus) {
-								for (var i=0;i<cupOpts.gp.cpus.length && i<aPlayers.length;i++) {
-									var pickedDriver = cupOpts.gp.cpus[i].driver;
-									if (pickedDriver && cp[pickedDriver])
-										aPlayers[i] = pickedDriver;
-								}
-							}
+							gpDefaultRoster = true;
+							buildCpuRoster();
 						}
 						aPlaces = [];
 						aTeams = [];

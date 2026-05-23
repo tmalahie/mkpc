@@ -321,8 +321,8 @@ function gpDefaultLabel(name) {
 	return (language ? "Default (" : "Défaut (") + name + ")";
 }
 var gpItemDistribNames = language
-	? ["Standard", "Aggressive mode", "Bob-ombs", "Mushrooms", "None"]
-	: ["Classique", "Mode explosif", "Bob-ombs", "Champis", "Aucun"];
+	? ["Standard", "Aggressive mode", "Shells", "Bob-ombs", "Mushrooms", "None"]
+	: ["Classique", "Mode explosif", "Carapaces", "Bob-ombs", "Champis", "Aucun"];
 function getCustomItemDistribs() {
 	try {
 		var raw = localStorage.getItem("itemsets");
@@ -438,7 +438,7 @@ function updateGpOptionsGUI() {
 	$base.appendChild($diffRow);
 
 	// Speed class
-	var $ccRow = makeBaseRow(language ? "Speed class:" : "Cylindrée :");
+	var $ccRow = makeBaseRow(language ? "Engine class:" : "Cylindrée :");
 	var $cc = document.createElement("select");
 	var ccRaw = (gpOpts.cc != null) ? (gpOpts.cc + (gpOpts.mirror ? "m":"")) : "";
 	var ccSelected = (ccRaw === "150") ? "" : ccRaw;

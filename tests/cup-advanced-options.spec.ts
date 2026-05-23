@@ -92,11 +92,12 @@ test('cup editor saves item distribution selection', async ({ page }) => {
   await page.goto('/simplecup.php');
   await page.locator('.editor-switch-options').first().click();
 
-  // Pick the 3rd built-in distribution ("Bob-ombs", index 2)
+  // Pick "Bob-ombs". In itemDistributions.VS the order is
+  // Standard(0), Aggressive mode(1), Shells(2), Bob-ombs(3), Mushrooms(4), so index 3.
   await page.locator('#gp-items').selectOption({ label: 'Bob-ombs' });
   const optionsValue = await page.locator('#cup-options').inputValue();
   const parsed = JSON.parse(optionsValue);
-  expect(parsed.gp.items).toEqual({ index: 2 });
+  expect(parsed.gp.items).toEqual({ index: 3 });
 });
 
 test('cup editor preserves orphaned custom item distribution', async ({ page }) => {
