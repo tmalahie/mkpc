@@ -1907,6 +1907,14 @@ function initMap() {
 					oMap.conditionOverrides.push(lapOverride);
 					conditionPayloadIds.push(i+1);
 				}
+				var creationChallenges = challenges.track[oMap.map];
+				if (creationChallenges) {
+					var challengesList = creationChallenges.list;
+					for (var j=0;j<challengesList.length;j++) {
+						if (challengesList[j].id === lapOverride.challenge)
+							challengesList[j].isOverride = true;
+					}
+				}
 				continue;
 			}
 			if (lapOverride.lap !== undefined) {
@@ -15478,6 +15486,8 @@ function addCreationChallenges(type,cid) {
 		for (var i=0;i<challengesList.length;i++) {
 			var challenge = challengesList[i];
 			if (challenge.succeeded && (challenge !== clSelected))
+				continue;
+			if (challenge.isOverride && (challenge !== clSelected))
 				continue;
 			var challengeData = challenge.data;
 			var challengeVerifType = challengeRules[challengeData.goal.type].verify;
