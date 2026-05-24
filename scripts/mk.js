@@ -13976,7 +13976,7 @@ function getOffroadProps(oKart,hpType) {
 		if (strength < 0) strength = 0;
 		var baseSpeed = 5;
 		var minSpeed = 1.5;
-		var props = (strength >= 1)
+		var props = (strength <= 0)
 		  ? {speed: 20} // Arbitrary high speed so that offroad doesn't slow down
 			: {speed: baseSpeed - Math.sqrt(strength)*(baseSpeed-minSpeed) + oKart.speedinc/2};
 		if (entry.slippery) {
