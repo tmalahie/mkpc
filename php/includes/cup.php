@@ -75,7 +75,16 @@ var cp = <?php include('getPersos.php'); ?>;
 <?php
 require_once('rosterNames.php');
 echo 'var cpNames = '. json_encode(getCharacterNamesMap(), JSON_UNESCAPED_UNICODE) .';';
+require_once('handleGpOptions.php');
 ?>
+var collabCharPlaceholder = "<?php
+$collabPlaceholder = array(
+	'type' => 'mkchars',
+	'creation_id' => 42,
+	'secret' => 'y-vf-erny_2401_pbasvezrq'
+);
+echo getCollabUrl($collabPlaceholder);
+?>";
 </script>
 <script type="text/javascript" src="scripts/cup.js"></script>
 <script type="text/javascript" src="scripts/posticons.js?reload=1"></script>

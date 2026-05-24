@@ -383,6 +383,169 @@ function gpDriverList() {
 	}
 	return res;
 }
+// Custom CPU drivers are stored as the stable numeric character id; the sprites
+// path (which changes when the image is updated) is deduced server-side. The
+// name is resolved from cupCustomChars (emitted server-side for the saved cup)
+// or from the user's own characters list once it's loaded.
+var gpCustomDriverInfo = {};
+var gpCustomDriverPending = {};
+function gpCustomDriverName(driver) {
+	if (gpCustomDriverInfo[driver])
+		return gpCustomDriverInfo[driver].name;
+	if (typeof cupCustomChars !== "undefined" && cupCustomChars[driver]) {
+		gpCustomDriverInfo[driver] = { name: cupCustomChars[driver].name };
+		return cupCustomChars[driver].name;
+	}
+	if (customCharacters) {
+		for (var i=0;i<customCharacters.length;i++) {
+			if (customCharacters[i].id === +driver || customCharacters[i].sprites === driver) {
+				gpCustomDriverInfo[driver] = { name: customCharacters[i].name };
+				return customCharacters[i].name;
+			}
+		}
+	}
+	// Legacy drivers stored as a sprites id ("cp-...") resolve by sprites.
+	if (typeof driver === "string" && driver.indexOf("cp-") === 0 && !gpCustomDriverPending[driver]) {
+		gpCustomDriverPending[driver] = true;
+		o_xhr("getCP.php", "perso="+driver, function(res) {
+			if (res && res !== "-1") {
+				try {
+					var data = JSON.parse(res);
+					if (data && data.name) {
+						gpCustomDriverInfo[driver] = { name: data.name };
+						updateGpOptionsGUI();
+					}
+				}
+				catch (e) {}
+			}
+			return true;
+		});
+	}
+	return language ? "Custom character" : "Perso custom";
+}
+function selectCpuDriver(cpuIndex) {
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask editor-mask-dark";
+	document.body.appendChild($mask);
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		document.body.removeChild($mask);
+	}
+	function hideOnEscape(e) {
+		if (e.keyCode === 27) closeMask();
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$mask.onclick = closeMask;
+	var oSelector = document.createElement("div");
+	oSelector.className = "editor-mask-content";
+	oSelector.innerHTML = '<h3>'+ (language ? "Custom CPU driver..." : "Perso CPU custom...") +'</h3>'
+		+ '<a class="perso-selection-close" href="javascript:void(0)">&times;</a>'
+		+ '<div class="perso-selection-custom">'
+			+ '<div class="perso-selection-custom-explain"></div>'
+			+ '<div id="perso-info">'
+				+ '<div>'
+					+ '<div id="perso-info-name">Mario</div>'
+				+ '</div>'
+			+ '</div>'
+			+ '<div class="perso-selection-choices" id="perso-selection-custom-choices"></div>'
+			+ '<div class="perso-selection-collab">'
+				+ '<div class="perso-selection-collab-toggle">+ <a href="javascript:void(0)">'+ (language ? "Select a character from another member..." : "Sélectionner le perso d'un autre membre...") +'</a></div>'
+				+ '<form id="perso-selection-collab">'
+					+ '<label>'
+						+ '<span>'+ (language ? 'Collaboration link' : 'Lien de collaboration') + '<span class="pretty-title-ctn"><a href="javascript:void(0)">[?]</a></span>:&nbsp;</span>'
+						+ '<input type="url" name="collab-link" required="required" placeholder="'+ collabCharPlaceholder +'" />'
+						+ '<button type="submit">Ok</button>'
+					+ '</label>'
+				+ '</form>'
+			+ '</div>'
+		+ '</div>';
+	oSelector.onclick = function(e) { e.stopPropagation(); };
+	oSelector.querySelector(".perso-selection-close").onclick = closeMask;
+	oSelector.querySelector("#perso-info-name").style.minWidth = "150px";
+	$mask.appendChild(oSelector);
+
+	function pickDriver(data) {
+		gpCustomDriverInfo[data.id] = { name: data.name };
+		gpOpts.cpus[cpuIndex].driver = data.id;
+		closeMask();
+		updateGpOptionsGUI();
+		resetCupOptions();
+	}
+	function appendChoices() {
+		var $choices = oSelector.querySelector("#perso-selection-custom-choices");
+		for (var i=0;i<customCharacters.length;i++) {
+			(function(customCharacter) {
+				var oDiv = document.createElement("div");
+				var oDiv2 = document.createElement("div");
+				var oImg = document.createElement("img");
+				oImg.src = customCharacter.ld;
+				oImg.onclick = function() { pickDriver(customCharacter); };
+				oDiv2.appendChild(oImg);
+				oDiv.appendChild(oDiv2);
+				oDiv.onmouseover = function() {
+					oSelector.querySelector("#perso-info-name").innerText = customCharacter.name;
+					oSelector.querySelector("#perso-info").style.display = "block";
+				};
+				oDiv.onmouseout = function() {
+					oSelector.querySelector("#perso-info").style.display = "";
+				};
+				$choices.appendChild(oDiv);
+			})(customCharacters[i]);
+		}
+		oSelector.querySelector(".perso-selection-custom-explain").innerHTML = customCharacters.length
+			? (language ? "Select here a character from the character editor. If the character hasn't been shared, it will appear as locked for other members." : "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres")
+			: (language ? "You haven't created any character yet. Click <a href=\"persoEditor.php\" target=\"_blank\">here</a> to create some." : "Vous n'avez pas créé de perso. Cliquez <a href=\"persoEditor.php\" target=\"_blank\">ici</a> pour en créer.");
+	}
+	if (customCharacters)
+		appendChoices();
+	else {
+		o_xhr("myPlayablePersos.php", "", function(res) {
+			try { customCharacters = JSON.parse(res); }
+			catch (e) { return false; }
+			appendChoices();
+			return true;
+		});
+	}
+
+	var $collabForm = oSelector.querySelector("#perso-selection-collab");
+	oSelector.querySelector(".perso-selection-collab-toggle a").onclick = function() {
+		$collabForm.className = $collabForm.className ? "" : "shown";
+		if ($collabForm.className) {
+			$collabForm.elements["collab-link"].focus();
+			var $persoCollabExplain = $collabForm.querySelector("#perso-selection-collab > label a");
+			if (!$persoCollabExplain.dataset.title) {
+				$persoCollabExplain.dataset.title = '<div class="fancy-title-collab">'+ (language ? "Enter the characters's collaboration link here.<br />To get this link, the character owner will simply need to select the character in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration du perso.<br />Pour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur &quot;Collaborer&quot;") +'</div>';
+				initFancyTitle($persoCollabExplain);
+			}
+		}
+	};
+	$collabForm.onsubmit = function(e) {
+		e.preventDefault();
+		var url = $collabForm.elements["collab-link"].value;
+		var creationId, creationKey;
+		try {
+			var urlParams = new URLSearchParams(new URL(url).search);
+			creationId = urlParams.get('id');
+			creationKey = urlParams.get('collab');
+		}
+		catch (e) {}
+		if (!creationKey) {
+			alert(language ? "Invalid URL" : "URL invalide");
+			return;
+		}
+		var $submitBtn = $collabForm.querySelector('button[type="submit"]');
+		$submitBtn.disabled = true;
+		o_xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+			$submitBtn.disabled = false;
+			if (!res) {
+				alert(language ? "Invalid link" : "Lien invalide");
+				return true;
+			}
+			pickDriver(JSON.parse(res));
+			return true;
+		});
+	};
+}
 function updateGpOptionsGUI() {
 	var $gpOptions = document.getElementById("gp-options");
 	if (!$gpOptions) return;
@@ -500,11 +663,21 @@ function updateGpOptionsGUI() {
 			$row.appendChild($label);
 
 			var $driver = document.createElement("select");
-			appendOption($driver, "", language ? "Random" : "Aléatoire", cpu.driver || "");
+			var driverVal = (cpu.driver != null) ? cpu.driver : "";
+			appendOption($driver, "", language ? "Random" : "Aléatoire", driverVal);
 			for (var d=0;d<drivers.length;d++)
-				appendOption($driver, drivers[d].id, drivers[d].name, cpu.driver || "");
+				appendOption($driver, drivers[d].id, drivers[d].name, driverVal);
+			if (driverVal !== "" && !cp[driverVal])
+				appendOption($driver, driverVal, gpCustomDriverName(driverVal), driverVal);
+			appendOption($driver, "__custom__", language ? "Custom..." : "Personnalisé...", "");
+			$driver.dataset.cpu = i;
 			$driver.onchange = function() {
-				cpu.driver = this.value;
+				if (this.value === "__custom__") {
+					this.value = gpOpts.cpus[+this.dataset.cpu].driver || "";
+					selectCpuDriver(+this.dataset.cpu);
+					return;
+				}
+				gpOpts.cpus[+this.dataset.cpu].driver = this.value;
 				resetCupOptions();
 			};
 			$row.appendChild($driver);

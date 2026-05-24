@@ -52,6 +52,40 @@ test('simple cup editor shows Advanced Options with per-CPU rows', async ({ page
   expect(parsed.gp.points).toHaveLength(7);
 });
 
+test('per-CPU driver dropdown offers Custom and renders a saved custom driver', async ({ page }) => {
+  await login(page);
+  await page.goto('/simplecup.php');
+  await page.locator('.editor-switch-options').first().click();
+  await page.locator('.gp-cpus-mode').selectOption({ value: 'custom' });
+
+  // Every CPU driver dropdown ends with a "Custom..." option
+  const firstDriver = page.locator('.gp-cpu-row select').first();
+  const lastOption = firstDriver.locator('option').last();
+  await expect(lastOption).toHaveAttribute('value', '__custom__');
+
+  // A custom driver is stored as the stable numeric character id (not the
+  // sprites path). It round-trips and shows a labelled option, resolving the
+  // name from gpCustomDriverInfo / cupCustomChars.
+  await page.evaluate(() => {
+    // @ts-ignore
+    gpOpts.cpus[0].driver = 4478;
+    // @ts-ignore
+    gpCustomDriverInfo[4478] = { name: 'Phantom' };
+    // @ts-ignore
+    updateGpOptionsGUI();
+    // @ts-ignore
+    resetCupOptions();
+  });
+  const sel = await page.locator('.gp-cpu-row select').first().evaluate((el: HTMLSelectElement) => ({
+    value: el.value,
+    text: el.options[el.selectedIndex].textContent,
+  }));
+  expect(sel.value).toBe('4478');
+  expect(sel.text).toBe('Phantom');
+  const parsed = JSON.parse(await page.locator('#cup-options').inputValue());
+  expect(parsed.gp.cpus[0].driver).toBe(4478);
+});
+
 test('CPU drivers and Points default to collapsed and round-trip clean', async ({ page }) => {
   await login(page);
   await page.goto('/simplecup.php');
@@ -148,4 +182,18 @@ test('circuit runtime parses cupOpts.gp from URL', async ({ page }) => {
   expect(data.cupOpts.gp.cpus[1].difficulty).toBe(0);
   expect(data.cupOpts.gp.cc).toBe(200);
   expect(data.cupOpts.gp.points).toEqual([12, 6, 0]);
+});
+
+test('runtime resolves a numeric custom driver id to sprites via cupCustomChars', async ({ page }) => {
+  await login(page);
+  // "Giant Mario" custom character in the dev DB; skips on a DB without it.
+  const CHAR_ID = 4478;
+  const optsJson = JSON.stringify({ gp: { cpus: [{ driver: CHAR_ID, difficulty: null }] } });
+  await page.goto('/circuit.php?cid0=1&cid1=2&cid2=3&cid3=1&opt=' + encodeURIComponent(optsJson));
+  await page.waitForFunction(() => typeof (window as any).cupCustomChars !== 'undefined');
+
+  const cc = await page.evaluate((id) => (window as any).cupCustomChars[id], CHAR_ID);
+  test.skip(!cc, 'character id not present in this environment');
+  // The server deduced the (image-dependent) sprites path from the stable id.
+  expect(cc.sprites).toMatch(/^cp-/);
 });

@@ -856,10 +856,36 @@ function buildCpuRoster() {
 	var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
 	aPlayers.splice(0,oSuppr);
 	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus) {
-		for (var i=0;i<cupOpts.gp.cpus.length && i<aPlayers.length;i++) {
-			var pickedDriver = cupOpts.gp.cpus[i].driver;
-			if (pickedDriver && cp[pickedDriver])
-				aPlayers[i] = pickedDriver;
+		var cpus = cupOpts.gp.cpus;
+		function assignDriver(i, perso) {
+			if (aPlayers[i] === perso)
+				return;
+			for (var j=0;j<aPlayers.length;j++) {
+				if (j != i && aPlayers[j] === perso) {
+					if (j < i && cpus[j] && cpus[j].driver)
+						continue;
+					aPlayers[j] = aPlayers[i];
+					aPlayers[i] = perso;
+					return;
+				}
+			}
+			aPlayers[i] = perso;
+		}
+		for (var i=0;i<cpus.length && i<aPlayers.length;i++) {
+			var pickedDriver = cpus[i].driver;
+			if (typeof pickedDriver === "number") {
+				var cc = (typeof cupCustomChars !== "undefined") ? cupCustomChars[pickedDriver] : null;
+				if (cc) {
+					if (!cp[cc.sprites]) {
+						cp[cc.sprites] = [cc.acceleration,cc.speed,cc.handling,cc.mass];
+						if (typeof customPersos !== "undefined")
+							customPersos[cc.sprites] = cc;
+					}
+					assignDriver(i, cc.sprites);
+				}
+			}
+			else if (pickedDriver && (cp[pickedDriver] || isCustomPerso(pickedDriver)))
+				assignDriver(i, pickedDriver);
 		}
 	}
 }
