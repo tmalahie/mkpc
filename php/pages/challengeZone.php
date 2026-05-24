@@ -1263,7 +1263,7 @@ window.onload = function() {
 				<div class="zone-editor-decor">
 					<span><?php echo $language ? 'Item:':'Objet :'; ?></span>
 					<?php
-					$itemTypes = array('banane', 'carapace', 'carapace-rouge', 'fauxobjet', 'champi', 'poison', 'etoile', 'bobomb');
+					$itemTypes = array('fauxobjet', 'banane', 'carapace', 'carapace-rouge', 'champi', 'poison', 'bobomb', 'etoile');
 					foreach ($itemTypes as $key) {
 						$src = isset($editorContext['customIcons'][$key]) ? $editorContext['customIcons'][$key] : $key;
 						?>

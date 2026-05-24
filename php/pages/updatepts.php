@@ -21,7 +21,7 @@ if (!hasRight('manager')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Add pts':'Ajouter des points'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Add points':'Ajouter des points'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -42,6 +42,9 @@ include('../includes/o_online.php');
 </head>
 <body>
 <?php
+function plural($nb) {
+	return $nb > 1 || $nb < -1 ? "s" : "";
+}
 include('../includes/header.php');
 $page = 'forum';
 include('../includes/menu.php');
@@ -58,7 +61,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 }
 ?>
 <main>
-	<h1><?php echo $language ? 'Add pts':'Ajouter des points'; ?></h1>
+	<h1><?php echo $language ? 'Add points':'Ajouter des points'; ?></h1>
 	<div class="ranking-modes">
 		<?php
 		if ($isBattle) {
@@ -77,7 +80,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 	</div>
 	<?php
 	if (isset($ptsPlus))
-		echo '<p><strong>'. $_POST['joueur'] .'</strong> vient de '. (($_POST['pts']>0)?'gagner':'perdre') .' '. abs($_POST['pts']) .' pts. Son nouveau score est de <strong>'. $newScore .'</strong> pts.</p>';
+		echo '<p><strong>'. $_POST['joueur'] .'</strong> vient de '. (($_POST['pts']>0)?'gagner':'perdre') .' '. abs($_POST['pts']) .' point'. plural($_POST['pts']) .'. Son nouveau score est de <strong>'. $newScore .'</strong> point'. plural($newScore) .'.</p>';
 	?>
 	<?php
 	if ($language) {
@@ -100,7 +103,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 	<form method="post" action="updatepts.php<?php if ($isBattle) echo '?battle'; ?>">
 	<blockquote>
 		<p><label for="joueur"><strong><?php echo $language ? 'Player':'Joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" required="required" /></p>
-		<p><label for="pts"><strong><?php echo $language ? 'Add':'Ajouter'; ?></strong></label> <input type="number" min="-9999" max="9999" style="width:50px" name="pts" id="pts" /> pts.</p>
+		<p><label for="pts"><strong><?php echo $language ? 'Add':'Ajouter'; ?></strong></label> <input type="number" min="-9999" max="9999" style="width:60px" name="pts" id="pts" /> pts.</p>
 		<p><input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>

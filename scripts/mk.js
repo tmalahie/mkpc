@@ -2876,7 +2876,8 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "pow" :
-			addNewItem(oKart, {type:"pow", owner:oKart.id});
+			if (canSpawnPow())
+				addNewItem(oKart, {type: "pow", owner: oKart.id});
 			break;
 		}
 
@@ -7913,14 +7914,6 @@ var itemBehaviors = {
 			}
 
 			if (!fSprite.sprites) {
-				// don't remove pow if previous pow is in its waiting animation
-				const shouldDelete = (items.pow.length > 1 && itemDistribution.powx2 != 1) ||
-									 (items.pow.length === 2 && items.pow[0].countstate < 9);
-
-				if (shouldDelete) {
-					detruit(fSprite);
-					return;
-				}
 				fSprite.countdown = 0;
 				fSprite.countstate = 0;
 				let oKartOwner = aKarts.find(function(oKartOwner) {
@@ -8439,7 +8432,7 @@ var itemBehaviors = {
 					fSprite.vy = cSpeed * Math.cos(theta);
 					delete fSprite.rail;
 				}
-				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+				else if ((isMoving && tombe(roundX1, roundY1) && fSprite.z == 0) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, fSprite.z, oSpriteExcept) || touche_crouge(roundX2, roundY2, fSprite.z, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSprite.z, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSprite.z, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
@@ -8480,7 +8473,6 @@ var itemBehaviors = {
 					}
 					else
 						detruit(fSprite);
-					break;
 				}
 
 				if (isMoving && (i%2) && !fSprite.z && handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)))
@@ -8574,14 +8566,15 @@ var itemBehaviors = {
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
-			function canTarget(fSprite, oKart) {
+			function canRedTargetPlayer(fSprite, oKart) {
 				if (!oKart) return false;
 				const isOwner = oKart.id == fSprite.owner;
 				const isHurt = oKart.tourne;
 				const fellOff = oKart.fell;
 				const inCannon = oKart.cannon;
 				const isDead = oKart.loose;
-				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead);
+				const heightDiff = Math.abs(oKart.z - fSprite.z);
+				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead && heightDiff < 18);
 			}
 
 			var fNewPosX;
@@ -8642,7 +8635,7 @@ var itemBehaviors = {
 						var tCible = aKarts.find(function(oKart) {
 							return oKart.id == fSprite.target;
 						});
-						if (!canTarget(fSprite, tCible)) {
+						if (!canRedTargetPlayer(fSprite, tCible)) {
 							fSprite.target = -1;
 							return;
 						}
@@ -8770,7 +8763,7 @@ var itemBehaviors = {
 
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
-								if (canTarget(fSprite, pCible)) {
+								if (canRedTargetPlayer(fSprite, pCible)) {
 									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
@@ -8872,7 +8865,7 @@ var itemBehaviors = {
 				collisionItem = fSprite;
 				collisionFloor = null;
 				collisionLap = getItemCollisionLap(fSprite);
-				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, z0))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, null, z0))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSprite.z, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSprite.z, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, fSprite, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, fSprite.z, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -8893,7 +8886,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if ((oKart.z < maxItemHitboxZ) && touche_crouge_aux(oKart.x,oKart.y, fSprite)) {
+			if ((oKart.z < maxItemHitboxZ) && touche_crouge_aux(oKart.x,oKart.y,oKart.z, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team))
 					handleHardHit(getId);
 			}
@@ -15919,7 +15912,7 @@ function showChallengeRewardPopup(reward) {
 	oDiv.style.fontSize = (iScreenScale*2) +"px";
 	oDiv.style.opacity = 0;
 	var challengeTitle = language ? 'New character unlocked!':'Nouveau perso débloqué !';
-	var challengeCongrats = language ? 'You can now play with <strong>'+ reward.name +'</strong>!':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
+	var challengeCongrats = language ? 'You can now play as <strong>'+ reward.name +'</strong>!':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
 	var challengeImg = document.createElement("img");
 	challengeImg.src = getSpriteSrc(reward.sprites);
 	challengeImg.alt = reward.name;
@@ -16210,18 +16203,19 @@ var itemDistributions = {
 			"fauxobjet": 4,
 			"banane": 5,
 			"carapacerouge": 1,
-			"carapace": 4
+			"carapace": 4,
+			"poison": 3
 		}, {
+			"banane": 1,
 			"carapace": 4,
 			"carapacerouge": 7,
 			"bobomb": 2,
-			"bananeX3": 1
+			"bananeX3": 1,
+			"poison": 1
 		}, {
-			"carapace": 1,
 			"bobomb": 2,
 			"carapace": 4,
 			"carapaceX3": 2,
-			"banane": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 4
 		}, {
@@ -16235,12 +16229,13 @@ var itemDistributions = {
 			"bloops": 1
 		}]
 	}, {
-		name: toLanguage("Explosive mode", "Mode explosif"),
+		name: toLanguage("Frantic mode", "Mode explosif"),
 		value: [{
-			"fauxobjet": 1,
+			"fauxobjet": 2,
 			"banane": 3,
 			"carapacerouge": 3,
-			"carapace": 5
+			"carapace": 5,
+			"poison": 1
 		}, {
 			"bananeX3": 1,
 			"carapacerouge": 12,
@@ -16390,7 +16385,7 @@ var itemDistributions = {
 			"champior": 5
 		}]
 	}, {
-		name: toLanguage("Aggressive mode", "Mode explosif"),
+		name: toLanguage("Frantic mode", "Mode explosif"),
 		"value": [{
 			"fauxobjet": 5,
 			"banane": 2,
@@ -16787,20 +16782,21 @@ function touche_fauxobjet(iX, iY, iP) {
 	return false;
 }
 
-function touche_cverte(iX, iY, iP) {
+function touche_cverte(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace"].length;i++) {
 		var oBox = items["carapace"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (touche_cverte_aux(iX,iY, oBox))
+			if (touche_cverte_aux(iX,iY,iZ, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_cverte_aux(iX,iY, oBox) {
+function touche_cverte_aux(iX,iY,iZ, oBox) {
 	const size = 4;
-	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
+	const heightDiff = Math.abs(oBox.z - iZ);
+	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size && heightDiff < 5) {
 		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
@@ -16809,7 +16805,7 @@ function touche_cverte_aux(iX,iY, oBox) {
 	return false;
 }
 
-function touche_cverte_future(iX, iY, iP) {
+function touche_cverte_future(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	var steps = 4;
 	var relSpeed = cappedRelSpeed()/steps;
@@ -16819,7 +16815,7 @@ function touche_cverte_future(iX, iY, iP) {
 			for (var j=1;j<=steps;j++) {
 				var fMoveX = oBox.vx*j*relSpeed, fMoveY = oBox.vy*j*relSpeed;
 				var fNewPosX = iX - fMoveX, fNewPosY = iY - fMoveY;
-				if (touche_cverte_aux(fNewPosX,fNewPosY, oBox))
+				if (touche_cverte_aux(fNewPosX,fNewPosY,iZ, oBox))
 					return (collisionTeam!=oBox.team);
 			}
 		}
@@ -16827,34 +16823,35 @@ function touche_cverte_future(iX, iY, iP) {
 	return false;
 }
 
-function touche_crouge(iX, iY, iP) {
+function touche_crouge(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
 		if ((iP.indexOf(oBox) == -1)) {
-			if (touche_crouge_aux(iX,iY, oBox))
+			if (touche_crouge_aux(iX,iY,iZ, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_crouge_future(iX, iY, iP) {
+function touche_crouge_future(iX, iY, iZ, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z && (oBox.owner == 0) && (oBox.aipoint == -2)) {
 			var fMoveX = oBox.vx/2, fMoveY = oBox.vy/2;
 			var fNewPosX = iX - fMoveX, fNewPosY = iY - fMoveY;
-			if (touche_crouge_aux(fNewPosX,fNewPosY, oBox))
+			if (touche_crouge_aux(fNewPosX,fNewPosY,iZ, oBox))
 				return (collisionTeam!=oBox.team);
 		}
 	}
 	return false;
 }
-function touche_crouge_aux(iX,iY, oBox) {
+function touche_crouge_aux(iX,iY,iZ, oBox) {
 	var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
 	const size = 4;
-	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y && oBox.z < 1.2)) {
+	
+	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size && iZ < 1.2) : (iX == oBox.x && iY == oBox.y)) {
 		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
@@ -17018,6 +17015,27 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 	            hopKart(oKart);
         }
     }
+}
+
+function canSpawnPow() {
+	// if more than 1 POW allowed
+	if (itemDistribution.powx2 === 1)
+		return true;
+
+	// if no POW in play
+	if (items.pow.length === 0)
+		return true;
+
+	// if POW in play but in its ending phase
+	if (isLastPowDisappearing())
+		return true;
+
+	return false;
+}
+
+// if last POW on screen is in its disappearing phase
+function isLastPowDisappearing() {
+	return items.pow.length > 0 && items.pow[items.pow.length - 1].countstate === 9;
 }
 
 function dropBoxDecorLoot(obj, pos, distrib) {
@@ -18461,6 +18479,7 @@ function move(getId, triggered) {
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
+		var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
@@ -18476,12 +18495,10 @@ function move(getId, triggered) {
 					setStarState(oKart, 80);
 				}
 
-				var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
-
 				var cc = fSelectedClass;
 				if (oKart.rail) cc *= 2;
 
-				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKartItems))))
+				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems))))
 					if (!oKart.protect && !oKart.frminv)
 						handleHardHit(getId);
 				if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
@@ -18612,6 +18629,13 @@ function move(getId, triggered) {
 				}
 			}
 		}
+		if ((touche_cverte(fNewPosX, fNewPosY, oKart.z, oKartItems) || touche_cverte(oKart.x, oKart.y, oKart.z, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKart.z, oKartItems))))
+			if (!oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
+
+		if (touche_crouge(oKart.x, oKart.y, oKart.z, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKart.z, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKart.z, oKartItems)))
+			if (!oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
 	}
 
 	var rScroller, rHeight, rSize;
@@ -18686,7 +18710,7 @@ function move(getId, triggered) {
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
 						forbiddenItems["bloops"] = 1;
-					if (items.pow.length || nextPowCooldown > 0)
+					if ((items.pow.length && !isLastPowDisappearing()) || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
 					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
 						if (oKart.arme === "champiX2")
@@ -26337,7 +26361,8 @@ function selectItemScreen(oScr, callback, options) {
 		var oImg = document.createElement("img");
 		oImg.src = "images/items/"+possibleItems[i]+".png";
 		oImg.alt = possibleItems[i];
-		oImg.style.width = (iScreenScale*2) +"px";
+		oImg.style.height = (iScreenScale*2) +"px";
+		oImg.style.marginTop = iScreenScale +"px";
 		oTd.appendChild(oImg);
 		oTr.appendChild(oTd);
 	}
@@ -26577,97 +26602,70 @@ function selectItemScreen(oScr, callback, options) {
 		oMoreOptions.style.top = -Math.round(iScreenScale/4)+"px";
 		oMoreOptions.style.fontSize = Math.round(iScreenScale*2) +"px";
 		oMoreOptions.onclick = function(e) {
+			function initHtmlBtnToggle(button) {
+				button.onclick = (event) => {
+					event.currentTarget.classList.toggle("item-options-active");
+				};
+			}
+
+			function getItemBtnHtml(imgPath, paramName) {
+				const itemBtnCss = "width: "+(iScreenScale * 2)+"px; height: "+(iScreenScale * 2)+"px; padding: "+(iScreenScale / 2)+"px";
+				return `<div id="${paramName}" class="item-options-item" style="${itemBtnCss}"> <img src="images/items/${imgPath}" style="width: 100%;"> </div>`;
+			}
+
 			e.preventDefault();
 			var oOptionsScreen = document.createElement("div");
 			oOptionsScreen.className = "fsmask item-options-screen";
 			oOptionsScreen.style.fontSize = (iScreenScale*2) +"px";
-			oOptionsScreen.innerHTML = '<form>'+
+			oOptionsScreen.innerHTML = '<div class="item-options-fakeform">'+
 				'<div class="item-options">'+
 					'<div class="item-optgroup">'+
 						'<div class="item-option">'+
-							'<label for="item-options-algorithm">'+ toLanguage("Distribution based on", "Distribution basée sur") +'</label>'+
+							'<label for="algorithm">'+ toLanguage("Distribution based on", "Distribution basée sur") +'</label>'+
 							'<div>'+
-								'<select id="item-options-algorithm" name="algorithm">'+
+								'<select id="algorithm">'+
 									'<option value="rank">'+ toLanguage("Player rank", "Position du joueur") +'</option>'+
 									'<option value="dist">'+ toLanguage("Distance to 1st", "Distance au 1er") +'</option>'+
-									'<option value="">'+ toLanguage("Rank+distance", "Position+distance") +'</option>'+
+									'<option value="">'+ toLanguage("Rank + distance", "Position + distance") +'</option>'+
 								'</select>'+
 							'</div>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+
-						'<h2>'+ toLanguage("Concurrent items", "Objets simultanés") +'</h2>'+
+						'<h2>Specific item settings</h2>'+
+						'<h4 class="item-options-text">'+ toLanguage("Prevent 2 items to be in play at once:", "Empêcher 2 objets d'être en jeu en même temps :") +'</h4>'+
+						'<div class="item-options-itemgroup">'+
+							getItemBtnHtml("pow.png", "prevent-pow-x2")+
+							getItemBtnHtml("carapacebleue.png", "prevent-blueshell-x2")+
+							getItemBtnHtml("eclair.png", "prevent-lightning-x2")+
+						'</div>'+
+
+						'<h4 class="item-options-text">'+ toLanguage("30s cooldown after use:", "30s de délai après utilisation :") + '</h4>'+
+						'<div class="item-options-itemgroup">'+
+							getItemBtnHtml("pow.png", "pow-cooldown")+
+							getItemBtnHtml("carapacebleue.png", "blueshell-cooldown")+
+							getItemBtnHtml("eclair.png", "lightning-cooldown")+
+						'</div>'+
+
+						'<h4 class="item-options-text">'+ toLanguage("Prevent appearing before 25s:", "Aucune apparition aux premières 25s :") + '</h4>'+
+						'<div class="item-options-itemgroup">'+
+							getItemBtnHtml("pow.png", "pow-start")+
+							getItemBtnHtml("carapacebleue.png", "blueshell-start")+
+							getItemBtnHtml("eclair.png", "lightning-start")+
+						'</div>'+
+						'<br>'+
+						'<h2>Other settings</h2>'+
 						'<div class="item-option">'+
 							'<div>'+
-								'<input type="checkbox" id="item-options-pow" name="prevent-pow-x2" />'+
+								'<input type="checkbox" id="lightning-last" />'+
 							'</div>'+
-							'<label for="item-options-pow">'+ toLanguage("Prevent 2 players from having a POW block", "Empêcher 2 joueurs d'avoir un block POW") +'</label>'+
+							'<label for="lightning-last">'+ toLanguage("Only player in last position can get a lightning", "Seul le dernier joueur peut avoir un éclair") +'</label>'+
 						'</div>'+
 						'<div class="item-option">'+
 							'<div>'+
-								'<input type="checkbox" id="item-options-blueshell" name="prevent-blueshell-x2" />'+
+								'<input type="checkbox" id="prevent-doubleitem-x2" />'+
 							'</div>'+
-							'<label for="item-options-blueshell">'+ toLanguage("Prevent 2 players from having a blue shell", "Empêcher 2 joueurs d'avoir une carapace bleue") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning" name="prevent-lightning-x2" />'+
-							'</div>'+
-							'<label for="item-options-lightning">'+ toLanguage("Prevent 2 players from having a lightning item", "Empêcher 2 joueurs d'avoir un éclair") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning-1" name="lightning-last" />'+
-							'</div>'+
-							'<label for="item-options-lightning-1">'+ toLanguage("Only player in last position can get a lightning item", "Seul le dernier joueur peut avoir un éclair") +'</label>'+
-						'</div>'+
-					'</div>'+
-					'<div class="item-optgroup">'+
-						'<h2>'+ toLanguage("Cooldown", "Cooldown") +'</h2>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-pow2" name="pow-cooldown" />'+
-							'</div>'+
-							'<label for="item-options-pow2">'+ toLanguage("Min time frame of 30s between 2 POW blocks", "Empêcher 2 blocks POW à moins de 30s d'intervalle") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-blueshell2" name="blueshell-cooldown" />'+
-							'</div>'+
-							'<label for="item-options-blueshell2">'+ toLanguage("Min time frame of 30s between 2 blue shells", "Empêcher 2 carapaces bleues à moins de 30s d'intervalle") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning2" name="lightning-cooldown" />'+
-							'</div>'+
-							'<label for="item-options-lightning2">'+ toLanguage("Min time frame of 30s between 2 lightnings", "Empêcher 2 éclairs à moins de 30s d'intervalle") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-pow0" name="pow-start" />'+
-							'</div>'+
-							'<label for="item-options-pow0">'+ toLanguage("No POW block before 25s of race", "Pas de block POW avant 25s de course") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-blueshell0" name="blueshell-start" />'+
-							'</div>'+
-							'<label for="item-options-blueshell0">'+ toLanguage("No blue shell before 25s of race", "Pas de carapace bleue avant 25s de course") +'</label>'+
-						'</div>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-lightning0" name="lightning-start" />'+
-							'</div>'+
-							'<label for="item-options-lightning0">'+ toLanguage("No lightning item before 25s of race", "Pas d'éclair avant 25s de course") +'</label>'+
-						'</div>'+
-					'</div>'+
-					'<div class="item-optgroup">'+
-						'<h2>'+ toLanguage("Double items", "Double objets") +'</h2>'+
-						'<div class="item-option">'+
-							'<div>'+
-								'<input type="checkbox" id="item-options-doubleitem" name="prevent-doubleitem-x2" />'+
-							'</div>'+
-							'<label for="item-options-doubleitem">'+ toLanguage("Prevent a player from having twice the same item", "Empêcher un joueur d'avoir le même objet en double") +'</label>'+
+							'<label for="prevent-doubleitem-x2">'+ toLanguage("Prevent a player from having twice the same item", "Empêcher un joueur d'avoir le même objet en double") +'</label>'+
 						'</div>'+
 					'</div>'+
 				'</div>'+
@@ -26675,34 +26673,72 @@ function selectItemScreen(oScr, callback, options) {
 					'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
 					'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
 				'</siv>'+
-			'</form>';
+			'</div>';
+
 			oOptionsScreen.querySelector(".item-submit a").onclick = function() {
 				oScr2.removeChild(oOptionsScreen);
 				return false;
 			};
-			var $form = oOptionsScreen.querySelector("form");
-			$form.onsubmit = function(e) {
-				e.preventDefault();
-				for (var key in advancedOptions) {
-					var $input = $form.elements[key];
-					if ($input.type === "checkbox")
-						advancedOptions[key] = $input.checked;
-					else
-						advancedOptions[key] = $input.value;
+
+			// save params
+			oOptionsScreen.querySelector(".item-submit input[type='submit']").onclick = function() {
+				for (const key in advancedOptions) {
+					const elem = oOptionsScreen.querySelector(`#${key}`);
+
+					switch (elem.tagName) {
+						case "SELECT":
+							advancedOptions[key] = elem[elem.selectedIndex].value;
+							break;
+
+						case "INPUT":
+							advancedOptions[key] = elem.checked;
+							break;
+
+						case "DIV":
+							advancedOptions[key] = elem.classList.contains("item-options-active");
+							break;
+
+						default:
+							break;
+					}
 				}
 				oScr2.removeChild(oOptionsScreen);
 			};
-			for (var key in advancedOptions) {
-				var $input = $form.elements[key];
-				if (options.readOnly)
-					$input.disabled = true;
-				if ($input.type === "checkbox")
-					$input.checked = !!advancedOptions[key];
-				else
-					$input.value = advancedOptions[key];
+
+			// init buttons event
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#prevent-pow-x2"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#prevent-blueshell-x2"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#prevent-lightning-x2"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#pow-cooldown"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#blueshell-cooldown"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#lightning-cooldown"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#pow-start"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#blueshell-start"));
+			initHtmlBtnToggle(oOptionsScreen.querySelector("#lightning-start"));
+
+			// init params
+			for (const key in advancedOptions) {
+				const elem = oOptionsScreen.querySelector(`#${key}`);
+
+				switch (elem.tagName) {
+					case "SELECT":
+						elem.value = advancedOptions[key];
+						break;
+
+					case "INPUT":
+						if (advancedOptions[key])
+							elem.checked = true;
+						break;
+
+					case "DIV":
+						if (advancedOptions[key])
+							elem.classList.toggle("item-options-active");
+						break;
+
+					default:
+						break;
+				}
 			}
-			if (options.readOnly)
-				oOptionsScreen.querySelector('.item-submit input[type="submit"]').style.display = "none";
 			oScr2.appendChild(oOptionsScreen);
 		}
 		oSetForm.appendChild(oMoreOptions);

@@ -206,7 +206,7 @@ else {
 <p><?php
 if ($language) {
 	?>
-Characters on the map <img src="images/pieces/piececircuit_s2.png" alt="perso" style="width: 14px; cursor: default" /> are used to define start positions of players and their direction (double-clic on the image to change direction).<br />
+Characters on the map <img src="images/pieces/piececircuit_s2.png" alt="perso" style="width: 14px; cursor: default" /> are used to define start positions of players and their direction (double-click on the image to change direction).<br />
 The P1, P2, P3, P4, P5, P6, P7 and P8 define the position used for when you play with less than 8 players.<br />
 For instance, if you play with only 4 participants, players start at position P1, P2, P3 and P4.
 Note that you control the P1 player.

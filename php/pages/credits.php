@@ -91,7 +91,7 @@ include('../includes/menu.php');
                 'base_url' => 'https://downloads.khinsider.com/',
                 'res_url' => 'https://downloads.khinsider.com/search?search=mario+kart',
                 'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'musics':'musiques'
+                'description' => $language ? 'music':'musiques'
             )
         ),
         ($language ? 'Other resources - Sprites':'Autres ressources - Sprites') => array(
@@ -152,7 +152,7 @@ include('../includes/menu.php');
             array(
                 'author' => 'Red5Pizza',
                 'base_url' => 'profil.php?id=8113',
-                'for' => $language ? 'for':'pour les',
+                'for' => $language ? 'for the':'pour les',
                 'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bullet Bill</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Rosalina</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Harmonie</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
             ),
             array(
@@ -188,7 +188,7 @@ include('../includes/menu.php');
             array(
                 'author' => 'Kernell',
                 'base_url' => 'profil.php?id=142461',
-                'for' => $language ? 'for':'pour les',
+                'for' => $language ? 'for the':'pour les',
                 'description' => $language ? 'sprites of <a href="images/sprites/sprite_bobomb.png">bob-omb</a>, <a href="images/sprites/sprite_carapace-rouge.png">red shell</a>, and <a href="images/sprites/sprite_poison.png">poison</a>':'sprites du <a href="images/sprites/sprite_bobomb.png">bob-omb</a>, de la <a href="images/sprites/sprite_carapace-rouge.png">carapace rouge</a> et du <a href="images/sprites/sprite_poison.png">poison</a>'
             ),
             array(
@@ -199,7 +199,7 @@ include('../includes/menu.php');
                 'description' => $language ? 'blue shell\'s sprite':'sprite de la carapace bleue'
             )
         ),
-        ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
+        ($language ? 'Other resources - Music':'Autres ressources - Musiques') => array(
             array(
                 'author_raw' => '<strong>Teck</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
