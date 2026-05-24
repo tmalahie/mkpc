@@ -618,7 +618,7 @@ if (isset($_GET['i'])) {
 					</div>
 					<div class="form-row">
 						<label><input type="checkbox" id="custom-offroad-slippery" onchange="toggleCustomOffroadSlippery(this.checked)" />
-						<?php echo $language ? 'Slippery':'Glissant'; ?></label>
+						<?php echo $language ? 'Slippery':'Sol glissant'; ?></label>
 					</div>
 					<div class="form-row" id="custom-offroad-slippery-factor-row">
 						<label><?php echo $language ? 'Slippery factor:':'Facteur de glissance :'; ?>
@@ -627,7 +627,7 @@ if (isset($_GET['i'])) {
 					</div>
 					<div class="form-row">
 						<label><input type="checkbox" id="custom-offroad-drifting" />
-						<?php echo $language ? 'Drifting enabled':'Dérapage activé'; ?></label>
+						<?php echo $language ? 'Drifting enabled':'Dérapages activés'; ?></label>
 					</div>
 					<div class="popup-buttons">
 						<button class="options" onclick="backCustomOffroadProfileForm()"><?php echo $language ? 'Back':'Retour'; ?></button>
