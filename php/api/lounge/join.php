@@ -76,5 +76,5 @@ mysql_query('COMMIT');
 
 lounge_update_queue_status($queueId);
 
-echo json_encode(array('queue' => lounge_queue_state($queueId)));
+echo json_encode(array('queue' => lounge_queue_state($queueId, $id)));
 mysql_close();
