@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-async function login(page) {
+async function login(page, pseudo = 'wargor', code = 'aaaa') {
 	const res = await page.request.post('http://127.0.0.1:8080/api/testcode.php', {
-		form: { pseudo: 'wargor', code: 'aaaa' },
+		form: { pseudo, code },
 	});
 	const body = await res.text();
 	expect(Number(body)).toBeGreaterThan(0);
@@ -12,6 +12,10 @@ async function login(page) {
 		const [name, value] = pair.split('=');
 		await page.context().addCookies([{ name, value, domain: '127.0.0.1', path: '/' }]);
 	}
+}
+
+async function resetLoungeState(request) {
+	await request.post('http://127.0.0.1:8080/api/lounge/leave.php');
 }
 
 test('lounge page renders tiers for logged-in user', async ({ page }) => {
@@ -43,6 +47,43 @@ test('lounge page is gated when logged out', async ({ page }) => {
 	await page.goto('http://127.0.0.1:8080/lounge.php');
 	await expect(page.locator('.lounge-gate')).toBeVisible();
 	await expect(page.locator('#lounge')).toHaveCount(0);
+});
+
+test('joining a tier transitions to the waiting screen and dropping returns', async ({ page }) => {
+	await login(page);
+	await resetLoungeState(page.request);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	const joinAll = page.locator('.lounge-tier').nth(0).locator('.lounge-tier-join');
+	await expect(joinAll).toBeEnabled();
+	await joinAll.click();
+
+	const waiting = page.locator('#lounge-queueup');
+	await expect(waiting).toBeVisible();
+	await expect(waiting.locator('.lounge-waiting-header h2')).toContainText('All');
+	await expect(waiting.locator('.lounge-member')).toHaveCount(1);
+	await expect(waiting.locator('.lounge-member.is-self')).toHaveCount(1);
+
+	const drop = waiting.locator('.lounge-drop');
+	await expect(drop).toBeVisible();
+	await drop.click();
+
+	await expect(page.locator('#lounge-tiers')).toBeVisible();
+	await expect(page.locator('#lounge-queueup')).toBeHidden();
+});
+
+test('reopening lounge while queued shows waiting view directly', async ({ page }) => {
+	await login(page);
+	await resetLoungeState(page.request);
+
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	expect((await joined.json()).queue).toBeTruthy();
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('#lounge-queueup')).toBeVisible();
+	await expect(page.locator('#lounge-tiers')).toBeHidden();
+
+	await resetLoungeState(page.request);
 });
 
 test('Ranked button opens the lounge overlay from online.php', async ({ page }) => {
