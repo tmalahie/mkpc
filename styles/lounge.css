@@ -197,3 +197,95 @@ a {
 	color: #f0c92e;
 	margin-top: 0;
 }
+
+.lounge-waiting {
+	max-width: 560px;
+	margin: 0 auto;
+}
+
+.lounge-waiting-header h2 {
+	margin: 0;
+	color: #f0c92e;
+	font-size: 22px;
+}
+
+.lounge-waiting-count {
+	margin: 4px 0 16px;
+	color: #c9cbd3;
+	font-size: 14px;
+}
+
+.lounge-waiting-status {
+	background: #1f2128;
+	border: 1px solid #2a2c33;
+	border-radius: 6px;
+	padding: 10px 14px;
+	margin: 0 0 16px;
+	color: #c9cbd3;
+	font-size: 13px;
+}
+
+.lounge-member-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 16px;
+}
+
+.lounge-member {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 14px;
+	background: #1a1c22;
+	border: 1px solid #2a2c33;
+	border-radius: 6px;
+	margin-bottom: 6px;
+}
+
+.lounge-member.is-self {
+	border-color: #E65130;
+}
+
+.lounge-member-name {
+	color: #fff;
+	font-weight: 600;
+}
+
+.lounge-member-mmr {
+	color: #8a8d96;
+	font-size: 12px;
+}
+
+.lounge-waiting-actions {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.lounge-drop {
+	appearance: none;
+	border: 1px solid #ff5a5a;
+	background: transparent;
+	color: #ff5a5a;
+	padding: 8px 18px;
+	border-radius: 4px;
+	font-size: 13px;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+}
+
+.lounge-drop:hover:not(:disabled) {
+	background: #ff5a5a;
+	color: #fff;
+}
+
+.lounge-drop:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.lounge-waiting-note {
+	margin: 0;
+	color: #8a8d96;
+	font-size: 12px;
+	font-style: italic;
+}
