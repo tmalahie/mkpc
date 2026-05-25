@@ -546,6 +546,50 @@ function selectCpuDriver(cpuIndex) {
 		});
 	};
 }
+function selectCustomCc(initialCc, initialMirror, onSubmit, onCancel) {
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask editor-mask-dark";
+	document.body.appendChild($mask);
+	var cancelled = true;
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		if ($mask.parentNode) document.body.removeChild($mask);
+		if (cancelled && onCancel) onCancel();
+	}
+	function hideOnEscape(e) {
+		if (e.keyCode === 27) closeMask();
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$mask.onclick = closeMask;
+
+	var $selector = document.createElement("div");
+	$selector.className = "editor-mask-content gp-cc-custom";
+	var defaultCc = (initialCc != null) ? initialCc : 150;
+	var defaultMirror = initialMirror ? ' checked="checked"' : "";
+	$selector.innerHTML = '<h3>'+ (language ? "Custom engine class" : "Cylindrée personnalisée") +'</h3>'
+		+ '<a class="perso-selection-close" href="javascript:void(0)">&times;</a>'
+		+ '<form class="gp-cc-custom-form">'
+			+ '<label><span>'+ (language ? "Class:" : "Cylindrée :") +'</span> <input type="number" name="cc" value="'+ defaultCc +'" required="required" min="1" max="999" />cc</label>'
+			+ '<label><input type="checkbox" name="mirror"'+ defaultMirror +' /> '+ (language ? "Mirror" : "Miroir") +'</label>'
+			+ '<div class="gp-cc-custom-actions"><button type="submit">Ok</button></div>'
+		+ '</form>';
+	$selector.onclick = function(e) { e.stopPropagation(); };
+	$selector.querySelector(".perso-selection-close").onclick = closeMask;
+	$mask.appendChild($selector);
+
+	var $form = $selector.querySelector("form");
+	$form.onsubmit = function(e) {
+		e.preventDefault();
+		var newCc = parseInt($form.elements["cc"].value, 10);
+		if (isNaN(newCc) || newCc < 1) return;
+		var newMirror = $form.elements["mirror"].checked;
+		cancelled = false;
+		closeMask();
+		onSubmit(newCc, newMirror);
+	};
+	$form.elements["cc"].focus();
+	$form.elements["cc"].select();
+}
 function updateGpOptionsGUI() {
 	var $gpOptions = document.getElementById("gp-options");
 	if (!$gpOptions) return;
@@ -605,11 +649,39 @@ function updateGpOptionsGUI() {
 	var $cc = document.createElement("select");
 	var ccRaw = (gpOpts.cc != null) ? (gpOpts.cc + (gpOpts.mirror ? "m":"")) : "";
 	var ccSelected = (ccRaw === "150") ? "" : ccRaw;
+	var ccIsStandard = false;
 	for (var i=0;i<gpCcOptions.length;i++) {
 		var ccIsDefault = (gpCcOptions[i].value === "150");
-		appendOption($cc, ccIsDefault ? "" : gpCcOptions[i].value, ccIsDefault ? gpDefaultLabel(gpCcOptions[i].label) : gpCcOptions[i].label, ccSelected);
+		var ccOptValue = ccIsDefault ? "" : gpCcOptions[i].value;
+		if (ccOptValue === ccSelected) ccIsStandard = true;
+		appendOption($cc, ccOptValue, ccIsDefault ? gpDefaultLabel(gpCcOptions[i].label) : gpCcOptions[i].label, ccSelected);
 	}
+	if (ccSelected !== "" && !ccIsStandard) {
+		var ccMirrored = (ccSelected.charAt(ccSelected.length-1) === "m");
+		var ccNum = parseInt(ccSelected, 10);
+		var ccCustomLabel = (language ? "Custom (" : "Personnalisé (") + ccNum + "cc" + (ccMirrored ? (language ? " mirror" : " miroir") : "") + ")";
+		appendOption($cc, ccSelected, ccCustomLabel, ccSelected);
+	}
+	appendOption($cc, "__custom__", customLabel, "");
 	$cc.onchange = function() {
+		if (this.value === "__custom__") {
+			selectCustomCc(gpOpts.cc, gpOpts.mirror, function(newCc, newMirror) {
+				if (newCc === 150 && !newMirror) {
+					gpOpts.cc = null;
+					gpOpts.mirror = null;
+				}
+				else {
+					gpOpts.cc = newCc;
+					gpOpts.mirror = newMirror ? 1 : null;
+				}
+				updateGpOptionsGUI();
+				resetCupOptions();
+				updateSubmitMsg();
+			}, function() {
+				updateGpOptionsGUI();
+			});
+			return;
+		}
 		if (this.value === "") {
 			gpOpts.cc = null;
 			gpOpts.mirror = null;
