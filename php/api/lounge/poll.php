@@ -24,5 +24,5 @@ mysql_query(
 	AND dropped_at IS NULL'
 );
 
-echo json_encode(array('player' => $playerState, 'queue' => lounge_queue_state($queue['id'])));
+echo json_encode(array('player' => $playerState, 'queue' => lounge_queue_state($queue['id'], $id)));
 mysql_close();

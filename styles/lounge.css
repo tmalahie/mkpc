@@ -289,3 +289,85 @@ a {
 	font-size: 12px;
 	font-style: italic;
 }
+
+.lounge-vote {
+	margin-top: 8px;
+}
+
+.lounge-vote-hint {
+	margin: 0 0 12px;
+	color: #f0a330;
+	font-size: 12px;
+	font-style: italic;
+}
+
+.lounge-vote-buttons {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 10px;
+}
+
+.lounge-vote-btn {
+	appearance: none;
+	background: #1f2128;
+	color: #fff;
+	border: 1px solid #2a2c33;
+	border-radius: 8px;
+	padding: 14px 8px;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+.lounge-vote-btn:hover:not(:disabled) {
+	border-color: #E65130;
+}
+
+.lounge-vote-btn.is-selected {
+	background: #E65130;
+	border-color: #E65130;
+}
+
+.lounge-vote-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.lounge-vote-label {
+	font-size: 16px;
+	font-weight: 700;
+	color: #f0c92e;
+}
+
+.lounge-vote-btn.is-selected .lounge-vote-label {
+	color: #fff;
+}
+
+.lounge-vote-count {
+	font-size: 11px;
+	color: #8a8d96;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.lounge-vote-btn.is-selected .lounge-vote-count {
+	color: #fff;
+}
+
+.lounge-launching {
+	text-align: center;
+	padding: 60px 20px;
+}
+
+.lounge-launching h2 {
+	color: #f0c92e;
+	margin: 0 0 8px;
+}
+
+.lounge-launching p {
+	color: #c9cbd3;
+	margin: 0;
+}
