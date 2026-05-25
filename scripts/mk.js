@@ -13984,6 +13984,8 @@ function getOffroadProps(oKart,hpType) {
 			if (factor < 0) factor = 0;
 			if (factor > 1) factor = 1;
 			props.sliding = factor * 8;
+			if (strength < 0.4)
+				props.friction = 1 - factor*(0.4-strength)/0.4;
 		}
 		if (entry.drifting)
 			props.drifting = true;
@@ -18451,7 +18453,15 @@ function move(getId, triggered) {
 	if (!oKart.z && !oKart.heightinc) {
 		if (clLocalVars.autoAccelerate && !oKart.cpu)
 			oKart.accelerate();
-		oKart.speed += oKart.speedinc;
+		if (oKart.hpProps && oKart.hpProps.friction != null) {
+			var speedinc = Math.abs(oKart.speedinc);
+			if (speedinc >= 0.2)
+				oKart.speed += oKart.speedinc*(0.14/speedinc+oKart.hpProps.friction*0.4/speedinc*(1-0.14/speedinc));
+			else
+				oKart.speed += oKart.speedinc;
+		}
+		else
+			oKart.speed += oKart.speedinc;
 		if ((isCup && oMap.skin != 22 && oMap.skin != 30) || (!isCup && oMap.smartjump)) {
 			var hpType, hpProps;
 			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && !oKart.protect && !oKart.champi))) {
@@ -18903,8 +18913,17 @@ function move(getId, triggered) {
 	if (collisionFloor)
 		nPosZ0 = collisionFloor.z;
 
-	if (!oKart.speedinc)
-		oKart.speed *= oKart.hpProps && oKart.hpProps.sliding ? 0.95:0.9;
+	if (!oKart.speedinc) {
+		if (oKart.hpProps && oKart.hpProps.sliding) {
+			var friction = oKart.hpProps.friction;
+			if (friction == null)
+				oKart.speed *= 0.95;
+			else
+				oKart.speed *= 0.99 - friction*0.09;
+		}
+		else
+			oKart.speed *= 0.9;
+	}
 
 	if (!oKart.cannon) {
 		if (handleCannon(oKart, inCannon(aPosX,aPosY, oKart.x,oKart.y))) {
