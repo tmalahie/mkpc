@@ -16,7 +16,7 @@ if (!$queue) {
 }
 
 if ($queue['status'] !== 'open') {
-	echo json_encode(array('error' => 'queue_locked', 'queue' => lounge_queue_state($queue['id'])));
+	echo json_encode(array('error' => 'queue_locked', 'queue' => lounge_queue_state($queue['id'], $id)));
 	mysql_close();
 	exit;
 }
