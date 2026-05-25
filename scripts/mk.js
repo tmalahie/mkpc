@@ -25431,9 +25431,80 @@ function selectOnlineScreen(options) {
 	};
 	oScr.appendChild(oPInput);
 
+	var oPInput = document.createElement("input");
+	oPInput.type = "button";
+	oPInput.value = language ? "Ranked (CT Lounge)":"Classé (CT Lounge)";
+	oPInput.style.fontSize = Math.round(2*iScreenScale)+"px";
+	oPInput.style.position = "absolute";
+	oPInput.style.left = (22*iScreenScale)+"px";
+	oPInput.style.top = (32*iScreenScale)+"px";
+	oPInput.style.width = (36*iScreenScale)+"px";
+	oPInput.onclick = function() {
+		openLoungeOverlay();
+	};
+	oScr.appendChild(oPInput);
+
 	oContainers[0].appendChild(oScr);
 
 	updateMenuMusic(0);
+}
+
+window.openLoungeOverlay = openLoungeOverlay;
+function openLoungeOverlay() {
+	if (document.getElementById("lounge-overlay"))
+		return;
+	var oOverlay = document.createElement("div");
+	oOverlay.id = "lounge-overlay";
+	oOverlay.style.position = "fixed";
+	oOverlay.style.left = "0";
+	oOverlay.style.top = "0";
+	oOverlay.style.width = "100%";
+	oOverlay.style.height = "100%";
+	oOverlay.style.backgroundColor = "rgba(0,0,0,0.85)";
+	oOverlay.style.zIndex = "20100";
+	oOverlay.style.display = "flex";
+	oOverlay.style.alignItems = "center";
+	oOverlay.style.justifyContent = "center";
+
+	var oFrame = document.createElement("iframe");
+	oFrame.src = "lounge.php";
+	oFrame.style.width = "min(960px, 95vw)";
+	oFrame.style.height = "min(720px, 92vh)";
+	oFrame.style.border = "1px solid #2a2c33";
+	oFrame.style.borderRadius = "8px";
+	oFrame.style.background = "#15161a";
+	oFrame.style.boxShadow = "0 8px 32px rgba(0,0,0,0.6)";
+	oOverlay.appendChild(oFrame);
+
+	var oClose = document.createElement("button");
+	oClose.type = "button";
+	oClose.textContent = "✕";
+	oClose.title = toLanguage("Close", "Fermer");
+	oClose.style.position = "absolute";
+	oClose.style.top = "16px";
+	oClose.style.right = "16px";
+	oClose.style.width = "36px";
+	oClose.style.height = "36px";
+	oClose.style.fontSize = "18px";
+	oClose.style.background = "#1f2128";
+	oClose.style.color = "#fff";
+	oClose.style.border = "1px solid #2a2c33";
+	oClose.style.borderRadius = "999px";
+	oClose.style.cursor = "pointer";
+	oClose.onclick = closeLoungeOverlay;
+	oOverlay.appendChild(oClose);
+
+	function onKey(e) {
+		if (e.key === "Escape") closeLoungeOverlay();
+	}
+	function closeLoungeOverlay() {
+		document.removeEventListener("keydown", onKey);
+		if (oOverlay.parentNode)
+			oOverlay.parentNode.removeChild(oOverlay);
+	}
+	document.addEventListener("keydown", onKey);
+
+	document.body.appendChild(oOverlay);
 }
 
 function onlineModeLink() {
