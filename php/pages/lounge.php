@@ -40,6 +40,7 @@ var mId = <?php echo $id ? intval($id) : 'null'; ?>;
 			<span class="lounge-loading"><?php echo $language ? 'Loading...':'Chargement...'; ?></span>
 		</div>
 		<div class="lounge-tiers" id="lounge-tiers"></div>
+		<div class="lounge-waiting" id="lounge-queueup" style="display:none"></div>
 	</section>
 
 	<section class="lounge-tabpanel" data-panel="howitworks">
