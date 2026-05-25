@@ -154,6 +154,12 @@
 	function renderWaiting(queue) {
 		var container = $('lounge-queueup');
 		if (!container) return;
+
+		if (queue.status === 'launched' && queue.privgame_key) {
+			renderLaunching(container, queue);
+			return;
+		}
+
 		container.innerHTML = '';
 
 		var header = document.createElement('div');
@@ -171,14 +177,23 @@
 				'En attente d\'autres joueurs… vous pouvez encore quitter.'
 			);
 		} else if (queue.status === 'locked') {
-			status.textContent = toLanguage(
-				'Queue locked. The game will start soon.',
-				'File verrouillée. La partie va bientôt commencer.'
-			);
+			var lockLeft = queue.lock_seconds_left;
+			if (lockLeft !== null) {
+				status.textContent = toLanguage(
+					'Queue locked. Voting starts in ' + formatCountdown(lockLeft) + '.',
+					'File verrouillée. Le vote commence dans ' + formatCountdown(lockLeft) + '.'
+				);
+			} else {
+				status.textContent = toLanguage(
+					'Queue locked. Voting starts soon.',
+					'File verrouillée. Le vote commence bientôt.'
+				);
+			}
 		} else if (queue.status === 'voting') {
+			var voteLeft = queue.vote_seconds_left;
 			status.textContent = toLanguage(
-				'Voting on the game mode…',
-				'Vote du mode de jeu en cours…'
+				'Vote the game mode (' + formatCountdown(voteLeft) + ' left)',
+				'Votez pour le mode de jeu (' + formatCountdown(voteLeft) + ' restant)'
 			);
 		}
 		container.appendChild(status);
@@ -195,6 +210,14 @@
 		}
 		container.appendChild(list);
 
+		if (queue.status === 'voting') {
+			container.appendChild(renderVoteSection(queue));
+		} else {
+			container.appendChild(renderQueueActions(queue));
+		}
+	}
+
+	function renderQueueActions(queue) {
 		var actions = document.createElement('div');
 		actions.className = 'lounge-waiting-actions';
 		if (queue.status === 'open') {
@@ -213,7 +236,83 @@
 			);
 			actions.appendChild(note);
 		}
-		container.appendChild(actions);
+		return actions;
+	}
+
+	function renderVoteSection(queue) {
+		var section = document.createElement('div');
+		section.className = 'lounge-vote';
+		var hint = document.createElement('p');
+		hint.className = 'lounge-vote-hint';
+		hint.textContent = toLanguage(
+			'Not voting on time counts as a strike and cancels the match.',
+			'Ne pas voter à temps compte comme un strike et annule la partie.'
+		);
+		section.appendChild(hint);
+
+		var btns = document.createElement('div');
+		btns.className = 'lounge-vote-buttons';
+		for (var i = 0; i < queue.allowed_modes.length; i++) {
+			var mode = queue.allowed_modes[i];
+			var voteCount = queue.votes && queue.votes[mode] ? queue.votes[mode] : 0;
+			var btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'lounge-vote-btn'
+				+ (queue.my_vote === mode ? ' is-selected' : '');
+			btn.setAttribute('data-mode', mode);
+			btn.innerHTML = '<span class="lounge-vote-label"></span>'
+				+ '<span class="lounge-vote-count">' + voteCount + '</span>';
+			btn.querySelector('.lounge-vote-label').textContent = mode;
+			btn.addEventListener('click', onVoteClick);
+			btns.appendChild(btn);
+		}
+		section.appendChild(btns);
+		return section;
+	}
+
+	function renderLaunching(container, queue) {
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-launching';
+		box.innerHTML = '<h2></h2><p></p>';
+		box.querySelector('h2').textContent = toLanguage('Match found!', 'Partie trouvée !');
+		box.querySelector('p').textContent = toLanguage(
+			'Launching the game…',
+			'Lancement de la partie…'
+		);
+		container.appendChild(box);
+
+		var url = 'online.php?mid=' + queue.multicup_id + '&key=' + queue.privgame_key;
+		setTimeout(function() {
+			if (window.parent && window.parent !== window) {
+				window.parent.location.href = url;
+			} else {
+				window.location.href = url;
+			}
+		}, 1200);
+	}
+
+	function formatCountdown(seconds) {
+		if (seconds === null || seconds === undefined) return '–';
+		if (seconds < 60) return seconds + 's';
+		var m = Math.floor(seconds / 60);
+		var s = seconds % 60;
+		return m + ':' + (s < 10 ? '0' : '') + s;
+	}
+
+	function onVoteClick() {
+		if (actionInFlight) return;
+		var mode = this.getAttribute('data-mode');
+		actionInFlight = true;
+		var buttons = document.querySelectorAll('.lounge-vote-btn');
+		for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+		postJSON('lounge/vote.php', 'mode=' + encodeURIComponent(mode), function(data) {
+			actionInFlight = false;
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+			}
+		});
 	}
 
 	function onDropClick() {
