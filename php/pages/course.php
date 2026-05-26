@@ -32,6 +32,8 @@ if (isset($_GET['i'])) {
 		if ($hasReadGrants) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
+			require_once('../includes/editor-challenges.php');
+			$circuitChallenges = getEditorCircuitChallenges('arenes', $circuitId);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
 			$circuitImgSrc = getCircuitImgUrl($circuitImg);
@@ -77,6 +79,7 @@ if (isset($_GET['i'])) {
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
 		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
+		var circuitChallenges = <?php echo json_encode($circuitChallenges); ?>;
 		var isBattle = true;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		var dataVersion = "<?php
@@ -434,6 +437,7 @@ if (isset($_GET['i'])) {
 							<?php echo $language ? 'Override trigger':'Déclencheur'; ?>:
 							<span class="lapoverride-trigger selected" data-value="zone" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Zone':'Zone' ?></span>
 							<span class="lapoverride-trigger" data-value="time" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Time':'Temps' ?></span>
+							<span class="lapoverride-trigger lapoverride-trigger-challenge" data-value="challenge" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Challenge':'Défi' ?></span>
 						</div>
 						<div class="lapoverride-type-options selected" id="lapoverride-type-options-zone">
 							<input type="hidden" id="lapoverride-zone-data" value="[]" />
@@ -500,6 +504,15 @@ if (isset($_GET['i'])) {
 									</span>
 									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></span>
 								</label>
+							</div>
+						</div>
+						<div class="lapoverride-type-options" id="lapoverride-type-options-challenge">
+							<label>
+								<?php echo $language ? 'Override active when this challenge is played:' : 'Modificateur actif pour ce défi :'; ?>
+								<select id="lapoverride-challenge-list"></select>
+							</label>
+							<div id="lapoverride-challenge-empty" style="display:none">
+								<?php echo $language ? 'No challenge exists for this arena yet.' : 'Aucun défi n\'existe pour cette arène.'; ?>
 							</div>
 						</div>
 						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php

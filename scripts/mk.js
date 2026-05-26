@@ -1917,8 +1917,24 @@ function initMap() {
 	if (oMap.lapOverrides) {
 		var mapOverrides = oMap.lapOverrides;
 		var lapOverrides = [];
+		var conditionPayloadIds = [];
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
+			if (lapOverride.challenge !== undefined) {
+				if (clSelected && clSelected.id === lapOverride.challenge) {
+					oMap.conditionOverrides.push(lapOverride);
+					conditionPayloadIds.push(i+1);
+				}
+				var creationChallenges = challenges.track[oMap.map];
+				if (creationChallenges) {
+					var challengesList = creationChallenges.list;
+					for (var j=0;j<challengesList.length;j++) {
+						if (challengesList[j].id === lapOverride.challenge)
+							challengesList[j].isOverride = true;
+					}
+				}
+				continue;
+			}
 			if (lapOverride.lap !== undefined) {
 				var prevId = lMaps.length-1;
 				lMaps.push(Object.assign({}, lMaps[prevId], lapOverride));
@@ -1935,8 +1951,10 @@ function initMap() {
 					processZoneMeta(lapOverride.endZoneMeta);
 				}
 				oMap.conditionOverrides.push(lapOverride);
+				conditionPayloadIds.push(i+1);
 			}
 		}
+		oMap.conditionPayloadIds = conditionPayloadIds;
 		oMap.lapOverrides = lapOverrides;
 		var sMaps = [];
 		for (var i=0;i<lMaps.length;i++)
@@ -2041,14 +2059,13 @@ function initMap() {
 		function initDisabledInteractions() {
 			var _disabledLapsInteractions = {};
 			var allOverrides = [{}].concat(mapOverrides);
-			var nbLapOverrides = 1 + oMap.lapOverrides.length;
 			function getAllOverridesIds(i) {
 				var lMap = lMaps[i];
 				var lapIds = [];
 				if (lMap.parentOverrideId !== undefined) {
 					lapIds.push(lMap.parentOverrideId);
 					for (var j=0;j<lMap.conditionOverrideIds.length;j++)
-						lapIds.push(nbLapOverrides + lMap.conditionOverrideIds[j]);
+						lapIds.push(conditionPayloadIds[lMap.conditionOverrideIds[j]]);
 				}
 				else
 					lapIds.push(i);
@@ -2098,8 +2115,17 @@ function initMap() {
 		initDisabledInteractions();
 
 		if (oMap.conditionOverrides.length) {
-			for (var i=0;i<oMap.conditionOverrides.length;i++)
+			var initialConditionOverrides = [];
+			for (var i=0;i<oMap.conditionOverrides.length;i++) {
 				initSubOverrides(0, [i],i.toString(), true);
+				if (oMap.conditionOverrides[i].challenge != null)
+					initialConditionOverrides.push(i);
+			}
+			if (initialConditionOverrides.length) {
+				oMap.initialConditionOverrides = initialConditionOverrides;
+				oMap.initialConditionOverridesHash = initialConditionOverrides.join(",");
+				initSubOverrides(0, initialConditionOverrides, oMap.initialConditionOverridesHash, true);
+			}
 		}
 		isOverrideActive = function(oKart, i) {
 			var lapOverride = i ? mapOverrides[i-1] : { lap: 1 };
@@ -2110,6 +2136,9 @@ function initMap() {
 				var lMap = getCurrentLMap(lapId);
 				if (lMap.parentOverrideId === i) return true;
 				return false;
+			}
+			else if (lapOverride.challenge !== undefined) {
+				return !!(clSelected && clSelected.id === lapOverride.challenge);
 			}
 			else {
 				return oKart.conditionOverrides && oKart.conditionOverrides.some(function(i) {
@@ -3844,7 +3873,8 @@ function startGame() {
 			aipoints : oMap.aipoints[0],
 			maxspeed : 5.7,
 			maxspeed0: 5.7,
-			conditionOverrides: []
+			conditionOverrides: oMap.initialConditionOverrides ? oMap.initialConditionOverrides.slice() : [],
+			conditionOverridesHash: oMap.initialConditionOverridesHash
 		};
 		if (isOnline) {
 			oEnemy.id = aIDs[i];
@@ -4094,7 +4124,8 @@ function startGame() {
 					aipoints : oMap.aipoints[0],
 					maxspeed : 5.7,
 					maxspeed0 : 5.7,
-					conditionOverrides: [],
+					conditionOverrides: oMap.initialConditionOverrides ? oMap.initialConditionOverrides.slice() : [],
+					conditionOverridesHash: oMap.initialConditionOverridesHash,
 
 					place : 1
 				});
@@ -11834,6 +11865,8 @@ function shouldTriggerOverride(lMap,oOverride, aX,aY, oKart) {
 				return false;
 		}
 	}
+	if (oOverride.challenge != null)
+		return true;
 	if (oOverride.time != null) {
 		var gameTime = getActualGameTimeMS();
 		if ((gameTime >= oOverride.time) && (!oOverride.endTime || gameTime < oOverride.endTime))
@@ -15890,6 +15923,8 @@ function addCreationChallenges(type,cid) {
 		for (var i=0;i<challengesList.length;i++) {
 			var challenge = challengesList[i];
 			if (challenge.succeeded && (challenge !== clSelected))
+				continue;
+			if (challenge.isOverride && (challenge !== clSelected))
 				continue;
 			var challengeData = challenge.data;
 			var challengeVerifType = challengeRules[challengeData.goal.type].verify;
