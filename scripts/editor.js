@@ -1051,10 +1051,12 @@ function manageBusDecor() {
 	selectMode(currentMode);
 }
 function offroadChange(value) {
-	if (value != -1)
-		selectMode(currentMode);
-	else
+	if (value == -1)
 		showOffroadTransfer();
+	else if (value == -2)
+		showCustomOffroadProfile();
+	else
+		selectMode(currentMode);
 }
 var resetRespawnDismissed;
 function respawnTypeChange(value) {
@@ -2988,6 +2990,25 @@ function showOffroadTransfer() {
 	};
 	var editorTool = editorTools[currentMode];
 	document.getElementById("offroad-type").selectedIndex = editorTool.state.type;
+	refreshOffroadTransferOptions(editorTool);
+}
+function refreshOffroadTransferOptions(editorTool) {
+	var profiles = customOffroadProfiles;
+	var ids = ["transferFrom", "transferTo"];
+	for (var k=0;k<ids.length;k++) {
+		var $select = document.getElementById(ids[k]);
+		if (!$select) continue;
+		var existing = $select.querySelectorAll('option.custom-offroad-option');
+		for (var i=0;i<existing.length;i++)
+			existing[i].parentNode.removeChild(existing[i]);
+		for (var i=0;i<profiles.length;i++) {
+			var opt = document.createElement("option");
+			opt.value = String(hpTypes.length + i);
+			opt.className = "custom-offroad-option";
+			opt.textContent = profiles[i].name;
+			$select.appendChild(opt);
+		}
+	}
 }
 function transferOffroad() {
 	var transferFrom = +document.getElementById('transferFrom').value,
@@ -3005,6 +3026,318 @@ function transferOffroad() {
 }
 function closeTransferOffroad() {
 	document.getElementById('mask-transfer').close();
+}
+var customOffroadLibrary = [];
+var customOffroadProfiles = [];
+var customOffroadFormMode = "new";
+var customOffroadEditingId = null;
+function showCustomOffroadProfile() {
+	var editorTool = editorTools.offroad;
+	document.getElementById("offroad-type").selectedIndex = editorTool.state.type;
+	var $modal = document.getElementById("custom-offroad-profile");
+	if ($modal.parentNode) $modal.parentNode.removeChild($modal);
+	var $mask = createMask();
+	$mask.id = "mask-custom-offroad";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($modal);
+	$modal.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($modal);
+		$modal.classList.remove("fs-shown");
+		document.body.appendChild($modal);
+		this.defaultClose();
+	};
+	$modal.classList.remove("custom-offroad-profile-form-shown");
+	loadCustomOffroadLibrary();
+}
+function loadCustomOffroadLibrary() {
+	fetch("api/listOffroadProfiles.php", {credentials:"same-origin"})
+		.then(function(r) { return r.json(); })
+		.then(function(list) {
+			customOffroadLibrary = Array.isArray(list) ? list : [];
+			refreshCustomOffroadLibraryList();
+		})
+		.catch(function() {
+			customOffroadLibrary = [];
+			refreshCustomOffroadLibraryList();
+		});
+}
+function refreshCustomOffroadLibraryList() {
+	var $list = document.getElementById("custom-offroad-profile-list");
+	if (!$list) return;
+	$list.innerHTML = "";
+	for (var i=0;i<customOffroadLibrary.length;i++) {
+		(function(entry) {
+			var $li = document.createElement("li");
+			$li.className = "custom-offroad-profile-item";
+			$li.onclick = function() { selectLibraryOffroadProfile(entry.id); };
+			var $name = document.createElement("span");
+			$name.className = "custom-offroad-profile-item-name";
+			$name.textContent = entry.name;
+			var $edit = document.createElement("a");
+			$edit.className = "custom-offroad-profile-item-edit";
+			$edit.href = "javascript:void(0)";
+			$edit.title = language ? "Edit" : "Modifier";
+			$edit.innerHTML = "&#9998;";
+			$edit.onclick = function(ev) { ev.stopPropagation(); editLibraryOffroadProfile(entry.id); };
+			var $del = document.createElement("a");
+			$del.className = "custom-offroad-profile-item-delete";
+			$del.href = "javascript:void(0)";
+			$del.title = language ? "Delete" : "Supprimer";
+			$del.innerHTML = "&times;";
+			$del.onclick = function(ev) { ev.stopPropagation(); deleteLibraryOffroadProfile(entry.id); };
+			$li.appendChild($name);
+			$li.appendChild($edit);
+			$li.appendChild($del);
+			$list.appendChild($li);
+		})(customOffroadLibrary[i]);
+	}
+	var $empty = document.getElementById("custom-offroad-profile-empty");
+	if ($empty) $empty.style.display = customOffroadLibrary.length ? "none" : "";
+}
+function showSelectCustomOffroadProfile() {
+	var $modal = document.getElementById("custom-offroad-profile");
+	$modal.classList.remove("custom-offroad-profile-form-shown");
+}
+function showNewCustomOffroadProfile() {
+	customOffroadFormMode = "new";
+	customOffroadEditingId = null;
+	var $modal = document.getElementById("custom-offroad-profile");
+	$modal.classList.add("custom-offroad-profile-form-shown");
+	$modal.classList.remove("custom-offroad-profile-update");
+	document.getElementById("custom-offroad-name").value = "";
+	document.getElementById("custom-offroad-strength").value = "0.5";
+	document.getElementById("custom-offroad-strength-value").textContent = "0.50";
+	document.getElementById("custom-offroad-slippery").checked = false;
+	document.getElementById("custom-offroad-slippery-factor").value = "0.5";
+	document.getElementById("custom-offroad-slippery-factor-value").textContent = "0.50";
+	document.getElementById("custom-offroad-slippery-factor-row").style.display = "none";
+	document.getElementById("custom-offroad-drifting").checked = false;
+	document.getElementById("custom-offroad-name").focus();
+}
+function libraryEntryById(id) {
+	for (var i=0;i<customOffroadLibrary.length;i++) {
+		if (customOffroadLibrary[i].id === id) return customOffroadLibrary[i];
+	}
+	return null;
+}
+function hydrateCustomOffroadProfile(profileIdx, id) {
+	xhr("getOffroadProfile.php?id="+id, null, function(res) {
+		var entry;
+		try { entry = JSON.parse(res); } catch (e) { entry = null; }
+		var profile = customOffroadProfiles[profileIdx];
+		if (!profile || profile.id !== id) return true;
+		if (entry && entry.profile) {
+			var refreshed = profileFromLibraryEntry(entry);
+			customOffroadProfiles[profileIdx] = refreshed;
+			var $select = document.getElementById("offroad-type");
+			if ($select) {
+				var dataIdx = hpTypes.length + profileIdx;
+				var opt = $select.querySelector('option[value="'+dataIdx+'"]');
+				if (opt) opt.textContent = refreshed.name;
+			}
+		}
+		else {
+			profile.name = (language ? "<Deleted profile>" : "<Profil supprimé>");
+			var $select2 = document.getElementById("offroad-type");
+			if ($select2) {
+				var dataIdx2 = hpTypes.length + profileIdx;
+				var opt2 = $select2.querySelector('option[value="'+dataIdx2+'"]');
+				if (opt2) opt2.textContent = profile.name;
+			}
+		}
+		return true;
+	});
+}
+function editLibraryOffroadProfile(id) {
+	var entry = libraryEntryById(id);
+	if (!entry) return;
+	customOffroadFormMode = "update";
+	customOffroadEditingId = entry.id;
+	var $modal = document.getElementById("custom-offroad-profile");
+	$modal.classList.add("custom-offroad-profile-form-shown");
+	$modal.classList.add("custom-offroad-profile-update");
+	var profile = entry.profile || {};
+	document.getElementById("custom-offroad-name").value = entry.name || "";
+	var strength = (profile.strength != null) ? profile.strength : 0.5;
+	document.getElementById("custom-offroad-strength").value = strength;
+	document.getElementById("custom-offroad-strength-value").textContent = parseFloat(strength).toFixed(2);
+	var slippery = !!profile.slippery;
+	document.getElementById("custom-offroad-slippery").checked = slippery;
+	var sf = (profile.slipperyFactor != null) ? profile.slipperyFactor : 0.5;
+	document.getElementById("custom-offroad-slippery-factor").value = sf;
+	document.getElementById("custom-offroad-slippery-factor-value").textContent = parseFloat(sf).toFixed(2);
+	document.getElementById("custom-offroad-slippery-factor-row").style.display = slippery ? "" : "none";
+	document.getElementById("custom-offroad-drifting").checked = !!profile.drifting;
+}
+function selectLibraryOffroadProfile(id) {
+	var entry = libraryEntryById(id);
+	if (!entry) return;
+	useCustomOffroadProfile(entry);
+	closeCustomOffroadProfile();
+}
+function useCustomOffroadProfile(entry) {
+	var editorTool = editorTools.offroad;
+	var existingIdx = -1;
+	for (var i=0;i<customOffroadProfiles.length;i++) {
+		if (customOffroadProfiles[i].id && customOffroadProfiles[i].id === entry.id) {
+			existingIdx = i;
+			break;
+		}
+	}
+	if (existingIdx < 0) {
+		var profile = profileFromLibraryEntry(entry);
+		existingIdx = customOffroadProfiles.length;
+		customOffroadProfiles.push(profile);
+		while (editorTool.data.length < hpTypes.length + customOffroadProfiles.length)
+			editorTool.data.push([]);
+		addCustomOffroadOption(existingIdx, profile.name);
+	}
+	activateCustomOffroadProfile(existingIdx);
+}
+function profileFromLibraryEntry(entry) {
+	var p = entry.profile || {};
+	var profile = {
+		id: entry.id,
+		name: entry.name,
+		strength: (p.strength != null) ? p.strength : 0.5,
+		slippery: !!p.slippery,
+		drifting: !!p.drifting
+	};
+	if (profile.slippery)
+		profile.slipperyFactor = (p.slipperyFactor != null) ? p.slipperyFactor : 0.5;
+	return profile;
+}
+function activateCustomOffroadProfile(profileIdx) {
+	var dataIdx = hpTypes.length + profileIdx;
+	document.getElementById("offroad-type").value = String(dataIdx);
+	selectMode(currentMode);
+}
+function submitCustomOffroadProfileForm() {
+	var name = document.getElementById("custom-offroad-name").value.replace(/^\s+|\s+$/g,"");
+	if (!name) {
+		alert(language ? "Please enter a profile name." : "Veuillez entrer un nom de profil.");
+		return;
+	}
+	var strength = +document.getElementById("custom-offroad-strength").value;
+	var slippery = document.getElementById("custom-offroad-slippery").checked;
+	var slipperyFactor = +document.getElementById("custom-offroad-slippery-factor").value;
+	var drifting = document.getElementById("custom-offroad-drifting").checked;
+	var body = {
+		name: name,
+		strength: strength,
+		slippery: slippery,
+		drifting: drifting
+	};
+	if (slippery)
+		body.slipperyFactor = slipperyFactor;
+	if (customOffroadFormMode === "update" && customOffroadEditingId)
+		body.id = customOffroadEditingId;
+	fetch("api/saveOffroadProfile.php", {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(body)
+	})
+	.then(function(r) { return r.json(); })
+	.then(function(res) {
+		if (!res || res.error) {
+			alert(language ? "Could not save profile." : "Impossible d'enregistrer le profil.");
+			return;
+		}
+		var entry = {id: res.id, name: res.name, profile: res.profile};
+		var existing = -1;
+		for (var i=0;i<customOffroadLibrary.length;i++) {
+			if (customOffroadLibrary[i].id === entry.id) { existing = i; break; }
+		}
+		if (existing >= 0) customOffroadLibrary[existing] = entry;
+		else customOffroadLibrary.push(entry);
+		refreshCustomOffroadLibraryList();
+		if (customOffroadFormMode === "update")
+			updateCircuitProfileFromLibrary(entry);
+		useCustomOffroadProfile(entry);
+		closeCustomOffroadProfile();
+	})
+	.catch(function() {
+		alert(language ? "Could not save profile." : "Impossible d'enregistrer le profil.");
+	});
+}
+function updateCircuitProfileFromLibrary(entry) {
+	for (var i=0;i<customOffroadProfiles.length;i++) {
+		if (customOffroadProfiles[i].id === entry.id) {
+			var refreshed = profileFromLibraryEntry(entry);
+			customOffroadProfiles[i] = refreshed;
+			var $select = document.getElementById("offroad-type");
+			if ($select) {
+				var dataIdx = hpTypes.length + i;
+				var opt = $select.querySelector('option[value="'+dataIdx+'"]');
+				if (opt) opt.textContent = refreshed.name;
+			}
+			break;
+		}
+	}
+}
+function deleteLibraryOffroadProfile(id) {
+	var entry = libraryEntryById(id);
+	if (!entry) return;
+	if (!confirm((language ? "Delete profile \"" : "Supprimer le profil \"") + entry.name + "\"?")) return;
+	fetch("api/deleteOffroadProfile.php", {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify({id: id})
+	})
+	.then(function(r) { return r.json(); })
+	.then(function(res) {
+		if (!res || res.error) {
+			alert(language ? "Could not delete profile." : "Impossible de supprimer le profil.");
+			return;
+		}
+		for (var i=0;i<customOffroadLibrary.length;i++) {
+			if (customOffroadLibrary[i].id === id) {
+				customOffroadLibrary.splice(i, 1);
+				break;
+			}
+		}
+		refreshCustomOffroadLibraryList();
+	})
+	.catch(function() {
+		alert(language ? "Could not delete profile." : "Impossible de supprimer le profil.");
+	});
+}
+function backCustomOffroadProfileForm() {
+	showSelectCustomOffroadProfile();
+}
+function addCustomOffroadOption(profileIdx, name) {
+	var $select = document.getElementById("offroad-type");
+	if (!$select) return;
+	var dataIdx = hpTypes.length + profileIdx;
+	for (var i=0;i<$select.options.length;i++) {
+		if ($select.options[i].value === String(dataIdx)) {
+			$select.removeChild($select.options[i]);
+			break;
+		}
+	}
+	var opt = document.createElement("option");
+	opt.value = String(dataIdx);
+	opt.className = "custom-offroad-option";
+	opt.textContent = name;
+	var customOpt = $select.querySelector('option[value="-2"]');
+	if (customOpt)
+		$select.insertBefore(opt, customOpt);
+	else
+		$select.appendChild(opt);
+}
+function closeCustomOffroadProfile() {
+	var $mask = document.getElementById("mask-custom-offroad");
+	if ($mask) $mask.close();
+}
+function toggleCustomOffroadSlippery(checked) {
+	document.getElementById("custom-offroad-slippery-factor-row").style.display = checked ? "" : "none";
+}
+function updateCustomOffroadSliderLabel(slider, valueId) {
+	var v = parseFloat(slider.value);
+	document.getElementById(valueId).textContent = v.toFixed(2);
 }
 function updateLapsCounter() {
 	var editorTool = editorTools[currentMode];
@@ -5631,7 +5964,7 @@ var commonTools = {
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			var offroadType = +document.getElementById("offroad-type").value;
-			var oldData = self.data[offroadType];
+			var oldData = self.data[offroadType] || [];
 			self.data[offroadType] = [];
 			self.state.type = offroadType;
 			self.state.data = self.data[offroadType];
@@ -5764,34 +6097,88 @@ var commonTools = {
 					payload.horspistes[hpTypes[i]] = iPayload;
 				}
 			}
+			for (var i=0;i<customOffroadProfiles.length;i++) {
+				var profile = customOffroadProfiles[i];
+				if (!profile.id) continue;
+				var iData = self.data[hpTypes.length + i] || [];
+				if (!iData.length) continue;
+				var shapes = [];
+				for (var j=0;j<iData.length;j++)
+					shapes.push(shapeToData(iData[j]));
+				payload.horspistes["custom-"+profile.id] = shapes;
+			}
 		},
 		"restore" : function(self,payload) {
+			var isOverride = !!payload.meta;
+			self.data.length = 0;
 			for (var i=0;i<hpTypes.length;i++) {
-				var iPayload = payload.horspistes[hpTypes[i]];
+				var iPayload = (payload.horspistes || {})[hpTypes[i]];
 				var iData = [];
 				if (iPayload) {
 					for (var j=0;j<iPayload.length;j++)
 						iData.push(dataToShape(iPayload[j]));
 				}
-				self.data[i] = iData;
+				self.data.push(iData);
+			}
+			var $select = document.getElementById("offroad-type");
+			if (!isOverride && $select) {
+				var existingOpts = $select.querySelectorAll('option.custom-offroad-option');
+				for (var i=0;i<existingOpts.length;i++)
+					existingOpts[i].parentNode.removeChild(existingOpts[i]);
+			}
+			while (self.data.length < hpTypes.length + customOffroadProfiles.length)
+				self.data.push([]);
+			if (payload.horspistes) {
+				for (var key in payload.horspistes) {
+					if (key.indexOf("custom-") !== 0) continue;
+					var id = parseInt(key.slice(7), 10);
+					if (!id) continue;
+					var profileIdx = -1;
+					for (var p=0;p<customOffroadProfiles.length;p++) {
+						if (customOffroadProfiles[p].id === id) { profileIdx = p; break; }
+					}
+					var isNewProfile = (profileIdx < 0);
+					if (isNewProfile) {
+						profileIdx = customOffroadProfiles.length;
+						customOffroadProfiles.push({
+							id: id,
+							name: (language ? "Loading..." : "Chargement..."),
+							strength: 1,
+							slippery: false,
+							drifting: false
+						});
+					}
+					var keyShapes = payload.horspistes[key] || [];
+					var iData = [];
+					for (var j=0;j<keyShapes.length;j++)
+						iData.push(dataToShape(keyShapes[j]));
+					while (self.data.length <= hpTypes.length + profileIdx)
+						self.data.push([]);
+					self.data[hpTypes.length + profileIdx] = iData;
+					if (isNewProfile) {
+						if ($select)
+							addCustomOffroadOption(profileIdx, customOffroadProfiles[profileIdx].name);
+						hydrateCustomOffroadProfile(profileIdx, id);
+					}
+				}
 			}
 		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<hpTypes.length;i++) {
+			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				for (var j=0;j<iData.length;j++)
 					rescaleShape(iData[j], scale);
 			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<hpTypes.length;i++) {
+			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				for (var j=0;j<iData.length;j++)
 					rotateShape(iData[j], imgSize,orientation);
 			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<hpTypes.length;i++) {
+			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				for (var j=0;j<iData.length;j++)
 					flipShape(iData[j], imgSize,axis);
