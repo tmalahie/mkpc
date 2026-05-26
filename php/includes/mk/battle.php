@@ -144,8 +144,15 @@ function printCircuitPart($arene, $lapId,$circuitPayload) {
 	?>,
 		<?php
 	}
-	if (isset($circuitPayload->arme))
+	if (isset($circuitPayload->arme)) {
 		echo '"arme":'.json_encode($circuitPayload->arme).',';
+		if (!empty($circuitPayload->itemparams)) {
+			?>
+		"itemparams" : <?php echo json_encode($circuitPayload->itemparams).',';
+			}
+			elseif ($lapId)
+				echo '"itemparams":undefined,';
+	}
 	if (isset($circuitPayload->sauts)) {
 		?>
 	"sauts" : <?php

@@ -1072,16 +1072,23 @@ function setPlanPos(frameState, lMap) {
 	setKartsPos(oPlanCharacters, oCharWidth, oPlanSize);
 	setKartsPos(oPlanCharacters2, oCharWidth2, oPlanSize2);
 
-	function setObjPos(iPlanObjects) {
+	var frameStateArme = (frameState.arme && (frameState.arme[0])) || null;
+	function setObjPos(iPlanObjects,iObjWidth,iPlanSize) {
 		for (var i=0;i<lMap.arme.length;i++) {
 			if (lMap.arme[i][2].active)
 				iPlanObjects[i].style.display = "block";
 			else
 				iPlanObjects[i].style.display = "none";
+			if (lMap.arme[i][3] != null) {
+				var fArme = frameStateArme && frameStateArme[i];
+				var aX = fArme ? fArme.x : lMap.arme[i][0];
+				var aY = fArme ? fArme.y : lMap.arme[i][1];
+				posImg(iPlanObjects[i], aX,aY,180, iObjWidth, iPlanSize);
+			}
 		}
 	}
-	setObjPos(oPlanObjects);
-	setObjPos(oPlanObjects2);
+	setObjPos(oPlanObjects,oObjWidth,oPlanSize);
+	setObjPos(oPlanObjects2,oObjWidth2,oPlanSize2);
 
 	function setCoinPos(iPlanCoins,iObjWidth,iPlanCtn,iPlanSize) {
 		if (iPlanCoins.length != lMap.coins.length) {
@@ -12152,6 +12159,7 @@ function render() {
 	var currentState = {
 		karts: [],
 		decor: [],
+		arme: [],
 		items: {}
 	}
 	if (oSpecCam) {
@@ -12208,6 +12216,26 @@ function render() {
 		}
 		currentState.decor[p] = currentStateDecor;
 	}
+	var plArmeMaps = [];
+	for (var p=0;p<oPlayers.length;p++) {
+		var cPlayer = getPlayerAtScreen(p);
+		var lMap = getCurrentLMap(getCurrentLapId(cPlayer));
+		if (p && (!lMap.arme || lMap.arme === plArmeMaps[0]))
+			continue;
+		plArmeMaps[p] = lMap.arme;
+		var currentStateArme = [];
+		if (lMap.arme) {
+			for (var i=0;i<lMap.arme.length;i++) {
+				var arme = lMap.arme[i];
+				currentStateArme.push({
+					ref: arme,
+					x: arme[0],
+					y: arme[1]
+				});
+			}
+		}
+		currentState.arme[p] = currentStateArme;
+	}
 	for (var key in items) {
 		currentState.items[key] = [];
 		for (var i=0;i<items[key].length;i++) {
@@ -12225,6 +12253,7 @@ function render() {
 		lastStateChange = false;
 		if (lastState) {
 			lastState.decor = currentState.decor;
+			lastState.arme = currentState.arme;
 			lastState.items = currentState.items;
 		}
 	}
@@ -12255,6 +12284,7 @@ function render() {
 				karts: [],
 				players: [],
 				decor: [],
+				arme: [],
 				items: {}
 			};
 			if (currentState.cam) {
@@ -12314,6 +12344,22 @@ function render() {
 					}
 				}
 				frameState.decor[p] = frameStateDecor;
+			}
+			for (var p=0;p<oPlayers.length;p++) {
+				var currentStateArme = currentState.arme[p];
+				var lastStateArme = (lastState.arme && lastState.arme[p]) || currentStateArme;
+				if (!currentStateArme) continue;
+				var frameStateArme = [];
+				for (var i=0;i<currentStateArme.length;i++) {
+					var currentObj = currentStateArme[i];
+					var lastObj = getLastObj(lastStateArme,i,currentObj);
+					frameStateArme.push({
+						ref: currentObj.ref,
+						x: interpolateState(lastObj.x,currentObj.x,tFrame),
+						y: interpolateState(lastObj.y,currentObj.y,tFrame)
+					});
+				}
+				frameState.arme[p] = frameStateArme;
 			}
 			for (var type in currentState.items) {
 				frameState.items[type] = [];
@@ -12542,15 +12588,19 @@ function render() {
 			}
 
 
+			var frameStateArme = (frameState.arme && (frameState.arme[i] || frameState.arme[0])) || null;
 			for (var j=0;j<lMap.arme.length;j++) {
 				fSprite = lMap.arme[j];
 				var fItems = fSprite[2];
 				if (fItems.active) {
+					var fArme = frameStateArme && frameStateArme[j];
+					var aX = fArme ? fArme.x : fSprite[0];
+					var aY = fArme ? fArme.y : fSprite[1];
 					for (var k=0;k<fItems.box.length;k++) {
 						var kSprite = fItems.box[k];
 						kSprite[i].render(fCamera, {
-							x: fSprite[0],
-							y: fSprite[1],
+							x: aX,
+							y: aY,
 							z: k*4.5
 						});
 					}
@@ -21903,6 +21953,7 @@ function moveItems() {
 	}
 	foreachLMap(function(lMap,pMap) {
 		if (pMap.arme) {
+			var paths = lMap.itemparams && lMap.itemparams.path;
 			for (var j=0;j<pMap.arme.length;j++) {
 				var fSprite = pMap.arme[j];
 				var fItems = fSprite[2];
@@ -21912,11 +21963,61 @@ function moveItems() {
 					else
 						fItems.active = true;
 				}
+				if (fSprite[3] != null && paths) {
+					moveItemBoxAlongPath(fSprite, paths);
+				}
 			}
 		}
 	}, {
 		subOverrides: false
 	});
+}
+function moveItemBoxAlongPath(fSprite, paths) {
+	var trajectIdx = fSprite[3];
+	var aipoints = paths[trajectIdx];
+	if (!aipoints || aipoints.length < 2) return;
+	if (fSprite[5] == null) {
+		var minDist = Infinity;
+		var bestK = 0;
+		for (var k=0;k<aipoints.length;k++) {
+			var aipoint = aipoints[k];
+			var dist = (aipoint[0]-fSprite[0])*(aipoint[0]-fSprite[0]) + (aipoint[1]-fSprite[1])*(aipoint[1]-fSprite[1]);
+			if (dist < minDist) {
+				minDist = dist;
+				bestK = k;
+			}
+		}
+		var nextK = (bestK+1) % aipoints.length;
+		var aimK = aipoints[bestK], aimN = aipoints[nextK];
+		var okX = aimK[0]-fSprite[0], okY = aimK[1]-fSprite[1];
+		var onX = aimN[0]-fSprite[0], onY = aimN[1]-fSprite[1];
+		if (okX*onX + okY*onY < 0)
+			bestK = nextK;
+		fSprite[5] = bestK;
+	}
+	var speed = (fSprite[4] != null ? fSprite[4] : 1) * 3;
+	var x = fSprite[0], y = fSprite[1];
+	while (speed > 0) {
+		var aipoint = aipoints[fSprite[5]];
+		var aimX = aipoint[0]-x, aimY = aipoint[1]-y;
+		var dist = Math.hypot(aimX,aimY);
+		if (dist < speed) {
+			x = aipoint[0];
+			y = aipoint[1];
+			speed -= dist;
+			fSprite[5]++;
+			if (fSprite[5] >= aipoints.length)
+				fSprite[5] = 0;
+			if (!dist) break;
+		}
+		else {
+			x += aimX*speed/dist;
+			y += aimY*speed/dist;
+			speed = 0;
+		}
+	}
+	fSprite[0] = x;
+	fSprite[1] = y;
 }
 function moveDecor() {
 	decorPos = [];

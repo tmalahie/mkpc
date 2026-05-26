@@ -176,6 +176,21 @@ if (isset($_GET['i'])) {
 				<div id="mode-option-aipoints">
 					<select name="traject" id="traject" onchange="trajectChange(this.value,'aipoints')"></select>
 				</div>
+				<div id="mode-option-items">
+					<div id="items-option" class="items-option-decors">
+						<div id="items-decors">
+							<label>
+								<?php echo $language ? 'Route:':'Trajet :'; ?>
+								<select name="items-currenttraject" id="items-currenttraject" onchange="currentItemsTrajectChange(this.value)"></select>
+							</label>
+							<a href="javascript:manageItemsTrajects()"><?php echo $language ? 'Manage item routes...':'Gérer les trajets...'; ?></a>
+						</div>
+						<div id="items-trajects">
+							<a href="javascript:manageItemsDecor()"><?php echo $language ? 'Back':'Retour'; ?></a>&nbsp;
+							<select name="items-traject" id="items-traject" onchange="trajectChange(this.value,'items')"></select>
+						</div>
+					</div>
+				</div>
 				<div id="mode-option-walls">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="walls-shape" data-change="shapeChange">
@@ -382,9 +397,17 @@ if (isset($_GET['i'])) {
 									  2 routes, one for each way.'
 								   : 'Ce menu vous permet de créer plusieurs trajets différents
 									  pour définir les trajets des bus.<br />
-									  Par exemple, si vous voulez que certains bus aillent dans	 
+									  Par exemple, si vous voulez que certains bus aillent dans
 									  un sens et que d\'autres aillent dans l\'autre sens,
 									  vous allez définir 2 trajets, un pour chaque sens.<br />';
+					?>
+					</div>
+					<div class="traject-specific traject-specific-items">
+					<?php
+					echo $language ? 'This menu allows you to create routes that item boxes can follow.<br />
+									  Once a route is defined, right-click an item box and select &quot;Move along route…&quot; to attach it to that route.'
+								   : 'Ce menu vous permet de créer des trajets que les boîtes à objet peuvent suivre.<br />
+									  Une fois un trajet défini, faites un clic droit sur une boîte à objet et sélectionnez &quot;Suivre un trajet…&quot; pour l\'y rattacher.';
 					?>
 					</div>
 					<?php
