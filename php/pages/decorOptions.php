@@ -131,7 +131,7 @@ include('../includes/o_online.php');
 						</label>
 						<div class="option-form-items-types">
 						<?php
-						$itemTypes = array('carapace', 'carapace-rouge', 'bobomb', 'carapace-bleue', 'champi', 'etoile', 'megachampi', 'billball');
+						$itemTypes = array('carapace', 'carapace-rouge', 'bobomb', 'carapace-bleue', 'boomerang', 'champi', 'etoile', 'megachampi', 'billball');
 						foreach ($itemTypes as $key) {
 							$itemOptionSelected = ($selectedItems === null) || in_array($key,$selectedItems);
 							?>

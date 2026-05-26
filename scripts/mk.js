@@ -871,11 +871,11 @@ var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oEx
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
-	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(),
+	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(), oPlanBoomerangs = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(), oPlanCarapacesNoires = new Array(),
 	oPlanEtoiles = new Array(), oPlanMegas = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(),
+	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(), oPlanBoomerangs2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanMegas2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
@@ -1193,6 +1193,14 @@ function setPlanPos(frameState, lMap) {
 		setObject(oPlanEtoilesDrop[i],etoile.x,etoile.y, oObjWidth,oPlanSize, -1,100);
 		setObject(oPlanEtoilesDrop2[i],etoile.x,etoile.y, oObjWidth2,oPlanSize2, -1,100);
 		oPlanEtoilesDrop[i].style.zIndex = oPlanEtoilesDrop2[i].style.zIndex = 2;
+	}
+	syncObjects(oPlanBoomerangs,frameItems["boomerang"],"boomerang", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBoomerangs2,frameItems["boomerang"],"boomerang", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["boomerang"].length;i++) {
+		var boomerang = frameItems["boomerang"][i];
+		setObject(oPlanBoomerangs[i],boomerang.x,boomerang.y, oObjWidth,oPlanSize, boomerang.ref.team,100);
+		setObject(oPlanBoomerangs2[i],boomerang.x,boomerang.y, oObjWidth2,oPlanSize2, boomerang.ref.team,100);
+		oPlanBoomerangs[i].style.zIndex = oPlanBoomerangs2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team,defaultTeam) {
@@ -1537,6 +1545,7 @@ function resetPlan(lMap) {
 	oPlanBobOmbs.length = 0;
 	oPlanChampis.length = 0;
 	oPlanEtoilesDrop.length = 0;
+	oPlanBoomerangs.length = 0;
 
 	oPlanCarapaces.length = 0;
 	oPlanCarapacesRouges.length = 0;
@@ -1559,6 +1568,7 @@ function resetPlan(lMap) {
 	oPlanPoisons2.length = 0;
 	oPlanChampis2.length = 0;
 	oPlanEtoilesDrop2.length = 0;
+	oPlanBoomerangs2.length = 0;
 
 	oPlanCarapaces2.length = 0;
 	oPlanCarapacesRouges2.length = 0;
@@ -2878,6 +2888,35 @@ function arme(ID, backwards, forwards) {
 			case "pow" :
 			addNewItem(oKart, {type:"pow", owner:oKart.id});
 			break;
+
+			case "boomerang" :
+			const [velX, velY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
+			const [shiftX, shiftY] = dirShoot(oKart, backwards, 3.2);
+
+			const uL = Math.hypot(shiftX, shiftY) || 1;
+			const shiftDist = backwards ? 0 : (6 + uL);
+			
+			const boomerang = {
+				type: "boomerang",
+				owner: oKart.id,
+				team: oKart.team,
+				x: oKart.x + shiftDist * shiftX / uL,
+				y: oKart.y + shiftDist * shiftY / uL,
+				z: oKart.z + 2,
+				vx: velX,
+				vy: velY,
+				throw: oKart.boomerangArme ?? itemBehaviors.boomerang.MAX_USES,
+				frame: 0,
+				collideFrame: null,
+				maxSpeed: Math.sqrt(velX * velX + velY * velY)
+			};
+			
+			if (oKart.boomerangArme === 1)
+				delete oKart.boomerangArme;
+
+			addNewItem(oKart, boomerang);
+			playDistSound(oKart, "musics/events/throw.mp3", 50);
+			break;
 		}
 
 		if (tpsUse)
@@ -2896,6 +2935,7 @@ function arme(ID, backwards, forwards) {
 			break;
 		case "billball":
 			newItem = "billball";
+			break;
 		}
 		if (newItem) {
 			if (oKart.arme !== newItem) {
@@ -2925,6 +2965,7 @@ function arme(ID, backwards, forwards) {
 						break;
 					case "billball":
 						updateItemCountdownHud(ID,oKart.billball/oKart.billball0);
+						break;
 					}
 				}
 			}
@@ -3565,6 +3606,40 @@ function handleEndRace() {
 	challengeCheck("end_game", events);
 	challengeCheck("end_gp", events);
 	clGlobalVars.nbcircuits++;
+
+	if (raceLog.items.length > 0) {
+		let text = "";
+
+		// single items
+		for (let spot = 1; spot <= aKarts.length; spot++) {
+			if (Object.keys(raceLog.getDefinedItemAtSpot(spot)).length === 0) {
+				text += `${spot}: -\n`;
+				continue;
+			}
+
+			text += `${spot}: `;
+			for (const itemName in raceLog.getDefinedItemAtSpot(spot)) {
+				const itemCount = raceLog.getItemSpot(spot, itemName);
+				const spotTotal = raceLog.getTotalSpot(spot);
+				const percent = ((itemCount / spotTotal) * 100).toFixed(2);
+				text += `${itemName}(${itemCount} / ${spotTotal} -> ${percent}%)  `;
+			}
+			text += "\n";
+		}
+
+		// totals
+		text += "\nTotal:\n";
+		for (let i = 0; i < raceLog.items.length; i++) {
+			const itemName = raceLog.items[i];
+			const itemTotal = raceLog.getItemTotal(itemName);
+			const allTotal = raceLog.data.total.all;
+			const percent = ((itemTotal / allTotal) * 100).toFixed(2);
+			text += `${itemName}: ${itemTotal} / ${allTotal} -> ${percent}%\n`;
+		}
+
+		alert(text);
+	}
+	raceLog.reset();
 }
 
 function startGame() {
@@ -6913,7 +6988,7 @@ function Sprite(strSprite) {
 	this[0].fadein = function(fadedelay) {
 		if (!that[0].unshown) {
 			var x = 0;
-			var dx = SPF/fadedelay;
+			var dx = oPlayers[0].autoplay ? 1 : SPF/fadedelay;
 			function showProgressively() {
 				if (x >= 1)
 					x = "";
@@ -6936,7 +7011,7 @@ function Sprite(strSprite) {
 				clearTimeout(that[0].fadeinhandler);
 				x = 0;
 			}
-			var dx = SPF/fadedelay;
+			var dx = oPlayers[0].autoplay ? 1 : SPF/fadedelay;
 			function removeProgressively() {
 				x -= dx;
 				if (x <= 0) {
@@ -9333,10 +9408,274 @@ var itemBehaviors = {
 		"init": function(item) {
 			nextBlueShellCooldown = 450;
 		}
+	},
+	"boomerang": {
+		size: 0.90,
+		sync: [floatType("x"), floatType("y"), floatType("z"), floatType("vx"), floatType("vy"), intType("owner"), byteType("team"), byteType("throw"), intType("frame"), intType("maxSpeed")],
+		fadedelay: 200,
+		frminv: true,
+		
+		MAX_USES: 3,
+		FRAME_SLOWDOWN: 5,
+		FRAME_BACK: 12,
+		FRAME_BACK_Z: 7,
+		UPDATE_STEPS: 4,
+
+		move: function(fSprite, ctx) {
+			const frameSlowdown = itemBehaviors[fSprite.type].FRAME_SLOWDOWN;
+			const frameBack = itemBehaviors[fSprite.type].FRAME_BACK;
+			const frameBackZ = itemBehaviors[fSprite.type].FRAME_BACK_Z;
+			const steps = itemBehaviors[fSprite.type].UPDATE_STEPS;
+
+			const shouldCollideWalls = fSprite.frame < frameBack || fSprite.throw === 1;
+			const isSlowdown = fSprite.frame >= frameSlowdown && fSprite.frame < frameBack && fSprite.throw > 1;
+			const isGoBackSender = fSprite.frame >= frameBack && fSprite.throw > 1;
+
+			let speedX, speedY;
+			fSprite.frame++;
+
+			// find owner
+			const owner = aKarts.find(function(kart) {
+				return kart.id === fSprite.owner;
+			});
+
+			for (let step = 0; step < steps; step++) {
+				collisionFloor = null;
+				collisionDecorHit = null;
+				collisionItem = fSprite;
+				collisionLap = getItemCollisionLap(fSprite);
+
+				// decor & wall collisions
+				const relSpeed = cappedRelSpeed();
+				const moveX = fSprite.vx * relSpeed / steps;
+				const moveY = fSprite.vy * relSpeed / steps;
+				const isCollide = !canMoveTo(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY);
+
+				// destroy if last throw and second wall hit
+				if (isCollide && fSprite.throw === 1 && fSprite.collideFrame !== null && fSprite.frame > fSprite.collideFrame) {
+					detruit(fSprite);
+					break;
+				}
+
+				// wall bounce
+				if (shouldCollideWalls && isCollide && !collisionDecorHit) {
+					const [ux, uy] = getHorizontality(fSprite.x, fSprite.y, fSprite.z - 2, moveX, moveY);
+					const m_u = fSprite.vx * ux + fSprite.vy * uy;
+					fSprite.vx = 2 * m_u * ux - fSprite.vx;
+					fSprite.vy = 2 * m_u * uy - fSprite.vy;
+					fSprite.collideFrame = fSprite.frame;
+				}
+
+				// handle teleports
+				const tp = inTeleport(fSprite.x, fSprite.y);
+				if (tp) {
+					fSprite.x = tp[0];
+					fSprite.y = tp[1];
+					const theta = tp[2] * Math.PI / 2;
+					const speed = Math.hypot(fSprite.vx, fSprite.vy);
+					fSprite.vx = speed * Math.sin(theta);
+					fSprite.vy = speed * Math.cos(theta);
+				}
+
+				// slow down after throw
+				if (isSlowdown) {
+					const friction = Math.pow(0.80, 1 / steps);
+					fSprite.vx *= friction;
+					fSprite.vy *= friction;
+				}
+
+				// go back to sender
+				if (isGoBackSender) {
+					const speed = fSprite.maxSpeed * (fSprite.frame - frameBack - 1) * 0.2;
+					const cappedSpeed = Math.min(speed, cappedRelSpeed() * 18);
+
+					// apply movement
+					const angle = Math.atan2(owner.y - fSprite.y, owner.x - fSprite.x);
+					speedX = Math.cos(angle) * cappedSpeed;
+					speedY = Math.sin(angle) * cappedSpeed;
+					fSprite.x += speedX / steps;
+					fSprite.y += speedY / steps;
+
+					// height
+					if (frameBack - fSprite.frame < fSprite.frame + frameBackZ) {
+						let speedZ = (owner.z - fSprite.z) / frameBackZ * 2;
+						speedZ = speedZ < 0 ? Math.max(-8, speedZ) : Math.min(8, speedZ);
+						fSprite.z += speedZ / steps;
+					}
+					else
+						fSprite.z = owner.z;
+
+					fSprite.z = Math.max(0, fSprite.z);
+
+					if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: -speedX, y: -speedY}, fSprite) && step === 0) {
+						// give back to owner
+						let key;
+						
+						// update uses
+						if (!owner.arme) {
+							key = "arme";
+							owner.boomerangArme = fSprite.throw - 1;
+						}
+						else if (!owner.stash && oDoubleItemsEnabled) {
+							key = "stash";
+							owner.boomerangStash = fSprite.throw - 1;
+						}
+
+						// give back item
+						if (key) {
+							owner[key] = "boomerang";
+							owner["roulette" + (key === "arme" ? "" : "2")] = 25;
+
+							if (kartIsPlayer(owner))
+								updateObjHud(oPlayers.indexOf(owner));
+						}
+						
+						detruit(fSprite);
+					}
+				}
+				// apply regular movement
+				else {
+					fSprite.x += fSprite.vx / steps;
+					fSprite.y += fSprite.vy / steps;
+					speedX = fSprite.vx / steps;
+					speedY = fSprite.vy / steps;
+				}
+				
+				// handle override change
+				checkItemLap(fSprite, {aPos: [fSprite.x, fSprite.y]});
+
+				// pierce ground items
+				if (fSprite.z < 12) {
+					while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+					while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+					while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+				}
+
+				// refresh SFX sound
+				if (fSprite.sfx) {
+					var oPlayer = getPlayerAtScreen(0);
+					var distToPlayer = Math.hypot(fSprite.x-oPlayer.x, fSprite.y-oPlayer.y);
+					if (fSprite.sfx.volume || distToPlayer < 100) {
+						if (distToPlayer < 150)
+							fSprite.sfx.volume = Math.min(1, 20/distToPlayer)*vSfx;
+						else
+							fSprite.sfx.volume = 0;
+					}
+				}
+
+				// break on explosions / boomerangs
+				let oSpriteExcept;
+				if (ctx && ctx.onlineSync)
+					oSpriteExcept = otherPlayerItems([]);
+
+				const bobombCol = fSprite.z < 12 && touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent: true, isBoomerang: true});
+				const blueShellCol = fSprite.z < 12 && touche_cbleue(fSprite.x, fSprite.y);
+				const boomerangCol = touche_boomerang({x: fSprite.x, y: fSprite.y, z: fSprite.z}, null, [fSprite], null, true, false);
+
+				if (bobombCol || blueShellCol || boomerangCol) {
+					if (kartIsPlayer(owner))
+						clLocalVars.boomerangBreak = true;
+
+					detruit(fSprite);
+				}	
+			}
+
+			// last throw: destroy if max lifetime reached
+			if (fSprite.frame > 15 * 2.5 && fSprite.throw <= 1)
+				detruit(fSprite);
+
+			// sprite animation
+			for (let i = 0; i < oPlayers.length; i++)
+				fSprite.sprite[i].setState((fSprite.sprite[i].getState() + 1) % 4);
+		},
+
+		checkCollisions: function(fSprite, getId) {
+			const oKart = aKarts[getId];
+
+			if (oKart === oPlayers[0] || friendlyHit(oKart.team, fSprite.team))
+				return;
+
+			const moveDir = kartInstantSpeed(oKart);
+			const movement = {
+				x: moveDir[0],
+				y: moveDir[1]
+			};
+
+			if (touche_boomerang_aux({x: oKart.x, y: oKart.y, z: oKart.z}, movement, fSprite))
+				handleHardHit(getId);
+		},
+
+		init: function(fSprite) {
+			fSprite.sfx = playIfShould(oPlayers[0], "musics/events/boomerang.mp3");
+			if (fSprite.sfx) {
+				fSprite.sfx.volume = 0;
+				fSprite.sfx.loop = true;
+			}
+		},
+
+		del: function(fSprite) {
+			removeIfExists(fSprite.sfx);
+		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang"];
 var items = {};
+
+var raceLog = {
+	items: [],
+	data: {total: {all: 0}},
+
+	reset: function() {
+		this.enabled = false;
+		this.items = [];
+		this.data = {total: {all: 0}};
+		delete oPlayers[0].autoplay;
+	},
+
+	addTotal: function() {
+		this.data.total.all++;
+	},
+
+	addTotalSpot: function(spot) {
+		this.data[spot] ??= {}; // creates spot
+		this.data[spot].total ??= 0; // creates total at spot
+		this.data[spot].total++; // inc total at spot
+	},
+
+	getTotalSpot: function(spot) {
+		return this.data[spot].total;
+	},
+
+	addItemSpot: function(spot, item) {
+		this.data[spot] ??= {}; // creates spot
+		this.data[spot][item] ??= 0; // creates item at this spot
+		this.data[spot][item]++; // inc item at this spot
+	},
+
+	getItemSpot: function(spot, item) {
+		return this.data[spot][item] ?? 0;
+	},
+
+	addItemTotal: function(item) {
+		this.data.total[item] ??= 0; // creates total for item
+		this.data.total[item]++; // inc total for item
+	},
+
+	getItemTotal: function(item) {
+		return this.data.total[item] ??= 0;
+	},
+
+	getDefinedItemAtSpot: function(spot) {
+		const itemNames = {};
+
+		for (const key in this.data[spot]) 
+			if (key !== "total")
+				itemNames[key] = true;
+
+		return itemNames;
+	}
+};
+
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
 var decorBehaviors = {
@@ -12576,6 +12915,7 @@ function supprArme(i) {
 }
 function consumeItem(i) {
 	var oKart = aKarts[i];
+	passBoomerangThrows(oKart);
 	oKart.arme = oKart.stash;
 	oKart.stash = false;
 	oKart.roulette = oKart.roulette2;
@@ -12622,6 +12962,8 @@ function dropCurrentItem(oKart) {
 	delete oKart.champiType;
 	delete oKart.champior;
 	delete oKart.champior0;
+	delete oKart.boomerangArme;
+	delete oKart.boomerangStash;
 	var iKart = aKarts.indexOf(oKart);
 	for (let j = 0; j < 2; j++) {
 		var sArme = j == 0 ? oKart.arme : oKart.stash; 
@@ -12706,6 +13048,14 @@ function hasOnHoldItem(oKart) {
 	if (oKart.rotitem !== undefined)
 		return false;
 	return true;
+}
+
+// transfers boomerang throws from stash to arme
+function passBoomerangThrows(oKart) {
+	if (oKart.stash === "boomerang") {
+		oKart.boomerangArme = oKart.boomerangStash;
+		delete oKart.boomerangStash;
+	}
 }
 
 function stopDrifting(i, opts) {
@@ -14828,6 +15178,11 @@ var challengeRules = {
 			return true;
 		}
 	},
+	"avoid_boomerang_break": {
+		"success": function(scope) {
+			return !clLocalVars.boomerangBreak;
+		}
+	},
 	"no_item": {
 		"success": function(scope) {
 			return !clLocalVars.itemsUsed;
@@ -15531,6 +15886,7 @@ function reinitLocalVars() {
 		revDrifted: false,
 		stunted: false,
 		itemsGot: false,
+		boomerangBreak: false,
 		itemsUsed: false,
 		falls: 0,
 		jumps: 0,
@@ -16215,7 +16571,8 @@ var itemDistributions = {
 			"carapace": 4,
 			"carapacerouge": 7,
 			"bobomb": 2,
-			"bananeX3": 1
+			"bananeX3": 1,
+			"boomerang": 2
 		}, {
 			"carapace": 1,
 			"bobomb": 2,
@@ -16223,7 +16580,8 @@ var itemDistributions = {
 			"carapaceX3": 2,
 			"banane": 1,
 			"fauxobjet": 1,
-			"carapacerouge": 4
+			"carapacerouge": 4,
+			"boomerang": 3
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -16245,12 +16603,14 @@ var itemDistributions = {
 			"bananeX3": 1,
 			"carapacerouge": 12,
 			"carapace": 6,
-			"bobomb": 4
+			"bobomb": 4,
+			"boomerang": 4
 		}, {
 			"carapacerouge": 8,
 			"carapace": 5,
 			"bobomb": 4,
-			"carapaceX3": 3
+			"carapaceX3": 3,
+			"boomerang": 4
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -16337,12 +16697,14 @@ var itemDistributions = {
 			"carapaceX3": 6,
 			"carapacerouge": 5,
 			"bobomb": 3,
-			"bloops": 2
+			"bloops": 2,
+			"boomerang": 3
 		}, {
 			"champi": 8,
 			"carapacerouge": 6,
 			"bobomb": 3,
-			"champiX3": 2
+			"champiX3": 2,
+			"boomerang": 3
 		}, {
 			"bobomb": 4,
 			"champi": 5,
@@ -16350,6 +16712,7 @@ var itemDistributions = {
 			"champiX3": 3,
 			"carapacerougeX3": 3,
 			"pow": 1,
+			"boomerang": 4
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
@@ -16416,18 +16779,21 @@ var itemDistributions = {
 			"champi": 3,
 			"poison": 4,
 			"bobomb": 8,
-			"bloops": 2
+			"bloops": 2,
+			"boomerang": 8
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
-			"bobomb": 8
+			"bobomb": 8,
+			"boomerang": 8
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
 			"bobomb": 6,
 			"champiX3": 1,
 			"carapacerougeX3": 6,
-			"pow": 2
+			"pow": 2,
+			"boomerang": 8
 		}, {
 			"champi": 4,
 			"champiX3": 3,
@@ -16714,20 +17080,31 @@ function handleDecorHit(i,type, lMap) {
 		challengeCheck("each_decor_hit");
 	}
 }
-function touche_banane(iX, iY, iP) {
-	if (!iP) iP = [];
-	for (var i=0;i<items["banane"].length;i++) {
-		var oBox = items["banane"][i];
-		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			const size = 4;
-			if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
-				if (itemInteractionsDisabled(oBox)) continue;
+function touche_banane(posX, posY, ignore, movementX, movementY) {
+	if (!ignore)
+		ignore = [];
+
+	const size = 4;
+
+	for (let i = 0; i < items.banane.length; i++) {
+		const oBox = items.banane[i];
+		if (itemInteractionsDisabled(oBox))
+			continue;
+
+		const rect = [oBox.x - size, oBox.y - size, size * 2, size * 2];
+
+		if ((ignore.indexOf(oBox) == -1) && oBox.z === 0) {
+			const inHitbox = pointInRectangle(posX, posY, rect);
+			const crossHitbox = movementX !== undefined && movementY !== undefined ? pointCrossRectangle(posX, posY, movementX, movementY, rect) : false;
+
+			if (inHitbox || crossHitbox) {
 				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
-				return (collisionTeam!=oBox.team);
+				detruit(oBox, isHitSound(oBox));
+				return (collisionTeam !== oBox.team);
 			}
 		}
 	}
+
 	return false;
 }
 function touche_poison(iX, iY, iP) {
@@ -16787,23 +17164,34 @@ function touche_fauxobjet(iX, iY, iP) {
 	return false;
 }
 
-function touche_cverte(iX, iY, iP) {
-	if (!iP) iP = [];
-	for (var i=0;i<items["carapace"].length;i++) {
-		var oBox = items["carapace"][i];
-		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (touche_cverte_aux(iX,iY, oBox))
-				return (collisionTeam!=oBox.team);
+function touche_cverte(posX, posY, ignore, movementX, movementY) {
+	if (!ignore)
+		ignore = [];
+
+	for (let i = 0; i < items.carapace.length; i++) {
+		const oBox = items.carapace[i];
+
+		if ((ignore.indexOf(oBox) == -1) && oBox.z === 0) {
+			if (touche_cverte_aux(posX, posY, oBox, movementX, movementY))
+				return (collisionTeam !== oBox.team);
 		}
 	}
+
 	return false;
 }
-function touche_cverte_aux(iX,iY, oBox) {
+function touche_cverte_aux(posX, posY, oBox, movementX, movementY) {
+	if (itemInteractionsDisabled(oBox))
+		return false;
+
 	const size = 4;
-	if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
-		if (itemInteractionsDisabled(oBox)) return false;
+	const rect = [oBox.x - size, oBox.y - size, size * 2, size * 2];
+
+	const inHitbox = pointInRectangle(posX, posY, rect);
+	const crossHitbox = movementX !== undefined && movementY !== undefined ? pointCrossRectangle(posX, posY, movementX, movementY, rect) : false;
+
+	if (inHitbox || crossHitbox) {
 		handleHit(oBox);
-		detruit(oBox,isHitSound(oBox));
+		detruit(oBox, isHitSound(oBox));
 		return true;
 	}
 	return false;
@@ -16827,15 +17215,19 @@ function touche_cverte_future(iX, iY, iP) {
 	return false;
 }
 
-function touche_crouge(iX, iY, iP) {
-	if (!iP) iP = [];
-	for (var i=0;i<items["carapace-rouge"].length;i++) {
-		var oBox = items["carapace-rouge"][i];
-		if ((iP.indexOf(oBox) == -1)) {
-			if (touche_crouge_aux(iX,iY, oBox))
-				return (collisionTeam!=oBox.team);
+function touche_crouge(posX, posY, ignore, movementX, movementY) {
+	if (!ignore)
+		ignore = [];
+
+	for (let i = 0; i < items["carapace-rouge"].length; i++) {
+		const oBox = items["carapace-rouge"][i];
+
+		if ((ignore.indexOf(oBox) == -1)) {
+			if (touche_crouge_aux(posX, posY, oBox, movementX, movementY))
+				return (collisionTeam !== oBox.team);
 		}
 	}
+	
 	return false;
 }
 function touche_crouge_future(iX, iY, iP) {
@@ -16851,15 +17243,22 @@ function touche_crouge_future(iX, iY, iP) {
 	}
 	return false;
 }
-function touche_crouge_aux(iX,iY, oBox) {
-	var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
+function touche_crouge_aux(posX, posY, oBox, movementX, movementY) {
+	if (itemInteractionsDisabled(oBox))
+		return false;
+
 	const size = 4;
-	if (isHitbox ? (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) : (iX == oBox.x && iY == oBox.y && oBox.z < 1.2)) {
-		if (itemInteractionsDisabled(oBox)) return false;
+	const rect = [oBox.x - size, oBox.y - size, size * 2, size * 2];
+	const isHitbox = ((oBox.owner === -1) || (oBox.aipoint === -2));
+	const inHitbox = isHitbox ? pointInRectangle(posX, posY, rect) : (posX === oBox.x && posY === oBox.y && oBox.z < 1.2);
+	const crossHitbox = movementX !== undefined && movementY !== undefined ? pointCrossRectangle(posX, posY, movementX, movementY, rect) : false;
+
+	if (inHitbox || crossHitbox) {
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
 		return true;
 	}
+
 	return false;
 }
 function touche_bobomb(iX, iY, iP, opts) {
@@ -16868,6 +17267,7 @@ function touche_bobomb(iX, iY, iP, opts) {
 		var oBox = items["bobomb"][i];
 		if (!oBox.z && (iP.indexOf(oBox) == -1)) {
 			if (oBox.theta != -1) {
+				// put on track / thrown
 				if (touche_bobomb_aux(iX,iY, oBox, opts)) {
 					if (oBox.cooldown <= 0) {
 						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
@@ -16879,9 +17279,13 @@ function touche_bobomb(iX, iY, iP, opts) {
 						if (isOnline)
 							syncItems.push(oBox);
 					}
+
+					if (opts && opts.isBoomerang)
+						return true;
 				}
 			}
 			else {
+				// trailed
 				const size = 5;
 				if (iX > oBox.x-size && iX < oBox.x+size && iY > oBox.y-size && iY < oBox.y+size) {
 					for (j=0;j<aKarts.length;j++) {
@@ -16942,6 +17346,53 @@ function touche_cbleue_aux(iX,iY, oBox) {
 			return true;
 		}
 	}
+	return false;
+}
+
+function touche_boomerang(pos, movement, toIgnore, ownerId, breakBoomerangHit, hitStarOrBill) {
+	toIgnore ??= [];
+
+	for (let i = 0; i < items.boomerang.length; i++) {
+		const boomerang = items.boomerang[i];
+
+		if (boomerang.owner === ownerId || toIgnore.includes(boomerang))
+			continue;
+
+		const hitOtherBoomerang = touche_boomerang_aux(pos, movement, boomerang);
+		
+		if (hitOtherBoomerang) {
+			const res = collisionTeam !== boomerang.team;
+
+			// destroy this boomerang if hit a player in star / bill
+			if (hitStarOrBill)
+				detruit(boomerang);
+
+			// if another boomerang is hit, destroy it
+			if (breakBoomerangHit)
+				detruit(hitOtherBoomerang);
+
+			return res;
+		}
+	}
+
+	return false;
+}
+
+function touche_boomerang_aux(pos, movement, boomerang) {
+	if (itemInteractionsDisabled(boomerang))
+		return false;
+
+	const size = 8;
+	const rect = [boomerang.x - size, boomerang.y - size, size * 2, size * 2];
+	const inHitbox = pointInRectangle(pos.x, pos.y, rect);
+	const crossHitbox = movement ? pointCrossRectangle(pos.x, pos.y, movement.x, movement.y, rect) : false;
+	const inHeight = pos.z === null ? true : Math.abs(boomerang.z - pos.z) < 5;
+
+	if (inHeight && (inHitbox || crossHitbox)) {
+		handleHit(boomerang);
+		return boomerang;
+	}
+
 	return false;
 }
 
@@ -18161,7 +18612,7 @@ function resetFall(oKart) {
 }
 
 function loseBall(i) {
-	if (course == "BB") {
+	if (course == "BB" && !aKarts[i].autoplay) {
 		var lg = aKarts[i].ballons.length-1;
 		if (!aKarts[i].tourne && aKarts[i].ballons[lg]) {
 			popBalloon(aKarts[i]);
@@ -18195,8 +18646,8 @@ function move(getId, triggered) {
 	clLocalVars.currentKart = oKart;
 	var lMap = getCurrentLMap(collisionLap);
 	if ((getId<strPlayer.length)) {
-		if (!oKart.cpu && !finishing) {
-			showTimer(timer*SPF);
+		if ((!oKart.cpu || oKart.autoplay) && !finishing) {
+			showTimer(timer * SPF * (oKart.autoplay ? 67 : 1));
 			if (!getId)
 				timer++;
 
@@ -18612,6 +19063,9 @@ function move(getId, triggered) {
 				}
 			}
 		}
+		if (touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
+			if (!oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
 	}
 
 	var rScroller, rHeight, rSize;
@@ -18657,7 +19111,8 @@ function move(getId, triggered) {
 						eclair: 1,
 						bloops: 1,
 						pow: 1,
-						bananeX3: 1
+						bananeX3: 1,
+						boomerang: 1
 					};
 					if (itemDistribution.powx2 == 1) {
 						delete preventDuplicateItems["pow"];
@@ -18688,6 +19143,8 @@ function move(getId, triggered) {
 						forbiddenItems["bloops"] = 1;
 					if (items.pow.length || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
+					if (items.boomerang.length)
+						forbiddenItems["boomerang"] = 1;
 					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
 						if (oKart.arme === "champiX2")
 							forbiddenItems["champiX3"] = 1;
@@ -18708,6 +19165,15 @@ function move(getId, triggered) {
 						iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 					}
 				}
+
+				raceLog.addTotal();
+				raceLog.addTotalSpot(oKart.place);
+
+				if (raceLog.items.includes(iObj)) {
+					raceLog.addItemSpot(oKart.place, iObj);
+					raceLog.addItemTotal(iObj);
+				}
+
 				/*if (oKart === oPlayers[0]) { // Uncomment to test all objs
 					if (!window.aaa) {
 						window.aaa = [];
@@ -19081,6 +19547,8 @@ function move(getId, triggered) {
 				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
+				delete oKart.boomerangArme;
+				delete oKart.boomerangStash;
 				if (oKart.cpu) {
 					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
 						oKart.aipoint = lastCp.aipoint;
@@ -19202,7 +19670,7 @@ function move(getId, triggered) {
 					oKart.finaltime = timeTrialMode() ? lapTimer : (new Date().getTime() - tnCourse);
 				if (kartIsPlayer(oKart) && !finishing) {
 					timerMS = lapTimer;
-					showTimer(timerMS);
+					showTimer(timerMS * (oKart.autoplay ? 67 : 1));
 
 					if (course != "CM")
 						document.getElementById("infoPlace"+getId).innerHTML = oKart.place;
@@ -19420,7 +19888,7 @@ function move(getId, triggered) {
 				if (oMap.sections)
 					if (oKart.billball>1) oKart.billball = 1;
 			}
-			else if (!(isOnline ? (sID||finishing):oKart.cpu)) {
+			else if (!(isOnline ? (sID||finishing):(oKart.cpu && !oKart.autoplay))) {
 				updateLapHud(sID);
 				if (!onlineSpectatorId) {
 					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
@@ -19881,6 +20349,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	if (oKart.boomerangArme && oKart.arme === "boomerang")
+		updateItemCountdownHud(getId, oKart.boomerangArme / itemBehaviors.boomerang.MAX_USES);
 	if (oKart.megachampi) {
 		oKart.megachampi--;
 		if (oKart.megachampi > 71)
@@ -20007,7 +20477,7 @@ function move(getId, triggered) {
 
 function kartIsPlayer(oKart) {
 	if (!isOnline)
-		return !oKart.cpu;
+		return !oKart.cpu || oKart.autoplay;
 	if (onlineSpectatorId)
 		return false;
 	return (oKart == oPlayers[0]);
@@ -20599,8 +21069,28 @@ function processCode(cheatCode) {
 			}
 			return "balloon: Unknown error";
 
+		// Comment to play tracks automatically whcile testing the item distribution
+		/*case "autoplay": // /autoplay (items)
+		case "fastforward":
+		case "fastforwards":
+		case "ff":
+			// plays the race automatically at high speed, used for simulating races abd test item distributions
+			// 'items' are items to display distribution results at the end of the race (must be sparated by a space)
+			raceLog.items = args.slice();
+
+			oPlayer.cpu = true;
+			oPlayer.autoplay = true;
+			oPlayer.maxspeed = 5.7;
+			oPlayer.maxspeed0 = oPlayer.maxspeed;
+
+			SPF = 1;
+			clearInterval(cycleHandler);
+			cycleHandler = null;
+			cycle();
+			return true;
+
         default:
-            return "Error: This command doesn't exist";
+            return "Error: This command doesn't exist";*/
     }
 }
 
@@ -20992,7 +21482,7 @@ function ai(oKart) {
 			if (oKart.horizontality) {
 				var xp = direction(0,oKart.rotation), yp = direction(1,oKart.rotation);
 				var xc = oKart.horizontality[0], yc = oKart.horizontality[1];
-				if ((Math.abs(xp*yc-yp*xc) > 0.1) || (oKart.lastAItime > 150))
+				if ((Math.abs(xp*yc-yp*xc) > 0.1) || (oKart.lastAItime > 200))
 					oKart.rotinc = oKart.decision*fMaxRotInCp;
 			}
 			else
@@ -26283,7 +26773,7 @@ function selectItemScreen(oScr, callback, options) {
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	
-	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
+	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang", "carapacerougeX3", "pow", "carapacebleue", "champiX3", "megachampi", "etoile", "champior", "billball", "eclair"];
 	const possibleItems = distribOrder.slice();
 	const battleForbidden = ["billball", "eclair"];
 
