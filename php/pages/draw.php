@@ -206,6 +206,7 @@ if (isset($_GET['i'])) {
 											 :	array('Herbe',	'Eau',	'Glace','Choco');
 						foreach ($typesOffroad as $i=>$typeOffroad)
 							echo '<option value="'. $i .'">'. $typeOffroad .'</option>';
+						echo '<option value="-2" class="special-option">'. ($language ? 'Custom...':'Personnalisé...') .'</option>';
 						echo '<option value="-1" class="special-option">'. ($language ? 'Transfer...':'Transférer...') .'</option>';
 						?>
 					</select>
@@ -774,6 +775,51 @@ if (isset($_GET['i'])) {
 			echo '<button class="options" onclick="transferOffroad()">'. ($language ? 'Submit':'Valider') .'</button>';
 			echo '</div>';
 			?>
+		</div>
+		<div id="custom-offroad-profile" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeCustomOffroadProfile()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div id="custom-offroad-profile-info">
+				<div id="custom-offroad-profile-select">
+					<h1><?php echo $language ? 'Custom offroad profile':'Profil de hors-piste personnalisé'; ?></h1>
+					<ul id="custom-offroad-profile-list" class="custom-offroad-profile-items"></ul>
+					<div id="custom-offroad-profile-empty"><?php echo $language ? 'No profiles yet.':'Aucun profil pour le moment.'; ?></div>
+					<div class="custom-offroad-profile-actions">
+						<button class="options" onclick="showNewCustomOffroadProfile()"><?php echo $language ? 'New offroad profile...':'Nouveau profil...'; ?></button>
+					</div>
+				</div>
+				<div id="custom-offroad-profile-new">
+					<h1 class="custom-offroad-profile-new-title"><?php echo $language ? 'New offroad profile':'Nouveau profil'; ?></h1>
+					<h1 class="custom-offroad-profile-update-title"><?php echo $language ? 'Update offroad profile':'Modifier un profil'; ?></h1>
+					<div class="form-row">
+						<label><?php echo $language ? 'Profile name:':'Nom du profil :'; ?>
+						<input type="text" id="custom-offroad-name" maxlength="32" placeholder="<?php echo $language ? 'Shallow water':'Eau peu profonde'; ?>" /></label>
+					</div>
+					<div class="form-row">
+						<label><?php echo $language ? 'Strength:':'Force :'; ?>
+						<input type="range" id="custom-offroad-strength" min="0" max="1" step="0.05" value="0.5" oninput="updateCustomOffroadSliderLabel(this,'custom-offroad-strength-value')" />
+						<span id="custom-offroad-strength-value">0.50</span></label>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-slippery" onchange="toggleCustomOffroadSlippery(this.checked)" />
+						<?php echo $language ? 'Slippery':'Sol glissant'; ?></label>
+					</div>
+					<div class="form-row" id="custom-offroad-slippery-factor-row">
+						<label><?php echo $language ? 'Slippery factor:':'Facteur de glissance :'; ?>
+						<input type="range" id="custom-offroad-slippery-factor" min="0" max="1" step="0.05" value="0.5" oninput="updateCustomOffroadSliderLabel(this,'custom-offroad-slippery-factor-value')" />
+						<span id="custom-offroad-slippery-factor-value">0.50</span></label>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-drifting" />
+						<?php echo $language ? 'Drifting enabled':'Dérapages activés'; ?></label>
+					</div>
+					<div class="popup-buttons">
+						<button class="options" onclick="backCustomOffroadProfileForm()"><?php echo $language ? 'Back':'Retour'; ?></button>
+						<button class="options" onclick="submitCustomOffroadProfileForm()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div id="choptions" class="fs-popup" onclick="event.stopPropagation()">
 			<h1><?php echo $language ? 'Edit laps system':'Modifier le système de tours'; ?></h1>
