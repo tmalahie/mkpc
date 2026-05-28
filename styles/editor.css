@@ -1341,6 +1341,10 @@ embed,#ytplayer {
 #modeoverride-options h1 strong {
 	color: #5b8;
 }
+#modeoverride-lap-list {
+	max-width: 150px;
+	text-overflow: ellipsis;
+}
 #modeoverride-options .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 10px;
@@ -1371,6 +1375,10 @@ embed,#ytplayer {
 #lapoverride-less .popup-buttons {
 	margin-bottom: 10px;
 }
+#lapoverride-less-list {
+	max-width: 150px;
+	text-overflow: ellipsis;
+}
 .lapoverride-trigger {
 	margin-bottom: 0.5em;
 	border-radius: 0.5em;
@@ -1392,6 +1400,12 @@ embed,#ytplayer {
 }
 .lapoverride-type-options.selected {
 	display: block;
+}
+#lapoverride-challenge-list,
+#lapoverride-copy-from,
+#lapoverride-copy-to {
+	max-width: 150px;
+	text-overflow: ellipsis;
 }
 #lapoverride-more-options {
 	overflow: auto;
