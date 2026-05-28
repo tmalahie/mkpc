@@ -461,6 +461,18 @@ body.theme-dark {
 .decor-option-bus-trajects #decor-bus-decors {
 	display: none;
 }
+#items-decors label {
+	display: block;
+}
+#items-decors, #items-trajects {
+	font-size: 0.75em;
+}
+.items-option-decors #items-trajects {
+	display: none;
+}
+.items-option-trajects #items-decors {
+	display: none;
+}
 #mode-override-options {
 	display: none;
 }

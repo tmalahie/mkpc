@@ -165,6 +165,21 @@ if (isset($_GET['i'])) {
 				</div>
 			</div>
 			<div id="mode-options">
+				<div id="mode-option-items">
+					<div id="items-option" class="items-option-decors">
+						<div id="items-decors">
+							<label>
+								<?php echo $language ? 'Route:':'Trajet :'; ?>
+								<select name="items-currenttraject" id="items-currenttraject" onchange="currentItemsTrajectChange(this.value)"></select>
+							</label>
+							<a href="javascript:manageItemsTrajects()"><?php echo $language ? 'Manage item routes...':'Gérer les trajets...'; ?></a>
+						</div>
+						<div id="items-trajects">
+							<a href="javascript:manageItemsDecor()"><?php echo $language ? 'Back':'Retour'; ?></a>&nbsp;
+							<select name="items-traject" id="items-traject" onchange="trajectChange(this.value,'items')"></select>
+						</div>
+					</div>
+				</div>
 				<div id="mode-option-walls">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="walls-shape" data-change="shapeChange">

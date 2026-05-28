@@ -1050,6 +1050,19 @@ function manageBusDecor() {
 	document.getElementById("decor-option-truck").classList.add("decor-option-bus-decors");
 	selectMode(currentMode);
 }
+function manageItemsTrajects() {
+	document.getElementById("items-option").classList.remove("items-option-decors");
+	document.getElementById("items-option").classList.add("items-option-trajects");
+	selectMode(currentMode);
+}
+function manageItemsDecor() {
+	document.getElementById("items-option").classList.remove("items-option-trajects");
+	document.getElementById("items-option").classList.add("items-option-decors");
+	selectMode(currentMode);
+}
+function currentItemsTrajectChange(value) {
+	editorTools.items.state.currentTraject = +value;
+}
 function offroadChange(value) {
 	if (value != -1)
 		selectMode(currentMode);
@@ -2703,6 +2716,8 @@ function getTrajectData(editorTool,key) {
 			return editorTool.data;
 		case "bus":
 			return editorTool.data.extra.truck.route;
+		case "items":
+			return editorTool.data.extra.arme.route;
 	}
 }
 function getTrajectSelector(key) {
@@ -2711,6 +2726,8 @@ function getTrajectSelector(key) {
 			return document.getElementById("traject");
 		case "bus":
 			return document.getElementById("decor-bus-traject");
+		case "items":
+			return document.getElementById("items-traject");
 	}
 }
 function showTrajectOptions(key) {
@@ -2738,16 +2755,20 @@ function showTrajectOptions(key) {
 	var trajectData = getTrajectData(editorTool,key);
 	var maxCp = trajectData.length;
 	initTrajectOptions();
+	var minTrajects = 1;
+	if (key === 'items') minTrajects = 0;
 	var $links = $trajectOptions.querySelectorAll("#traject-menu a");
 	$links[1].style.display = (maxCp>1) ? "block":"none";
-	$links[2].style.display = (maxCp>1) ? "block":"none";
+	$links[2].style.display = (maxCp>minTrajects) ? "block":"none";
 	getTrajectSelector(key).selectedIndex = editorTool.state.traject;
 }
 function closeTrajectOptions() {
+	pendingTrajectCallback = null;
 	var $mask = document.getElementById('mask-traject');
 	if ($mask)
 		$mask.close();
 }
+var pendingTrajectCallback = null;
 function showTrajectAdd() {
 	var key = document.getElementById("traject-options").dataset.key;
 	document.getElementById("traject-menu").style.display = "none";
@@ -2767,15 +2788,21 @@ function showTrajectAdd() {
 		$iTraject.innerHTML = routeLabels[i];
 		$trajectList.appendChild($iTraject);
 	}
-	switch (key) {
-	case "aipoints":
-		$trajectList.selectedIndex = editorTool.state.traject+1;
-		document.getElementById("traject-advanced-options").style.display = "";
-		document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
-		break;
-	default:
-		document.getElementById("traject-advanced-options").style.display = "none";
-		document.getElementById("traject-bill").checked = false;
+	if (key === "items" && !routeLabels.length) {
+		addTraject();
+		return;
+	}
+	if (!isBattle) {
+		switch (key) {
+		case "aipoints":
+			$trajectList.selectedIndex = editorTool.state.traject+1;
+			document.getElementById("traject-advanced-options").style.display = "";
+			document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
+			break;
+		default:
+			document.getElementById("traject-advanced-options").style.display = "none";
+			document.getElementById("traject-bill").checked = false;
+		}
 	}
 }
 function addTraject() {
@@ -2786,7 +2813,7 @@ function addTraject() {
 	var trajectData = getTrajectData(editorTool,key);
 	var maxCp = trajectData.length;
 	var $trajectBill = document.getElementById("traject-bill");
-	var isBb = $trajectBill.checked;
+	var isBb = $trajectBill && $trajectBill.checked;
 	var newTraject;
 	if (trajectVal != -1)
 		newTraject = deepCopy(trajectData[trajectVal]);
@@ -2820,6 +2847,11 @@ function addTraject() {
 		$trajectSelector.childNodes[i].value = i+1;
 	$trajectSelector.insertBefore($trajectOption, $trajectSelector.childNodes[newTrajectIndex]);
 	$trajectSelector.selectedIndex = newTrajectIndex;
+	if (pendingTrajectCallback) {
+		var cb = pendingTrajectCallback;
+		pendingTrajectCallback = null;
+		cb(newTrajectIndex);
+	}
 	selectMode(currentMode);
 	closeTrajectOptions();
 	changes = true;
@@ -2903,6 +2935,20 @@ function removeTraject() {
 							decor.traject = 0;
 					}
 				}
+			}
+		}
+		break;
+	case "items":
+		var points = editorTool.data.points;
+		for (var i=0;i<points.length;i++) {
+			var point = points[i];
+			if (point.traject != null) {
+				if (point.traject === trajectVal) {
+					delete point.traject;
+					delete point.speed;
+				}
+				else if (point.traject > trajectVal)
+					point.traject--;
 			}
 		}
 		break;
@@ -6136,23 +6182,83 @@ var commonTools = {
 		}
 	},
 	"items": {
+		"init" : function(self) {
+			self.data = {points: [], extra: {}};
+		},
 		"resume" : function(self) {
 			self.state.boxSize = {w:8,h:8};
 			self.state.point = createBox(self.state.boxSize);
 			self.state.point.classList.add("noclick");
-			var data = self.data;
-			self.data = [];
-			for (var i=0;i<data.length;i++) {
-				var iData = data[i];
-				self.click(self,iData,{});
+			if (!self.data.extra) self.data.extra = {};
+			if (!self.data.extra.arme)
+				self.data.extra.arme = {route:[]};
+			var routeData = self.data.extra.arme.route;
+			var $itemsOption = document.getElementById("items-option");
+			if (routeData.length === 0) {
+				if ($itemsOption) {
+					$itemsOption.style.display = "none";
+					$itemsOption.className = "items-option-decors";
+				}
+				self.state.selectedTool = 0;
+				self.state.currentTraject = -1;
+				var data = self.data.points;
+				self.data.points = [];
+				for (var i=0;i<data.length;i++)
+					self.click(self,data[i],{});
+				return;
+			}
+			if ($itemsOption) $itemsOption.style.display = "";
+			var $itemsTraject = document.getElementById("items-traject");
+			var prevTraject = $itemsTraject.children.length ? +$itemsTraject.value : 0;
+			initRouteSelector($itemsTraject, routeData.length);
+			if (prevTraject >= 0 && prevTraject < routeData.length)
+				$itemsTraject.value = prevTraject;
+			self.state.selectedTool = 0;
+			if ($itemsOption && $itemsOption.className === "items-option-trajects")
+				self.state.selectedTool = 1;
+			if (self.state.selectedTool == 0) {
+				self.state.currentTraject = +(document.getElementById("items-currenttraject").value || -1);
+				if (self.state.currentTraject >= routeData.length)
+					self.state.currentTraject = -1;
+				var $currentTrajectSelector = document.getElementById("items-currenttraject");
+				$currentTrajectSelector.innerHTML = "";
+				var $noneOption = document.createElement("option");
+				$noneOption.value = -1;
+				$noneOption.innerHTML = (language ? "None":"Aucun");
+				$currentTrajectSelector.appendChild($noneOption);
+				for (var i=0;i<routeData.length;i++) {
+					var $currentTrajectOption = document.createElement("option");
+					$currentTrajectOption.value = i;
+					$currentTrajectOption.innerHTML = (i+1);
+					$currentTrajectSelector.appendChild($currentTrajectOption);
+				}
+				$currentTrajectSelector.value = self.state.currentTraject;
+				var data = self.data.points;
+				self.data.points = [];
+				for (var i=0;i<data.length;i++) {
+					var iData = data[i];
+					self.click(self,iData,{});
+				}
+			}
+			else {
+				var traject = +document.getElementById("items-traject").value;
+				initRouteBuilder(self,routeData,traject);
 			}
 		},
 		"click" : function(self,point,extra) {
 			if (extra.oob)
 				return;
+			if (self.state.traject !== undefined) {
+				appendRouteBuilder(self,point,extra);
+				return;
+			}
 			self.move(self,point,extra);
 			storeHistoryData(self.data);
-			self.data.push(point);
+			if (point.traject == null && self.state.currentTraject != null && self.state.currentTraject >= 0) {
+				point.traject = self.state.currentTraject;
+				if (point.speed == null) point.speed = 1;
+			}
+			self.data.points.push(point);
 
 			var boxCntText = document.createElementNS(SVG, "text");
 			boxCntText.setAttribute("class", "dark noclick");
@@ -6162,7 +6268,15 @@ var commonTools = {
 
 			var box = self.state.point;
 			box.retext = function() {
-				boxCntText.innerHTML = point.nb || "";
+				var label = "";
+				boxCntText.style.textDecorationLine = "";
+				if (point.nb && point.nb > 1) {
+					label = point.nb;
+					if (point.traject != null)
+						boxCntText.style.textDecorationLine = "line-through";
+				}
+				else if (point.traject != null) label = "↗";
+				boxCntText.innerHTML = label;
 			};
 			box.reposition = function(nData) {
 				boxCntText.setAttribute("x", nData.x);
@@ -6176,6 +6290,9 @@ var commonTools = {
 			box.oncontextmenu = function(e) {
 				hideBox(self.state.point,self.state.boxSize);
 				var doubleCheck = (point.nb > 1) ? "✔ ":"";
+				var trajectLabel = (point.traject != null)
+					? "✔ "+(language ? "Route":"Trajet")+" "+(point.traject+1)
+					: (language ? "Move along route...":"Suivre un trajet...");
 				var moveOptions = {
 					on_apply: function(nData) {
 						box.reposition(nData);
@@ -6187,7 +6304,7 @@ var commonTools = {
 						boxCntText.style.display = "";
 					}
 				};
-				return showContextOnElt(e,box,[{
+				var menuOptions = [{
 					text: (language ? "Move":"Déplacer"),
 					click: function() {
 						moveBox(box,point,self.state.boxSize, moveOptions);
@@ -6198,7 +6315,7 @@ var commonTools = {
 						$editor.removeChild(box);
 						$editor.removeChild(boxCntText);
 						storeHistoryData(self.data);
-						removeFromArray(self.data,point);
+						removeFromArray(self.data.points,point);
 					}
 				}, {
 					text: doubleCheck + (language ? "Double item":"Double objet"),
@@ -6210,44 +6327,155 @@ var commonTools = {
 							point.nb = 2;
 						box.retext();
 					}
-				}]);
+				}, {
+					text: trajectLabel,
+					click:function() {
+						var routeData = self.data.extra.arme.route;
+						var nbRoutes = routeData.length;
+						if (nbRoutes === 0) {
+							pendingTrajectCallback = function(newIndex) {
+								storeHistoryData(self.data);
+								point.traject = newIndex;
+								if (point.speed == null) point.speed = 1;
+								manageItemsTrajects();
+							};
+							showTrajectOptions("items");
+							return;
+						}
+						var msg = language ? "Enter route number (1-"+nbRoutes+"), or leave empty to reset to a static item" : "Entrer n° de trajet (1-"+nbRoutes+"), ou laisser vide pour réinitialiser à un objet immobile";
+						var defaultVal = (point.traject != null) ? (point.traject+1) : "";
+						var newTraject = prompt(msg, defaultVal);
+						if (newTraject == null) return;
+						storeHistoryData(self.data);
+						if (newTraject === "") {
+							delete point.traject;
+							delete point.speed;
+						}
+						else {
+							newTraject = (+newTraject)-1;
+							if (isNaN(newTraject) || newTraject < 0 || newTraject >= nbRoutes) return;
+							point.traject = newTraject;
+							if (point.speed == null) point.speed = 1;
+						}
+						box.retext();
+					}
+				}];
+				if (point.traject != null) {
+					menuOptions.push({
+						text: (language ? "Speed...":"Vitesse..."),
+						click: function() {
+							var newSpeed = prompt(language ? "Edit speed (Default is 1)":"Modifier la vitesse (Défaut 1)", point.speed);
+							if (newSpeed == null || newSpeed === "") return;
+							newSpeed = +newSpeed;
+							if (isNaN(newSpeed) || newSpeed < 0) return;
+							newSpeed = Math.min(newSpeed, 100);
+							storeHistoryData(self.data);
+							point.speed = newSpeed;
+						}
+					});
+				}
+				return showContextOnElt(e,box,menuOptions);
 			};
 			self.state.point = createBox(self.state.boxSize);
 			self.state.point.classList.add("noclick");
 		},
 		"move" : function(self,point,extra) {
-			setBoxPos(self.state.point,point,self.state.boxSize);
+			if (self.state.traject !== undefined)
+				moveRouteBuilder(self,point,extra);
+			else
+				setBoxPos(self.state.point,point,self.state.boxSize);
+		},
+		"round_on_pixel" : function(self) {
+			return (self.state.traject !== undefined);
 		},
 		"save" : function(self,payload) {
 			payload.arme = [];
-			for (var i=0;i<self.data.length;i++) {
-				var iData = self.data[i];
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++) {
+				var iData = points[i];
 				var iPayload = pointToData(iData);
-				if (iData.nb)
-					iPayload.push(iData.nb);
+				if ((iData.nb && iData.nb > 1) || (iData.traject != null))
+					iPayload.push(iData.nb || 1);
+				if (iData.traject != null) {
+					iPayload.push(iData.traject);
+					if (iData.speed != null && iData.speed !== 1)
+						iPayload.push(iData.speed);
+				}
 				payload.arme.push(iPayload);
+			}
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				if ((routeData.length != 1) || routeData[0].points.length) {
+					payload.itemparams = {
+						path: [],
+						closed: []
+					};
+					var armePayload = payload.itemparams;
+					for (var i=0;i<routeData.length;i++) {
+						armePayload.path.push(polyToData(routeData[i].points));
+						armePayload.closed.push(routeData[i].closed ? 1:0);
+					}
+				}
 			}
 		},
 		"restore" : function(self,payload) {
 			for (var i=0;i<payload.arme.length;i++) {
 				var iPayload = payload.arme[i];
 				var iData = dataToPoint(iPayload);
-				if (iPayload.length > 2)
+				if (iPayload.length > 2 && iPayload[2] > 1)
 					iData.nb = iPayload[2];
-				self.data.push(iData);
+				if (iPayload.length > 3) {
+					iData.traject = iPayload[3];
+					iData.speed = (iPayload.length > 4) ? iPayload[4] : 1;
+				}
+				self.data.points.push(iData);
+			}
+			if (payload.itemparams) {
+				var armePayload = payload.itemparams;
+				self.data.extra.arme = {route:[]};
+				for (var i=0;i<armePayload.path.length;i++)
+					self.data.extra.arme.route.push({points:dataToPoly(armePayload.path[i]),closed:armePayload.closed[i]});
 			}
 		},
+		"postrestore": function(self) {
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			var nbRoutes = (armeExtra && armeExtra.route) ? armeExtra.route.length : 0;
+			if (nbRoutes > 0)
+				initRouteSelector(document.getElementById("items-traject"),nbRoutes);
+		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<self.data.length;i++)
-				rescaleBox(self.data[i], scale);
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++)
+				rescaleBox(points[i], scale);
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				for (var i=0;i<routeData.length;i++)
+					rescalePoly(routeData[i].points, scale);
+			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<self.data.length;i++)
-				rotateBox(self.data[i], imgSize,orientation);
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++)
+				rotateBox(points[i], imgSize,orientation);
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				for (var i=0;i<routeData.length;i++)
+					rotatePoly(routeData[i].points, imgSize,orientation);
+			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.length;i++)
-				flipBox(self.data[i], imgSize,axis);
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++)
+				flipBox(points[i], imgSize,axis);
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				for (var i=0;i<routeData.length;i++)
+					flipPoly(routeData[i].points, imgSize,axis);
+			}
 		}
 	},
 	"jumps": {
@@ -7200,8 +7428,9 @@ var commonTools = {
 		"save" : function(self,payload) {
 			var selfData = self.data.decors;
 			payload.decor = {};
-			payload.decorparams = {extra:{}};
-			var isDecorData = false, isDecorExtra = false;
+			if (!payload.decorparams) payload.decorparams = {extra:{}};
+			else if (!payload.decorparams.extra) payload.decorparams.extra = {};
+			var isDecorData = false, isDecorExtra = !!Object.keys(payload.decorparams.extra).length;
 			for (var type in selfData) {
 				var actualType = getActualDecorType(type);
 				var isAsset = (actualType.substring(0,7) === "assets/");
