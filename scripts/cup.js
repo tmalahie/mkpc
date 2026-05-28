@@ -26,7 +26,9 @@ function getSubmitMsg() {
 		}
 		return "";
 	}
-	return (selectedCircuits.length != 4) ? (language ? ("You must select 4 "+(isBattle ? "arenas":"circuits")):("Vous devez sélectionner 4 "+(isBattle ? "arènes":"circuits"))):"";
+	if (selectedCircuits.length != 4)
+		return (language ? ("You must select 4 "+(isBattle ? "arenas":"circuits")):("Vous devez sélectionner 4 "+(isBattle ? "arènes":"circuits")));
+	return "";
 }
 function selectCircuit(tr, isAuto) {
 	if (readOnly && !isAuto) return;
@@ -59,27 +61,28 @@ function initGUI() {
 	if (editting) {
 		for (var i=0;i<cids.length;i++)
 			selectTr(cids[i]);
-		if (isMCups) {
-			var $cupOptions = document.getElementById("cup-options");
-			if ($cupOptions.value) {
-				try {
-					var cupOptions = JSON.parse($cupOptions.value);
-					if (cupOptions && cupOptions.keyid) {
-						cupOptions = JSON.parse(sessionStorage.getItem("cupopt."+cupOptions.keyid));
-						$cupOptions.value = JSON.stringify(cupOptions);
-					}
-					if (cupOptions) {
-						if (cupOptions.icons) cupIcons = cupOptions.icons;
-						if (cupOptions.lines) cupLines = cupOptions.lines;
-						if (cupOptions.pages) cupPages = cupOptions.pages;
-						if (typeof characterRoster !== "undefined")
-							persoList = characterRoster;
-						if (cupOptions.customchars === 0)
-							document.getElementById("customchars").checked = false;
-					}
+		var $cupOptions = document.getElementById("cup-options");
+		if ($cupOptions && $cupOptions.value) {
+			try {
+				var cupOptions = JSON.parse($cupOptions.value);
+				if (cupOptions && cupOptions.keyid) {
+					cupOptions = JSON.parse(sessionStorage.getItem("cupopt."+cupOptions.keyid));
+					$cupOptions.value = JSON.stringify(cupOptions);
 				}
-				catch (e) {
+				if (cupOptions) {
+					if (cupOptions.icons) cupIcons = cupOptions.icons;
+					if (cupOptions.lines) cupLines = cupOptions.lines;
+					if (cupOptions.pages) cupPages = cupOptions.pages;
+					if (typeof characterRoster !== "undefined")
+						persoList = characterRoster;
+					if (cupOptions.customchars === 0) {
+						var $customChars = document.getElementById("customchars");
+						if ($customChars) $customChars.checked = false;
+					}
+					if (cupOptions.gp) gpOpts = cupOptions.gp;
 				}
+			}
+			catch (e) {
 			}
 		}
 	}
@@ -128,8 +131,11 @@ function initFancyTitle($prettyTitle) {
 }
 function showEditorContent(id) {
 	if (id == 1) {
-		updateCupImgGUI();
-		updateCupPersosGUI();
+		if (isMCups) {
+			updateCupImgGUI();
+			updateCupPersosGUI();
+		}
+		updateGpOptionsGUI();
 	}
 	document.querySelector(".editor-content.editor-content-active").classList.remove("editor-content-active");
 	document.querySelectorAll(".editor-content")[id].classList.add("editor-content-active");
@@ -167,11 +173,14 @@ function previewImg(e,src) {
 var cupIcons = [];
 var cupLines = [];
 var persoList;
+var gpOpts = {};
 var actualIcons, actualLines;
 var allCups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
 var cupPage = 0;
 var cupPages = [];
 function resetCupOptions(full) {
+	var $cupOptions = document.getElementById("cup-options");
+	if (!$cupOptions) return;
 	if (isMCups) {
 		var nbCups = selectedCircuits.length;
 		var cups_per_line = 6;
@@ -241,8 +250,10 @@ function resetCupOptions(full) {
 				}
 			}
 		}
+	}
 
-		var cupOptions = {};
+	var cupOptions = {};
+	if (isMCups) {
 		if (cupIcons.length)
 			cupOptions.icons = actualIcons;
 		if (cupLines.length)
@@ -251,20 +262,31 @@ function resetCupOptions(full) {
 			cupOptions.pages = cupPages;
 			cupOptions.lines = actualLines;
 		}
-		if (persoList) {
-			cupOptions.persos = persoList.map(function(data) {
-				if (data.id)
-					return data.id;
-				return data.sprites;
-			});
-		}
-		if (!document.getElementById("customchars").checked)
-			cupOptions.customchars = 0;
-		var cupOptionsJSON = JSON.stringify(cupOptions);
-		if (cupOptionsJSON === "{}")
-			cupOptionsJSON = "";
-		document.getElementById("cup-options").value = cupOptionsJSON;
 	}
+	if (persoList) {
+		cupOptions.persos = persoList.map(function(data) {
+			if (data.id)
+				return data.id;
+			return data.sprites;
+		});
+	}
+	var $customChars = document.getElementById("customchars");
+	if ($customChars && !$customChars.checked)
+		cupOptions.customchars = 0;
+	if (gpOpts && hasGpOpts(gpOpts))
+		cupOptions.gp = gpOpts;
+	var cupOptionsJSON = JSON.stringify(cupOptions);
+	if (cupOptionsJSON === "{}")
+		cupOptionsJSON = "";
+	$cupOptions.value = cupOptionsJSON;
+}
+function hasGpOpts(opts) {
+	if (!opts) return false;
+	for (var k in opts) {
+		if (opts[k] != null && opts[k] !== "")
+			return true;
+	}
+	return false;
 }
 function resetCupAppearance() {
 	if (confirm(language ? "Reset cup appearance to default?":"Rétablir l'apparence par défaut ?")) {
@@ -280,6 +302,617 @@ function resetCharacterRoster() {
 		persoList = undefined;
 		updateCupPersosGUI();
 	}
+}
+function resetGpOptions() {
+	if (confirm(language ? "Reset Grand Prix options to default?":"Rétablir les options Grand Prix par défaut ?")) {
+		gpOpts = {};
+		updateGpOptionsGUI();
+		resetCupOptions();
+		updateSubmitMsg();
+	}
+}
+var GP_DEFAULT_NB_CPUS = 7;
+var GP_MIN_CPUS = 1;
+var GP_MAX_CPUS = 11;
+var GP_DEFAULT_DIFFICULTY = 2;
+var gpDifficultyLabels = ["Easy", "Medium", "Difficult", "Extreme", "Impossible"];
+var gpDifficultyLabelsFr = ["Facile", "Moyen", "Difficile", "Extrême", "Impossible"];
+function gpDefaultLabel(name) {
+	return (language ? "Default (" : "Défaut (") + name + ")";
+}
+var gpItemDistribNames = language
+	? ["Standard", "Aggressive mode", "Shells", "Bob-ombs", "Mushrooms", "None"]
+	: ["Classique", "Mode explosif", "Carapaces", "Bob-ombs", "Champis", "Aucun"];
+function getCustomItemDistribs() {
+	try {
+		var raw = localStorage.getItem("itemsets");
+		if (!raw) return [];
+		var parsed = JSON.parse(raw);
+		return (parsed && parsed.VS) ? parsed.VS : [];
+	}
+	catch (e) {
+		return [];
+	}
+}
+var gpCcOptions = [
+	{ value: "50",    label: "50cc" },
+	{ value: "100",   label: "100cc" },
+	{ value: "150",   label: "150cc" },
+	{ value: "150m",  label: language ? "150cc mirror":"150cc miroir" },
+	{ value: "200",   label: "200cc" }
+];
+function defaultGpCpu() {
+	return { driver: "", difficulty: null };
+}
+function defaultGpPoints(nbRacers) {
+	var base = [10, 8, 6, 4, 3, 2, 1];
+	var res = [];
+	for (var i=0;i<nbRacers;i++) {
+		if (i < base.length) res.push(base[i]);
+		else res.push(0);
+	}
+	return res;
+}
+function ensureGpCpus() {
+	if (gpOpts.cpus) return;
+	gpOpts.cpus = [];
+	for (var i=0;i<GP_DEFAULT_NB_CPUS;i++)
+		gpOpts.cpus.push(defaultGpCpu());
+}
+function syncGpPoints() {
+	if (!gpOpts.points) return;
+	var target = (gpOpts.cpus ? gpOpts.cpus.length : GP_DEFAULT_NB_CPUS) + 1;
+	while (gpOpts.points.length < target) gpOpts.points.push(0);
+	if (gpOpts.points.length > target) gpOpts.points.length = target;
+}
+function ordinalLabel(i) {
+	if (language) {
+		var n = i+1;
+		if (n === 1) return "1st";
+		if (n === 2) return "2nd";
+		if (n === 3) return "3rd";
+		return n + "th";
+	}
+	return (i+1) + (i === 0 ? "er" : "e");
+}
+function gpDriverList() {
+	var res = [];
+	for (var p in cp) {
+		var name = (typeof cpNames !== "undefined" && cpNames[p]) ? cpNames[p] : p;
+		res.push({ id: p, name: name });
+	}
+	return res;
+}
+// Custom CPU drivers are stored as the stable numeric character id; the sprites
+// path (which changes when the image is updated) is deduced server-side. The
+// name is resolved from cupCustomChars (emitted server-side for the saved cup)
+// or from the user's own characters list once it's loaded.
+var gpCustomDriverInfo = {};
+var gpCustomDriverPending = {};
+function gpCustomDriverName(driver) {
+	if (gpCustomDriverInfo[driver])
+		return gpCustomDriverInfo[driver].name;
+	if (typeof cupCustomChars !== "undefined" && cupCustomChars[driver]) {
+		gpCustomDriverInfo[driver] = { name: cupCustomChars[driver].name };
+		return cupCustomChars[driver].name;
+	}
+	if (customCharacters) {
+		for (var i=0;i<customCharacters.length;i++) {
+			if (customCharacters[i].id === +driver || customCharacters[i].sprites === driver) {
+				gpCustomDriverInfo[driver] = { name: customCharacters[i].name };
+				return customCharacters[i].name;
+			}
+		}
+	}
+	// Legacy drivers stored as a sprites id ("cp-...") resolve by sprites.
+	if (typeof driver === "string" && driver.indexOf("cp-") === 0 && !gpCustomDriverPending[driver]) {
+		gpCustomDriverPending[driver] = true;
+		o_xhr("getCP.php", "perso="+driver, function(res) {
+			if (res && res !== "-1") {
+				try {
+					var data = JSON.parse(res);
+					if (data && data.name) {
+						gpCustomDriverInfo[driver] = { name: data.name };
+						updateGpOptionsGUI();
+					}
+				}
+				catch (e) {}
+			}
+			return true;
+		});
+	}
+	return language ? "Custom character" : "Perso custom";
+}
+function selectCpuDriver(cpuIndex) {
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask editor-mask-dark";
+	document.body.appendChild($mask);
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		document.body.removeChild($mask);
+	}
+	function hideOnEscape(e) {
+		if (e.keyCode === 27) closeMask();
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$mask.onclick = closeMask;
+	var oSelector = document.createElement("div");
+	oSelector.className = "editor-mask-content";
+	oSelector.innerHTML = '<h3>'+ (language ? "Custom CPU driver..." : "Perso CPU custom...") +'</h3>'
+		+ '<a class="perso-selection-close" href="javascript:void(0)">&times;</a>'
+		+ '<div class="perso-selection-custom">'
+			+ '<div class="perso-selection-custom-explain"></div>'
+			+ '<div id="perso-info">'
+				+ '<div>'
+					+ '<div id="perso-info-name">Mario</div>'
+				+ '</div>'
+			+ '</div>'
+			+ '<div class="perso-selection-choices" id="perso-selection-custom-choices"></div>'
+			+ '<div class="perso-selection-collab">'
+				+ '<div class="perso-selection-collab-toggle">+ <a href="javascript:void(0)">'+ (language ? "Select a character from another member..." : "Sélectionner le perso d'un autre membre...") +'</a></div>'
+				+ '<form id="perso-selection-collab">'
+					+ '<label>'
+						+ '<span>'+ (language ? 'Collaboration link' : 'Lien de collaboration') + '<span class="pretty-title-ctn"><a href="javascript:void(0)">[?]</a></span>:&nbsp;</span>'
+						+ '<input type="url" name="collab-link" required="required" placeholder="'+ collabCharPlaceholder +'" />'
+						+ '<button type="submit">Ok</button>'
+					+ '</label>'
+				+ '</form>'
+			+ '</div>'
+		+ '</div>';
+	oSelector.onclick = function(e) { e.stopPropagation(); };
+	oSelector.querySelector(".perso-selection-close").onclick = closeMask;
+	oSelector.querySelector("#perso-info-name").style.minWidth = "150px";
+	$mask.appendChild(oSelector);
+
+	function pickDriver(data) {
+		gpCustomDriverInfo[data.id] = { name: data.name };
+		gpOpts.cpus[cpuIndex].driver = data.id;
+		closeMask();
+		updateGpOptionsGUI();
+		resetCupOptions();
+	}
+	function appendChoices() {
+		var $choices = oSelector.querySelector("#perso-selection-custom-choices");
+		for (var i=0;i<customCharacters.length;i++) {
+			(function(customCharacter) {
+				var oDiv = document.createElement("div");
+				var oDiv2 = document.createElement("div");
+				var oImg = document.createElement("img");
+				oImg.src = customCharacter.ld;
+				oImg.onclick = function() { pickDriver(customCharacter); };
+				oDiv2.appendChild(oImg);
+				oDiv.appendChild(oDiv2);
+				oDiv.onmouseover = function() {
+					oSelector.querySelector("#perso-info-name").innerText = customCharacter.name;
+					oSelector.querySelector("#perso-info").style.display = "block";
+				};
+				oDiv.onmouseout = function() {
+					oSelector.querySelector("#perso-info").style.display = "";
+				};
+				$choices.appendChild(oDiv);
+			})(customCharacters[i]);
+		}
+		oSelector.querySelector(".perso-selection-custom-explain").innerHTML = customCharacters.length
+			? (language ? "Select here a character from the character editor. If the character hasn't been shared, it will appear as locked for other members." : "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres")
+			: (language ? "You haven't created any character yet. Click <a href=\"persoEditor.php\" target=\"_blank\">here</a> to create some." : "Vous n'avez pas créé de perso. Cliquez <a href=\"persoEditor.php\" target=\"_blank\">ici</a> pour en créer.");
+	}
+	if (customCharacters)
+		appendChoices();
+	else {
+		o_xhr("myPlayablePersos.php", "", function(res) {
+			try { customCharacters = JSON.parse(res); }
+			catch (e) { return false; }
+			appendChoices();
+			return true;
+		});
+	}
+
+	var $collabForm = oSelector.querySelector("#perso-selection-collab");
+	oSelector.querySelector(".perso-selection-collab-toggle a").onclick = function() {
+		$collabForm.className = $collabForm.className ? "" : "shown";
+		if ($collabForm.className) {
+			$collabForm.elements["collab-link"].focus();
+			var $persoCollabExplain = $collabForm.querySelector("#perso-selection-collab > label a");
+			if (!$persoCollabExplain.dataset.title) {
+				$persoCollabExplain.dataset.title = '<div class="fancy-title-collab">'+ (language ? "Enter the characters's collaboration link here.<br />To get this link, the character owner will simply need to select the character in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration du perso.<br />Pour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur &quot;Collaborer&quot;") +'</div>';
+				initFancyTitle($persoCollabExplain);
+			}
+		}
+	};
+	$collabForm.onsubmit = function(e) {
+		e.preventDefault();
+		var url = $collabForm.elements["collab-link"].value;
+		var creationId, creationKey;
+		try {
+			var urlParams = new URLSearchParams(new URL(url).search);
+			creationId = urlParams.get('id');
+			creationKey = urlParams.get('collab');
+		}
+		catch (e) {}
+		if (!creationKey) {
+			alert(language ? "Invalid URL" : "URL invalide");
+			return;
+		}
+		var $submitBtn = $collabForm.querySelector('button[type="submit"]');
+		$submitBtn.disabled = true;
+		o_xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+			$submitBtn.disabled = false;
+			if (!res) {
+				alert(language ? "Invalid link" : "Lien invalide");
+				return true;
+			}
+			pickDriver(JSON.parse(res));
+			return true;
+		});
+	};
+}
+function selectCustomCc(initialCc, initialMirror, onSubmit, onCancel) {
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask editor-mask-dark";
+	document.body.appendChild($mask);
+	var cancelled = true;
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		if ($mask.parentNode) document.body.removeChild($mask);
+		if (cancelled && onCancel) onCancel();
+	}
+	function hideOnEscape(e) {
+		if (e.keyCode === 27) closeMask();
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$mask.onclick = closeMask;
+
+	var $selector = document.createElement("div");
+	$selector.className = "editor-mask-content gp-cc-custom";
+	var defaultCc = (initialCc != null) ? initialCc : 150;
+	var defaultMirror = initialMirror ? ' checked="checked"' : "";
+	$selector.innerHTML = '<h3>'+ (language ? "Custom engine class" : "Cylindrée personnalisée") +'</h3>'
+		+ '<a class="perso-selection-close" href="javascript:void(0)">&times;</a>'
+		+ '<form class="gp-cc-custom-form">'
+			+ '<label><span>'+ (language ? "Class:" : "Cylindrée :") +'</span> <input type="number" name="cc" value="'+ defaultCc +'" required="required" min="1" max="999" />cc</label>'
+			+ '<label><input type="checkbox" name="mirror"'+ defaultMirror +' /> '+ (language ? "Mirror" : "Miroir") +'</label>'
+			+ '<div class="gp-cc-custom-actions"><button type="submit">Ok</button></div>'
+		+ '</form>';
+	$selector.onclick = function(e) { e.stopPropagation(); };
+	$selector.querySelector(".perso-selection-close").onclick = closeMask;
+	$mask.appendChild($selector);
+
+	var $form = $selector.querySelector("form");
+	$form.onsubmit = function(e) {
+		e.preventDefault();
+		var newCc = parseInt($form.elements["cc"].value, 10);
+		if (isNaN(newCc) || newCc < 1) return;
+		var newMirror = $form.elements["mirror"].checked;
+		cancelled = false;
+		closeMask();
+		onSubmit(newCc, newMirror);
+	};
+	$form.elements["cc"].focus();
+	$form.elements["cc"].select();
+}
+function updateGpOptionsGUI() {
+	var $gpOptions = document.getElementById("gp-options");
+	if (!$gpOptions) return;
+	$gpOptions.innerHTML = "";
+
+	function appendOption($select, value, label, selectedValue) {
+		var $opt = document.createElement("option");
+		$opt.value = value;
+		$opt.innerHTML = label;
+		if (String(selectedValue) === String(value))
+			$opt.selected = "selected";
+		$select.appendChild($opt);
+	}
+	function makeBaseRow(labelText) {
+		var $row = document.createElement("label");
+		$row.className = "gp-base-row";
+		var $label = document.createElement("span");
+		$label.className = "gp-base-label";
+		$label.appendChild(document.createTextNode(labelText));
+		$row.appendChild($label);
+		return $row;
+	}
+
+	var diffLabels = language ? gpDifficultyLabels : gpDifficultyLabelsFr;
+	var globalDifficulty = (gpOpts.difficulty != null) ? gpOpts.difficulty : GP_DEFAULT_DIFFICULTY;
+	var defaultLabel = language ? "Default" : "Par défaut";
+	var customLabel = language ? "Custom..." : "Personnalisé...";
+
+	var $base = document.createElement("fieldset");
+	$base.className = "gp-options-base";
+	var $baseLegend = document.createElement("legend");
+	$base.appendChild($baseLegend);
+	var $baseHelp = document.createElement("p");
+	$baseHelp.className = "gp-options-help";
+	$baseHelp.innerHTML = ('<img src="images/cups/cup1.png" alt="" />') + (language ? "These settings only apply to <strong>Grand Prix</strong> mode." : "Ces réglages s'appliquent uniquement au mode <strong>Grand Prix</strong>.");
+	$base.appendChild($baseHelp);
+
+	// Difficulty
+	var $diffRow = makeBaseRow(language ? "Difficulty:" : "Difficulté :");
+	var $diffGlobal = document.createElement("select");
+	var diffGlobalSelected = (gpOpts.difficulty != null && gpOpts.difficulty !== GP_DEFAULT_DIFFICULTY) ? gpOpts.difficulty : "";
+	for (var i=0;i<diffLabels.length;i++) {
+		var diffIsDefault = (i === GP_DEFAULT_DIFFICULTY);
+		appendOption($diffGlobal, diffIsDefault ? "" : i, diffIsDefault ? gpDefaultLabel(diffLabels[i]) : diffLabels[i], diffGlobalSelected);
+	}
+	$diffGlobal.onchange = function() {
+		gpOpts.difficulty = (this.value === "") ? null : +this.value;
+		updateGpOptionsGUI();
+		resetCupOptions();
+		updateSubmitMsg();
+	};
+	$diffRow.appendChild($diffGlobal);
+	$base.appendChild($diffRow);
+
+	// Speed class
+	var $ccRow = makeBaseRow(language ? "Engine class:" : "Cylindrée :");
+	var $cc = document.createElement("select");
+	var ccRaw = (gpOpts.cc != null) ? (gpOpts.cc + (gpOpts.mirror ? "m":"")) : "";
+	var ccSelected = (ccRaw === "150") ? "" : ccRaw;
+	var ccIsStandard = false;
+	for (var i=0;i<gpCcOptions.length;i++) {
+		var ccIsDefault = (gpCcOptions[i].value === "150");
+		var ccOptValue = ccIsDefault ? "" : gpCcOptions[i].value;
+		if (ccOptValue === ccSelected) ccIsStandard = true;
+		appendOption($cc, ccOptValue, ccIsDefault ? gpDefaultLabel(gpCcOptions[i].label) : gpCcOptions[i].label, ccSelected);
+	}
+	if (ccSelected !== "" && !ccIsStandard) {
+		var ccMirrored = (ccSelected.charAt(ccSelected.length-1) === "m");
+		var ccNum = parseInt(ccSelected, 10);
+		var ccCustomLabel = (language ? "Custom (" : "Personnalisé (") + ccNum + "cc" + (ccMirrored ? (language ? " mirror" : " miroir") : "") + ")";
+		appendOption($cc, ccSelected, ccCustomLabel, ccSelected);
+	}
+	appendOption($cc, "__custom__", customLabel, "");
+	$cc.onchange = function() {
+		if (this.value === "__custom__") {
+			selectCustomCc(gpOpts.cc, gpOpts.mirror, function(newCc, newMirror) {
+				if (newCc === 150 && !newMirror) {
+					gpOpts.cc = null;
+					gpOpts.mirror = null;
+				}
+				else {
+					gpOpts.cc = newCc;
+					gpOpts.mirror = newMirror ? 1 : null;
+				}
+				updateGpOptionsGUI();
+				resetCupOptions();
+				updateSubmitMsg();
+			}, function() {
+				updateGpOptionsGUI();
+			});
+			return;
+		}
+		if (this.value === "") {
+			gpOpts.cc = null;
+			gpOpts.mirror = null;
+		}
+		else {
+			gpOpts.cc = parseInt(this.value, 10);
+			gpOpts.mirror = (this.value.charAt(this.value.length-1) === "m") ? 1 : null;
+		}
+		resetCupOptions();
+		updateSubmitMsg();
+	};
+	$ccRow.appendChild($cc);
+	$base.appendChild($ccRow);
+
+	// CPU drivers (Default / Custom...)
+	var $cpusRow = makeBaseRow(language ? "CPU drivers:" : "Persos CPU :");
+	var $cpusSelect = document.createElement("select");
+	$cpusSelect.className = "gp-cpus-mode";
+	var cpusMode = gpOpts.cpus ? "custom" : "default";
+	appendOption($cpusSelect, "default", language ? "Default (random)" : "Défault (aléatoire)", cpusMode);
+	appendOption($cpusSelect, "custom", customLabel, cpusMode);
+	$cpusSelect.onchange = function() {
+		if (this.value === "custom")
+			ensureGpCpus();
+		else
+			gpOpts.cpus = null;
+		syncGpPoints();
+		updateGpOptionsGUI();
+		resetCupOptions();
+		updateSubmitMsg();
+	};
+	$cpusRow.appendChild($cpusSelect);
+	$base.appendChild($cpusRow);
+
+	if (gpOpts.cpus) {
+		var $cpuList = document.createElement("div");
+		$cpuList.className = "gp-cpu-list";
+		var $cpusHelp = document.createElement("p");
+		$cpusHelp.className = "gp-options-help";
+		$cpusHelp.innerHTML = language ? "Select CPU drivers and override difficulty per CPU if needed" : "Sélectionnez les persos CPU et surchargez leur difficulté au besoin";
+		$cpuList.appendChild($cpusHelp);
+
+		var drivers = gpDriverList();
+		for (var i=0;i<gpOpts.cpus.length;i++) (function(i) {
+			var cpu = gpOpts.cpus[i];
+			var $row = document.createElement("div");
+			$row.className = "gp-cpu-row";
+			var $label = document.createElement("span");
+			$label.className = "gp-cpu-label";
+			$label.innerHTML = (language ? "CPU " : "CPU ") + (i+1) + ":";
+			$row.appendChild($label);
+
+			var $driver = document.createElement("select");
+			var driverVal = (cpu.driver != null) ? cpu.driver : "";
+			appendOption($driver, "", language ? "Random" : "Aléatoire", driverVal);
+			for (var d=0;d<drivers.length;d++)
+				appendOption($driver, drivers[d].id, drivers[d].name, driverVal);
+			if (driverVal !== "" && !cp[driverVal])
+				appendOption($driver, driverVal, gpCustomDriverName(driverVal), driverVal);
+			appendOption($driver, "__custom__", language ? "Custom..." : "Personnalisé...", "");
+			$driver.dataset.cpu = i;
+			$driver.onchange = function() {
+				if (this.value === "__custom__") {
+					this.value = gpOpts.cpus[+this.dataset.cpu].driver || "";
+					selectCpuDriver(+this.dataset.cpu);
+					return;
+				}
+				gpOpts.cpus[+this.dataset.cpu].driver = this.value;
+				resetCupOptions();
+			};
+			$row.appendChild($driver);
+
+			var $diff = document.createElement("select");
+			var diffSelected = (cpu.difficulty != null && cpu.difficulty !== globalDifficulty) ? cpu.difficulty : "";
+			for (var d=0;d<diffLabels.length;d++) {
+				var dIsDefault = (d === globalDifficulty);
+				appendOption($diff, dIsDefault ? "" : d, dIsDefault ? gpDefaultLabel(diffLabels[d]) : diffLabels[d], diffSelected);
+			}
+			$diff.onchange = function() {
+				cpu.difficulty = (this.value === "") ? null : +this.value;
+				resetCupOptions();
+			};
+			$row.appendChild($diff);
+			$cpuList.appendChild($row);
+		})(i);
+
+		var $cpusButtons = document.createElement("div");
+		$cpusButtons.className = "gp-cpu-buttons";
+		var $addCpu = document.createElement("button");
+		$addCpu.type = "button";
+		$addCpu.className = "gp-add-cpu";
+		$addCpu.innerHTML = language ? "Add CPU" : "Ajouter un CPU";
+		$addCpu.disabled = (gpOpts.cpus.length >= GP_MAX_CPUS);
+		$addCpu.onclick = function() {
+			if (gpOpts.cpus.length >= GP_MAX_CPUS) return;
+			gpOpts.cpus.push(defaultGpCpu());
+			syncGpPoints();
+			updateGpOptionsGUI();
+			resetCupOptions();
+		};
+		$cpusButtons.appendChild($addCpu);
+		var $rmCpu = document.createElement("button");
+		$rmCpu.type = "button";
+		$rmCpu.className = "gp-remove-cpu";
+		$rmCpu.innerHTML = language ? "Remove CPU" : "Retirer un CPU";
+		$rmCpu.disabled = (gpOpts.cpus.length <= GP_MIN_CPUS);
+		$rmCpu.onclick = function() {
+			if (gpOpts.cpus.length <= GP_MIN_CPUS) return;
+			gpOpts.cpus.pop();
+			syncGpPoints();
+			updateGpOptionsGUI();
+			resetCupOptions();
+		};
+		$cpusButtons.appendChild($rmCpu);
+		$cpuList.appendChild($cpusButtons);
+		$base.appendChild($cpuList);
+	}
+
+	// Item distribution
+	var $itemsRow = makeBaseRow(language ? "Items distribution:" : "Distribution des objets :");
+	var $items = document.createElement("select");
+	$items.id = "gp-items";
+	var itemsSel = "";
+	if (gpOpts.items) {
+		if (gpOpts.items.index != null)
+			itemsSel = (gpOpts.items.index === 0) ? "" : "b" + gpOpts.items.index;
+		else if (gpOpts.items.value) itemsSel = "c" + (gpOpts.items.name || "");
+	}
+	for (var i=0;i<gpItemDistribNames.length;i++) {
+		var itemIsDefault = (i === 0);
+		appendOption($items, itemIsDefault ? "" : ("b" + i), itemIsDefault ? gpDefaultLabel(gpItemDistribNames[i]) : gpItemDistribNames[i], itemsSel);
+	}
+	var customs = getCustomItemDistribs();
+	var customNames = {};
+	if (customs.length) {
+		var $optGroup = document.createElement("optgroup");
+		$optGroup.label = language ? "Custom" : "Personnalisés";
+		for (var i=0;i<customs.length;i++) {
+			customNames[customs[i].name] = 1;
+			var $opt = document.createElement("option");
+			$opt.value = "c" + customs[i].name;
+			$opt.innerHTML = customs[i].name;
+			if ("c" + customs[i].name === itemsSel)
+				$opt.selected = "selected";
+			$optGroup.appendChild($opt);
+		}
+		$items.appendChild($optGroup);
+	}
+	// Orphan fallback: if the saved custom distribution no longer exists in
+	// localStorage (user deleted it), keep a "Custom" option carrying the saved
+	// data so the cup setting isn't silently lost.
+	if (gpOpts.items && gpOpts.items.value && !customNames[gpOpts.items.name || ""]) {
+		var $orphan = document.createElement("option");
+		$orphan.value = "o";
+		$orphan.innerHTML = language ? "Custom" : "Personnalisé";
+		$orphan.selected = "selected";
+		$items.insertBefore($orphan, $items.firstChild.nextSibling);
+		itemsSel = "o";
+	}
+	$items.onchange = function() {
+		if (this.value === "")
+			gpOpts.items = null;
+		else if (this.value === "o")
+			return; // orphan placeholder; keep gpOpts.items as-is
+		else if (this.value.charAt(0) === "b")
+			gpOpts.items = { index: parseInt(this.value.substring(1), 10) };
+		else {
+			var name = this.value.substring(1);
+			var customs = getCustomItemDistribs();
+			var picked = null;
+			for (var i=0;i<customs.length;i++) {
+				if (customs[i].name === name) { picked = customs[i]; break; }
+			}
+			gpOpts.items = picked ? { name: picked.name, value: picked.value } : null;
+		}
+		resetCupOptions();
+	};
+	$itemsRow.appendChild($items);
+	$base.appendChild($itemsRow);
+
+	// Point distribution (Default / Custom...)
+	var $ptsRow = makeBaseRow(language ? "Points distribution:" : "Distribution des points :");
+	var $ptsSelect = document.createElement("select");
+	$ptsSelect.className = "gp-points-mode";
+	var ptsMode = gpOpts.points ? "custom" : "default";
+	appendOption($ptsSelect, "default", defaultLabel, ptsMode);
+	appendOption($ptsSelect, "custom", customLabel, ptsMode);
+	$ptsSelect.onchange = function() {
+		if (this.value === "custom") {
+			var nbCpus = gpOpts.cpus ? gpOpts.cpus.length : GP_DEFAULT_NB_CPUS;
+			gpOpts.points = defaultGpPoints(nbCpus + 1);
+		}
+		else
+			gpOpts.points = null;
+		updateGpOptionsGUI();
+		resetCupOptions();
+	};
+	$ptsRow.appendChild($ptsSelect);
+	$base.appendChild($ptsRow);
+
+	if (gpOpts.points) {
+		var $ptsList = document.createElement("div");
+		$ptsList.className = "gp-points-list";
+		for (var i=0;i<gpOpts.points.length;i++) (function(i) {
+			var $row = document.createElement("div");
+			$row.className = "gp-point-row";
+			var $label = document.createElement("label");
+			$label.htmlFor = "gp-point-" + i;
+			$label.innerHTML = ordinalLabel(i) + ":";
+			$row.appendChild($label);
+			var $input = document.createElement("input");
+			$input.id = "gp-point-" + i;
+			$input.type = "number";
+			$input.min = 0;
+			$input.value = gpOpts.points[i];
+			$input.oninput = function() {
+				var v = parseInt(this.value, 10);
+				if (isNaN(v) || v < 0) v = 0;
+				gpOpts.points[i] = v;
+				resetCupOptions();
+			};
+			$row.appendChild($input);
+			$ptsList.appendChild($row);
+		})(i);
+		$base.appendChild($ptsList);
+	}
+
+	$gpOptions.appendChild($base);
+
+	var $reset = document.getElementById("reset-gp-options");
+	if ($reset) $reset.style.display = hasGpOpts(gpOpts) ? "" : "none";
 }
 function updateCupImgGUI() {
 	resetCupOptions();
@@ -821,7 +1454,11 @@ function handleFormSubmit(e) {
 		var key = Math.random().toString(16).substring(2);
 		sessionStorage.setItem("cupopt."+key, optVal);
 		var optValJson = JSON.parse(optVal);
-		$form.elements["opt"].value = JSON.stringify({ "keyid":key, persos: optValJson.persos });
+		var slim = { "keyid":key };
+		if (optValJson.persos) slim.persos = optValJson.persos;
+		if (optValJson.gp) slim.gp = optValJson.gp;
+		if (optValJson.customchars === 0) slim.customchars = 0;
+		$form.elements["opt"].value = JSON.stringify(slim);
 	}
 }
 function selectOptionTab(id) {

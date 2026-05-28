@@ -825,7 +825,88 @@ if (!pause) {
 var strPlayer = new Array();
 var oMap;
 var lMaps, pMaps;
-var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+var iDificulty = (cupOpts && cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
+var gpDefaultRoster = false;
+function buildCpuRoster() {
+	aPlayers = [];
+	for (var joueurs in cp) {
+		if (pUnlockMap[joueurs])
+			aPlayers.push(joueurs);
+	}
+	aPlayers.sort(function(){return 0.5-Math.random()});
+	var gpNbPlayers = (cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus.length) ? (cupOpts.gp.cpus.length + 1) : 8;
+	var nbPlayers = (course!="GP") ? fInfos.nbPlayers : gpNbPlayers;
+	if (aPlayers.length < nbPlayers) {
+		var aLength = aPlayers.length;
+		aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
+		for (var i=aLength;i<aPlayers.length;i++)
+			aPlayers[i] = aPlayers[i%aLength];
+	}
+	else {
+		for (var i=0;i<aPlayers.length;i++) {
+			var joueur = aPlayers[i];
+			for (var j=0;j<strPlayer.length;j++) {
+				if (strPlayer[j] == joueur) {
+					aPlayers.splice(i,1);
+					i--;
+					break;
+				}
+			}
+		}
+	}
+	var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
+	aPlayers.splice(0,oSuppr);
+	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus) {
+		var cpus = cupOpts.gp.cpus;
+		function assignDriver(i, perso) {
+			if (aPlayers[i] === perso)
+				return;
+			for (var j=0;j<aPlayers.length;j++) {
+				if (j != i && aPlayers[j] === perso) {
+					if (j < i && cpus[j] && cpus[j].driver)
+						continue;
+					aPlayers[j] = aPlayers[i];
+					aPlayers[i] = perso;
+					return;
+				}
+			}
+			aPlayers[i] = perso;
+		}
+		for (var i=0;i<cpus.length && i<aPlayers.length;i++) {
+			var pickedDriver = cpus[i].driver;
+			if (typeof pickedDriver === "number") {
+				var cc = (typeof cupCustomChars !== "undefined") ? cupCustomChars[pickedDriver] : null;
+				if (cc) {
+					if (!cp[cc.sprites]) {
+						cp[cc.sprites] = [cc.acceleration,cc.speed,cc.handling,cc.mass];
+						if (typeof customPersos !== "undefined")
+							customPersos[cc.sprites] = cc;
+					}
+					assignDriver(i, cc.sprites);
+				}
+			}
+			else if (pickedDriver && (cp[pickedDriver] || isCustomPerso(pickedDriver)))
+				assignDriver(i, pickedDriver);
+		}
+	}
+}
+function applyMulticupCupOpts(cupIdx) {
+	if (typeof cupPayloads === 'undefined' || !cupPayloads[cupIdx]) return;
+	cupOpts = cupPayloads[cupIdx].options || {};
+	if (course == "GP") {
+		if (cupOpts.gp && cupOpts.gp.cc != null) {
+			fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
+			bSelectedMirror = !!cupOpts.gp.mirror;
+		}
+		else {
+			fSelectedClass = getRelSpeedFromCc(+selectedCc);
+			bSelectedMirror = selectedMirror;
+		}
+		iDificulty = (cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5;
+		if (gpDefaultRoster)
+			buildCpuRoster();
+	}
+}
 var iRecord;
 var iTrajet;
 var jTrajets;
@@ -3796,11 +3877,15 @@ function startGame() {
 		var joueur = aPlayers[i];
 		var inc = i+nbPlayers;
 		var oPlace = aPlaces[inc];
-		var depart = (iDificulty-4)*2+Math.round(Math.random());
+		var kartDifficulty = iDificulty;
+		if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.cpus && cupOpts.gp.cpus[i] && cupOpts.gp.cpus[i].difficulty != null)
+			kartDifficulty = 4 + cupOpts.gp.cpus[i].difficulty * 0.5;
+		var depart = (kartDifficulty-4)*2+Math.round(Math.random());
 		if (course == "BB")
 			depart = 2;
 		var oEnemy = {
 			id : inc,
+			difficulty : kartDifficulty,
 
 			speed : 0,
 			speedinc : 0.5,
@@ -4019,11 +4104,20 @@ function startGame() {
 	}
 
 	itemDistribution = selectedItemDistrib;
+	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.items) {
+		var pickedItems = cupOpts.gp.items;
+		if (pickedItems.index != null)
+			itemDistribution = itemDistributions[getItemMode()][pickedItems.index];
+		else if (pickedItems.value)
+			itemDistribution = { name: pickedItems.name, value: pickedItems.value };
+	}
 	if (!itemDistribution)
 		itemDistribution = itemDistributions[getItemMode()][0];
 	if (!itemDistribution.value)
 		itemDistribution = { value: itemDistribution };
 	ptsDistribution = selectedPtDistrib;
+	if (course == "GP" && cupOpts && cupOpts.gp && cupOpts.gp.points && cupOpts.gp.points.length)
+		ptsDistribution = { value: cupOpts.gp.points.slice() };
 
 	if (!isTT) {
 		foreachLMap(function(lMap,pMap) {
@@ -17480,15 +17574,16 @@ function touche_boomerang_aux(pos, movement, boomerang) {
 
 function powCpuDodge(oKart) {
 	let dodgeZ = oKart.z;
+	let kartDif = oKart.difficulty != null ? oKart.difficulty : iDificulty;
 
 	if (!oKart.jumped) {
-		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
+		let n = Math.pow(2, -(kartDif - 4)) * 0.5;
 
 		if (Math.random() < n)
 			return;
 
 		else {
-			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
+			dodgeZ = 1 - n + Math.random() * (kartDif / 12);
 			if (dodgeZ < 0) dodgeZ = 0.1;
 			else if (dodgeZ > 1) dodgeZ = 1;
 		}
@@ -20250,8 +20345,11 @@ function move(getId, triggered) {
 					}
 				}
 			}
-			var rSpeed = iDificulty, influence = 1;
-			if (nCpus > 0) {
+			var kartDif = oKart.difficulty != null ? oKart.difficulty : iDificulty;
+			var firstCpuDif = firstCpu && firstCpu.difficulty != null ? firstCpu.difficulty : iDificulty;
+			var sameDifficulty = (kartDif === firstCpuDif);
+			var rSpeed = kartDif, influence = 1;
+			if (nCpus > 0 && sameDifficulty) {
 				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
 					if (distToFirst) {
@@ -20271,9 +20369,11 @@ function move(getId, triggered) {
 					oKart.distToFirstCache = 0;
 				influence = Math.pow(0.96, 6*(apparentId/nCpus-0.5));
 			}
-			rSpeed *= influence*iDificulty/5;
+			else
+				oKart.distToFirstCache = 0;
+			rSpeed *= influence*kartDif/5;
 			var rRatio = 1.25;
-			if ((iDificulty > 4.75) && (aKarts.length > 8))
+			if ((kartDif > 4.75) && (aKarts.length > 8))
 				rRatio *= Math.log(1+100*aKarts.length/8)/5.5;
 			if (oKart.maxspeed0 > rSpeed*rRatio) oKart.maxspeed0 = rSpeed*rRatio;
 			else if (oKart.maxspeed0 < rSpeed) oKart.maxspeed0 = rSpeed;
@@ -21766,7 +21866,7 @@ function ai(oKart) {
 				oKart.rotincdir = 0;
 				var oRail = oKart.rail;
 				var canTrick = false;
-				if ((oRail.boostcpt >= railGlobalConfig.miniTurboCpt) && (iDificulty > 4) && oRail.init) {
+				if ((oRail.boostcpt >= railGlobalConfig.miniTurboCpt) && ((oKart.difficulty != null ? oKart.difficulty : iDificulty) > 4) && oRail.init) {
 					var safeDist = oRail.boostcpt >= railGlobalConfig.superTurboCpt ? 150 : 120;
 					if ((distToAim >= safeDist) && (angleToAim <= 10))
 						canTrick = true;
@@ -21920,7 +22020,7 @@ function ai(oKart) {
 			}
 		}
 	}
-	if (oMap.jumpable && (iDificulty > 4)) {
+	if (oMap.jumpable && ((oKart.difficulty != null ? oKart.difficulty : iDificulty) > 4)) {
 		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
 			if (speedToAim >= 8) {
 				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
@@ -25712,6 +25812,10 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							localStorage.removeItem("mirror");
 					}
 				}
+				else if (cupOpts && cupOpts.gp && cupOpts.gp.cc != null) {
+					fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
+					bSelectedMirror = !!cupOpts.gp.mirror;
+				}
 				else {
 					fSelectedClass = 1;
 					bSelectedMirror = false;
@@ -25733,6 +25837,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					else {
 						aPlayers = [];
 						var waitBeforeStart;
+						gpDefaultRoster = false;
 						if (isCustomSel) {
 							for (var i=strPlayer.length-1;i>=oContainers.length;i--)
 								aPlayers.push(strPlayer[i]);
@@ -25760,35 +25865,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							};
 						}
 						else {
-							var i = 0;
-							for (joueurs in cp) {
-								if (pUnlockMap[joueurs]) {
-									aPlayers.push(joueurs);
-									i++;
-								}
-							}
-							aPlayers.sort(function(){return 0.5-Math.random()});
-							var nbPlayers = (course!="GP") ? fInfos.nbPlayers : 8;
-							if (aPlayers.length < nbPlayers) {
-								var aLength = aPlayers.length;
-								aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
-								for (var i=aLength;i<aPlayers.length;i++)
-									aPlayers[i] = aPlayers[i%aLength];
-							}
-							else {
-								for (var i=0;i<aPlayers.length;i++) {
-									var joueur = aPlayers[i];
-									for (var j=0;j<strPlayer.length;j++) {
-										if (strPlayer[j] == joueur) {
-											aPlayers.splice(i,1);
-											i--;
-											break;
-										}
-									}
-								}
-							}
-							var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
-							aPlayers.splice(0,oSuppr);
+							gpDefaultRoster = true;
+							buildCpuRoster();
 						}
 						aPlaces = [];
 						aTeams = [];
@@ -29571,6 +29649,7 @@ function selectMapScreen(opts) {
 			}
 
 			oPImg.onclick = function() {
+				applyMulticupCupOpts(this.alt);
 				clearMapScreen();
 				hadInputDuringRace = true;
 				selectRaceScreen(this.alt*4);
@@ -30008,7 +30087,9 @@ function selectRaceScreen(cup) {
 	}
 	else {
 		if (course == "GP") {
-			if (page != "MK")
+			if (cupOpts && cupOpts.gp && cupOpts.gp.difficulty != null)
+				iDificulty = 4 + cupOpts.gp.difficulty * 0.5;
+			else if (page != "MK")
 				iDificulty = 5;
 			else {
 				var cupNb = Math.floor(cup/4)%5;

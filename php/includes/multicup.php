@@ -66,6 +66,10 @@ if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
 ?>
 var cp = <?php include('getPersos.php'); ?>;
+<?php
+require_once('rosterNames.php');
+echo 'var cpNames = '. json_encode(getCharacterNamesMap(), JSON_UNESCAPED_UNICODE) .';';
+?>
 var collabCharPlaceholder = "<?php
 $collabPlaceholder = array(
 	'type' => 'mkchars',

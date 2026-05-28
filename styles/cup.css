@@ -83,19 +83,19 @@ h2 {
     background-color: #48b;
 	opacity: 0.5;
 }
-#option-containers h2 a {
+#option-containers h2 a, .editor-content > h2 #reset-gp-options {
 	color: #77B;
 	font-size: 0.8em;
 	position: relative;
 	top: -0.1em;
 }
-#option-containers h2 a:hover {
+#option-containers h2 a:hover, .editor-content > h2 #reset-gp-options:hover {
 	color: #AAD;
 }
-.complete #option-containers h2 a {
+.complete #option-containers h2 a, .complete .editor-content > h2 #reset-gp-options {
 	color: #9AD;
 }
-.complete #option-containers h2 a:hover {
+.complete #option-containers h2 a:hover, .complete .editor-content > h2 #reset-gp-options:hover {
 	color: #89B;
 }
 .simplified #global-infos {
@@ -195,7 +195,7 @@ h2 {
 .readonly .option-container-selected {
 	pointer-events: none;
 }
-.readonly #reset-cup-appearance, .readonly #reset-character-roster {
+.readonly #reset-cup-appearance, .readonly #reset-character-roster, .readonly #reset-gp-options {
 	display: none;
 }
 #collab-container {
@@ -351,6 +351,127 @@ h2 {
 	color: white;
 	font-size: 1rem;
 	margin-top: 0.2em;
+}
+#gp-options {
+	font-size: 1rem;
+	margin: 0.5em auto;
+	max-width: 460px;
+	text-align: left;
+}
+.gp-base-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	margin: 0.25em 0;
+	cursor: pointer;
+}
+.gp-base-row select {
+	background-color: #DDF;
+	border-radius: 3px;
+	padding: 0.1em 0.2em;
+	min-width: 10em;
+}
+.gp-cpu-list, .gp-points-list {
+	margin: 0.3em 0 0.6em 0.5em;
+	padding-left: 0.6em;
+	border-left: solid 2px rgba(70,70,120, 0.25);
+}
+#gp-options fieldset {
+	background-color: rgb(192,192,204);
+	background-color: rgba(230,230,240,0.8);
+	color: #003;
+	border: solid 1px #99a;
+	border-radius: 5px;
+	margin: 0.8em 0;
+	padding: 0.6em 1em;
+}
+#gp-options fieldset:hover {
+	background-color: rgb(216,216,230);
+	background-color: rgba(220,220,230,0.9);
+}
+#gp-options legend {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 1.1em;
+	font-weight: bold;
+	color: #EEF;
+	padding: 0 0.4em;
+	text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black,
+		-1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
+}
+.gp-options-help {
+	margin: 0.3em 0 1em;
+	font-size: 0.85em;
+	color: #335;
+	display: flex;
+	gap: 0.4em;
+}
+.gp-options-help img {
+	height: 1em;
+}
+.gp-cpu-row {
+	display: grid;
+	grid-template-columns: 4em 1fr 1fr;
+	align-items: center;
+	gap: 0.5em;
+	margin: 0.25em 0;
+}
+.gp-cpu-label {
+	font-weight: bold;
+	text-align: right;
+}
+.gp-cpu-row select {
+	background-color: #DDF;
+	border-radius: 3px;
+	padding: 0.1em 0.2em;
+	min-width: 0;
+	width: 100%;
+}
+.gp-cpu-buttons {
+	margin-top: 0.6em;
+	display: flex;
+	gap: 0.5em;
+	justify-content: center;
+}
+.gp-add-cpu, .gp-remove-cpu {
+	color: white;
+	border: none;
+	border-radius: 4px;
+	padding: 0.35em 0.9em;
+	cursor: pointer;
+	font-weight: bold;
+}
+.gp-add-cpu {
+	background-color: rgb(51, 160, 51);
+}
+.gp-add-cpu:hover:not(:disabled) {
+	background-color: rgb(61, 180, 61);
+}
+.gp-remove-cpu {
+	background-color: rgb(204, 102, 51);
+}
+.gp-remove-cpu:hover:not(:disabled) {
+	background-color: rgb(220, 122, 71);
+}
+.gp-add-cpu:disabled, .gp-remove-cpu:disabled {
+	background-color: #aaa;
+	cursor: not-allowed;
+}
+.gp-point-row {
+	display: grid;
+	grid-template-columns: 2em 1fr;
+	align-items: center;
+	gap: 0.5em;
+	margin: 0.15em 0;
+	max-width: 180px;
+}
+.gp-point-row label {
+	text-align: right;
+}
+.gp-point-row input[type="number"] {
+	background-color: #EEF3FF;
+	border-radius: 4px;
+	padding-left: 0.2em;
+	width: 4em;
 }
 .character-roster-extra a {
 	color: #c5d0eb;
@@ -629,6 +750,45 @@ h2 {
 	background-color: #AAC;
 	border-radius: 5px;
 	opacity: 0.8;
+}
+.editor-mask-content.gp-cc-custom {
+	width: 300px;
+	padding: 10px 14px 12px;
+}
+.editor-mask-content.gp-cc-custom h3 {
+	text-align: center;
+	margin: 0 0 8px;
+	padding: 0 1.4em;
+}
+.gp-cc-custom-form {
+	margin: 0;
+}
+.gp-cc-custom-form label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4em;
+	margin: 6px 0;
+}
+.gp-cc-custom-form input[type=number] {
+	width: 4em;
+}
+.gp-cc-custom-actions {
+	text-align: center;
+	margin-top: 10px;
+}
+.gp-cc-custom-actions button {
+	background-color: #58c;
+	border: solid 1px #48A;
+	color: white;
+	cursor: pointer;
+	padding: 0.2em 1.5em;
+	border-radius: 3px;
+	font-size: 1em;
+}
+.gp-cc-custom-actions button:hover {
+	background-color: #669FD9;
+	border-color: #59B;
 }
 .editor-mask-content:hover {
 	opacity: 1;

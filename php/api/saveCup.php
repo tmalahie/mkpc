@@ -53,10 +53,11 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	}
 	$cupId = -1;
 	if ($save) {
+		$optionsJson = isset($_POST['opt']) ? $_POST['opt']:'';
 		setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
 		if (isset($_POST['id'])) {
 			if ($currentCup) {
-				mysql_query('UPDATE `mkcups` SET circuit0="'. $_POST['cid0'] .'",circuit1="'. $_POST['cid1'] .'",circuit2="'. $_POST['cid2'] .'",circuit3="'. $_POST['cid3'] .'",nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'" WHERE id="'. $_POST['id'] .'"');
+				mysql_query('UPDATE `mkcups` SET circuit0="'. $_POST['cid0'] .'",circuit1="'. $_POST['cid1'] .'",circuit2="'. $_POST['cid2'] .'",circuit3="'. $_POST['cid3'] .'",nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'",options="'. $optionsJson .'" WHERE id="'. $_POST['id'] .'"');
 				$cupId = intval($_POST['id']);
 			}
 		}
@@ -66,8 +67,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 				'is_cache_stale' => function($cupId) {
 					return !mysql_numrows(mysql_query('SELECT * FROM `mkcups` WHERE id="'.$cupId.'"'));
 				},
-				'callback' => function() use($identifiants, $mode) {
-					mysql_query('INSERT INTO `mkcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,"'. $mode .'","'. $_POST['cid0'] .'","'. $_POST['cid1'] .'","'. $_POST['cid2'] .'","'. $_POST['cid3'] .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
+				'callback' => function() use($identifiants, $mode, $optionsJson) {
+					mysql_query('INSERT INTO `mkcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,"'. $mode .'","'. $_POST['cid0'] .'","'. $_POST['cid1'] .'","'. $_POST['cid2'] .'","'. $_POST['cid3'] .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'. $optionsJson .'")');
 					$cupId = mysql_insert_id();
 					include('../includes/session.php');
 					if ($id) {
