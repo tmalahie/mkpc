@@ -892,7 +892,8 @@ function buildCpuRoster() {
 }
 function applyMulticupCupOpts(cupIdx) {
 	if (typeof cupPayloads === 'undefined' || !cupPayloads[cupIdx]) return;
-	cupOpts = cupPayloads[cupIdx].options || {};
+	var cupOptions = cupPayloads[cupIdx].options || {};
+	cupOpts.gp = cupOptions.gp;
 	if (course == "GP") {
 		if (cupOpts.gp && cupOpts.gp.cc != null) {
 			fSelectedClass = getRelSpeedFromCc(cupOpts.gp.cc);
