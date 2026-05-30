@@ -26,6 +26,9 @@ export async function login(page: Page) {
   await page.getByLabel('Password:').fill(ADMIN_PASSWORD);
   await page.getByRole('button', { name: 'Submit' }).click();
   // Land on a normal page so session.php establishes the identity cookie.
+  // After login, setId.php pins the context's identifiant to Wargor's profile
+  // identifiant (0 in the seed); the seeded mkidentifiants row (identifiant 0,
+  // disable_cooldown=1) lets this bot skip the track-creation cooldown.
   await page.goto('/');
 }
 

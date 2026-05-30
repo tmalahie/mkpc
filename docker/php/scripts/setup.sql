@@ -882,6 +882,7 @@ CREATE TABLE `mkidentifiants` (
   `upload_size` int(11) DEFAULT NULL,
   `external_size` int(11) DEFAULT NULL,
   `message_size` int(11) DEFAULT NULL,
+  `disable_cooldown` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2173,3 +2174,4 @@ INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=0,iden
 INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);
 INSERT INTO mkgamecpu VALUES(0,0,1000000000);
 INSERT INTO mkrights VALUES(1, "admin");
+INSERT INTO mkidentifiants SET identifiant=0,disable_cooldown=1;

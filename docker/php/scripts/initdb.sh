@@ -18,3 +18,4 @@ echo 'INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=
 echo 'INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);' >> $DIR/setup.sql
 echo 'INSERT INTO mkgamecpu VALUES(0,0,1000000000);' >> $DIR/setup.sql
 echo 'INSERT INTO mkrights VALUES(1, "admin");' >> $DIR/setup.sql
+echo 'INSERT INTO mkidentifiants SET identifiant=0,disable_cooldown=1;' >> $DIR/setup.sql

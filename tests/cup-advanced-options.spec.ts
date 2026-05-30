@@ -1,15 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const ADMIN_USER = 'wargor';
-const ADMIN_PASSWORD = 'aaaa';
-
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/');
-  await page.getByRole('menuitem', { name: 'Forum' }).click();
-  await page.getByLabel('Login:').fill(ADMIN_USER);
-  await page.getByLabel('Password:').fill(ADMIN_PASSWORD);
-  await page.getByRole('button', { name: 'Submit' }).click();
-}
+import { login, createCircuits } from './helpers/mkpc';
 
 test('simple cup editor shows Advanced Options with per-CPU rows', async ({ page }) => {
   await login(page);
@@ -159,41 +149,57 @@ test('cup editor preserves orphaned custom item distribution', async ({ page }) 
   expect(parsed.gp.items).toEqual({ name: 'GhostSet', value: [{ champi: 1 }] });
 });
 
-test('circuit runtime parses cupOpts.gp from URL', async ({ page }) => {
-  await login(page);
+// The runtime side: circuit.php turns the `opt` URL param into window.cupOpts /
+// window.cupCustomChars. These use the "cup being created" path (cid0..3), which
+// renders nothing unless the referenced circuits exist - so we build our own
+// rather than assume seeded ids (the CI db has none). The play page reads
+// circuits by id with no ownership check, so a fresh page can load them.
+test.describe('circuit runtime cupOpts', () => {
+  test.describe.configure({ mode: 'serial' });
+  let cupQuery: string;
 
-  const optsJson = JSON.stringify({
-    gp: {
-      cpus: [
-        { driver: '', difficulty: 4 },
-        { driver: '', difficulty: 0 }
-      ],
-      cc: 200,
-      points: [12, 6, 0]
-    }
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await login(page);
+    const ids = await createCircuits(page.request, 4);
+    cupQuery = [0, 1, 2, 3].map((i) => 'cid' + i + '=' + ids[i % ids.length]).join('&');
+    await page.close();
   });
-  await page.goto('/circuit.php?cid0=1&cid1=2&cid2=3&cid3=1&opt=' + encodeURIComponent(optsJson));
-  await page.waitForFunction(() => typeof (window as any).cupOpts !== 'undefined');
 
-  const data = await page.evaluate(() => ({
-    cupOpts: (window as any).cupOpts,
-  }));
-  expect(data.cupOpts.gp.cpus[0].difficulty).toBe(4);
-  expect(data.cupOpts.gp.cpus[1].difficulty).toBe(0);
-  expect(data.cupOpts.gp.cc).toBe(200);
-  expect(data.cupOpts.gp.points).toEqual([12, 6, 0]);
-});
+  test('circuit runtime parses cupOpts.gp from URL', async ({ page }) => {
+    const optsJson = JSON.stringify({
+      gp: {
+        cpus: [
+          { driver: '', difficulty: 4 },
+          { driver: '', difficulty: 0 }
+        ],
+        cc: 200,
+        points: [12, 6, 0]
+      }
+    });
+    await page.goto('/circuit.php?' + cupQuery + '&opt=' + encodeURIComponent(optsJson));
+    await page.waitForFunction(() => typeof (window as any).cupOpts !== 'undefined');
 
-test('runtime resolves a numeric custom driver id to sprites via cupCustomChars', async ({ page }) => {
-  await login(page);
-  // "Giant Mario" custom character in the dev DB; skips on a DB without it.
-  const CHAR_ID = 4478;
-  const optsJson = JSON.stringify({ gp: { cpus: [{ driver: CHAR_ID, difficulty: null }] } });
-  await page.goto('/circuit.php?cid0=1&cid1=2&cid2=3&cid3=1&opt=' + encodeURIComponent(optsJson));
-  await page.waitForFunction(() => typeof (window as any).cupCustomChars !== 'undefined');
+    const data = await page.evaluate(() => ({
+      cupOpts: (window as any).cupOpts,
+    }));
+    expect(data.cupOpts.gp.cpus[0].difficulty).toBe(4);
+    expect(data.cupOpts.gp.cpus[1].difficulty).toBe(0);
+    expect(data.cupOpts.gp.cc).toBe(200);
+    expect(data.cupOpts.gp.points).toEqual([12, 6, 0]);
+  });
 
-  const cc = await page.evaluate((id) => (window as any).cupCustomChars[id], CHAR_ID);
-  test.skip(!cc, 'character id not present in this environment');
-  // The server deduced the (image-dependent) sprites path from the stable id.
-  expect(cc.sprites).toMatch(/^cp-/);
+  test('runtime resolves a numeric custom driver id to sprites via cupCustomChars', async ({ page }) => {
+    // "Giant Mario" custom character in the dev DB; skips on a DB without it
+    // (e.g. CI, which seeds no characters).
+    const CHAR_ID = 4478;
+    const optsJson = JSON.stringify({ gp: { cpus: [{ driver: CHAR_ID, difficulty: null }] } });
+    await page.goto('/circuit.php?' + cupQuery + '&opt=' + encodeURIComponent(optsJson));
+    await page.waitForFunction(() => typeof (window as any).cupCustomChars !== 'undefined');
+
+    const cc = await page.evaluate((id) => (window as any).cupCustomChars[id], CHAR_ID);
+    test.skip(!cc, 'character id not present in this environment');
+    // The server deduced the (image-dependent) sprites path from the stable id.
+    expect(cc.sprites).toMatch(/^cp-/);
+  });
 });
