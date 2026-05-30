@@ -19823,6 +19823,17 @@ function move(getId, triggered) {
 						hpType = undefined;
 					else {
 						oKart.hpProps = hpProps;
+						if (hpProps.sliding && hpProps.drifting) {
+							if (oKart.wasSliding) {
+								oKart.slidingRamp = (oKart.slidingRamp||0) + 0.2;
+								if (oKart.slidingRamp >= 1) {
+									oKart.slidingRamp = 1;
+									oKart.finishedSliding = true;
+								}
+							}
+							else
+								oKart.slidingRamp = Math.max(oKart.slidingRamp||0, 0, 1-Math.abs(oKart.drift)/6-Math.abs(oKart.rotinc)/6);
+						}
 						var hpSpeed = hpProps.speed * cappedRelSpeed();
 						if (oKart.speed > hpSpeed)
 							oKart.speed = hpSpeed;
@@ -19856,9 +19867,18 @@ function move(getId, triggered) {
 		}
 		else
 			delete oKart.shift;
+		oKart.wasSliding = !!(oKart.hpProps && oKart.hpProps.sliding);
+		if (!oKart.wasSliding) {
+			oKart.finishedSliding = false;
+			delete oKart.slidingRamp;
+		}
 	}
-	else if (oKart.z > jumpHeight0)
+	else if (oKart.z > (oKart.finishedSliding ? jumpHeight0 : 0)) {
 		oKart.hpProps = undefined;
+		oKart.wasSliding = false;
+		oKart.finishedSliding = false;
+		oKart.slidingRamp = 1;
+	}
 	if (!oKart.cpu && (!kartReplaced || oKart.tombe))
 		updateSpeedometer(getId, aPosX,aPosY);
 	if (oKart.rail)
@@ -20826,8 +20846,10 @@ function handleDriftCpt(getId) {
 	}
 }
 function angleDrift(oKart) {
-	if (oKart.hpProps && oKart.hpProps.sliding && kartIsPlayer(oKart))
-		return oKart.rotinc*oKart.hpProps.sliding + oKart.drift*6;
+	if (oKart.hpProps && oKart.hpProps.sliding && kartIsPlayer(oKart)) {
+		var slidingRamp = (oKart.slidingRamp != null) ? oKart.slidingRamp : 1;
+		return oKart.rotinc*oKart.hpProps.sliding*slidingRamp + oKart.drift*6;
+	}
 	return oKart.drift*6;
 }
 function angleInc(oKart) {
