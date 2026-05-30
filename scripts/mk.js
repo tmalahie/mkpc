@@ -22133,7 +22133,8 @@ function moveItemBoxAlongPath(fSprite, paths) {
 	}
 	var speed = (fSprite[4] != null ? fSprite[4] : 1) * 3;
 	var x = fSprite[0], y = fSprite[1];
-	while (speed > 0) {
+	var maxSteps = aipoints.length + 1;
+	while (speed > 0 && maxSteps-- > 0) {
 		var aipoint = aipoints[fSprite[5]];
 		var aimX = aipoint[0]-x, aimY = aipoint[1]-y;
 		var dist = Math.hypot(aimX,aimY);
@@ -22144,7 +22145,6 @@ function moveItemBoxAlongPath(fSprite, paths) {
 			fSprite[5]++;
 			if (fSprite[5] >= aipoints.length)
 				fSprite[5] = 0;
-			if (!dist) break;
 		}
 		else {
 			x += aimX*speed/dist;
