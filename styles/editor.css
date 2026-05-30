@@ -782,6 +782,9 @@ div.hover-toggle:hover {
 .editor .noclick {
 	pointer-events: none;
 }
+.editor .ghost {
+	opacity: 0.45;
+}
 .editor .highlight {
 	opacity: 0.75;
 }

@@ -6702,6 +6702,12 @@ var commonTools = {
 				}
 			}
 			else {
+				var points = self.data.points;
+				for (var i=0;i<points.length;i++) {
+					var ghost = createBox(self.state.boxSize);
+					ghost.classList.add("noclick", "ghost");
+					setBoxPos(ghost, points[i], self.state.boxSize);
+				}
 				var traject = +document.getElementById("items-traject").value;
 				initRouteBuilder(self,routeData,traject);
 			}
