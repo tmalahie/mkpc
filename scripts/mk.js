@@ -14497,6 +14497,18 @@ function ralenti(iX, iY) {
 	}
 	return false;
 }
+function offroadExtendsBill(iX, iY) {
+	var type = ralenti(iX, iY);
+	if (!type)
+		return false;
+	if (typeof type === "string" && type.indexOf("custom-") === 0) {
+		var lMap = getCurrentLMap(collisionLap);
+		var entry = lMap && lMap.customOffroadProfiles && lMap.customOffroadProfiles[type];
+		if (entry && entry.billBoost === false)
+			return false;
+	}
+	return true;
+}
 function getOffroadProps(oKart,hpType) {
 	if (typeof hpType === "string" && hpType.indexOf("custom-") === 0) {
 		var lMap = getCurrentLMap(collisionLap);
@@ -20567,7 +20579,7 @@ function move(getId, triggered) {
 			var fMoveX = oKart.speed*direction(0, oKart.rotation);
 			var fMoveY = oKart.speed*direction(1, oKart.rotation);
 			var customBillRoute = !oKart.cpu && (lMap.airoutesmeta.cpu < lMap.aipoints.length);
-			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && ralenti(oKart.x,oKart.y))))) {
+			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && offroadExtendsBill(oKart.x,oKart.y))))) {
 				if (!oKart.cannon) {
 					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
 					oKart.billball = cptJumpRevert;
@@ -23014,7 +23026,8 @@ function loadCustomOffroadProfile(id, lMap, customKey) {
 				strength: (p.strength != null) ? p.strength : 1,
 				slippery: !!p.slippery,
 				slipperyFactor: p.slipperyFactor,
-				drifting: !!p.drifting
+				drifting: !!p.drifting,
+				billBoost: (p.billBoost !== false)
 			};
 		}
 	}
