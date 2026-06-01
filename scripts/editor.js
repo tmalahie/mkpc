@@ -6696,10 +6696,13 @@ var commonTools = {
 				$currentTrajectSelector.value = self.state.currentTraject;
 				var data = self.data.points;
 				self.data.points = [];
+				var defaultTraject = self.state.currentTraject;
+				self.state.currentTraject = -1;
 				for (var i=0;i<data.length;i++) {
 					var iData = data[i];
 					self.click(self,iData,{});
 				}
+				self.state.currentTraject = defaultTraject;
 			}
 			else {
 				var points = self.data.points;
