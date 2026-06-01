@@ -90,7 +90,7 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=3"></script>
 		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
