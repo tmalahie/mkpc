@@ -19085,7 +19085,7 @@ function move(getId, triggered) {
 	if (!oKart.z && !oKart.heightinc) {
 		if (clLocalVars.autoAccelerate && !oKart.cpu)
 			oKart.accelerate();
-		if (oKart.hpProps && oKart.hpProps.friction != null) {
+		if (oKart.hpProps && oKart.hpProps.friction != null && !oKart.tourne) {
 			var speedinc = Math.abs(oKart.speedinc);
 			if (speedinc >= 0.2)
 				oKart.speed += oKart.speedinc*(0.14/speedinc+oKart.hpProps.friction*0.4/speedinc*(1-0.14/speedinc));
