@@ -17097,7 +17097,8 @@ var itemDistributions = {
 			"banane": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 4,
-			"boomerang": 3
+			"boomerang": 3,
+			"boo": 2
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -17106,7 +17107,8 @@ var itemDistributions = {
 			"champi": 3,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"boo": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
@@ -17126,7 +17128,8 @@ var itemDistributions = {
 			"carapace": 5,
 			"bobomb": 4,
 			"carapaceX3": 3,
-			"boomerang": 4
+			"boomerang": 4,
+			"boo": 3
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -17137,7 +17140,8 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1,
 			"bloops": 1,
-			"pow": 1
+			"pow": 1,
+			"boo": 3
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -17214,13 +17218,15 @@ var itemDistributions = {
 			"carapacerouge": 5,
 			"bobomb": 3,
 			"bloops": 2,
-			"boomerang": 3
+			"boomerang": 3,
+			"boo": 1
 		}, {
 			"champi": 8,
 			"carapacerouge": 6,
 			"bobomb": 3,
 			"champiX3": 2,
-			"boomerang": 3
+			"boomerang": 3,
+			"boo": 1
 		}, {
 			"bobomb": 4,
 			"champi": 5,
@@ -17228,13 +17234,15 @@ var itemDistributions = {
 			"champiX3": 3,
 			"carapacerougeX3": 3,
 			"pow": 1,
-			"boomerang": 4
+			"boomerang": 4,
+			"boo": 2
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
 			"champiX3": 6,
 			"megachampi": 3,
-			"pow": 1
+			"pow": 1,
+			"boo": 2
 		}, {
 			"champiX3": 8,
 			"carapacerougeX3": 8,
@@ -17242,13 +17250,15 @@ var itemDistributions = {
 			"etoile": 4,
 			"champior": 2,
 			"carapacebleue": 5,
-			"pow": 1
+			"pow": 1,
+			"boo": 3
 		}, {
 			"megachampi": 7,
 			"champiX3": 6,
 			"etoile": 5,
 			"champior": 3,
-			"carapacebleue": 5
+			"carapacebleue": 5,
+			"boo": 1
 		}, {
 			"megachampi": 8,
 			"champiX3": 6,
@@ -17296,12 +17306,14 @@ var itemDistributions = {
 			"poison": 4,
 			"bobomb": 8,
 			"bloops": 2,
-			"boomerang": 8
+			"boomerang": 8,
+			"boo": 3
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
 			"bobomb": 8,
-			"boomerang": 8
+			"boomerang": 8,
+			"boo": 3
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
@@ -17309,27 +17321,31 @@ var itemDistributions = {
 			"champiX3": 1,
 			"carapacerougeX3": 6,
 			"pow": 2,
-			"boomerang": 8
+			"boomerang": 8,
+			"boo": 4
 		}, {
 			"champi": 4,
 			"champiX3": 3,
 			"carapacerougeX3": 10,
 			"megachampi": 3,
-			"pow": 2
+			"pow": 2,
+			"boo": 3
 		}, {
 			"champiX3": 4,
 			"carapacerougeX3": 10,
 			"megachampi": 6,
 			"etoile": 4,
 			"carapacebleue": 12,
-			"pow": 3
+			"pow": 3,
+			"boo": 4
 		}, {
 			"champiX3": 3,
 			"megachampi": 7,
 			"etoile": 5,
 			"champior": 1,
 			"carapacebleue": 10,
-			"pow": 2
+			"pow": 2,
+			"boo": 2
 		}, {
 			"champiX3": 3,
 			"megachampi": 8,
@@ -19673,7 +19689,8 @@ function move(getId, triggered) {
 						bloops: 1,
 						pow: 1,
 						bananeX3: 1,
-						boomerang: 1
+						boomerang: 1,
+						boo: 1
 					};
 					if (itemDistribution.powx2 == 1) {
 						delete preventDuplicateItems["pow"];
