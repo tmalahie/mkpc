@@ -8116,7 +8116,7 @@ var itemBehaviors = {
 								handleItemHit(kart, "eclair");
 							}
 							else {
-								if (kart.megachampi && !kart.etoile) {
+								if (kart.megachampi && !kart.etoile && !kart.boo) {
 									if (kart.megachampi > 8)
 										playIfShould(kart, "musics/events/megamushroom_end.mp3");
 
@@ -17953,7 +17953,8 @@ function booCanStealPlayer(owner, target) {
 		owner !== target &&				// owner and target are different players
 		(target.using.length > 0 || (target.arme && target.roulette === 25)) &&
 										// target has an item in 1st slot or is trailing items
-		target.arme !== "boo" &&		// target's item is not boo
+		(target.using.length > 0 || target.arme !== "boo") &&
+										// target's item to steal is not boo
 		!target.billball &&				// target is not in bill
 		target.place < owner.place &&	// target is at a lower spot than owner
 		(course === "BB" || target.tours < (oMap.tours + 1))
