@@ -904,8 +904,10 @@ function applyMulticupCupOpts(cupIdx) {
 			bSelectedMirror = selectedMirror;
 		}
 		iDificulty = (cupOpts.gp && cupOpts.gp.difficulty != null) ? (4 + cupOpts.gp.difficulty * 0.5) : 5;
-		if (gpDefaultRoster)
+		if (gpDefaultRoster) {
 			buildCpuRoster();
+			resetScores();
+		}
 	}
 }
 var iRecord;
