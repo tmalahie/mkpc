@@ -827,6 +827,14 @@ if (isset($_GET['i'])) {
 						<label><input type="checkbox" id="custom-offroad-drifting" />
 						<?php echo $language ? 'Drifting enabled':'Dérapages activés'; ?></label>
 					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-bill-boost" />
+						<?php echo $language ? 'Extends Bullet Bill duration':'Prolonge la durée des Bill Ball'; ?></label> <a href="javascript:showOffroadBillBoostHelp()">[?]</a>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-affect-invincible" />
+						<?php echo $language ? 'Affects <img src="images/items/etoile.png" /> and <img src="images/items/megachampi.png" />':'Affecte <img src="images/items/etoile.png" /> et <img src="images/items/megachampi.png" />'; ?></label> <a href="javascript:showOffroadInvincibleHelp()">[?]</a>
+					</div>
 					<div class="popup-buttons">
 						<button class="options" onclick="backCustomOffroadProfileForm()"><?php echo $language ? 'Back':'Retour'; ?></button>
 						<button class="options" onclick="submitCustomOffroadProfileForm()"><?php echo $language ? 'Submit':'Valider'; ?></button>

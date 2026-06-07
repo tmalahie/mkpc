@@ -1635,6 +1635,11 @@ embed,#ytplayer {
 #custom-offroad-profile-new .custom-offroad-profile-update-title {
 	display: none;
 }
+#custom-offroad-profile-new .form-row img {
+	height: 13px;
+	position: relative;
+	top: 1px;
+}
 #custom-offroad-profile.custom-offroad-profile-update #custom-offroad-profile-new .custom-offroad-profile-new-title {
 	display: none;
 }

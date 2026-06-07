@@ -15,10 +15,14 @@ if ($strength < 0) $strength = 0;
 if ($strength > 1) $strength = 1;
 $slippery = !empty($data['slippery']);
 $drifting = !empty($data['drifting']);
+$billBoost = isset($data['billBoost']) ? !empty($data['billBoost']) : true;
+$affectsInvincible = !empty($data['affectsInvincible']);
 $profile = array(
 	'strength' => $strength,
 	'slippery' => $slippery,
-	'drifting' => $drifting
+	'drifting' => $drifting,
+	'billBoost' => $billBoost,
+	'affectsInvincible' => $affectsInvincible
 );
 if ($slippery) {
 	$factor = isset($data['slipperyFactor']) ? floatval($data['slipperyFactor']) : 0.5;

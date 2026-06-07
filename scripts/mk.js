@@ -14497,6 +14497,29 @@ function ralenti(iX, iY) {
 	}
 	return false;
 }
+function offroadExtendsBill(iX, iY) {
+	var type = ralenti(iX, iY);
+	if (!type)
+		return false;
+	if (typeof type === "string" && type.indexOf("custom-") === 0) {
+		var lMap = getCurrentLMap(collisionLap);
+		var entry = lMap && lMap.customOffroadProfiles && lMap.customOffroadProfiles[type];
+		if (entry && entry.billBoost === false)
+			return false;
+	}
+	return true;
+}
+function offroadAffectsInvincible(oKart, hpType) {
+	if (oKart.billball || oKart.cannon)
+		return false;
+	if (typeof hpType === "string" && hpType.indexOf("custom-") === 0) {
+		var lMap = getCurrentLMap(collisionLap);
+		var entry = lMap && lMap.customOffroadProfiles && lMap.customOffroadProfiles[hpType];
+		if (entry && entry.affectsInvincible)
+			return true;
+	}
+	return false;
+}
 function getOffroadProps(oKart,hpType) {
 	if (typeof hpType === "string" && hpType.indexOf("custom-") === 0) {
 		var lMap = getCurrentLMap(collisionLap);
@@ -19098,7 +19121,7 @@ function move(getId, triggered) {
 			oKart.speed += oKart.speedinc;
 		if ((isCup && oMap.skin != 22 && oMap.skin != 30) || (!isCup && oMap.smartjump)) {
 			var hpType, hpProps;
-			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && !oKart.protect && !oKart.champi))) {
+			if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)) || ((hpType=ralenti(fNewPosX, fNewPosY)) && (hpProps=getOffroadProps(oKart,hpType)) && ((oKart.speed-oKart.speedinc*1.01) > hpProps.speed) && (!oKart.protect || offroadAffectsInvincible(oKart, hpType)) && !oKart.champi))) {
 			//if (oKart.cpu && ((tombe(fNewPosX, fNewPosY) && !sauts(aPosX, aPosY, fMoveX, fMoveY)))) {
 				if (isActivelyGrinding(oKart)) {
 					if (!hpType) {
@@ -19819,7 +19842,7 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
-				if (!oKart.protect && !oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY))) {
+				if (!oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY)) && (!oKart.protect || offroadAffectsInvincible(oKart, hpType))) {
 					var hpProps = getOffroadProps(oKart,hpType);
 					if ((oKart.turbodrift>oKart.turbodrift0*0.8 || oKart.speed <= 1.5) && !hpProps.drifting)
 						hpType = undefined;
@@ -20567,7 +20590,7 @@ function move(getId, triggered) {
 			var fMoveX = oKart.speed*direction(0, oKart.rotation);
 			var fMoveY = oKart.speed*direction(1, oKart.rotation);
 			var customBillRoute = !oKart.cpu && (lMap.airoutesmeta.cpu < lMap.aipoints.length);
-			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && ralenti(oKart.x,oKart.y))))) {
+			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && offroadExtendsBill(oKart.x,oKart.y))))) {
 				if (!oKart.cannon) {
 					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
 					oKart.billball = cptJumpRevert;
@@ -23014,7 +23037,9 @@ function loadCustomOffroadProfile(id, lMap, customKey) {
 				strength: (p.strength != null) ? p.strength : 1,
 				slippery: !!p.slippery,
 				slipperyFactor: p.slipperyFactor,
-				drifting: !!p.drifting
+				drifting: !!p.drifting,
+				billBoost: (p.billBoost !== false),
+				affectsInvincible: !!p.affectsInvincible
 			};
 		}
 	}
