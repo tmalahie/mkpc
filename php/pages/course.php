@@ -338,6 +338,7 @@ if (isset($_GET['i'])) {
 			</div>
 			<div class="traject-info">
 				<div id="traject-menu">
+					<div class="traject-specific traject-specific-bus">
 					<?php
 					echo $language ? 'This menu allows you to create several routes
 									  for the bus trajects.<br />
@@ -349,6 +350,17 @@ if (isset($_GET['i'])) {
 									  Par exemple, si vous voulez que certains bus aillent dans	 
 									  un sens et que d\'autres aillent dans l\'autre sens,
 									  vous allez définir 2 trajets, un pour chaque sens.<br />';
+					?>
+					</div>
+					<div class="traject-specific traject-specific-items">
+					<?php
+					echo $language ? 'This menu allows you to create routes that item boxes can follow.<br />
+									  Once a route is defined, right-click an item box and select &quot;Move along route…&quot; to attach it to that route.'
+								   : 'Ce menu vous permet de créer des trajets que les boîtes à objet peuvent suivre.<br />
+									  Une fois un trajet défini, faites un clic droit sur une boîte à objet et sélectionnez &quot;Suivre un trajet…&quot; pour l\'y rattacher.';
+					?>
+					</div>
+					<?php
 					echo '<div class="traject-manage">';
 					echo '<a href="javascript:showTrajectAdd()">'. ($language ? 'Add a route':'Ajouter un trajet') .'</a>';
 					echo '<a href="javascript:showTrajectCopy()">'. ($language ? 'Copy a route':'Copier un trajet') .'</a>';
