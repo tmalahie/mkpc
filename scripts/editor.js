@@ -3182,6 +3182,7 @@ function showNewCustomOffroadProfile() {
 	document.getElementById("custom-offroad-slippery-factor-row").style.display = "none";
 	document.getElementById("custom-offroad-drifting").checked = false;
 	document.getElementById("custom-offroad-bill-boost").checked = true;
+	document.getElementById("custom-offroad-affect-invincible").checked = false;
 	document.getElementById("custom-offroad-name").focus();
 }
 function libraryEntryById(id) {
@@ -3239,6 +3240,7 @@ function editLibraryOffroadProfile(id) {
 	document.getElementById("custom-offroad-slippery-factor-row").style.display = slippery ? "" : "none";
 	document.getElementById("custom-offroad-drifting").checked = !!profile.drifting;
 	document.getElementById("custom-offroad-bill-boost").checked = (profile.billBoost !== false);
+	document.getElementById("custom-offroad-affect-invincible").checked = !!profile.affectsInvincible;
 }
 function selectLibraryOffroadProfile(id) {
 	var entry = libraryEntryById(id);
@@ -3273,7 +3275,8 @@ function profileFromLibraryEntry(entry) {
 		strength: (p.strength != null) ? p.strength : 0.5,
 		slippery: !!p.slippery,
 		drifting: !!p.drifting,
-		billBoost: (p.billBoost !== false)
+		billBoost: (p.billBoost !== false),
+		affectsInvincible: !!p.affectsInvincible
 	};
 	if (profile.slippery)
 		profile.slipperyFactor = (p.slipperyFactor != null) ? p.slipperyFactor : 0.5;
@@ -3295,12 +3298,14 @@ function submitCustomOffroadProfileForm() {
 	var slipperyFactor = +document.getElementById("custom-offroad-slippery-factor").value;
 	var drifting = document.getElementById("custom-offroad-drifting").checked;
 	var billBoost = document.getElementById("custom-offroad-bill-boost").checked;
+	var affectsInvincible = document.getElementById("custom-offroad-affect-invincible").checked;
 	var body = {
 		name: name,
 		strength: strength,
 		slippery: slippery,
 		drifting: drifting,
-		billBoost: billBoost
+		billBoost: billBoost,
+		affectsInvincible: affectsInvincible
 	};
 	if (slippery)
 		body.slipperyFactor = slipperyFactor;
@@ -5220,6 +5225,9 @@ function showBillBallHelp() {
 function showOffroadBillBoostHelp() {
 	alert(language ? "If checked, a Bullet Bill about to expire over this off-road has its duration extended, preventing the player from being affected by the off-road when the transformation ends." : "Si activé, un Bill Ball sur le point de terminer sur l'hors-piste prolonge sa durée, évitant ainsi au joueur de subir l'effet du hors-piste à la fin de la transformation.");
 }
+function showOffroadInvincibleHelp() {
+	alert(language ? "If checked, players under the effect of a Star or a Mega Mushroom are still affected by this off-road." : "Si activé, les joueurs utilisant une étoile ou un Méga champi subissent quand même les effets du hors-piste.");
+}
 function showBgTransitionHelp() {
 	alert(language ? "If checked, the map image and background will transition smoothly from the previous to the next one" : "Si coché, les images de la map et de l'arrière-plan changeront progressivement du précédent au suivant");
 }
@@ -6272,7 +6280,8 @@ var commonTools = {
 							strength: 1,
 							slippery: false,
 							drifting: false,
-							billBoost: true
+							billBoost: true,
+							affectsInvincible: false
 						});
 					}
 					var keyShapes = payload.horspistes[key] || [];

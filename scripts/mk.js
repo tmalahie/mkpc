@@ -14509,6 +14509,17 @@ function offroadExtendsBill(iX, iY) {
 	}
 	return true;
 }
+function offroadAffectsInvincible(oKart, hpType) {
+	if (oKart.billball || oKart.cannon)
+		return false;
+	if (typeof hpType === "string" && hpType.indexOf("custom-") === 0) {
+		var lMap = getCurrentLMap(collisionLap);
+		var entry = lMap && lMap.customOffroadProfiles && lMap.customOffroadProfiles[hpType];
+		if (entry && entry.affectsInvincible)
+			return true;
+	}
+	return false;
+}
 function getOffroadProps(oKart,hpType) {
 	if (typeof hpType === "string" && hpType.indexOf("custom-") === 0) {
 		var lMap = getCurrentLMap(collisionLap);
@@ -19831,7 +19842,7 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
-				if (!oKart.protect && !oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY))) {
+				if (!oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY)) && (!oKart.protect || offroadAffectsInvincible(oKart, hpType))) {
 					var hpProps = getOffroadProps(oKart,hpType);
 					if ((oKart.turbodrift>oKart.turbodrift0*0.8 || oKart.speed <= 1.5) && !hpProps.drifting)
 						hpType = undefined;
@@ -23027,7 +23038,8 @@ function loadCustomOffroadProfile(id, lMap, customKey) {
 				slippery: !!p.slippery,
 				slipperyFactor: p.slipperyFactor,
 				drifting: !!p.drifting,
-				billBoost: (p.billBoost !== false)
+				billBoost: (p.billBoost !== false),
+				affectsInvincible: !!p.affectsInvincible
 			};
 		}
 	}
