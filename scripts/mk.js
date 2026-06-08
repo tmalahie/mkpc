@@ -9023,7 +9023,8 @@ var itemBehaviors = {
 				const fellOff = oKart.fell;
 				const inCannon = oKart.cannon;
 				const isDead = oKart.loose;
-				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead);
+				const isGhost = oKart.ghost;
+				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead && !isGhost);
 			}
 
 			var fNewPosX;
@@ -9701,7 +9702,7 @@ var itemBehaviors = {
 					for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace && !aKarts[k].loose) {
-								if (!friendlyHit(fSprite.team,aKarts[k].team)) {
+								if (!friendlyHit(fSprite.team,aKarts[k].team) && !aKarts[k].ghost) {
 									cible = k;
 									cPlace = 0;
 								}
@@ -18459,7 +18460,7 @@ function findFirstRacingPlayer(fSprite) {
 	for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 		for (var k=0;k<aKarts.length;k++) {
 			if (aKarts[k].place == cPlace) {
-				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team))
+				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team) && !aKarts[k].ghost)
 					return k;
 			}
 		}
