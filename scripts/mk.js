@@ -1,4 +1,4 @@
-﻿var pause, chatting = false;
+var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
@@ -8654,7 +8654,8 @@ var itemBehaviors = {
 				&& k.roulette >= 25 // roulette anim finished
 				&& !k.billball // not in bill
 				&& !friendlyFire(k, oOwner) // not in our team
-				&& (course != "BB" && k.place < oOwner.place) // ahead of us (ignored in battlemode)
+				&& (course == "BB" || k.place < oOwner.place) // ahead of us (place check ignored in battlemode)
+				&& (course == "BB" || k.tours <= oMap.tours) // not finished
 			);
 			console.log("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
 			let targetId = -1;
@@ -13905,6 +13906,7 @@ function colKart(getId) {
 		var kart = aKarts[i];
 		var lap2 = getCurrentLapId(kart);
 		if (lapInteractionsDisabled(lap1,lap2)) continue;
+		if (oKart.ghost || kart.ghost) continue;
 		var protect1 = oKart.protect ? ((oKart.etoile||oKart.billball)?2:1) : 0;
 		var protect2 = kart.protect ? ((kart.etoile||kart.billball)?2:1) : 0;
 		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
@@ -19473,8 +19475,8 @@ function move(getId, triggered) {
 		var pExplose = oKart.ghost ? 0 : touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
-		else if (oKart.z < maxItemHitboxZ && !oKart.ghost) {
-			if (!oKart.cannon) {
+		else if (oKart.z < maxItemHitboxZ) {
+			if (!oKart.ghost && !oKart.cannon) {
 				while (touche_champi(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne) {
 					oKart.champi = 20;
 					oKart.champiType = CHAMPI_TYPE_ITEM;
@@ -19507,6 +19509,9 @@ function move(getId, triggered) {
 				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
+				if (asset && oKart.ghost && !["bumpers", "flowers", "flippers"].includes(asset[0])) {
+					asset = null;
+				}
 				if (asset) {
 					var decorType = asset[1][0].src;
 					var isCustom = asset[1][0].custom;
@@ -19613,7 +19618,7 @@ function move(getId, triggered) {
 					}
 				}
 			}
-			if (!oKart.cpu) {
+			if (!oKart.cpu && !oKart.ghost) {
 				while (touche_piece(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y)) {
 					clLocalVars.nbCoins++;
 					updateChallengeHud("coins", clLocalVars.nbCoins);
@@ -19622,7 +19627,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		if (touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
+		if (!oKart.ghost && touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
 			if (!oKart.protect && !oKart.frminv)
 				handleHardHit(getId);
 	}
