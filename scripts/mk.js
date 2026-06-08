@@ -1,4 +1,4 @@
-var pause, chatting = false;
+﻿var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
@@ -3052,7 +3052,11 @@ function arme(ID, backwards, forwards) {
 			addNewItem(oKart, {type:"pow", owner:oKart.id});
 			break;
 
-			case "boo" :\n			addNewItem(oKart, {type:"boo", owner:oKart.id});\n			oKart.itemLock = true;\n			break;\n			case "boomerang" :
+			case "boo" :
+			addNewItem(oKart, {type:"boo", owner:oKart.id});
+			oKart.itemLock = true;
+			break;
+			case "boomerang" :
 			const [velX, velY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
 			const [shiftX, shiftY] = dirShoot(oKart, backwards, 3.2);
 
@@ -3103,7 +3107,9 @@ function arme(ID, backwards, forwards) {
 		case "billball":
 			newItem = "billball";
 			break;
-		case "boo":\n			newItem = "boo";\n
+		case "boo":
+			newItem = "boo";
+
 		}
 		if (newItem) {
 			if (oKart.arme !== newItem) {
@@ -9978,7 +9984,7 @@ var itemBehaviors = {
 		}
 	}
 }
-			var itemTypes = Object.keys(itemBehaviors);,\n			var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang"];\n
+var itemTypes = Object.keys(itemBehaviors);
 var items = {};
 
 var raceLog = {
@@ -17083,7 +17089,9 @@ var itemDistributions = {
 			"banane": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 4,
-			"boo": 2,\n			"boomerang": 3\n
+			"boo": 2,
+			"boomerang": 3
+
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -17107,13 +17115,17 @@ var itemDistributions = {
 			"carapacerouge": 12,
 			"carapace": 6,
 			"bobomb": 4,
-			"boo": 1,\n			"boomerang": 4\n
+			"boo": 1,
+			"boomerang": 4
+
 		}, {
 			"carapacerouge": 8,
 			"carapace": 5,
 			"bobomb": 4,
 			"carapaceX3": 3,
-			"boo": 2,\n			"boomerang": 4\n
+			"boo": 2,
+			"boomerang": 4
+
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -17208,7 +17220,9 @@ var itemDistributions = {
 			"carapacerouge": 6,
 			"bobomb": 3,
 			"champiX3": 2,
-			"boo": 1,\n			"boomerang": 3\n
+			"boo": 1,
+			"boomerang": 3
+
 		}, {
 			"bobomb": 4,
 			"champi": 5,
@@ -17216,8 +17230,9 @@ var itemDistributions = {
 			"champiX3": 3,
 			"carapacerougeX3": 3,
 			"boo": 2,
-			"pow": 1,\n			"pow": 1,
-			"boomerang": 4\n
+			"pow": 1,
+			"boomerang": 4
+
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
@@ -17287,12 +17302,16 @@ var itemDistributions = {
 			"poison": 4,
 			"bobomb": 8,
 			"bloops": 2,
-			"boo": 2,\n			"boomerang": 8\n
+			"boo": 2,
+			"boomerang": 8
+
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
 			"bobomb": 8,
-			"boo": 2,\n			"boomerang": 8\n
+			"boo": 2,
+			"boomerang": 8
+
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
@@ -17300,7 +17319,9 @@ var itemDistributions = {
 			"champiX3": 1,
 			"carapacerougeX3": 6,
 			"pow": 2,
-			"boo": 1,\n			"boomerang": 8\n
+			"boo": 1,
+			"boomerang": 8
+
 		}, {
 			"champi": 4,
 			"champiX3": 3,
@@ -27470,7 +27491,13 @@ function selectItemScreen(oScr, callback, options) {
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	
-	const distribOrder = [\n		"fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge",\n		"champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang",\n		"boo", "carapacerougeX3", "pow", "carapacebleue", "megachampi",\n		"champiX3", "etoile", "champior", "billball", "eclair"\n	];\n
+	const distribOrder = [
+		"fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge",
+		"champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang",
+		"boo", "carapacerougeX3", "pow", "carapacebleue", "megachampi",
+		"champiX3", "etoile", "champior", "billball", "eclair"
+	];
+
 	const battleForbidden = ["billball", "eclair"];
 	const possibleItems = itemMode === "BB" // remove battle forbidden items
 		? distribOrder.filter(item => !battleForbidden.includes(item))
