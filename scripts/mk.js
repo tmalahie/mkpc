@@ -16223,7 +16223,8 @@ var itemDistributions = {
 			"carapaceX3": 2,
 			"banane": 1,
 			"fauxobjet": 1,
-			"carapacerouge": 4
+			"carapacerouge": 4,
+			"boo": 2
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -16232,7 +16233,8 @@ var itemDistributions = {
 			"champi": 3,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"boo": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
@@ -16245,12 +16247,14 @@ var itemDistributions = {
 			"bananeX3": 1,
 			"carapacerouge": 12,
 			"carapace": 6,
-			"bobomb": 4
+			"bobomb": 4,
+			"boo": 1
 		}, {
 			"carapacerouge": 8,
 			"carapace": 5,
 			"bobomb": 4,
-			"carapaceX3": 3
+			"carapaceX3": 3,
+			"boo": 2
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -16261,7 +16265,8 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1,
 			"bloops": 1,
-			"pow": 1
+			"pow": 1,
+			"boo": 2
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -16342,19 +16347,22 @@ var itemDistributions = {
 			"champi": 8,
 			"carapacerouge": 6,
 			"bobomb": 3,
-			"champiX3": 2
+			"champiX3": 2,
+			"boo": 1
 		}, {
 			"bobomb": 4,
 			"champi": 5,
 			"carapacerouge": 4,
 			"champiX3": 3,
 			"carapacerougeX3": 3,
+			"boo": 2,
 			"pow": 1,
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
 			"champiX3": 6,
 			"megachampi": 3,
+			"boo": 2,
 			"pow": 1
 		}, {
 			"champiX3": 8,
@@ -16409,25 +16417,29 @@ var itemDistributions = {
 			"champi": 2,
 			"poison": 5,
 			"bobomb": 10,
-			"bloops": 3
+			"bloops": 3,
+			"boo": 1
 		}, {
 			"carapacerouge": 10,
 			"carapaceX3": 12,
 			"champi": 3,
 			"poison": 4,
 			"bobomb": 8,
-			"bloops": 2
+			"bloops": 2,
+			"boo": 2
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
-			"bobomb": 8
+			"bobomb": 8,
+			"boo": 2
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
 			"bobomb": 6,
 			"champiX3": 1,
 			"carapacerougeX3": 6,
-			"pow": 2
+			"pow": 2,
+			"boo": 1
 		}, {
 			"champi": 4,
 			"champiX3": 3,
@@ -18460,10 +18472,10 @@ function move(getId, triggered) {
 			for (var i=0;i<aKarts.length;i++)
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
-		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
+		var pExplose = oKart.ghost ? 0 : touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
-		else if (oKart.z < maxItemHitboxZ) {
+		else if (oKart.z < maxItemHitboxZ && !oKart.ghost) {
 			if (!oKart.cannon) {
 				while (touche_champi(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne) {
 					oKart.champi = 20;
