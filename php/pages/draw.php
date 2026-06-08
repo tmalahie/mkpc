@@ -816,7 +816,7 @@ if (isset($_GET['i'])) {
 					</label>
 					<div class="form-row popup-buttons">
 						<div><?php echo $language ? "Apply these settings to every decor of this type" : "Appliquer ces paramètres à tous les décors de ce type"; ?>
-							<button name="applyAll" onclick="javascript:applyAllBoxDecors()">Apply</button>
+							<button name="applyAll" onclick="javascript:applyAllBoxDecors()"><?php echo $language ? "Apply" : "Appliquer" ?></button>
 							<a href="javascript:showBoxDecorHelp('applyAll')">[?]</a>
 						</div>
 					</div>
