@@ -399,6 +399,9 @@ body.theme-dark {
 .mode-option-selected:not(.mode-option-override) .mode-option-onoverride {
 	display: none;
 }
+#offroad-type {
+	max-width: 120px;
+}
 #button-music-reset, #button-bgimg-reset, #button-bgcolor-reset {
 	color: #912;
 	text-decoration: none;
@@ -459,6 +462,18 @@ body.theme-dark {
 	display: none;
 }
 .decor-option-bus-trajects #decor-bus-decors {
+	display: none;
+}
+#items-decors label {
+	display: block;
+}
+#items-decors, #items-trajects {
+	font-size: 0.75em;
+}
+.items-option-decors #items-trajects {
+	display: none;
+}
+.items-option-trajects #items-decors {
 	display: none;
 }
 #mode-override-options {
@@ -766,6 +781,9 @@ div.hover-toggle:hover {
 }
 .editor .noclick {
 	pointer-events: none;
+}
+.editor .ghost {
+	opacity: 0.45;
 }
 .editor .highlight {
 	opacity: 0.75;
@@ -1326,6 +1344,10 @@ embed,#ytplayer {
 #modeoverride-options h1 strong {
 	color: #5b8;
 }
+#modeoverride-lap-list {
+	max-width: 150px;
+	text-overflow: ellipsis;
+}
 #modeoverride-options .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 10px;
@@ -1356,6 +1378,10 @@ embed,#ytplayer {
 #lapoverride-less .popup-buttons {
 	margin-bottom: 10px;
 }
+#lapoverride-less-list {
+	max-width: 150px;
+	text-overflow: ellipsis;
+}
 .lapoverride-trigger {
 	margin-bottom: 0.5em;
 	border-radius: 0.5em;
@@ -1377,6 +1403,12 @@ embed,#ytplayer {
 }
 .lapoverride-type-options.selected {
 	display: block;
+}
+#lapoverride-challenge-list,
+#lapoverride-copy-from,
+#lapoverride-copy-to {
+	max-width: 150px;
+	text-overflow: ellipsis;
 }
 #lapoverride-more-options {
 	overflow: auto;
@@ -1565,6 +1597,145 @@ embed,#ytplayer {
 	border: double 4px #666;
 	text-align: center;
 }
+#custom-offroad-profile {
+	width: 420px;
+	padding: 8px 12px 14px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+#custom-offroad-profile h1 {
+	margin: 4px 0 10px;
+	font-size: 1.2em;
+}
+#custom-offroad-profile .form-row {
+	margin: 6px 0;
+}
+#custom-offroad-profile input[type=range] {
+	vertical-align: middle;
+	width: 140px;
+}
+#custom-offroad-profile .popup-buttons {
+	margin-top: 12px;
+	margin-bottom: 4px;
+}
+#custom-offroad-profile .close-ctn {
+	margin: -8px -12px 8px;
+	width: auto;
+}
+#custom-offroad-profile-new {
+	display: none;
+}
+#custom-offroad-profile.custom-offroad-profile-form-shown #custom-offroad-profile-select {
+	display: none;
+}
+#custom-offroad-profile.custom-offroad-profile-form-shown #custom-offroad-profile-new {
+	display: block;
+}
+#custom-offroad-profile-new .custom-offroad-profile-update-title {
+	display: none;
+}
+#custom-offroad-profile-new .form-row img {
+	height: 13px;
+	position: relative;
+	top: 1px;
+}
+#custom-offroad-profile.custom-offroad-profile-update #custom-offroad-profile-new .custom-offroad-profile-new-title {
+	display: none;
+}
+#custom-offroad-profile.custom-offroad-profile-update #custom-offroad-profile-new .custom-offroad-profile-update-title {
+	display: block;
+}
+.custom-offroad-profile-items {
+	list-style: none;
+	margin: 8px 0;
+	padding: 0;
+	max-height: 240px;
+	overflow-y: auto;
+	border: solid 1px #aab;
+	background-color: #eef0f6;
+	border-radius: 3px;
+	text-align: left;
+}
+.custom-offroad-profile-items:empty {
+	display: none;
+}
+.custom-offroad-profile-item {
+	display: flex;
+	align-items: center;
+	padding: 6px 8px;
+	border-bottom: solid 1px #d0d4dd;
+	cursor: pointer;
+}
+.custom-offroad-profile-item:last-child {
+	border-bottom: 0;
+}
+.custom-offroad-profile-item:hover {
+	background-color: #d8dde8;
+}
+.custom-offroad-profile-item-name {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.custom-offroad-profile-item-edit,
+.custom-offroad-profile-item-delete {
+	margin-left: 8px;
+	width: 24px;
+	height: 24px;
+	line-height: 22px;
+	text-align: center;
+	border-radius: 3px;
+	text-decoration: none;
+	font-size: 14px;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+.custom-offroad-profile-item-edit {
+	background-color: #7E8;
+	color: #084;
+	border: solid 1px #8A4;
+}
+.custom-offroad-profile-item-edit:hover {
+	background-color: #7F8;
+	color: #0A5;
+}
+.custom-offroad-profile-item-delete {
+	background-color: #F96;
+	color: #C24;
+	border: solid 1px #A84;
+	font-size: 18px;
+	line-height: 22px;
+}
+.custom-offroad-profile-item-delete:hover {
+	background-color: #FB7;
+	color: #D35;
+}
+#custom-offroad-profile-empty {
+	margin: 14px 0;
+	color: #777;
+	font-style: italic;
+}
+.custom-offroad-profile-actions {
+	margin-top: 8px;
+}
+.custom-offroad-profile-actions button {
+	background-color: #BCF;
+	color: #05A;
+	border: solid 1px #48A;
+	border-radius: 4px;
+	padding: 4px 12px;
+	font-size: 1em;
+	cursor: pointer;
+}
+.custom-offroad-profile-actions button:hover {
+	background-color: #C9D9FF;
+	color: #17C;
+}
+#transferFrom, #transferTo {
+	max-width: 100px;
+}
 
 #choptions {
 	opacity: 0.8;
@@ -1747,6 +1918,15 @@ embed,#ytplayer {
 .save-actions {
 	margin: 5px auto;
 }
+.save-conflict .save-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+.save-conflict > .save-msg {
+	font-size: 0.75em;
+}
 .save-actions button {
 	cursor: pointer;
 	border: none;
@@ -1808,6 +1988,20 @@ embed,#ytplayer {
 }
 .save-actions button:active {
 	border-style: inset;
+}
+.save-conflict {
+	background-color: #fdecc8;
+	color: #a05a00;
+}
+.save-conflict button {
+	background-color: #f7c873;
+	color: #a05a00;
+}
+.save-conflict button:hover {
+	background-color: #ffd789;
+}
+.save-conflict button:focus {
+	border: outset 1px #d28a2b;
 }
 #toolbox select {
 	background-color: #127fdf;

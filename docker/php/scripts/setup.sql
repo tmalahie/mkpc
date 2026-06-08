@@ -657,6 +657,7 @@ CREATE TABLE `mkcups` (
   `circuit3` int(10) unsigned NOT NULL,
   `nom` tinytext NOT NULL,
   `auteur` tinytext NOT NULL,
+  `options` text NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `publication_date` (`publication_date`),
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
@@ -881,6 +882,7 @@ CREATE TABLE `mkidentifiants` (
   `upload_size` int(11) DEFAULT NULL,
   `external_size` int(11) DEFAULT NULL,
   `message_size` int(11) DEFAULT NULL,
+  `disable_cooldown` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1191,6 +1193,18 @@ CREATE TABLE `mkofficialmsgread` (
   `message` varchar(255) NOT NULL,
   `read_date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`player`,`message`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mkoffroads` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `identifiant` int(10) unsigned NOT NULL,
+  `profile` text NOT NULL DEFAULT '{}',
+  PRIMARY KEY (`id`),
+  KEY `identifiant` (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2160,3 +2174,4 @@ INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=0,iden
 INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);
 INSERT INTO mkgamecpu VALUES(0,0,1000000000);
 INSERT INTO mkrights VALUES(1, "admin");
+INSERT INTO mkidentifiants SET identifiant=0,disable_cooldown=1;

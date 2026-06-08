@@ -2,6 +2,12 @@
 require_once('getRights.php');
 require_once('apc.php');
 
+function hasCooldownDisabled() {
+    global $identifiants;
+    if (!isset($identifiants))
+        return false;
+    return (bool) mysql_fetch_array(mysql_query('SELECT 1 FROM `mkidentifiants` WHERE identifiant='.$identifiants[0].' AND disable_cooldown=1'));
+}
 function getProfileIdsString() {
     global $id, $identifiants;
     $getProfiles = mysql_query('SELECT id FROM mkprofiles WHERE identifiant="'. $identifiants[0] .'"');
@@ -150,6 +156,8 @@ function printNewsCooldowned() {
 }
 function isTrackCooldowned($context) {
     global $identifiants;
+    if (hasCooldownDisabled())
+        return false;
     $table = $context['type'];
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `'.$table.'` WHERE identifiant='.$identifiants[0].' AND publication_date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];

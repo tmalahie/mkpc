@@ -571,6 +571,10 @@ form.news-comment-editting .news-noedit {
 form.news-comment-editting .news-comment {
 	padding-right: 5px;
 }
+.news-comment .news-noedit {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .news-comment .news-edit textarea {
 	width: 100%;
 	height: 50px;

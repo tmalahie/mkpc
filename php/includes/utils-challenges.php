@@ -2,6 +2,7 @@
 require_once('touch.php');
 require_once('challenge-consts.php');
 require_once('cache_creations.php');
+require_once('rosterNames.php');
 $clRulesByType = array(
 	'main' => array(
 		'finish_circuit_first' => array(
@@ -384,6 +385,11 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = explode(',', $scope['value']);
 			},
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
+		'avoid_boomerang_break' => array(
+			'description' => $language ? 'without breaking any of your boomerangs' : 'sans casser aucun de vos boomerangs',
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
@@ -1114,32 +1120,6 @@ function getClRace($clId, $isModerator=false) {
 	}
 	return null;
 }
-function getCharacterName($sPerso) {
-	global $language;
-	if ($language) {
-		if ($sPerso == "maskass")
-			$res = "shy guy";
-		elseif ($sPerso == "skelerex")
-			$res = "dry bones";
-		elseif ($sPerso == "harmonie")
-			$res = "rosalina";
-		elseif ($sPerso == "roi_boo")
-			$res = "king boo";
-		elseif ($sPerso == "frere_marto")
-			$res = "hammer bro";
-		elseif ($sPerso == "bowser_skelet")
-			$res = "dry bowser";
-		elseif ($sPerso == "flora_piranha")
-			$res = "petey piranha";
-	}
-	else {
-		if ($sPerso == "frere_marto")
-			$res = "frère marto";
-	}
-	if (!isset($res)) $res = $sPerso;
-	$res = ucwords(str_replace('_', ' ', $res));
-	return $res;
-}
 function getPositionName($place) {
 	global $language;
 	if ($language) {
@@ -1454,6 +1434,9 @@ function getChallengeItemNames(&$scope) {
 		),
 		'bobomb' => array(
 			'label' => $language ? 'a bobomb' : 'une bobomb'
+		),
+		'boomerang' => array(
+			'label' => $language ? 'a boomerang' : 'un boomerang'
 		),
         'pow' => array(
             'label' => $language ? 'a POW block' : 'un block POW'

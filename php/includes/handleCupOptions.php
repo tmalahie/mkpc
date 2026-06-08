@@ -59,3 +59,4 @@ if (!empty($cOptions)) {
 }
 if (null !== $characterRoster)
     echo 'var characterRoster='. json_encode($characterRoster) .';';
+require_once('handleGpOptions.php');
