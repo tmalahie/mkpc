@@ -8033,12 +8033,20 @@ var itemBehaviors = {
 	"champi": {
 		size: 0.54,
 		sync: [floatType("x"),floatType("y"),floatType("z")],
-		fadedelay: 100
+		fadedelay: 100,
+		move: function(fSprite) {
+			if (fSprite.countdown)
+				handleSpriteLaunch(fSprite, 12, 0.2);
+		}
 	},
 	"etoile": {
 		size: 0.54,
 		sync: [floatType("x"),floatType("y"),floatType("z")],
-		fadedelay: 100
+		fadedelay: 100,
+		move: function(fSprite) {
+			if (fSprite.countdown)
+				handleSpriteLaunch(fSprite, 12, 0.2);
+		}
 	},
 	"eclair": {
 		size: 1,
@@ -8585,6 +8593,11 @@ var itemBehaviors = {
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
+			if (fSprite.countdown) {
+				handleSpriteLaunch(fSprite, 12, 0.2);
+				return;
+			}
+
 			var fNewPosX;
 			var fNewPosY;
 
@@ -8793,6 +8806,11 @@ var itemBehaviors = {
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
+			if (fSprite.countdown) {
+				handleSpriteLaunch(fSprite, 12, 0.2);
+				return;
+			}
+
 			function canTarget(fSprite, oKart) {
 				if (!oKart) return false;
 				const isOwner = oKart.id == fSprite.owner;
@@ -10887,7 +10905,18 @@ var decorBehaviors = {
 	},
 	box:{
 		breaking:true,
-		bonus:true
+		bonus:true,
+		preinit: function(decorsData) {
+			for (let i = 0; i < decorsData.length; i++) {
+				const decorData = decorsData[i];
+				const distrib = decorData[2];
+				const throwDrop = decorData[3];
+
+				decorData[3] = 0; // related to height for certain decors
+				decorData[4] = distrib ?? null;
+				decorData[5] = throwDrop ?? false;
+			}
+		}
 	},
 	snowman:{
 		breaking:true,
@@ -13965,7 +13994,10 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					
 					const collisionFrom = collisionTest === COL_KART ? collisionPlayer : collisionItem;
 					const clientSideDrop = !isOnline || (fromSelf && !onlineSpectatorId);
-					const dropPos = {x: nX + iI*2.5, y: nY+iJ*2.5};
+					const boxLand = {
+						x: nX + iI * 2.5,
+						y: nY + iJ * 2.5,
+					};
 
 					// player collision
 					if (collisionTest == COL_KART) {
@@ -13977,7 +14009,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						if ((collisionPlayer.speed > 4 || iP) && canBreak) {
 							handleDecorHit(i,type, lMap);
 							if (decorBehavior.bonus && clientSideDrop)
-								dropBoxDecorLoot(collisionFrom, dropPos);
+								dropBoxDecorLoot(collisionFrom, oBox, boxLand);
 							if (collisionPlayer.turbodrift && !decorBehavior.transparent && !iP)
 								collisionPlayer.turbodrift = 0;
 						}
@@ -13988,7 +14020,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						if (decorBehavior.damagingItems[collisionItem.type]) {
 							handleDecorHit(i,type, lMap);
 							if (decorBehavior.bonus && clientSideDrop)
-								dropBoxDecorLoot(collisionFrom, dropPos);
+								dropBoxDecorLoot(collisionFrom, oBox, boxLand);
 						}
 					}
 
@@ -17709,10 +17741,30 @@ function playPow(i, oKart, oKartOwner, fSprite) {
     }
 }
 
-function dropBoxDecorLoot(obj, pos, distrib) {
-	// default drop distribution
+function fixBoxDecorDistrib(distrib) {
+	// in Time trial, only drop shroom if distrib has it, otherwise don't drop anything
+	if (course === "CM")
+		return (!distrib || distrib.champi) ? {"champi": 1} : null;
+
+	// if decor has no custom distrib, set it to default
 	if (!distrib)
-		distrib = course == "CM" ? {"champi": 1} : {"champi": 0.5, "banane": 0.5};
+		return {"champi": 1, "banane": 1};
+
+	// otherwise keep decor custom distribution
+	return distrib;
+}
+
+function dropBoxDecorLoot(colAuthor, decor, landPos) {
+	let decorPos = {
+		x: decor[0],
+		y: decor[1]
+	};
+	let distrib = fixBoxDecorDistrib(decor[4]);
+	let throwDrop = decor[5];
+
+	// exit if distrib has no item
+	if (!distrib)
+		return;
 
 	// get total probability
 	let total = 0;
@@ -17727,24 +17779,45 @@ function dropBoxDecorLoot(obj, pos, distrib) {
 	for (const itemType in distrib) {
 		sum += distrib[itemType];
 		if (rng < sum) {
-			// if obj is not a player, find it
-			if (!obj.personnage) {
-				obj = aKarts.find(oKart => oKart.id === obj.owner);
+			const isShellDrop = ["carapace", "carapace-rouge"].includes(itemType);
+			const isFromPlayer = colAuthor.personnage !== undefined;
+			let theta;
+
+			if (isFromPlayer) { // if player hit, take their angle
+				theta = colAuthor.rotation;
 			}
+			else if (colAuthor.theta) { // if item, take its rotation if exists
+				theta = colAuthor.theta;
+			}
+			else { // if item, determine its rotation using its velocity
+				theta = (Math.atan2(colAuthor.vx, colAuthor.vy) * 180 / Math.PI + 360) % 360;
+			}
+
+			let kartAuthor;
+			if (!isFromPlayer)
+				kartAuthor = aKarts.find(kartAuthor => kartAuthor.id === colAuthor.owner);
+			else
+				kartAuthor = colAuthor;
 
 			item = {
 				type: itemType,
-				owner: obj.id,
-				team: obj.team,
-				x: pos.x,
-				y: pos.y,
-				z: 0
+				owner: isShellDrop ? -1 : kartAuthor.id,
+				team: isShellDrop ? -1 : kartAuthor.team,
+				x: throwDrop ? decorPos.x : landPos.x,
+				y: throwDrop ? decorPos.y : landPos.y,
+				z: throwDrop ? 0.01 : 0,
+				countdown: throwDrop ? 7 : 0,
+				theta: theta
 			};
 
 			if (itemType === "bobomb")
 				item.cooldown = 30;
 
-			dropNewItem(obj, item);
+			addNewItem(kartAuthor, item);
+
+			if (throwDrop)
+				playDistSound(colAuthor, "musics/events/throw.mp3", 150);
+	
 			return;
 		}
 	}

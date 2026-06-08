@@ -7602,6 +7602,12 @@ var commonTools = {
 							if (decorData.r)
 								self.click(self,{x:decorData.pos.x+decorData.r,y:decorData.pos.y},{});
 							break;
+						case "box":
+							if (decorData.items)
+								self.data.decors[type][i].items = decorData.items;
+							if (decorData.throw)
+								self.data.decors[type][i].throw = decorData.throw;
+							break;
 						}
 					}
 					switch (actualType) {
@@ -7837,6 +7843,14 @@ var commonTools = {
 							}
 						});
 					}
+					else if (getActualDecorType(self.state.type) === "box") {
+						menuOptions.push({
+							text: (language ? "Decor options..." : "Options du décor..."),
+							click: function() {
+								openBoxDecorOptions(self, decorData);
+							}
+						});
+					}
 					return showContextOnElt(e,box,menuOptions);
 				};
 				if (circle)
@@ -7994,6 +8008,14 @@ var commonTools = {
 								if (decorsData[i].speed !== 1)
 									decorParams.speed = decorsData[i].speed||0;
 								payload.decorparams[type].push(decorParams);
+								break;
+							case "box":
+								const decorIdx = payload.decor[type].length - 1;
+								if (decorsData[i].items)
+									payload.decor[type][decorIdx][2] = decorsData[i].items;
+								if (decorsData[i].throw)
+									payload.decor[type][decorIdx][3] = decorsData[i].throw;
+								break;
 							}
 						}
 					}
@@ -8076,6 +8098,13 @@ var commonTools = {
 						decorData.speed = decorParams.speed
 						if (decorData.speed == null)
 							decorData.speed = 1;
+						break;
+					case "box":
+						if (decorsPayload[i][2]) // items
+							decorData.items = decorsPayload[i][2];
+						if (decorsPayload[i][3]) // throw
+							decorData.throw = decorsPayload[i][3];
+						break;
 					}
 					selfData[type].push(decorData);
 				}
