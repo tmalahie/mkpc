@@ -333,6 +333,12 @@ function removeHUD() {
 	for (var i=0;i<hudScreens.length;i++)
 		$mkScreen.removeChild(hudScreens[i]);
 	hudScreens.length = 0;
+	if (idebugInterval) {
+		clearInterval(idebugInterval);
+		idebugInterval = null;
+		const existing = document.getElementById("idebug-window");
+		if (existing) existing.remove();
+	}
 }
 function updatePlanFullScreen() {
 	if (!oPlanDiv2) return;
@@ -1048,6 +1054,8 @@ function setPlanPos(frameState, lMap) {
 					}
 					updatePos = false;
 				}
+			} else {
+				iPlanCharacters[i].style.opacity = oKart.ref.ghost ? 0.4 : 1;
 			}
 			if (updatePos) {
 				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
@@ -2661,11 +2669,13 @@ function arme(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
 		if (oKart.roulette != 25) return;
+		if (oKart.itemLock) return;
 		if (oKart == oPlayers[0])
 			clLocalVars.itemsUsed = true;
 		var tpsUse, itemKey = oKart.arme;
 		switch(oKart.arme) {
 			case "champi" :
+			case "champiX1" :
 			case "champiX2" :
 			case "champiX3" :
 			itemKey = "champi";
@@ -2745,8 +2755,16 @@ function arme(ID, backwards, forwards) {
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
 
+			case "bananeX1" :
 			case "banane" :
 			loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "bananeX2" :
+			for (var i=0;i<2;i++)
+				loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2767,8 +2785,16 @@ function arme(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "carapaceX1" :
 			case "carapace" :
 			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "carapaceX2" :
+			for (var i=0;i<2;i++)
+				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2779,8 +2805,16 @@ function arme(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "carapacerougeX1" :
 			case "carapacerouge" :
 			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "carapacerougeX2" :
+			for (var i=0;i<2;i++)
+				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2878,6 +2912,11 @@ function arme(ID, backwards, forwards) {
 			case "pow" :
 			addNewItem(oKart, {type:"pow", owner:oKart.id});
 			break;
+
+			case "boo" :
+			addNewItem(oKart, {type:"boo", owner:oKart.id});
+			oKart.itemLock = true;
+			break;
 		}
 
 		if (tpsUse)
@@ -2886,7 +2925,10 @@ function arme(ID, backwards, forwards) {
 		var newItem;
 		switch(oKart.arme) {
 		case "champiX2":
-			newItem = "champi";
+			newItem = "champiX1";
+			break;
+		case "champiX1":
+			newItem = false;
 			break;
 		case "champiX3":
 			newItem = "champiX2";
@@ -2896,6 +2938,9 @@ function arme(ID, backwards, forwards) {
 			break;
 		case "billball":
 			newItem = "billball";
+			break;
+		case "boo":
+			newItem = "boo";
 		}
 		if (newItem) {
 			if (oKart.arme !== newItem) {
@@ -3003,6 +3048,17 @@ function arme(ID, backwards, forwards) {
 			default :
 			break;
 		}
+
+		let len = oKart.using.length;
+		if (oKart.arme && len > 0) {
+			let uType = oKart.using[0].type;
+			if (uType === "carapace") oKart.arme = "carapaceX" + len;
+			else if (uType === "carapace-rouge") oKart.arme = "carapacerougeX" + len;
+			else if (uType === "banane") oKart.arme = "bananeX" + len;
+		}
+
+		if (kartIsPlayer(oKart))
+			updateObjHud(ID);
 		if (!oKart.using.length)
 			consumeItemIfDouble(ID);
 	}
@@ -8360,6 +8416,172 @@ var itemBehaviors = {
 			}
 		}
 	},
+	"boo": {
+		sync: [intType("owner"), intType("victim")],
+		sprite: false,
+		init: function(fSprite) {
+			if (fSprite.victim !== undefined) return;
+
+			const oOwner = aKarts.find(kart => kart.id === fSprite.owner);
+			
+			// GUARD: only the local controller is allowed to calculate target
+			if (isOnline && oOwner && oOwner.controller !== identifiant) {
+				return;
+			}
+
+			const aTargets = aKarts.filter(k =>
+				k.id !== fSprite.owner // not us
+				&& k.arme // has item
+				&& k.roulette >= 25 // roulette anim finished
+				&& !k.billball // not in bill
+				&& !friendlyFire(k, oOwner) // not in our team
+				&& (course != "BB" && k.place < oOwner.place) // ahead of us (ignored in battlemode)
+			);
+			console.log("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
+			let targetId = -1;
+			if (aTargets.length) {
+				const targetKart = aTargets[Math.floor(Math.random() * aTargets.length)];
+				targetId = targetKart.id;
+			}
+
+			fSprite.victim = targetId;
+		},
+		move: function(fSprite) {
+			// code before this check runs every frame
+			// after it only once
+			if (fSprite._initialized) return;
+			fSprite._initialized = true;
+			
+			const oOwner = aKarts.find(kart => kart.id === fSprite.owner);
+			const oVictim = aKarts.find(kart => kart.id === fSprite.victim);
+
+			if (oOwner) {
+				oOwner.ghost = 64; // 4sec
+				let stolenItem = "champi";
+				let hadArme = oVictim?.arme;
+				let hadUsing = oVictim?.using?.length > 0;
+				
+				if (hadArme || hadUsing) {
+					console.log("[boo] stealing from:", oVictim?.id);
+					
+					// steal trailing items accounting for how many were thrown
+					if (hadUsing && !hadArme) {
+						let uType = oVictim.using[0].type;
+						let len = oVictim.using.length;
+						
+						switch (uType) {
+							case "carapace":       stolenItem = `carapaceX${len}`;      break;
+							case "carapace-rouge": stolenItem = `carapacerougeX${len}`; break;
+							case "banane":         stolenItem = `bananeX${len}`;        break;
+							case "bobomb":         stolenItem = "bobomb";               break;
+							case "fauxobjet":      stolenItem = "fauxobjet";            break;
+						}
+					} else if (hadArme) { // holding non-trail item
+						stolenItem = oVictim.arme;
+						oVictim.arme = false;
+						oVictim.roulette = 25;
+					}
+
+					// HACK: this allows us to quietly delete trailing items
+					// without the game engine automatically forcing 
+					// the 2nd item slot to shift forward.
+					let oldDouble = oDoubleItemsEnabled;
+					oDoubleItemsEnabled = false;
+					deleteUsingItems(oVictim);
+					oDoubleItemsEnabled = oldDouble;
+				}
+				
+				oOwner.arme = stolenItem;
+				oOwner.roulette = 25;
+				
+				// hate this
+				let alreadyPlayedSE = false;
+				for (let i=0;i<oPlayers.length;i++) {
+					if ((oPlayers[i] === oOwner || (oVictim && oPlayers[i] === oVictim)) && kartIsPlayer(i)) {
+						updateObjHud(i);
+						if (!alreadyPlayedSE) {
+							alreadyPlayedSE = true;
+							playSoundEffect("musics/events/boo_steal.mp3");
+						}
+					}
+				}
+
+				if (kartIsPlayer(oOwner)) {
+					oOwner.itemLock = true;
+					let flashes = 10;
+					const flashInt = setInterval(function() {
+						let $rImg = document.getElementById("roulette" + oOwner.id);
+						if ($rImg) $rImg = $rImg.firstChild;
+						if ($rImg) $rImg.style.opacity = (flashes % 2 === 0) ? "0" : "1";
+						flashes--;
+						if (flashes <= 0) {
+							clearInterval(flashInt);
+							if ($rImg) $rImg.style.opacity = "1";
+							oOwner.itemLock = false;
+						}
+					}, 100);
+				} else {
+					oOwner.itemLock = true;
+					setTimeout(function() { oOwner.itemLock = false; }, 1000);
+				}
+
+				if (oVictim && kartIsPlayer(oVictim)) {
+					oVictim.itemLock = true;
+					const $objet = document.getElementById("objet" + oVictim.id);
+					if ($objet) {
+						let $booImg = document.createElement("img");
+						$booImg.src = "images/items/boo_laugh.png";
+						$booImg.className = "pixelated";
+						Object.assign($booImg.style, {
+							position: "absolute",
+							left: "0px",
+							top: "0px",
+							height: "100%",
+							width: "100%",
+							zIndex: "10"
+						});
+						$objet.appendChild($booImg);
+
+						let victimFlashes = 10;
+						const victimFlashInt = setInterval(function() {
+							$booImg.style.opacity = (victimFlashes % 2 === 0) ? "0" : "1";
+							victimFlashes--;
+							if (victimFlashes <= 0) {
+								clearInterval(victimFlashInt);
+								if ($booImg.parentNode) $booImg.parentNode.removeChild($booImg);
+								
+								if (!oVictim.arme && oVictim.stash) {
+									oVictim.arme = oVictim.stash;
+									oVictim.roulette = oVictim.roulette2;
+									oVictim.stash = false;
+									oVictim.roulette2 = 0;
+								}
+								oVictim.itemLock = false;
+								updateObjHud(oVictim.id);
+							}
+						}, 100);
+					}
+				} else if (oVictim) {
+					oVictim.itemLock = true;
+					setTimeout(function() {
+						if (!oVictim.arme && oVictim.stash) {
+							oVictim.arme = oVictim.stash;
+							oVictim.roulette = oVictim.roulette2;
+							oVictim.stash = false;
+							oVictim.roulette2 = 0;
+						}
+						oVictim.itemLock = false;
+						for (let i=0;i<oPlayers.length;i++) {
+							if (oPlayers[i] === oVictim && kartIsPlayer(i)) {
+								updateObjHud(i);
+							}
+						}
+					}, 1000);
+				}
+			}
+			detruit(fSprite);
+		}
+	},
 	"carapace": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
@@ -9335,7 +9557,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile"];
+var itemTypes = Object.keys(itemBehaviors);
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -11588,7 +11810,7 @@ function initAiPoints(lMap, oKart, inc) {
 			aishortcut = aishortcut.slice(1);
 			if (!aishortcut[2]) aishortcut[2] = {};
 			var aiOptions = aishortcut[2];
-			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
+			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX1", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
 			if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 			if (aiOptions.cc == null) aiOptions.cc = 150;
 			if (aiOptions.ccm == null) aiOptions.ccm = 1000;
@@ -12389,31 +12611,77 @@ function getItemAvgRange(x1,x2) {
 	}
 	return Math.min(0.99999, res);
 }
+function getForbiddenItems(oKart) {
+	const forbiddenItems = {};
+	if (course == "BB") return forbiddenItems;
+	if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
+		forbiddenItems["bloops"] = 1;
+		forbiddenItems["carapaceX3"] = 1;
+		forbiddenItems["carapacerougeX3"] = 1;
+	}
+	if (typeof timer !== "undefined" && timer < 375) {
+		if (itemDistribution.powstart != 1)
+			forbiddenItems["pow"] = 1;
+		if (itemDistribution.lightningstart != 1)
+			forbiddenItems["eclair"] = 1;
+		if (itemDistribution.blueshellstart != 1) {
+			forbiddenItems["carapacebleue"] = 1;
+			forbiddenItems["carapacenoire"] = 1;
+		}
+	}
+	if (oKart.place == 1)
+		forbiddenItems["carapacebleue"] = 1;
+
+	const preventDuplicateItems = {
+		carapacebleue: 1,
+		carapacenoire: 1,
+		eclair: 1,
+		bloops: 1,
+		pow: 1,
+		bananeX3: 1
+	};
+	if (itemDistribution.powx2 == 1) {
+		delete preventDuplicateItems["pow"];
+	}
+	if (itemDistribution.lightningx2 == 1)
+		delete preventDuplicateItems["eclair"];
+	if (itemDistribution.blueshellx2 == 1) {
+		delete preventDuplicateItems["carapacebleue"];
+		delete preventDuplicateItems["carapacenoire"];
+	}
+	for (var i=0;i<aKarts.length;i++) {
+		var iKart = aKarts[i];
+		for (var j=0;j<oArmeKeys.length;j++) {
+			var oArmeKey = oArmeKeys[j];
+			if (preventDuplicateItems[iKart[oArmeKey]])
+				forbiddenItems[iKart[oArmeKey]] = 1;
+		}
+	}
+	if (typeof items !== "undefined") {
+		if (items["carapace-bleue"].length)
+			forbiddenItems["carapacebleue"] = 1;
+		if (items["carapace-noire"].length)
+			forbiddenItems["carapacenoire"] = 1;
+		else if (typeof nextBlueShellCooldown !== "undefined" && nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
+			forbiddenItems["carapacebleue"] = 1;
+		if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
+			forbiddenItems["eclair"] = 1;
+		if (items.bloops.length)
+			forbiddenItems["bloops"] = 1;
+		if (items.pow.length || (typeof nextPowCooldown !== "undefined" && nextPowCooldown > 0))
+			forbiddenItems["pow"] = 1;
+	}
+	if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
+		if (oKart.arme === "champiX2" || oKart.arme === "champiX1")
+			forbiddenItems["champiX3"] = 1;
+		else
+			forbiddenItems[oKart.arme] = 1;
+	}
+	return forbiddenItems;
+}
 function randObj(oKart) {
 	var distrib = getItemDistributionRange(oKart);
 	var a = distrib[0], b = distrib[1];
-	/*if (oKart == oPlayers[0]) { // Uncomment to test item distribution
-		var pdf = {};
-		var a_ = Math.floor(a), b_ = Math.ceil(b);
-		for (var i=a_;i<b_;i++) {
-			var x = 1;
-			if (i == a_)
-				x -= (a-a_);
-			if (i == b_-1)
-				x -= (b_-b);
-			var distribution = itemDistribution.value[i];
-			for (var key in distribution) {
-				if (!pdf[key]) pdf[key] = 0;
-				pdf[key] += x*distribution[key];
-			}
-		}
-		var totalProb = 0;
-		for (var key in pdf)
-			totalProb += pdf[key];
-		for (var key in pdf)
-			pdf[key] = Math.round(pdf[key]*100/totalProb);
-		alert(JSON.stringify(pdf,null,2));
-	}*/
 	var i = Math.floor(a + (b-a)*Math.random());
 	var distribution = itemDistribution.value[i];
 	var nbObjs = 0;
@@ -16356,7 +16624,7 @@ var itemDistributions = {
 			"champiX3": 3,
 			"carapacerougeX3": 3,
 			"boo": 2,
-			"pow": 1,
+			"pow": 1
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
@@ -18376,6 +18644,28 @@ function move(getId, triggered) {
 		}
 		else if (oKart.speed && !oKart.billball && !oKart.cannon && !isActivelyGrinding(oKart))
 			oKart.rotation += angleInc(oKart);
+		if (oKart.ghost) { // semi transparent effect (used for boo item)
+			oKart.ghost--;
+			let tgtOpacity = oKart.ghost ? 0.6 : 1;
+
+			// smooth fadein
+			if (oKart.ghost >= 50) tgtOpacity = 0.6 + ((oKart.ghost - 50) / 14) * 0.4;
+
+			// blink
+			if ((oKart.ghost <= 16) && (oKart.ghost % 3)) tgtOpacity = 1;
+			for (var j=0;j<strPlayer.length;j++) {
+				if (oKart.sprite[j]) {
+					if (oKart.sprite[j].div) oKart.sprite[j].div.style.opacity = tgtOpacity;
+					if (oKart.sprite[j].img) oKart.sprite[j].img.style.opacity = tgtOpacity;
+				}
+				if (oKart.driftSprite && oKart.driftSprite[j]) {
+					if (oKart.driftSprite[j].div) oKart.driftSprite[j].div.style.opacity = tgtOpacity;
+					if (oKart.driftSprite[j].img) oKart.driftSprite[j].img.style.opacity = tgtOpacity;
+				}
+			}
+			if (oKart.ghost)
+				oKart.frminv = 2;
+		}
 		if (oKart.frminv) {
 			oKart.frminv--;
 			if (!oKart.frminv)
@@ -18644,68 +18934,7 @@ function move(getId, triggered) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);
-					var forbiddenItems = {};
-					if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
-						forbiddenItems["bloops"] = 1;
-						forbiddenItems["carapaceX3"] = 1;
-						forbiddenItems["carapacerougeX3"] = 1;
-					}
-					if (timer < 375) {
-						if (itemDistribution.powstart != 1)
-							forbiddenItems["pow"] = 1;
-						if (itemDistribution.lightningstart != 1)
-							forbiddenItems["eclair"] = 1;
-						if (itemDistribution.blueshellstart != 1) {
-							forbiddenItems["carapacebleue"] = 1;
-							forbiddenItems["carapacenoire"] = 1;
-						}
-					}
-					if (oKart.place == 1)
-						forbiddenItems["carapacebleue"] = 1;
-
-					var preventDuplicateItems = {
-						carapacebleue: 1,
-						carapacenoire: 1,
-						eclair: 1,
-						bloops: 1,
-						pow: 1,
-						bananeX3: 1
-					};
-					if (itemDistribution.powx2 == 1) {
-						delete preventDuplicateItems["pow"];
-					}
-					if (itemDistribution.lightningx2 == 1)
-						delete preventDuplicateItems["eclair"];
-					if (itemDistribution.blueshellx2 == 1) {
-						delete preventDuplicateItems["carapacebleue"];
-						delete preventDuplicateItems["carapacenoire"];
-					}
-					for (var i=0;i<aKarts.length;i++) {
-						var iKart = aKarts[i];
-						for (var j=0;j<oArmeKeys.length;j++) {
-							var oArmeKey = oArmeKeys[j];
-							if (preventDuplicateItems[iKart[oArmeKey]])
-								forbiddenItems[iKart[oArmeKey]] = 1;
-						}
-					}
-					if (items["carapace-bleue"].length)
-						forbiddenItems["carapacebleue"] = 1;
-					if (items["carapace-noire"].length)
-						forbiddenItems["carapacenoire"] = 1;
-					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
-						forbiddenItems["carapacebleue"] = 1;
-					if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
-						forbiddenItems["eclair"] = 1;
-					if (items.bloops.length)
-						forbiddenItems["bloops"] = 1;
-					if (items.pow.length || nextPowCooldown > 0)
-						forbiddenItems["pow"] = 1;
-					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
-						if (oKart.arme === "champiX2")
-							forbiddenItems["champiX3"] = 1;
-						else
-							forbiddenItems[oKart.arme] = 1;
-					}
+					var forbiddenItems = getForbiddenItems(oKart);
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
 							iObj = randObj(oKart);
@@ -20231,6 +20460,7 @@ function updateObjHud(ID) {
 		var oArmeKey = oArmeKeys[i];
 		var oArme = oKart[oArmeKey];
 		var isArme = false, isRoulette = false;
+
 		if (oArme) {
 			if (oKart["roulette"+prefix] < 25)
 				isRoulette = true;
@@ -20322,6 +20552,7 @@ function updateSpeedometer(getId, aPosX,aPosY) {
 		speedKmH = -speedKmH;
 	if (oKart.tombe)
 		speedKmH = 0;
+	
 	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
 }
 
@@ -20412,14 +20643,17 @@ function fallRail(oKart) {
 var clLocalVars, clHud, clSelected;
 //clSelected = challenges["track"]["7037"]["list"][3];
 
+var g_prevCheatString = "";
+var idebugInterval;
 function openCheats() {
-    var cheatCode = prompt("MKPC Console command");
-    if (!cheatCode)
-        return false;
+    let cheatCode = prompt("MKPC Console command");
+    if (!cheatCode) return false;
+	if (cheatCode == "!!" && g_prevCheatString?.length) cheatCode = g_prevCheatString
     const result = processCode(cheatCode);
     if (result !== true) {
-        alert(typeof result === "string" ? result : "Unspecified error.");
+        alert(typeof result === "string" ? result : "Unknown error.");
     } else {
+		g_prevCheatString = cheatCode
         clLocalVars.cheated = true;
         if (clSelected)
             challengeHandleFail();
@@ -20439,21 +20673,25 @@ function processCode(cheatCode) {
     const oPlayer = oPlayers[0];
 
     switch (command) {
-		case "give": // /give item (1)
+		case "give": // /give (!!)item (1)
 			// 1 will always replace the first slot
 			// everything else/nothing will pick one automatically
+			// you can force the object with !! e.g /give !!carapacenoire
+			// if its not in your item distrib
 			if (![1,2].includes(args.length)) return "give: Invalid argument count";
 
-			const wObject = args[0];
+			let wObject = args[0];
 			let isExistingObj = false;
 			const itemMode = getItemMode();
+			const shouldForce = args[0].startsWith("!!");
+			if (shouldForce) wObject = wObject.substring(2);
 			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 
 			// check if the item exists in the current item distrib
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
 
-			if (!isExistingObj) return "give: This item is not present in your item distribution";
+			if (!isExistingObj && !shouldForce) return "give: This item is not present in your item distribution";
 			if (itemSlot === 1 || !oPlayer.arme) {
 				oPlayer.arme = wObject;
 				oPlayer.roulette = 25;
@@ -20572,11 +20810,11 @@ function processCode(cheatCode) {
 				const sizeArg = args[0];
 				let newSize;
 
-				if (sizeArg === "xs") {
+				if (sizeArg === "xs") { // poison size
 					newSize = 0.6;
 				} else if (sizeArg === "md") {
 					newSize = 1;
-				} else if (sizeArg === "xl") {
+				} else if (sizeArg === "xl") { // mega size
 					newSize = Math.pow(1.05, 8);
 				} else {
 					newSize = parseFloat(sizeArg);
@@ -20610,6 +20848,103 @@ function processCode(cheatCode) {
 				return true;
 			}
 			return "balloon: Unknown error";
+
+		case "idebug":
+			if (idebugInterval) {
+				clearInterval(idebugInterval);
+				idebugInterval = null;
+				const existing = document.getElementById("idebug-window");
+				if (existing) existing.remove();
+				return true;
+			}
+
+			const idebugWindow = document.createElement("div");
+			idebugWindow.id = "idebug-window";
+			Object.assign(idebugWindow.style, {
+				position: "fixed",
+				top: "10px",
+				right: "10px",
+				backgroundColor: "rgba(0, 0, 0, 0.8)",
+				color: "white",
+				padding: "10px",
+				fontFamily: "monospace",
+				zIndex: "99999"
+			});
+			
+			const headerDiv = document.createElement("div");
+			headerDiv.innerHTML = `<label style="cursor: pointer;"><input type="checkbox" id="idebug-adjust-forbidden"> Remove forbidden items</label><br><br>`;
+			idebugWindow.appendChild(headerDiv);
+
+			const contentDiv = document.createElement("div");
+			idebugWindow.appendChild(contentDiv);
+			document.body.appendChild(idebugWindow);
+
+			idebugInterval = setInterval(() => {
+				const pPlayer = (typeof oPlayers !== "undefined" && oPlayers.length > 0) ? oPlayers[0] : null;
+				if (!pPlayer || !pPlayer.place) {
+					contentDiv.innerHTML = "Waiting for race to start...";
+					return;
+				}
+				
+				const adjustForbidden = document.getElementById("idebug-adjust-forbidden").checked;
+				const forbiddenItems = adjustForbidden ? getForbiddenItems(pPlayer) : {};
+
+				// the engine handles different algos and battle mode cases
+				const distrib = getItemDistributionRange(pPlayer);
+				const a = distrib[0];
+				const b = distrib[1];
+				
+				let html = `<strong>Distrib range:</strong> ${a.toFixed(2)} - ${b.toFixed(2)}<br><br>`;
+				
+				const a_ = Math.floor(distrib[0]);
+				const b_ = Math.ceil(distrib[1]);
+				const pdf = {};
+				
+				html += `<table border='1' cellspacing='0' cellpadding='2' style='border-collapse: collapse; text-align: right; width: 100%; color: white;'>
+					<tr><th>Slot</th><th>Chance</th></tr>`;
+
+				// iterate over all slots within distrib range
+				for (let i = a_; i < b_; i++) {
+					let x = 1;
+					// adjust weight for partial slots
+					if (i === a_) x -= (distrib[0] - a_);
+					if (i === b_ - 1) x -= (b_ - distrib[1]);
+					
+					// convert the slot overlap to a percentage
+					const slotChance = (x / (distrib[1] - distrib[0]) * 100);
+					html += `<tr><td>${i}</td><td>${slotChance.toFixed(1)}%</td></tr>`;
+
+					const distribution = itemDistribution.value[i];
+					if (distribution) {
+						for (const key in distribution) {
+							if (adjustForbidden && forbiddenItems[key]) continue; // skip items that are forbidden for this player
+
+							// accumulate the item probabilities into the total PDF
+							if (!pdf[key]) pdf[key] = 0;
+							pdf[key] += x * distribution[key];
+						}
+					}
+				}
+				html += `</table><br>`;
+
+				const totalProb = Object.values(pdf).reduce((sum, val) => sum + val, 0);
+				
+				if (totalProb > 0) {
+					html += `<table border='1' cellspacing='0' cellpadding='2' style='border-collapse: collapse; text-align: right; width: 100%; color: white;'>
+						<tr><th style='text-align: left;'>Item</th><th>Chance</th></tr>`;
+					
+					const keys = Object.keys(pdf).sort((k1, k2) => pdf[k2] - pdf[k1]);
+					for (const key of keys) {
+						const itemChance = (pdf[key] * 100 / totalProb);
+						html += `<tr><td style='text-align: left;'>${key}</td><td>${itemChance.toFixed(1)}%</td></tr>`;
+					}
+					html += `</table>`;
+				}
+				
+				contentDiv.innerHTML = html;
+			}, 100);
+
+			return true;
 
         default:
             return "Error: This command doesn't exist";
@@ -21290,6 +21625,7 @@ function ai(oKart) {
 							arme(aKarts.indexOf(oKart));
 						break;
 					case "champi":
+					case "champiX1": // placeholder for telling apart a single shroom with a X3 and used 2
 					case "champiX2":
 					case "champiX3":
 						if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
@@ -26295,45 +26631,37 @@ function selectItemScreen(oScr, callback, options) {
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	
-	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "carapacerougeX3", "pow", "carapacebleue", "megachampi", "champiX3", "etoile", "champior", "billball", "eclair"];
-	const possibleItems = distribOrder.slice();
+	const distribOrder = [
+		"fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge",
+		"champi", "poison", "carapaceX3", "bloops", "bobomb",
+		"boo", "carapacerougeX3", "pow", "carapacebleue", "megachampi",
+		"champiX3", "etoile", "champior", "billball", "eclair"
+	];
 	const battleForbidden = ["billball", "eclair"];
-
-	// remove battle forbidden items
-	if (itemMode == "BB") {
-		battleForbidden.forEach(function(item) {
-			const idx = possibleItems.indexOf(item);
-			if (idx !== -1)
-				possibleItems.splice(idx, 1);
-		});
-	}
+	const possibleItems = itemMode === "BB" // remove battle forbidden items
+		? distribOrder.filter(item => !battleForbidden.includes(item))
+		: [...distribOrder];
 
 	// add typed secret items
-	for (const code in secretCodes) {
-		const data = secretCodes[code];
-
-		const name = data[0];
-		const typed = data[2];
-
-		if (typed && !(possibleItems.includes(name)))
-			possibleItems.push(name);
-	}
+	Object.values(secretCodes)
+		.filter(data => data[2] && !possibleItems.includes(data[0]))
+		.forEach(data => possibleItems.push(data[0]));
 
 	// add secret items that are already in any distrib
-	oItemDistributions.forEach(function(distrib) {
-		distrib.value.forEach(function(spot) {
-			for (const item in spot) {
-				if (!possibleItems.includes(item)) {
-					for (const code in secretCodes) {
-						const data = secretCodes[code];
-						const name = data[0];
-						possibleItems.push(item);
-						if (name === item)
-							secretCodes[code][2] = true;
-					}
-				}
+	const distribItems = new Set(
+		oItemDistributions.flatMap(d => d.value.flatMap(spot => Object.keys(spot)))
+	);
+
+	// add secret items with codes
+	distribItems.forEach(item => {
+		if (!possibleItems.includes(item)) {
+			possibleItems.push(item);
+			
+			const secretCodeEntry = Object.values(secretCodes).find(data => data[0] === item);
+			if (secretCodeEntry) {
+				secretCodeEntry[2] = true;
 			}
-		});
+		}
 	});
 
 	var itemDistribution0 = oItemDistributions[0].value;
