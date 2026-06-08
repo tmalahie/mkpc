@@ -762,6 +762,74 @@ if (isset($_GET['i'])) {
 				</form>
 			</div>
 		</div>
+
+		<div id="box-decor-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeBoxDecorOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="box-decor-dialog">
+				<div>
+					<h1><?php echo $language ? "Decor options" : "Options du décor"; ?></h1>
+					<div><?php
+						echo $language
+							? "Specify here the settings of this decor's dropped items"
+							: "Spécifiez ici les paramètres des objets lâchés par ce décor";
+						?>
+					</div>
+				</div>
+				<form method="post" onsubmit="submitShortcutOptions(event)">
+					<div class="form-row form-row-block">
+						<div class="form-label">
+							<?php echo $language ? "Distribution of dropped items:" : "Distribution des objets lâchés :"; ?>
+							<a href="javascript:showBoxDecorHelp('items')">[?]</a>
+						</div>
+						<div class="form-value">
+							<table>
+								<tr>
+									<?php
+										$items = ["fauxobjet", "banane", "carapace", "carapacerouge", "champi", "poison", "etoile", "bobomb"];
+										foreach ($items as $item):
+									?>
+									<td class="form-cell">
+										<img src="images/items/<?= $item ?>.png">
+									</td>
+									<?php endforeach; ?>
+								</tr>
+								<tr>
+									<?php
+										$items = ["fauxobjet", "banane", "carapace", "carapace-rouge", "champi", "poison", "etoile", "bobomb"];
+										foreach ($items as $item):
+									?>
+									<td class="form-cell">
+										<input id="box-decor-<?= $item ?>" class="noarrow" type="number" min="0" max="99" step="1">
+									</td>
+									<?php endforeach; ?>
+								</tr>
+							</table>
+						</div>
+					</div>
+					<label class="form-row">
+						<div><?php echo $language ? "Throw dropped items" : "Lancer les objets lâchés"; ?>
+							<input type="checkbox" name="throw">
+							<a href="javascript:showBoxDecorHelp('throw')">[?]</a>
+						</div>
+					</label>
+					<div class="form-row popup-buttons">
+						<div><?php echo $language ? "Apply these settings to every decor of this type" : "Appliquer ces paramètres à tous les décors de ce type"; ?>
+							<button name="applyAll" onclick="javascript:applyAllBoxDecors()">Apply</button>
+							<a href="javascript:showBoxDecorHelp('applyAll')">[?]</a>
+						</div>
+					</div>
+					<div class="form-submit popup-buttons">
+						<a href="javascript:closeBoxDecorOptions()" class="close"><?php echo $language ? "Cancel" : "Annuler"; ?></a>
+						&nbsp;
+						<button type="submit"><?php echo $language ? "Submit" : "Valider"; ?></button>
+					</div>
+				</form>
+
+			</div>
+		</div>
+
 		<div id="offroad-transfer" class="fs-popup" onclick="event.stopPropagation()">
 			<?php
 			echo $language ? 'This menu allows you to change the type of an off-road a posteriori.

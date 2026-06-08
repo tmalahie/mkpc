@@ -2705,122 +2705,6 @@ function boostTypeChanged(type) {
 	else
 		$boostSize.style.display = "none";
 }
-function boxItemDistrib(decorData) {
-	const items = ["fauxobjet", "banane", "carapace", "carapace-rouge", "champi", "poison", "etoile", "bobomb"];
-	const screenCoords = getScreenCoords({x: decorData.pos.x, y: decorData.pos.y});
-	const cellSize = 24 * zoomLevel;
-	const fontSize = cellSize / 2
-
-	// form
-	const form = document.createElement("form");
-	form.className = "distrib-form";
-	form.style.left = screenCoords.x + "px";
-	form.style.top = screenCoords.y + "px";
-
-	// items
-	const itemCont = document.createElement("div");
-	itemCont.className = "distrib-row";
-	for (const item of items) {
-		const cell = document.createElement("div");
-		cell.className = "distrib-cell";
-		cell.style.width = cellSize + "px";
-		cell.style.height = cellSize + "px";
-
-		const img = document.createElement("img");
-		img.src = `images/items/${item.replace("-", "")}.png`; // for carapace-rouge: img is carapacerouge, dropped item is carapace-rouge
-		img.style.width = (cellSize * 0.75) + "px";
-
-		cell.appendChild(img);
-		itemCont.appendChild(cell);
-	}
-
-	// inputs
-	const inputCont = document.createElement("div");
-	inputCont.className = "distrib-row";
-	for (const item of items) {
-		const cell = document.createElement("div");
-		cell.className = "distrib-cell";
-		cell.style.width = cellSize + "px";
-		cell.style.height = cellSize + "px";
-
-		const input = document.createElement("input");
-		input.id = `distrib-item-${item}`;
-		input.className = "distrib-input noarrow";
-		input.type = "number";
-		input.min = 0;
-		input.max = 99;
-		input.step = 1;
-		input.style.width = cellSize + "px";
-		input.style.height = cellSize + "px";
-		input.style.fontSize = fontSize + "px";
-		
-		if (decorData.items && decorData.items[item])
-			input.value = decorData.items[item];
-
-		cell.appendChild(input);
-		inputCont.appendChild(cell);
-	}
-
-	// buttons
-	const btnConf = document.createElement("button");
-	btnConf.type = "submit";
-	btnConf.className = "toolbox-button";
-	btnConf.textContent = "OK";
-	btnConf.style.fontSize = fontSize + "px";
-
-	const btnBack = document.createElement("button");
-	btnBack.type = "button";
-	btnBack.className = "toolbox-button";
-	btnBack.textContent = language ? "Cancel" : "Annuler";
-	btnBack.style.fontSize = fontSize + "px";
-
-	const btnInfo = document.createElement("button");
-	btnInfo.type = "button";
-	btnInfo.className = "toolbox-button";
-	btnInfo.textContent = "?";
-	btnInfo.style.fontSize = fontSize + "px";
-
-	btnBack.onclick = () => {
-		form.remove();
-	};
-
-	btnInfo.onclick = () => {
-		alert(language
-			? "In Time trial, the item distribution will be ignored as crates will only drop turbo mushrooms. However if a crate does not have turbo mushrooms to in its distribution, they will not drop anything."
-			: "En mode Contre-la-montre, la distribution d'objets sera ignorée car seuls les champignons turbos peuvent y être lâchés. Cependant si la caisse ne possède pas de champignon turbo dans sa distribution, elle ne lâchera aucun objet.");
-	};
-
-	form.onsubmit = (event) => {
-		event.preventDefault();
-
-		if (!form.checkValidity()) {
-			form.reportValidity();
-			return;
-    	}
-
-		const distrib = {};
-		for (const item of items) {
-			const value = Number(form.querySelector(`#distrib-item-${item}`).value);
-			if (!value)
-				continue;
-
-			distrib[item] = value;
-		}		
-
-		decorData.items = distrib;
-		if (decorData.items && Object.keys(distrib).length === 0)
-			delete decorData.items;
-
-		form.remove();
-	};
-
-	form.appendChild(itemCont);
-	form.appendChild(inputCont);
-	form.appendChild(btnConf);
-	form.appendChild(btnBack);
-	form.appendChild(btnInfo);
-	document.body.appendChild(form);
-}
 function initTrajectOptions() {
 	document.getElementById("traject-menu").style.display = "block";
 	document.getElementById("traject-more").style.display = "none";
@@ -7960,17 +7844,10 @@ var commonTools = {
 						});
 					}
 					else if (getActualDecorType(self.state.type) === "box") {
-						menuOptions.splice(1, 0, {
-							text: (language ? "Dropped items..." : "Objets lâchés..."),
+						menuOptions.push({
+							text: (language ? "Decor options..." : "Options du décor..."),
 							click: function() {
-								boxItemDistrib(decorData);
-							}
-						});
-						menuOptions.splice(2, 0, {
-							text: (language ? `Throw dropped items ${decorData.throw ? "✓" : "×"}` : `Lancer les objets lâchés ${decorData.throw ? "✓" : "×"}`),
-							click: function() {
-								decorData.throw ??= false;
-								decorData.throw = !decorData.throw;
+								openBoxDecorOptions(self, decorData);
 							}
 						});
 					}
