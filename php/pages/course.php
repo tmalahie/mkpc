@@ -32,6 +32,8 @@ if (isset($_GET['i'])) {
 		if ($hasReadGrants) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
+			require_once('../includes/editor-challenges.php');
+			$circuitChallenges = getEditorCircuitChallenges('arenes', $circuitId);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
 			$circuitImgSrc = getCircuitImgUrl($circuitImg);
@@ -68,7 +70,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -77,6 +79,7 @@ if (isset($_GET['i'])) {
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
 		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
+		var circuitChallenges = <?php echo json_encode($circuitChallenges); ?>;
 		var isBattle = true;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		var dataVersion = "<?php
@@ -93,7 +96,7 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=4"></script>
 		<script type="text/javascript" src="scripts/course.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
@@ -165,6 +168,21 @@ if (isset($_GET['i'])) {
 				</div>
 			</div>
 			<div id="mode-options">
+				<div id="mode-option-items">
+					<div id="items-option" class="items-option-decors">
+						<div id="items-decors">
+							<label>
+								<?php echo $language ? 'Route:':'Trajet :'; ?>
+								<select name="items-currenttraject" id="items-currenttraject" onchange="currentItemsTrajectChange(this.value)"></select>
+							</label>
+							<a href="javascript:manageItemsTrajects()"><?php echo $language ? 'Manage item routes...':'Gérer les trajets...'; ?></a>
+						</div>
+						<div id="items-trajects">
+							<a href="javascript:manageItemsDecor()"><?php echo $language ? 'Back':'Retour'; ?></a>&nbsp;
+							<select name="items-traject" id="items-traject" onchange="trajectChange(this.value,'items')"></select>
+						</div>
+					</div>
+				</div>
 				<div id="mode-option-walls">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="walls-shape" data-change="shapeChange">
@@ -180,6 +198,7 @@ if (isset($_GET['i'])) {
 											 :	array('Herbe',	'Eau',	'Glace','Choco');
 						foreach ($typesOffroad as $i=>$typeOffroad)
 							echo '<option value="'. $i .'">'. $typeOffroad .'</option>';
+						echo '<option value="-2" class="special-option">'. ($language ? 'Custom...':'Personnalisé...') .'</option>';
 						echo '<option value="-1" class="special-option">'. ($language ? 'Transfer...':'Transférer...') .'</option>';
 						?>
 					</select>
@@ -319,6 +338,7 @@ if (isset($_GET['i'])) {
 			</div>
 			<div class="traject-info">
 				<div id="traject-menu">
+					<div class="traject-specific traject-specific-bus">
 					<?php
 					echo $language ? 'This menu allows you to create several routes
 									  for the bus trajects.<br />
@@ -330,6 +350,17 @@ if (isset($_GET['i'])) {
 									  Par exemple, si vous voulez que certains bus aillent dans	 
 									  un sens et que d\'autres aillent dans l\'autre sens,
 									  vous allez définir 2 trajets, un pour chaque sens.<br />';
+					?>
+					</div>
+					<div class="traject-specific traject-specific-items">
+					<?php
+					echo $language ? 'This menu allows you to create routes that item boxes can follow.<br />
+									  Once a route is defined, right-click an item box and select &quot;Move along route…&quot; to attach it to that route.'
+								   : 'Ce menu vous permet de créer des trajets que les boîtes à objet peuvent suivre.<br />
+									  Une fois un trajet défini, faites un clic droit sur une boîte à objet et sélectionnez &quot;Suivre un trajet…&quot; pour l\'y rattacher.';
+					?>
+					</div>
+					<?php
 					echo '<div class="traject-manage">';
 					echo '<a href="javascript:showTrajectAdd()">'. ($language ? 'Add a route':'Ajouter un trajet') .'</a>';
 					echo '<a href="javascript:showTrajectCopy()">'. ($language ? 'Copy a route':'Copier un trajet') .'</a>';
@@ -418,6 +449,7 @@ if (isset($_GET['i'])) {
 							<?php echo $language ? 'Override trigger':'Déclencheur'; ?>:
 							<span class="lapoverride-trigger selected" data-value="zone" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Zone':'Zone' ?></span>
 							<span class="lapoverride-trigger" data-value="time" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Time':'Temps' ?></span>
+							<span class="lapoverride-trigger lapoverride-trigger-challenge" data-value="challenge" onclick="selectOverrideTrigger(this)"><?php echo $language ? 'Challenge':'Défi' ?></span>
 						</div>
 						<div class="lapoverride-type-options selected" id="lapoverride-type-options-zone">
 							<input type="hidden" id="lapoverride-zone-data" value="[]" />
@@ -484,6 +516,15 @@ if (isset($_GET['i'])) {
 									</span>
 									<span><input type="text" id="lapoverride-end-time" size="7" placeholder="2:30" /></span>
 								</label>
+							</div>
+						</div>
+						<div class="lapoverride-type-options" id="lapoverride-type-options-challenge">
+							<label>
+								<?php echo $language ? 'Override active when this challenge is played:' : 'Modificateur actif pour ce défi :'; ?>
+								<select id="lapoverride-challenge-list"></select>
+							</label>
+							<div id="lapoverride-challenge-empty" style="display:none">
+								<?php echo $language ? 'No challenge exists for this arena yet.' : 'Aucun défi n\'existe pour cette arène.'; ?>
 							</div>
 						</div>
 						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php
@@ -589,6 +630,59 @@ if (isset($_GET['i'])) {
 			echo '<button class="options" onclick="transferOffroad()">'. ($language ? 'Submit':'Valider') .'</button>';
 			echo '</div>';
 			?>
+		</div>
+		<div id="custom-offroad-profile" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeCustomOffroadProfile()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div id="custom-offroad-profile-info">
+				<div id="custom-offroad-profile-select">
+					<h1><?php echo $language ? 'Custom offroad profile':'Profil de hors-piste personnalisé'; ?></h1>
+					<ul id="custom-offroad-profile-list" class="custom-offroad-profile-items"></ul>
+					<div id="custom-offroad-profile-empty"><?php echo $language ? 'No profiles yet.':'Aucun profil pour le moment.'; ?></div>
+					<div class="custom-offroad-profile-actions">
+						<button class="options" onclick="showNewCustomOffroadProfile()"><?php echo $language ? 'New offroad profile...':'Nouveau profil...'; ?></button>
+					</div>
+				</div>
+				<div id="custom-offroad-profile-new">
+					<h1 class="custom-offroad-profile-new-title"><?php echo $language ? 'New offroad profile':'Nouveau profil'; ?></h1>
+					<h1 class="custom-offroad-profile-update-title"><?php echo $language ? 'Update offroad profile':'Modifier un profil'; ?></h1>
+					<div class="form-row">
+						<label><?php echo $language ? 'Profile name:':'Nom du profil :'; ?>
+						<input type="text" id="custom-offroad-name" maxlength="32" placeholder="<?php echo $language ? 'Shallow water':'Eau peu profonde'; ?>" /></label>
+					</div>
+					<div class="form-row">
+						<label><?php echo $language ? 'Strength:':'Force :'; ?>
+						<input type="range" id="custom-offroad-strength" min="0" max="1" step="0.05" value="0.5" oninput="updateCustomOffroadSliderLabel(this,'custom-offroad-strength-value')" />
+						<span id="custom-offroad-strength-value">0.50</span></label>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-slippery" onchange="toggleCustomOffroadSlippery(this.checked)" />
+						<?php echo $language ? 'Slippery':'Sol glissant'; ?></label>
+					</div>
+					<div class="form-row" id="custom-offroad-slippery-factor-row">
+						<label><?php echo $language ? 'Slippery factor:':'Facteur de glissance :'; ?>
+						<input type="range" id="custom-offroad-slippery-factor" min="0" max="1" step="0.05" value="0.5" oninput="updateCustomOffroadSliderLabel(this,'custom-offroad-slippery-factor-value')" />
+						<span id="custom-offroad-slippery-factor-value">0.50</span></label>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-drifting" />
+						<?php echo $language ? 'Drifting enabled':'Dérapages activés'; ?></label>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-bill-boost" />
+						<?php echo $language ? 'Extends Bullet Bill duration':'Prolonge la durée des Bill Ball'; ?></label> <a href="javascript:showOffroadBillBoostHelp()">[?]</a>
+					</div>
+					<div class="form-row">
+						<label><input type="checkbox" id="custom-offroad-affect-invincible" />
+						<?php echo $language ? 'Affects <img src="images/items/etoile.png" /> and <img src="images/items/megachampi.png" />':'Affecte <img src="images/items/etoile.png" /> et <img src="images/items/megachampi.png" />'; ?></label> <a href="javascript:showOffroadInvincibleHelp()">[?]</a>
+					</div>
+					<div class="popup-buttons">
+						<button class="options" onclick="backCustomOffroadProfileForm()"><?php echo $language ? 'Back':'Retour'; ?></button>
+						<button class="options" onclick="submitCustomOffroadProfileForm()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+					</div>
+				</div>
+			</div>
 		</div>
 		<?php
 		printBgSelector();
@@ -1051,7 +1145,7 @@ else {
 		<?php
 		include('../includes/o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;

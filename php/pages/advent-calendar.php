@@ -6,7 +6,7 @@ include('../includes/initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Calendrier de l'Avent - Mario Kart PC</title>
+<title><?php echo $language ? "Advent Calendar":"Calendrier de l'Avent"; ?> - Mario Kart PC</title>
 <?php
 $hdescription = $language ? "It's Christmas on Mario Kart PC! To celebrate, this unique event gives you access to 1 challenge per day! Win as many challenges as possible to earn up to 400+ challenge points!" : "C'est Noël sur Mario Kart PC ! Pour fêter ça, cet événement inédit vous donne accès à 1 défi par jour ! Remportez un maximum de défis pour gagner jusqu'à 400+ points défis !";
 include('../includes/heads.php');

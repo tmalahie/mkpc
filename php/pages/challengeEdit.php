@@ -97,20 +97,13 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 	if (isset($challenge))
 		$chRules = getChallengeRulesByType($challenge);
 	ob_start();
-	include('../includes/getPersos.php');
-	$listPersos = json_decode(ob_get_clean());
-	ob_start();
 	include('../includes/getLocks.php');
 	$unlocked = json_decode(ob_get_clean());
 	$persoOptions = array();
 	$i = 0;
-	foreach ($listPersos as $persoId => $value) {
-		if ($unlocked[$i]) {
-			$persoOptions[] = array(
-				'label' => getCharacterName($persoId),
-				'value' => $persoId
-			);
-		}
+	foreach (getCharacterNamesMap() as $persoId => $label) {
+		if ($unlocked[$i])
+			$persoOptions[] = array('label' => $label, 'value' => $persoId);
 		$i++;
 	}
 	$persoOptions[] = array(
@@ -1526,13 +1519,12 @@ $(function() {
 });
 function getItemOptions() {
 	if (clCourse === "battle")
-		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops","pow"];
+		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops","pow","boomerang"];
 	else
-		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","pow","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","pow","boomerang","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
 }
 function getItemHitOptions() {
-	/*           fakeItem,   banana,    shell ,     red-shell , bobomb , pow ,  blue shell   , megamushroom, star */
-	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","pow","carapacebleue","megachampi","etoile"];
+	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","boomerang","pow","carapacebleue","megachampi","etoile"];
 	if (clCourse === "battle")
 		res.push("champi"); // mushroom
 	else {

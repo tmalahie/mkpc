@@ -60,8 +60,7 @@ function includeShareLib() {
             <?php
             
             if ($isCup) {
-                if (!empty($cOptions))
-                    echo 'formData.append("opt", JSON.stringify(cupOpts));';
+                echo 'formData.append("opt", cupOpts && Object.keys(cupOpts).length ? JSON.stringify(cupOpts) : "");';
                 echo 'addCollabQuery(formData, "'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .']);';
             }
             ?>

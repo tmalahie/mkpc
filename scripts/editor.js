@@ -1050,11 +1050,26 @@ function manageBusDecor() {
 	document.getElementById("decor-option-truck").classList.add("decor-option-bus-decors");
 	selectMode(currentMode);
 }
+function manageItemsTrajects() {
+	document.getElementById("items-option").classList.remove("items-option-decors");
+	document.getElementById("items-option").classList.add("items-option-trajects");
+	selectMode(currentMode);
+}
+function manageItemsDecor() {
+	document.getElementById("items-option").classList.remove("items-option-trajects");
+	document.getElementById("items-option").classList.add("items-option-decors");
+	selectMode(currentMode);
+}
+function currentItemsTrajectChange(value) {
+	editorTools.items.state.currentTraject = +value;
+}
 function offroadChange(value) {
-	if (value != -1)
-		selectMode(currentMode);
-	else
+	if (value == -1)
 		showOffroadTransfer();
+	else if (value == -2)
+		showCustomOffroadProfile();
+	else
+		selectMode(currentMode);
 }
 var resetRespawnDismissed;
 function respawnTypeChange(value) {
@@ -2703,6 +2718,8 @@ function getTrajectData(editorTool,key) {
 			return editorTool.data;
 		case "bus":
 			return editorTool.data.extra.truck.route;
+		case "items":
+			return editorTool.data.extra.arme.route;
 	}
 }
 function getTrajectSelector(key) {
@@ -2711,6 +2728,8 @@ function getTrajectSelector(key) {
 			return document.getElementById("traject");
 		case "bus":
 			return document.getElementById("decor-bus-traject");
+		case "items":
+			return document.getElementById("items-traject");
 	}
 }
 function showTrajectOptions(key) {
@@ -2738,16 +2757,20 @@ function showTrajectOptions(key) {
 	var trajectData = getTrajectData(editorTool,key);
 	var maxCp = trajectData.length;
 	initTrajectOptions();
+	var minTrajects = 1;
+	if (key === 'items') minTrajects = 0;
 	var $links = $trajectOptions.querySelectorAll("#traject-menu a");
 	$links[1].style.display = (maxCp>1) ? "block":"none";
-	$links[2].style.display = (maxCp>1) ? "block":"none";
+	$links[2].style.display = (maxCp>minTrajects) ? "block":"none";
 	getTrajectSelector(key).selectedIndex = editorTool.state.traject;
 }
 function closeTrajectOptions() {
+	pendingTrajectCallback = null;
 	var $mask = document.getElementById('mask-traject');
 	if ($mask)
 		$mask.close();
 }
+var pendingTrajectCallback = null;
 function showTrajectAdd() {
 	var key = document.getElementById("traject-options").dataset.key;
 	document.getElementById("traject-menu").style.display = "none";
@@ -2767,15 +2790,21 @@ function showTrajectAdd() {
 		$iTraject.innerHTML = routeLabels[i];
 		$trajectList.appendChild($iTraject);
 	}
-	switch (key) {
-	case "aipoints":
-		$trajectList.selectedIndex = editorTool.state.traject+1;
-		document.getElementById("traject-advanced-options").style.display = "";
-		document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
-		break;
-	default:
-		document.getElementById("traject-advanced-options").style.display = "none";
-		document.getElementById("traject-bill").checked = false;
+	if (key === "items" && !routeLabels.length) {
+		addTraject();
+		return;
+	}
+	if (!isBattle) {
+		switch (key) {
+		case "aipoints":
+			$trajectList.selectedIndex = editorTool.state.traject+1;
+			document.getElementById("traject-advanced-options").style.display = "";
+			document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
+			break;
+		default:
+			document.getElementById("traject-advanced-options").style.display = "none";
+			document.getElementById("traject-bill").checked = false;
+		}
 	}
 }
 function addTraject() {
@@ -2786,7 +2815,7 @@ function addTraject() {
 	var trajectData = getTrajectData(editorTool,key);
 	var maxCp = trajectData.length;
 	var $trajectBill = document.getElementById("traject-bill");
-	var isBb = $trajectBill.checked;
+	var isBb = $trajectBill && $trajectBill.checked;
 	var newTraject;
 	if (trajectVal != -1)
 		newTraject = deepCopy(trajectData[trajectVal]);
@@ -2820,6 +2849,11 @@ function addTraject() {
 		$trajectSelector.childNodes[i].value = i+1;
 	$trajectSelector.insertBefore($trajectOption, $trajectSelector.childNodes[newTrajectIndex]);
 	$trajectSelector.selectedIndex = newTrajectIndex;
+	if (pendingTrajectCallback) {
+		var cb = pendingTrajectCallback;
+		pendingTrajectCallback = null;
+		cb(newTrajectIndex);
+	}
 	selectMode(currentMode);
 	closeTrajectOptions();
 	changes = true;
@@ -2906,6 +2940,20 @@ function removeTraject() {
 			}
 		}
 		break;
+	case "items":
+		var points = editorTool.data.points;
+		for (var i=0;i<points.length;i++) {
+			var point = points[i];
+			if (point.traject != null) {
+				if (point.traject === trajectVal) {
+					delete point.traject;
+					delete point.speed;
+				}
+				else if (point.traject > trajectVal)
+					point.traject--;
+			}
+		}
+		break;
 	}
 	var $trajectSelector = getTrajectSelector(key);
 	$trajectSelector.removeChild($trajectSelector.childNodes[maxCp-1]);
@@ -2944,6 +2992,25 @@ function getLapOverrideLabel(lapId) {
 	var lapOverride = lapOverrides[lapId];
 	return formatLapOverride(lapOverride);
 }
+function escapeHtml(str) {
+	return String(str).replace(/[&<>"']/g, function(c) {
+		return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+	});
+}
+function getChallengeDisplayName(challengeId) {
+	if (typeof circuitChallenges !== "undefined") {
+		for (var i=0;i<circuitChallenges.length;i++) {
+			if (circuitChallenges[i].id === challengeId) {
+				if (circuitChallenges[i].name)
+					return circuitChallenges[i].name;
+				if (circuitChallenges[i].description)
+					return circuitChallenges[i].description;
+				break;
+			}
+		}
+	}
+	return "#"+ challengeId;
+}
 function formatLapOverride(lapOverride) {
 	var lapNumber = lapOverride.lap, lapCheckpoint = lapOverride.checkpoint;
 	if (lapNumber !== undefined) {
@@ -2956,6 +3023,9 @@ function formatLapOverride(lapOverride) {
 			return language ? "CP "+ lapNumber : "CP "+ lapNumber;
 		}
 		return language ? "Lap "+ lapNumber : "Tour "+ lapNumber;
+	}
+	if (lapOverride.challenge !== undefined) {
+		return (language ? "Challenge: " : "Défi : ") + escapeHtml(getChallengeDisplayName(lapOverride.challenge));
 	}
 	if (lapOverride.time !== undefined)
 		return formatTimer(lapOverride.time);
@@ -2988,6 +3058,25 @@ function showOffroadTransfer() {
 	};
 	var editorTool = editorTools[currentMode];
 	document.getElementById("offroad-type").selectedIndex = editorTool.state.type;
+	refreshOffroadTransferOptions(editorTool);
+}
+function refreshOffroadTransferOptions(editorTool) {
+	var profiles = customOffroadProfiles;
+	var ids = ["transferFrom", "transferTo"];
+	for (var k=0;k<ids.length;k++) {
+		var $select = document.getElementById(ids[k]);
+		if (!$select) continue;
+		var existing = $select.querySelectorAll('option.custom-offroad-option');
+		for (var i=0;i<existing.length;i++)
+			existing[i].parentNode.removeChild(existing[i]);
+		for (var i=0;i<profiles.length;i++) {
+			var opt = document.createElement("option");
+			opt.value = String(hpTypes.length + i);
+			opt.className = "custom-offroad-option";
+			opt.textContent = profiles[i].name;
+			$select.appendChild(opt);
+		}
+	}
 }
 function transferOffroad() {
 	var transferFrom = +document.getElementById('transferFrom').value,
@@ -3005,6 +3094,328 @@ function transferOffroad() {
 }
 function closeTransferOffroad() {
 	document.getElementById('mask-transfer').close();
+}
+var customOffroadLibrary = [];
+var customOffroadProfiles = [];
+var customOffroadFormMode = "new";
+var customOffroadEditingId = null;
+function showCustomOffroadProfile() {
+	var editorTool = editorTools.offroad;
+	document.getElementById("offroad-type").selectedIndex = editorTool.state.type;
+	var $modal = document.getElementById("custom-offroad-profile");
+	if ($modal.parentNode) $modal.parentNode.removeChild($modal);
+	var $mask = createMask();
+	$mask.id = "mask-custom-offroad";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($modal);
+	$modal.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($modal);
+		$modal.classList.remove("fs-shown");
+		document.body.appendChild($modal);
+		this.defaultClose();
+	};
+	$modal.classList.remove("custom-offroad-profile-form-shown");
+	loadCustomOffroadLibrary();
+}
+function loadCustomOffroadLibrary() {
+	fetch("api/listOffroadProfiles.php", {credentials:"same-origin"})
+		.then(function(r) { return r.json(); })
+		.then(function(list) {
+			customOffroadLibrary = Array.isArray(list) ? list : [];
+			refreshCustomOffroadLibraryList();
+		})
+		.catch(function() {
+			customOffroadLibrary = [];
+			refreshCustomOffroadLibraryList();
+		});
+}
+function refreshCustomOffroadLibraryList() {
+	var $list = document.getElementById("custom-offroad-profile-list");
+	if (!$list) return;
+	$list.innerHTML = "";
+	for (var i=0;i<customOffroadLibrary.length;i++) {
+		(function(entry) {
+			var $li = document.createElement("li");
+			$li.className = "custom-offroad-profile-item";
+			$li.onclick = function() { selectLibraryOffroadProfile(entry.id); };
+			var $name = document.createElement("span");
+			$name.className = "custom-offroad-profile-item-name";
+			$name.textContent = entry.name;
+			var $edit = document.createElement("a");
+			$edit.className = "custom-offroad-profile-item-edit";
+			$edit.href = "javascript:void(0)";
+			$edit.title = language ? "Edit" : "Modifier";
+			$edit.innerHTML = "&#9998;";
+			$edit.onclick = function(ev) { ev.stopPropagation(); editLibraryOffroadProfile(entry.id); };
+			var $del = document.createElement("a");
+			$del.className = "custom-offroad-profile-item-delete";
+			$del.href = "javascript:void(0)";
+			$del.title = language ? "Delete" : "Supprimer";
+			$del.innerHTML = "&times;";
+			$del.onclick = function(ev) { ev.stopPropagation(); deleteLibraryOffroadProfile(entry.id); };
+			$li.appendChild($name);
+			$li.appendChild($edit);
+			$li.appendChild($del);
+			$list.appendChild($li);
+		})(customOffroadLibrary[i]);
+	}
+	var $empty = document.getElementById("custom-offroad-profile-empty");
+	if ($empty) $empty.style.display = customOffroadLibrary.length ? "none" : "";
+}
+function showSelectCustomOffroadProfile() {
+	var $modal = document.getElementById("custom-offroad-profile");
+	$modal.classList.remove("custom-offroad-profile-form-shown");
+}
+function showNewCustomOffroadProfile() {
+	customOffroadFormMode = "new";
+	customOffroadEditingId = null;
+	var $modal = document.getElementById("custom-offroad-profile");
+	$modal.classList.add("custom-offroad-profile-form-shown");
+	$modal.classList.remove("custom-offroad-profile-update");
+	document.getElementById("custom-offroad-name").value = "";
+	document.getElementById("custom-offroad-strength").value = "0.5";
+	document.getElementById("custom-offroad-strength-value").textContent = "0.50";
+	document.getElementById("custom-offroad-slippery").checked = false;
+	document.getElementById("custom-offroad-slippery-factor").value = "0.5";
+	document.getElementById("custom-offroad-slippery-factor-value").textContent = "0.50";
+	document.getElementById("custom-offroad-slippery-factor-row").style.display = "none";
+	document.getElementById("custom-offroad-drifting").checked = false;
+	document.getElementById("custom-offroad-bill-boost").checked = true;
+	document.getElementById("custom-offroad-affect-invincible").checked = false;
+	document.getElementById("custom-offroad-name").focus();
+}
+function libraryEntryById(id) {
+	for (var i=0;i<customOffroadLibrary.length;i++) {
+		if (customOffroadLibrary[i].id === id) return customOffroadLibrary[i];
+	}
+	return null;
+}
+function hydrateCustomOffroadProfile(profileIdx, id) {
+	xhr("getOffroadProfile.php?id="+id, null, function(res) {
+		var entry;
+		try { entry = JSON.parse(res); } catch (e) { entry = null; }
+		var profile = customOffroadProfiles[profileIdx];
+		if (!profile || profile.id !== id) return true;
+		if (entry && entry.profile) {
+			var refreshed = profileFromLibraryEntry(entry);
+			customOffroadProfiles[profileIdx] = refreshed;
+			var $select = document.getElementById("offroad-type");
+			if ($select) {
+				var dataIdx = hpTypes.length + profileIdx;
+				var opt = $select.querySelector('option[value="'+dataIdx+'"]');
+				if (opt) opt.textContent = refreshed.name;
+			}
+		}
+		else {
+			profile.name = (language ? "<Deleted profile>" : "<Profil supprimé>");
+			var $select2 = document.getElementById("offroad-type");
+			if ($select2) {
+				var dataIdx2 = hpTypes.length + profileIdx;
+				var opt2 = $select2.querySelector('option[value="'+dataIdx2+'"]');
+				if (opt2) opt2.textContent = profile.name;
+			}
+		}
+		return true;
+	});
+}
+function editLibraryOffroadProfile(id) {
+	var entry = libraryEntryById(id);
+	if (!entry) return;
+	customOffroadFormMode = "update";
+	customOffroadEditingId = entry.id;
+	var $modal = document.getElementById("custom-offroad-profile");
+	$modal.classList.add("custom-offroad-profile-form-shown");
+	$modal.classList.add("custom-offroad-profile-update");
+	var profile = entry.profile || {};
+	document.getElementById("custom-offroad-name").value = entry.name || "";
+	var strength = (profile.strength != null) ? profile.strength : 0.5;
+	document.getElementById("custom-offroad-strength").value = strength;
+	document.getElementById("custom-offroad-strength-value").textContent = parseFloat(strength).toFixed(2);
+	var slippery = !!profile.slippery;
+	document.getElementById("custom-offroad-slippery").checked = slippery;
+	var sf = (profile.slipperyFactor != null) ? profile.slipperyFactor : 0.5;
+	document.getElementById("custom-offroad-slippery-factor").value = sf;
+	document.getElementById("custom-offroad-slippery-factor-value").textContent = parseFloat(sf).toFixed(2);
+	document.getElementById("custom-offroad-slippery-factor-row").style.display = slippery ? "" : "none";
+	document.getElementById("custom-offroad-drifting").checked = !!profile.drifting;
+	document.getElementById("custom-offroad-bill-boost").checked = (profile.billBoost !== false);
+	document.getElementById("custom-offroad-affect-invincible").checked = !!profile.affectsInvincible;
+}
+function selectLibraryOffroadProfile(id) {
+	var entry = libraryEntryById(id);
+	if (!entry) return;
+	useCustomOffroadProfile(entry);
+	closeCustomOffroadProfile();
+}
+function useCustomOffroadProfile(entry) {
+	var editorTool = editorTools.offroad;
+	var existingIdx = -1;
+	for (var i=0;i<customOffroadProfiles.length;i++) {
+		if (customOffroadProfiles[i].id && customOffroadProfiles[i].id === entry.id) {
+			existingIdx = i;
+			break;
+		}
+	}
+	if (existingIdx < 0) {
+		var profile = profileFromLibraryEntry(entry);
+		existingIdx = customOffroadProfiles.length;
+		customOffroadProfiles.push(profile);
+		while (editorTool.data.length < hpTypes.length + customOffroadProfiles.length)
+			editorTool.data.push([]);
+		addCustomOffroadOption(existingIdx, profile.name);
+	}
+	activateCustomOffroadProfile(existingIdx);
+}
+function profileFromLibraryEntry(entry) {
+	var p = entry.profile || {};
+	var profile = {
+		id: entry.id,
+		name: entry.name,
+		strength: (p.strength != null) ? p.strength : 0.5,
+		slippery: !!p.slippery,
+		drifting: !!p.drifting,
+		billBoost: (p.billBoost !== false),
+		affectsInvincible: !!p.affectsInvincible
+	};
+	if (profile.slippery)
+		profile.slipperyFactor = (p.slipperyFactor != null) ? p.slipperyFactor : 0.5;
+	return profile;
+}
+function activateCustomOffroadProfile(profileIdx) {
+	var dataIdx = hpTypes.length + profileIdx;
+	document.getElementById("offroad-type").value = String(dataIdx);
+	selectMode(currentMode);
+}
+function submitCustomOffroadProfileForm() {
+	var name = document.getElementById("custom-offroad-name").value.replace(/^\s+|\s+$/g,"");
+	if (!name) {
+		alert(language ? "Please enter a profile name." : "Veuillez entrer un nom de profil.");
+		return;
+	}
+	var strength = +document.getElementById("custom-offroad-strength").value;
+	var slippery = document.getElementById("custom-offroad-slippery").checked;
+	var slipperyFactor = +document.getElementById("custom-offroad-slippery-factor").value;
+	var drifting = document.getElementById("custom-offroad-drifting").checked;
+	var billBoost = document.getElementById("custom-offroad-bill-boost").checked;
+	var affectsInvincible = document.getElementById("custom-offroad-affect-invincible").checked;
+	var body = {
+		name: name,
+		strength: strength,
+		slippery: slippery,
+		drifting: drifting,
+		billBoost: billBoost,
+		affectsInvincible: affectsInvincible
+	};
+	if (slippery)
+		body.slipperyFactor = slipperyFactor;
+	if (customOffroadFormMode === "update" && customOffroadEditingId)
+		body.id = customOffroadEditingId;
+	fetch("api/saveOffroadProfile.php", {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify(body)
+	})
+	.then(function(r) { return r.json(); })
+	.then(function(res) {
+		if (!res || res.error) {
+			alert(language ? "Could not save profile." : "Impossible d'enregistrer le profil.");
+			return;
+		}
+		var entry = {id: res.id, name: res.name, profile: res.profile};
+		var existing = -1;
+		for (var i=0;i<customOffroadLibrary.length;i++) {
+			if (customOffroadLibrary[i].id === entry.id) { existing = i; break; }
+		}
+		if (existing >= 0) customOffroadLibrary[existing] = entry;
+		else customOffroadLibrary.push(entry);
+		refreshCustomOffroadLibraryList();
+		if (customOffroadFormMode === "update")
+			updateCircuitProfileFromLibrary(entry);
+		useCustomOffroadProfile(entry);
+		closeCustomOffroadProfile();
+	})
+	.catch(function() {
+		alert(language ? "Could not save profile." : "Impossible d'enregistrer le profil.");
+	});
+}
+function updateCircuitProfileFromLibrary(entry) {
+	for (var i=0;i<customOffroadProfiles.length;i++) {
+		if (customOffroadProfiles[i].id === entry.id) {
+			var refreshed = profileFromLibraryEntry(entry);
+			customOffroadProfiles[i] = refreshed;
+			var $select = document.getElementById("offroad-type");
+			if ($select) {
+				var dataIdx = hpTypes.length + i;
+				var opt = $select.querySelector('option[value="'+dataIdx+'"]');
+				if (opt) opt.textContent = refreshed.name;
+			}
+			break;
+		}
+	}
+}
+function deleteLibraryOffroadProfile(id) {
+	var entry = libraryEntryById(id);
+	if (!entry) return;
+	if (!confirm((language ? "Delete profile \"" : "Supprimer le profil \"") + entry.name + "\"?")) return;
+	fetch("api/deleteOffroadProfile.php", {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify({id: id})
+	})
+	.then(function(r) { return r.json(); })
+	.then(function(res) {
+		if (!res || res.error) {
+			alert(language ? "Could not delete profile." : "Impossible de supprimer le profil.");
+			return;
+		}
+		for (var i=0;i<customOffroadLibrary.length;i++) {
+			if (customOffroadLibrary[i].id === id) {
+				customOffroadLibrary.splice(i, 1);
+				break;
+			}
+		}
+		refreshCustomOffroadLibraryList();
+	})
+	.catch(function() {
+		alert(language ? "Could not delete profile." : "Impossible de supprimer le profil.");
+	});
+}
+function backCustomOffroadProfileForm() {
+	showSelectCustomOffroadProfile();
+}
+function addCustomOffroadOption(profileIdx, name) {
+	var $select = document.getElementById("offroad-type");
+	if (!$select) return;
+	var dataIdx = hpTypes.length + profileIdx;
+	for (var i=0;i<$select.options.length;i++) {
+		if ($select.options[i].value === String(dataIdx)) {
+			$select.removeChild($select.options[i]);
+			break;
+		}
+	}
+	var opt = document.createElement("option");
+	opt.value = String(dataIdx);
+	opt.className = "custom-offroad-option";
+	opt.textContent = name;
+	var customOpt = $select.querySelector('option[value="-2"]');
+	if (customOpt)
+		$select.insertBefore(opt, customOpt);
+	else
+		$select.appendChild(opt);
+}
+function closeCustomOffroadProfile() {
+	var $mask = document.getElementById("mask-custom-offroad");
+	if ($mask) $mask.close();
+}
+function toggleCustomOffroadSlippery(checked) {
+	document.getElementById("custom-offroad-slippery-factor-row").style.display = checked ? "" : "none";
+}
+function updateCustomOffroadSliderLabel(slider, valueId) {
+	var v = parseFloat(slider.value);
+	document.getElementById(valueId).textContent = v.toFixed(2);
 }
 function updateLapsCounter() {
 	var editorTool = editorTools[currentMode];
@@ -3245,6 +3656,42 @@ function renderLapOverrideAdd() {
 	}
 	$overrideImpactAllCheck.checked = !!(editingLapOverride && editingLapOverride.impactAll);
 	handleImpactAllState();
+
+	var $challengeList = document.getElementById("lapoverride-challenge-list");
+	var $challengeTrigger = document.querySelector('.lapoverride-trigger[data-value="challenge"]');
+	var $challengeEmpty = document.getElementById("lapoverride-challenge-empty");
+	if ($challengeList) {
+		$challengeList.innerHTML = "";
+		var availableChallenges = (typeof circuitChallenges !== "undefined") ? circuitChallenges : [];
+		var usedChallenges = {};
+		for (var i=0;i<lapOverrides.length;i++) {
+			var lo = lapOverrides[i];
+			if (lo === editingLapOverride) continue;
+			if (lo.challenge !== undefined)
+				usedChallenges[lo.challenge] = true;
+		}
+		var hasOption = false;
+		for (var i=0;i<availableChallenges.length;i++) {
+			var ch = availableChallenges[i];
+			if (usedChallenges[ch.id]) continue;
+			var $option = document.createElement("option");
+			$option.value = ch.id;
+			$option.textContent = getChallengeDisplayName(ch.id);
+			$challengeList.appendChild($option);
+			hasOption = true;
+		}
+		$challengeList.style.display = hasOption ? "" : "none";
+		if ($challengeEmpty)
+			$challengeEmpty.style.display = hasOption ? "none" : "block";
+		if ($challengeTrigger) {
+			var hasAnyChallenge = availableChallenges.length > 0;
+			$challengeTrigger.style.display = hasAnyChallenge ? "" : "none";
+		}
+		if (editingLapOverride && editingLapOverride.challenge !== undefined) {
+			overrideType = "challenge";
+			$challengeList.value = editingLapOverride.challenge;
+		}
+	}
 	
 	// Restore condition checkboxes for zone and time overrides
 	var $conditionCheckZone = document.getElementById("lapoverride-condition-check-zone");
@@ -3793,7 +4240,7 @@ function assignLapOverrideOpts(opts) {
 		var endTimeCheck = document.getElementById("lapoverride-end-time-check").checked;
 		if (endTime && endTimeCheck)
 			opts.endTime = parseTimer(endTime);
-		
+
 		var $conditionCheck = document.getElementById("lapoverride-condition-check-time");
 		if ($conditionCheck && $conditionCheck.checked) {
 			var $conditionCheckboxes = document.querySelectorAll("#lapoverride-condition-list-time input[type='checkbox']:checked");
@@ -3804,6 +4251,12 @@ function assignLapOverrideOpts(opts) {
 				opts.requiredOverrides = requiredOverrides;
 			}
 		}
+		break;
+	case "challenge":
+		var $challengeList = document.getElementById("lapoverride-challenge-list");
+		if (!$challengeList || !$challengeList.value)
+			throw new Error(language ? "No challenge selected" : "Aucun défi sélectionné");
+		opts.challenge = +$challengeList.value;
 	}
 }
 function lapOverrideExists(opts) {
@@ -3819,6 +4272,10 @@ function lapOverrideExists(opts) {
 		}
 		if (lapOverride.zone !== undefined) {
 			if (lapOverride.zone === opts.zone)
+				return lapOverride;
+		}
+		if (lapOverride.challenge !== undefined) {
+			if (lapOverride.challenge === opts.challenge)
 				return lapOverride;
 		}
 	}
@@ -4054,6 +4511,8 @@ function initLapOverride(meta, oldLapOverride) {
 	}
 	else if (meta.zone !== undefined)
 		newLapOverride = (oldLapOverride === undefined) ? lapOverrides.length : oldLapOverride;
+	else if (meta.challenge !== undefined)
+		newLapOverride = (oldLapOverride === undefined) ? lapOverrides.length : oldLapOverride;
 	lapOverrides.splice(newLapOverride, 0, {
 		lap: meta.lap,
 		checkpoint: meta.cp,
@@ -4067,6 +4526,7 @@ function initLapOverride(meta, oldLapOverride) {
 		endDelay: meta.endDelay,
 		impactAll: meta.impactAll,
 		requiredOverrides: meta.requiredOverrides,
+		challenge: meta.challenge,
 		imgData: meta.imgData,
 		modesData: meta.modesData || {}
 	});
@@ -4762,6 +5222,12 @@ function closeHelp() {
 function showBillBallHelp() {
 	alert(language ? "If checked, this route is specific to bullet bills. When a player uses a bullet bill item, it will follow this routes instead of the default ones" : "Si coché, ce trajet s'applique uniquement aux Bill Balls : Lorsqu'un joueur utilise un Bill Ball, il suivra ce trajet au lieu des trajets par défaut");
 }
+function showOffroadBillBoostHelp() {
+	alert(language ? "If checked, a Bullet Bill about to expire over this off-road has its duration extended, preventing the player from being affected by the off-road when the transformation ends." : "Si activé, un Bill Ball sur le point de terminer sur l'hors-piste prolonge sa durée, évitant ainsi au joueur de subir l'effet du hors-piste à la fin de la transformation.");
+}
+function showOffroadInvincibleHelp() {
+	alert(language ? "If checked, players under the effect of a Star or a Mega Mushroom are still affected by this off-road." : "Si activé, les joueurs utilisant une étoile ou un Méga champi subissent quand même les effets du hors-piste.");
+}
 function showBgTransitionHelp() {
 	alert(language ? "If checked, the map image and background will transition smoothly from the previous to the next one" : "Si coché, les images de la map et de l'arrière-plan changeront progressivement du précédent au suivant");
 }
@@ -5056,6 +5522,7 @@ function _saveData(force) {
 			zoneMeta: lapOverride.zoneMeta, endZoneMeta: lapOverride.endZoneMeta,
 			endOnExit: lapOverride.endOnExit, endDelay: lapOverride.endDelay, impactAll: lapOverride.impactAll,
 			requiredOverrides: lapOverride.requiredOverrides,
+			challenge: lapOverride.challenge,
 			modes: enabledModes
 		};
 		if (!payload.lapOverrides) payload.lapOverrides = [];
@@ -5631,7 +6098,7 @@ var commonTools = {
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			var offroadType = +document.getElementById("offroad-type").value;
-			var oldData = self.data[offroadType];
+			var oldData = self.data[offroadType] || [];
 			self.data[offroadType] = [];
 			self.state.type = offroadType;
 			self.state.data = self.data[offroadType];
@@ -5764,34 +6231,90 @@ var commonTools = {
 					payload.horspistes[hpTypes[i]] = iPayload;
 				}
 			}
+			for (var i=0;i<customOffroadProfiles.length;i++) {
+				var profile = customOffroadProfiles[i];
+				if (!profile.id) continue;
+				var iData = self.data[hpTypes.length + i] || [];
+				if (!iData.length) continue;
+				var shapes = [];
+				for (var j=0;j<iData.length;j++)
+					shapes.push(shapeToData(iData[j]));
+				payload.horspistes["custom-"+profile.id] = shapes;
+			}
 		},
 		"restore" : function(self,payload) {
+			var isOverride = !!payload.meta;
+			self.data.length = 0;
 			for (var i=0;i<hpTypes.length;i++) {
-				var iPayload = payload.horspistes[hpTypes[i]];
+				var iPayload = (payload.horspistes || {})[hpTypes[i]];
 				var iData = [];
 				if (iPayload) {
 					for (var j=0;j<iPayload.length;j++)
 						iData.push(dataToShape(iPayload[j]));
 				}
-				self.data[i] = iData;
+				self.data.push(iData);
+			}
+			var $select = document.getElementById("offroad-type");
+			if (!isOverride && $select) {
+				var existingOpts = $select.querySelectorAll('option.custom-offroad-option');
+				for (var i=0;i<existingOpts.length;i++)
+					existingOpts[i].parentNode.removeChild(existingOpts[i]);
+			}
+			while (self.data.length < hpTypes.length + customOffroadProfiles.length)
+				self.data.push([]);
+			if (payload.horspistes) {
+				for (var key in payload.horspistes) {
+					if (key.indexOf("custom-") !== 0) continue;
+					var id = parseInt(key.slice(7), 10);
+					if (!id) continue;
+					var profileIdx = -1;
+					for (var p=0;p<customOffroadProfiles.length;p++) {
+						if (customOffroadProfiles[p].id === id) { profileIdx = p; break; }
+					}
+					var isNewProfile = (profileIdx < 0);
+					if (isNewProfile) {
+						profileIdx = customOffroadProfiles.length;
+						customOffroadProfiles.push({
+							id: id,
+							name: (language ? "Loading..." : "Chargement..."),
+							strength: 1,
+							slippery: false,
+							drifting: false,
+							billBoost: true,
+							affectsInvincible: false
+						});
+					}
+					var keyShapes = payload.horspistes[key] || [];
+					var iData = [];
+					for (var j=0;j<keyShapes.length;j++)
+						iData.push(dataToShape(keyShapes[j]));
+					while (self.data.length <= hpTypes.length + profileIdx)
+						self.data.push([]);
+					self.data[hpTypes.length + profileIdx] = iData;
+					if (isNewProfile) {
+						if ($select)
+							addCustomOffroadOption(profileIdx, customOffroadProfiles[profileIdx].name);
+						hydrateCustomOffroadProfile(profileIdx, id);
+					}
+				}
 			}
 		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<hpTypes.length;i++) {
+			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				for (var j=0;j<iData.length;j++)
 					rescaleShape(iData[j], scale);
 			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<hpTypes.length;i++) {
+			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				for (var j=0;j<iData.length;j++)
 					rotateShape(iData[j], imgSize,orientation);
 			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<hpTypes.length;i++) {
+			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				for (var j=0;j<iData.length;j++)
 					flipShape(iData[j], imgSize,axis);
@@ -5910,7 +6433,9 @@ var commonTools = {
 				else
 					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
 			}
-			document.getElementById("checkpoint-respawn-reset").style.display = "";
+			var $checkpointRespawn = document.getElementById("checkpoint-respawn-reset");
+			if ($checkpointRespawn)
+				$checkpointRespawn.style.display = "";
 		},
 		"click" : function(self,point,extra) {
 			var respawnNode = self.state.respawnNode;
@@ -6136,23 +6661,92 @@ var commonTools = {
 		}
 	},
 	"items": {
+		"init" : function(self) {
+			self.data = {points: [], extra: {}};
+		},
 		"resume" : function(self) {
 			self.state.boxSize = {w:8,h:8};
 			self.state.point = createBox(self.state.boxSize);
 			self.state.point.classList.add("noclick");
-			var data = self.data;
-			self.data = [];
-			for (var i=0;i<data.length;i++) {
-				var iData = data[i];
-				self.click(self,iData,{});
+			if (!self.data.extra) self.data.extra = {};
+			if (!self.data.extra.arme)
+				self.data.extra.arme = {route:[]};
+			var routeData = self.data.extra.arme.route;
+			var $itemsOption = document.getElementById("items-option");
+			if (routeData.length === 0) {
+				if ($itemsOption) {
+					$itemsOption.style.display = "none";
+					$itemsOption.className = "items-option-decors";
+				}
+				self.state.selectedTool = 0;
+				self.state.currentTraject = -1;
+				var data = self.data.points;
+				self.data.points = [];
+				for (var i=0;i<data.length;i++)
+					self.click(self,data[i],{});
+				return;
+			}
+			if ($itemsOption) $itemsOption.style.display = "";
+			var $itemsTraject = document.getElementById("items-traject");
+			var prevTraject = $itemsTraject.children.length ? +$itemsTraject.value : 0;
+			initRouteSelector($itemsTraject, routeData.length);
+			if (prevTraject >= 0 && prevTraject < routeData.length)
+				$itemsTraject.value = prevTraject;
+			self.state.selectedTool = 0;
+			if ($itemsOption && $itemsOption.className === "items-option-trajects")
+				self.state.selectedTool = 1;
+			if (self.state.selectedTool == 0) {
+				self.state.currentTraject = +(document.getElementById("items-currenttraject").value || -1);
+				if (self.state.currentTraject >= routeData.length)
+					self.state.currentTraject = -1;
+				var $currentTrajectSelector = document.getElementById("items-currenttraject");
+				$currentTrajectSelector.innerHTML = "";
+				var $noneOption = document.createElement("option");
+				$noneOption.value = -1;
+				$noneOption.innerHTML = (language ? "None":"Aucun");
+				$currentTrajectSelector.appendChild($noneOption);
+				for (var i=0;i<routeData.length;i++) {
+					var $currentTrajectOption = document.createElement("option");
+					$currentTrajectOption.value = i;
+					$currentTrajectOption.innerHTML = (i+1);
+					$currentTrajectSelector.appendChild($currentTrajectOption);
+				}
+				$currentTrajectSelector.value = self.state.currentTraject;
+				var data = self.data.points;
+				self.data.points = [];
+				var defaultTraject = self.state.currentTraject;
+				self.state.currentTraject = -1;
+				for (var i=0;i<data.length;i++) {
+					var iData = data[i];
+					self.click(self,iData,{});
+				}
+				self.state.currentTraject = defaultTraject;
+			}
+			else {
+				var points = self.data.points;
+				for (var i=0;i<points.length;i++) {
+					var ghost = createBox(self.state.boxSize);
+					ghost.classList.add("noclick", "ghost");
+					setBoxPos(ghost, points[i], self.state.boxSize);
+				}
+				var traject = +document.getElementById("items-traject").value;
+				initRouteBuilder(self,routeData,traject);
 			}
 		},
 		"click" : function(self,point,extra) {
 			if (extra.oob)
 				return;
+			if (self.state.traject !== undefined) {
+				appendRouteBuilder(self,point,extra);
+				return;
+			}
 			self.move(self,point,extra);
 			storeHistoryData(self.data);
-			self.data.push(point);
+			if (point.traject == null && self.state.currentTraject != null && self.state.currentTraject >= 0) {
+				point.traject = self.state.currentTraject;
+				if (point.speed == null) point.speed = 1;
+			}
+			self.data.points.push(point);
 
 			var boxCntText = document.createElementNS(SVG, "text");
 			boxCntText.setAttribute("class", "dark noclick");
@@ -6162,7 +6756,15 @@ var commonTools = {
 
 			var box = self.state.point;
 			box.retext = function() {
-				boxCntText.innerHTML = point.nb || "";
+				var label = "";
+				boxCntText.style.textDecorationLine = "";
+				if (point.nb && point.nb > 1) {
+					label = point.nb;
+					if (point.traject != null)
+						boxCntText.style.textDecorationLine = "line-through";
+				}
+				else if (point.traject != null) label = "↗";
+				boxCntText.innerHTML = label;
 			};
 			box.reposition = function(nData) {
 				boxCntText.setAttribute("x", nData.x);
@@ -6176,6 +6778,9 @@ var commonTools = {
 			box.oncontextmenu = function(e) {
 				hideBox(self.state.point,self.state.boxSize);
 				var doubleCheck = (point.nb > 1) ? "✔ ":"";
+				var trajectLabel = (point.traject != null)
+					? "✔ "+(language ? "Route":"Trajet")+" "+(point.traject+1)
+					: (language ? "Move along route...":"Suivre un trajet...");
 				var moveOptions = {
 					on_apply: function(nData) {
 						box.reposition(nData);
@@ -6187,7 +6792,7 @@ var commonTools = {
 						boxCntText.style.display = "";
 					}
 				};
-				return showContextOnElt(e,box,[{
+				var menuOptions = [{
 					text: (language ? "Move":"Déplacer"),
 					click: function() {
 						moveBox(box,point,self.state.boxSize, moveOptions);
@@ -6198,7 +6803,7 @@ var commonTools = {
 						$editor.removeChild(box);
 						$editor.removeChild(boxCntText);
 						storeHistoryData(self.data);
-						removeFromArray(self.data,point);
+						removeFromArray(self.data.points,point);
 					}
 				}, {
 					text: doubleCheck + (language ? "Double item":"Double objet"),
@@ -6210,44 +6815,155 @@ var commonTools = {
 							point.nb = 2;
 						box.retext();
 					}
-				}]);
+				}, {
+					text: trajectLabel,
+					click:function() {
+						var routeData = self.data.extra.arme.route;
+						var nbRoutes = routeData.length;
+						if (nbRoutes === 0) {
+							pendingTrajectCallback = function(newIndex) {
+								storeHistoryData(self.data);
+								point.traject = newIndex;
+								if (point.speed == null) point.speed = 1;
+								manageItemsTrajects();
+							};
+							showTrajectOptions("items");
+							return;
+						}
+						var msg = language ? "Enter route number (1-"+nbRoutes+"), or leave empty to reset to a static item" : "Entrer n° de trajet (1-"+nbRoutes+"), ou laisser vide pour réinitialiser à un objet immobile";
+						var defaultVal = (point.traject != null) ? (point.traject+1) : "";
+						var newTraject = prompt(msg, defaultVal);
+						if (newTraject == null) return;
+						storeHistoryData(self.data);
+						if (newTraject === "") {
+							delete point.traject;
+							delete point.speed;
+						}
+						else {
+							newTraject = (+newTraject)-1;
+							if (isNaN(newTraject) || newTraject < 0 || newTraject >= nbRoutes) return;
+							point.traject = newTraject;
+							if (point.speed == null) point.speed = 1;
+						}
+						box.retext();
+					}
+				}];
+				if (point.traject != null) {
+					menuOptions.push({
+						text: (language ? "Speed...":"Vitesse..."),
+						click: function() {
+							var newSpeed = prompt(language ? "Edit speed (Default is 1)":"Modifier la vitesse (Défaut 1)", point.speed);
+							if (newSpeed == null || newSpeed === "") return;
+							newSpeed = +newSpeed;
+							if (isNaN(newSpeed) || newSpeed < 0) return;
+							newSpeed = Math.min(newSpeed, 100);
+							storeHistoryData(self.data);
+							point.speed = newSpeed;
+						}
+					});
+				}
+				return showContextOnElt(e,box,menuOptions);
 			};
 			self.state.point = createBox(self.state.boxSize);
 			self.state.point.classList.add("noclick");
 		},
 		"move" : function(self,point,extra) {
-			setBoxPos(self.state.point,point,self.state.boxSize);
+			if (self.state.traject !== undefined)
+				moveRouteBuilder(self,point,extra);
+			else
+				setBoxPos(self.state.point,point,self.state.boxSize);
+		},
+		"round_on_pixel" : function(self) {
+			return (self.state.traject !== undefined);
 		},
 		"save" : function(self,payload) {
 			payload.arme = [];
-			for (var i=0;i<self.data.length;i++) {
-				var iData = self.data[i];
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++) {
+				var iData = points[i];
 				var iPayload = pointToData(iData);
-				if (iData.nb)
-					iPayload.push(iData.nb);
+				if ((iData.nb && iData.nb > 1) || (iData.traject != null))
+					iPayload.push(iData.nb || 1);
+				if (iData.traject != null) {
+					iPayload.push(iData.traject);
+					if (iData.speed != null && iData.speed !== 1)
+						iPayload.push(iData.speed);
+				}
 				payload.arme.push(iPayload);
+			}
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				if ((routeData.length != 1) || routeData[0].points.length) {
+					payload.itemparams = {
+						path: [],
+						closed: []
+					};
+					var armePayload = payload.itemparams;
+					for (var i=0;i<routeData.length;i++) {
+						armePayload.path.push(polyToData(routeData[i].points));
+						armePayload.closed.push(routeData[i].closed ? 1:0);
+					}
+				}
 			}
 		},
 		"restore" : function(self,payload) {
 			for (var i=0;i<payload.arme.length;i++) {
 				var iPayload = payload.arme[i];
 				var iData = dataToPoint(iPayload);
-				if (iPayload.length > 2)
+				if (iPayload.length > 2 && iPayload[2] > 1)
 					iData.nb = iPayload[2];
-				self.data.push(iData);
+				if (iPayload.length > 3) {
+					iData.traject = iPayload[3];
+					iData.speed = (iPayload.length > 4) ? iPayload[4] : 1;
+				}
+				self.data.points.push(iData);
+			}
+			if (payload.itemparams) {
+				var armePayload = payload.itemparams;
+				self.data.extra.arme = {route:[]};
+				for (var i=0;i<armePayload.path.length;i++)
+					self.data.extra.arme.route.push({points:dataToPoly(armePayload.path[i]),closed:armePayload.closed[i]});
 			}
 		},
+		"postrestore": function(self) {
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			var nbRoutes = (armeExtra && armeExtra.route) ? armeExtra.route.length : 0;
+			if (nbRoutes > 0)
+				initRouteSelector(document.getElementById("items-traject"),nbRoutes);
+		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<self.data.length;i++)
-				rescaleBox(self.data[i], scale);
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++)
+				rescaleBox(points[i], scale);
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				for (var i=0;i<routeData.length;i++)
+					rescalePoly(routeData[i].points, scale);
+			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<self.data.length;i++)
-				rotateBox(self.data[i], imgSize,orientation);
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++)
+				rotateBox(points[i], imgSize,orientation);
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				for (var i=0;i<routeData.length;i++)
+					rotatePoly(routeData[i].points, imgSize,orientation);
+			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.length;i++)
-				flipBox(self.data[i], imgSize,axis);
+			var points = self.data.points || [];
+			for (var i=0;i<points.length;i++)
+				flipBox(points[i], imgSize,axis);
+			var armeExtra = self.data.extra && self.data.extra.arme;
+			if (armeExtra && armeExtra.route) {
+				var routeData = armeExtra.route;
+				for (var i=0;i<routeData.length;i++)
+					flipPoly(routeData[i].points, imgSize,axis);
+			}
 		}
 	},
 	"jumps": {
@@ -7200,8 +7916,9 @@ var commonTools = {
 		"save" : function(self,payload) {
 			var selfData = self.data.decors;
 			payload.decor = {};
-			payload.decorparams = {extra:{}};
-			var isDecorData = false, isDecorExtra = false;
+			if (!payload.decorparams) payload.decorparams = {extra:{}};
+			else if (!payload.decorparams.extra) payload.decorparams.extra = {};
+			var isDecorData = false, isDecorExtra = !!Object.keys(payload.decorparams.extra).length;
 			for (var type in selfData) {
 				var actualType = getActualDecorType(type);
 				var isAsset = (actualType.substring(0,7) === "assets/");

@@ -52,7 +52,7 @@ require_once('circuitEscape.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create multicup':'Créer multicoupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css" />
+<link rel="stylesheet" href="styles/cup.css?reload=2" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -66,6 +66,10 @@ if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
 ?>
 var cp = <?php include('getPersos.php'); ?>;
+<?php
+require_once('rosterNames.php');
+echo 'var cpNames = '. json_encode(getCharacterNamesMap(), JSON_UNESCAPED_UNICODE) .';';
+?>
 var collabCharPlaceholder = "<?php
 $collabPlaceholder = array(
 	'type' => 'mkchars',
@@ -78,7 +82,7 @@ echo getCollabUrl($collabPlaceholder);
 include('handleCupOptions.php');
 ?>
 </script>
-<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
 <script type="text/javascript" src="scripts/posticons.js?reload=1"></script>
 </head>
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>

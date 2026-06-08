@@ -173,6 +173,10 @@ legend {
 .import-type-picker {
 	display: none;
 }
+#import-type-override select[name="override"] {
+	max-width: 150px;
+	text-overflow: ellipsis;
+}
 .del-override {
 	color: #C24;
 }

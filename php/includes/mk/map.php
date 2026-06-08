@@ -69,6 +69,8 @@ if ($lapId) {
 		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 	if (isset($circuitPayload->meta->requiredOverrides))
 		echo '"requiredOverrides":'.json_encode($circuitPayload->meta->requiredOverrides).',';
+	if (isset($circuitPayload->meta->challenge))
+		echo '"challenge":'.intval($circuitPayload->meta->challenge).',';
 }
 if (isset($circuitMainData->bgcolor))
 	echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';
@@ -182,8 +184,15 @@ if (isset($circuitPayload->trous)) {
 }
 if (isset($circuitPayload->checkpoint))
 	echo '"checkpoint":'.json_encode($circuitPayload->checkpoint).',';
-if (isset($circuitPayload->arme))
+if (isset($circuitPayload->arme)) {
 	echo '"arme":'.json_encode($circuitPayload->arme).',';
+	if (!empty($circuitPayload->itemparams)) {
+		?>
+	"itemparams" : <?php echo json_encode($circuitPayload->itemparams).',';
+		}
+		elseif ($lapId)
+			echo '"itemparams":undefined,';
+}
 if (isset($circuitPayload->sauts)) {
 	?>
 "sauts" : <?php
