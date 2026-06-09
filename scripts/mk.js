@@ -8650,12 +8650,14 @@ var itemBehaviors = {
 
 			const aTargets = aKarts.filter(k =>
 				k.id !== fSprite.owner // not us
-				&& k.arme // has item
+				&& (k.arme || k.using.length > 0) // has item/trail
 				&& k.roulette >= 25 // roulette anim finished
 				&& !k.billball // not in bill
+				&& !k.loose // not dead in bb
+				&& !k.ghost // not a ghost
 				&& !friendlyFire(k, oOwner) // not in our team
-				&& (course == "BB" || k.place < oOwner.place) // ahead of us (place check ignored in battlemode)
-				&& (course == "BB" || k.tours <= oMap.tours) // not finished
+				&& (course == "BB" || k.place < oOwner.place) // ahead of us (vs)
+				&& (course == "BB" || k.tours <= oMap.tours) // not finished (vs)
 			);
 			//console.log("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
 			let targetId = -1;
@@ -8695,6 +8697,7 @@ var itemBehaviors = {
 							case "banane":         stolenItem = `bananeX${len}`;        break;
 							case "bobomb":         stolenItem = "bobomb";               break;
 							case "fauxobjet":      stolenItem = "fauxobjet";            break;
+							case "poison":         stolenItem = "poison";               break;
 						}
 					} else if (hadArme) { // holding non-trail item
 						stolenItem = oVictim.arme;
