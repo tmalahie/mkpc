@@ -1,4 +1,4 @@
-var pause, chatting = false;
+﻿var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
@@ -3078,7 +3078,6 @@ function arme(ID, backwards, forwards) {
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
 			
-			if (oKart.boomerangArme === 1)
 				delete oKart.boomerangArme;
 
 			addNewItem(oKart, boomerang);
