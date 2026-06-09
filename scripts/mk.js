@@ -1,4 +1,4 @@
-﻿var pause, chatting = false;
+var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
@@ -3791,40 +3791,6 @@ function handleEndRace() {
 	challengeCheck("end_game", events);
 	challengeCheck("end_gp", events);
 	clGlobalVars.nbcircuits++;
-
-	if (raceLog.items.length > 0) {
-		let text = "";
-
-		// single items
-		for (let spot = 1; spot <= aKarts.length; spot++) {
-			if (Object.keys(raceLog.getDefinedItemAtSpot(spot)).length === 0) {
-				text += `${spot}: -\n`;
-				continue;
-			}
-
-			text += `${spot}: `;
-			for (const itemName in raceLog.getDefinedItemAtSpot(spot)) {
-				const itemCount = raceLog.getItemSpot(spot, itemName);
-				const spotTotal = raceLog.getTotalSpot(spot);
-				const percent = ((itemCount / spotTotal) * 100).toFixed(2);
-				text += `${itemName}(${itemCount} / ${spotTotal} -> ${percent}%)  `;
-			}
-			text += "\n";
-		}
-
-		// totals
-		text += "\nTotal:\n";
-		for (let i = 0; i < raceLog.items.length; i++) {
-			const itemName = raceLog.items[i];
-			const itemTotal = raceLog.getItemTotal(itemName);
-			const allTotal = raceLog.data.total.all;
-			const percent = ((itemTotal / allTotal) * 100).toFixed(2);
-			text += `${itemName}: ${itemTotal} / ${allTotal} -> ${percent}%\n`;
-		}
-
-		alert(text);
-	}
-	raceLog.reset();
 }
 
 function startGame() {
@@ -8659,7 +8625,9 @@ var itemBehaviors = {
 				&& (course == "BB" || k.place < oOwner.place) // ahead of us (vs)
 				&& (course == "BB" || k.tours <= oMap.tours) // not finished (vs)
 			);
-			//console.log("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
+
+			//console.debug("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
+
 			let targetId = -1;
 			if (aTargets.length) {
 				const targetKart = aTargets[Math.floor(Math.random() * aTargets.length)];
@@ -8713,6 +8681,8 @@ var itemBehaviors = {
 				oVictim.arme = false;
 				oVictim.roulette = 25;
 			}
+
+			//console.debug("stole:", stolenItem, "from:", oVictim);
 			
 			oOwner.arme = stolenItem;
 			if (stolenItem == "boomerang" && stolenBoomerangArme) {
@@ -8729,14 +8699,14 @@ var itemBehaviors = {
 
 			if (kartIsPlayer(oOwner)) {
 				oOwner.itemLock = true;
-				let flashes = 10;
-				const flashInt = setInterval(function() {
+				let ownerFlashes = 10;
+				const ownerFlashInt = setInterval(function() {
 					let $rImg = document.getElementById("roulette" + oOwner.id);
 					if ($rImg) $rImg = $rImg.firstChild;
-					if ($rImg) $rImg.style.opacity = (flashes % 2 === 0) ? "0" : "1";
-					flashes--;
-					if (flashes <= 0) {
-						clearInterval(flashInt);
+					if ($rImg) $rImg.style.opacity = (ownerFlashes % 2 === 0) ? "0" : "1";
+					ownerFlashes--;
+					if (ownerFlashes <= 0) {
+						clearInterval(ownerFlashInt);
 						if ($rImg) $rImg.style.opacity = "1";
 						oOwner.itemLock = false;
 					}
@@ -8792,14 +8762,9 @@ var itemBehaviors = {
 						oVictim.roulette2 = 0;
 					}
 					oVictim.itemLock = false;
-					for (let i=0;i<oPlayers.length;i++) {
-						if (oPlayers[i] === oVictim && kartIsPlayer(i)) {
-							updateObjHud(i);
-						}
-					}
 				}, 1000);
 			}
-			detruit(fSprite);
+			detruit(fSprite); // delete item, finished
 		}
 	},
 	"carapace": {
@@ -9988,61 +9953,6 @@ var itemBehaviors = {
 }
 var itemTypes = Object.keys(itemBehaviors);
 var items = {};
-
-var raceLog = {
-	items: [],
-	data: {total: {all: 0}},
-
-	reset: function() {
-		this.enabled = false;
-		this.items = [];
-		this.data = {total: {all: 0}};
-		delete oPlayers[0].autoplay;
-	},
-
-	addTotal: function() {
-		this.data.total.all++;
-	},
-
-	addTotalSpot: function(spot) {
-		this.data[spot] ??= {}; // creates spot
-		this.data[spot].total ??= 0; // creates total at spot
-		this.data[spot].total++; // inc total at spot
-	},
-
-	getTotalSpot: function(spot) {
-		return this.data[spot].total;
-	},
-
-	addItemSpot: function(spot, item) {
-		this.data[spot] ??= {}; // creates spot
-		this.data[spot][item] ??= 0; // creates item at this spot
-		this.data[spot][item]++; // inc item at this spot
-	},
-
-	getItemSpot: function(spot, item) {
-		return this.data[spot][item] ?? 0;
-	},
-
-	addItemTotal: function(item) {
-		this.data.total[item] ??= 0; // creates total for item
-		this.data.total[item]++; // inc total for item
-	},
-
-	getItemTotal: function(item) {
-		return this.data.total[item] ??= 0;
-	},
-
-	getDefinedItemAtSpot: function(spot) {
-		const itemNames = {};
-
-		for (const key in this.data[spot]) 
-			if (key !== "total")
-				itemNames[key] = true;
-
-		return itemNames;
-	}
-};
 
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -19668,14 +19578,6 @@ function move(getId, triggered) {
 					}
 				}
 
-				raceLog.addTotal();
-				raceLog.addTotalSpot(oKart.place);
-
-				if (raceLog.items.includes(iObj)) {
-					raceLog.addItemSpot(oKart.place, iObj);
-					raceLog.addItemTotal(iObj);
-				}
-
 				/*if (oKart === oPlayers[0]) { // Uncomment to test all objs
 					if (!window.aaa) {
 						window.aaa = [];
@@ -21454,31 +21356,49 @@ function processCode(cheatCode) {
     const oPlayer = oPlayers[0];
 
     switch (command) {
-		case "give": // /give (!!)item (1)
+		case "give": // /give (!!)item (1) or /give (!!)item1 (!!)item2
 			// 1 will always replace the first slot
 			// everything else/nothing will pick one automatically
 			// you can force the object with !! e.g /give !!carapacenoire
 			// if its not in your item distrib
 			if (![1,2].includes(args.length)) return "give: Invalid argument count";
 
-			let wObject = args[0];
-			let isExistingObj = false;
 			const itemMode = getItemMode();
-			const shouldForce = args[0].startsWith("!!");
-			if (shouldForce) wObject = wObject.substring(2);
-			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 
-			// check if the item exists in the current item distrib
-			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
+			const parseItem = (itemName) => {
+				const shouldForce = itemName.startsWith("!!");
+				const parsedName = shouldForce ? itemName.substring(2) : itemName;
+				const isExisting = oItemDistributions.some(oItemDistribution => 
+					oItemDistribution.value.some(item => item[parsedName] != null)
+				);
+				if (!isExisting && !shouldForce) return null;
+				return parsedName;
+			};
 
-			if (!isExistingObj && !shouldForce) return "give: This item is not present in your item distribution";
-			if (itemSlot === 1 || !oPlayer.arme) {
-				oPlayer.arme = wObject;
-				oPlayer.roulette = 25;
+			const setSlotToItem = (item, slot) => {
+				if (slot === 1 || !oPlayer.arme) {
+					oPlayer.arme = item;
+					oPlayer.roulette = 25;
+				} else {
+					oPlayer.stash = item;
+					oPlayer.roulette2 = 25;
+				}
+			};
+
+			const item1 = parseItem(args[0]);
+			if (!item1) return "give: Item 1 is not present in your item distribution";
+
+			if (args.length === 1) {
+				setSlotToItem(item1);
+			} else if (args[1] === "1" || args[1] === "2") {
+				setSlotToItem(item1, parseInt(args[1]));
 			} else {
-				oPlayer.stash = wObject;
-				oPlayer.roulette2 = 25;
+				const item2 = parseItem(args[1]);
+				if (!item2) return "give: Item 2 is not present in your item distribution";
+				
+				setSlotToItem(item1, 1);
+				setSlotToItem(item2, 2);
 			}
 			updateObjHud(0);
 			return true;
@@ -21725,29 +21645,8 @@ function processCode(cheatCode) {
 				contentDiv.innerHTML = html;
 			}, 100);
 
-		// Comment to play tracks automatically whcile testing the item distribution
-		/*case "autoplay": // /autoplay (items)
-		case "fastforward":
-		case "fastforwards":
-		case "ff":
-			// plays the race automatically at high speed, used for simulating races abd test item distributions
-			// 'items' are items to display distribution results at the end of the race (must be sparated by a space)
-			raceLog.items = args.slice();
-
-			oPlayer.cpu = true;
-			oPlayer.autoplay = true;
-			oPlayer.maxspeed = 5.7;
-			oPlayer.maxspeed0 = oPlayer.maxspeed;
-
-			SPF = 1;
-			clearInterval(cycleHandler);
-			cycleHandler = null;
-			cycle();
-
-			return true;
-
         default:
-            return "Error: This command doesn't exist";*/
+            return "Error: This command doesn't exist";
     }
 }
 
