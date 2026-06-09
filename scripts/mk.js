@@ -8680,6 +8680,7 @@ var itemBehaviors = {
 			if (oOwner) {
 				oOwner.ghost = 64; // 4sec
 				let stolenItem = "champi";
+				let stolenBoomerangArme;
 				let hadArme = oVictim?.arme;
 				let hadUsing = oVictim?.using?.length > 0;
 				
@@ -8701,6 +8702,10 @@ var itemBehaviors = {
 						}
 					} else if (hadArme) { // holding non-trail item
 						stolenItem = oVictim.arme;
+						if (stolenItem == "boomerang") {
+							stolenBoomerangArme = oVictim.boomerangArme;
+							delete oVictim.boomerangArme;
+						}
 						oVictim.arme = false;
 						oVictim.roulette = 25;
 					}
@@ -8715,6 +8720,9 @@ var itemBehaviors = {
 				}
 				
 				oOwner.arme = stolenItem;
+				if (stolenItem == "boomerang" && stolenBoomerangArme) {
+					oOwner.boomerangArme = stolenBoomerangArme;
+				}
 				oOwner.roulette = 25;
 				
 				// hate this
