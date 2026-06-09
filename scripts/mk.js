@@ -1,4 +1,4 @@
-var pause, chatting = false;
+﻿var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
@@ -8657,7 +8657,7 @@ var itemBehaviors = {
 				&& (course == "BB" || k.place < oOwner.place) // ahead of us (place check ignored in battlemode)
 				&& (course == "BB" || k.tours <= oMap.tours) // not finished
 			);
-			console.log("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
+			//console.log("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
 			let targetId = -1;
 			if (aTargets.length) {
 				const targetKart = aTargets[Math.floor(Math.random() * aTargets.length)];
@@ -8682,7 +8682,7 @@ var itemBehaviors = {
 				let hadUsing = oVictim?.using?.length > 0;
 				
 				if (hadArme || hadUsing) {
-					console.log("[boo] stealing from:", oVictim?.id);
+					//console.log("[boo] stealing from:", oVictim?.id);
 					
 					// steal trailing items accounting for how many were thrown
 					if (hadUsing && !hadArme) {
