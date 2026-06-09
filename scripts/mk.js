@@ -8676,139 +8676,128 @@ var itemBehaviors = {
 			
 			const oOwner = aKarts.find(kart => kart.id === fSprite.owner);
 			const oVictim = aKarts.find(kart => kart.id === fSprite.victim);
-
-			if (oOwner) {
-				oOwner.ghost = 64; // 4sec
-				let stolenItem = "champi";
-				let stolenBoomerangArme;
-				let hadArme = oVictim?.arme;
-				let hadUsing = oVictim?.using?.length > 0;
+			let stolenItem = "champi";
+			let stolenBoomerangArme;
+			let hadArme = oVictim?.arme;
+			let hadUsing = oVictim?.using?.length > 0;
+			
+			if (hadUsing) { // steal trail item e.g. poison
+				let uType = oVictim.using[0].type;
+				let len = oVictim.using.length;
 				
-				if (hadArme || hadUsing) {
-					//console.log("[boo] stealing from:", oVictim?.id);
-					
-					// steal trailing items accounting for how many were thrown
-					if (hadUsing && !hadArme) {
-						let uType = oVictim.using[0].type;
-						let len = oVictim.using.length;
-						
-						switch (uType) {
-							case "carapace":       stolenItem = `carapaceX${len}`;      break;
-							case "carapace-rouge": stolenItem = `carapacerougeX${len}`; break;
-							case "banane":         stolenItem = `bananeX${len}`;        break;
-							case "bobomb":         stolenItem = "bobomb";               break;
-							case "fauxobjet":      stolenItem = "fauxobjet";            break;
-							case "poison":         stolenItem = "poison";               break;
-						}
-					} else if (hadArme) { // holding non-trail item
-						stolenItem = oVictim.arme;
-						if (stolenItem == "boomerang") {
-							stolenBoomerangArme = oVictim.boomerangArme;
-							delete oVictim.boomerangArme;
-						}
-						oVictim.arme = false;
-						oVictim.roulette = 25;
+				switch (uType) {
+					case "carapace":       stolenItem = `carapaceX${len}`;      break;
+					case "carapace-rouge": stolenItem = `carapacerougeX${len}`; break;
+					case "banane":         stolenItem = `bananeX${len}`;        break;
+					case "bobomb":         stolenItem = "bobomb";               break;
+					case "fauxobjet":      stolenItem = "fauxobjet";            break;
+					case "poison":         stolenItem = "poison";               break;
+				}
+
+				// HACK: this allows us to quietly delete trailing items
+				// without the game engine automatically forcing 
+				// the 2nd item slot to shift forward.
+				let oldDouble = oDoubleItemsEnabled;
+				oDoubleItemsEnabled = false;
+				deleteUsingItems(oVictim);
+				oDoubleItemsEnabled = oldDouble;
+				
+				oVictim.arme = false;
+				oVictim.roulette = 25;
+			} else if (hadArme) { // steal non-trail item e.g. banana
+				stolenItem = oVictim.arme;
+				if (stolenItem === "boomerang") {
+					stolenBoomerangArme = oVictim.boomerangArme;
+					delete oVictim.boomerangArme;
+				}
+				oVictim.arme = false;
+				oVictim.roulette = 25;
+			}
+			
+			oOwner.arme = stolenItem;
+			if (stolenItem == "boomerang" && stolenBoomerangArme) {
+				oOwner.boomerangArme = stolenBoomerangArme;
+			}
+			oOwner.roulette = 25;
+			oOwner.ghost = 64; // 4sec
+			
+			if (oPlayers.includes(oOwner)) updateObjHud(oOwner.id);
+			if (oVictim && oPlayers.includes(oVictim)) updateObjHud(oVictim.id);
+			if (shouldPlaySound(oOwner) || (oVictim && shouldPlaySound(oVictim))) {
+				playSoundEffect("musics/events/boo_steal.mp3");
+			}
+
+			if (kartIsPlayer(oOwner)) {
+				oOwner.itemLock = true;
+				let flashes = 10;
+				const flashInt = setInterval(function() {
+					let $rImg = document.getElementById("roulette" + oOwner.id);
+					if ($rImg) $rImg = $rImg.firstChild;
+					if ($rImg) $rImg.style.opacity = (flashes % 2 === 0) ? "0" : "1";
+					flashes--;
+					if (flashes <= 0) {
+						clearInterval(flashInt);
+						if ($rImg) $rImg.style.opacity = "1";
+						oOwner.itemLock = false;
 					}
+				}, 100);
+			} else {
+				oOwner.itemLock = true;
+				setTimeout(function() { oOwner.itemLock = false; }, 1000);
+			}
 
-					// HACK: this allows us to quietly delete trailing items
-					// without the game engine automatically forcing 
-					// the 2nd item slot to shift forward.
-					let oldDouble = oDoubleItemsEnabled;
-					oDoubleItemsEnabled = false;
-					deleteUsingItems(oVictim);
-					oDoubleItemsEnabled = oldDouble;
-				}
-				
-				oOwner.arme = stolenItem;
-				if (stolenItem == "boomerang" && stolenBoomerangArme) {
-					oOwner.boomerangArme = stolenBoomerangArme;
-				}
-				oOwner.roulette = 25;
-				
-				// hate this
-				let alreadyPlayedSE = false;
-				for (let i=0;i<oPlayers.length;i++) {
-					if ((oPlayers[i] === oOwner || (oVictim && oPlayers[i] === oVictim)) && kartIsPlayer(i)) {
-						updateObjHud(i);
-						if (!alreadyPlayedSE) {
-							alreadyPlayedSE = true;
-							playSoundEffect("musics/events/boo_steal.mp3");
-						}
-					}
-				}
+			if (oVictim && kartIsPlayer(oVictim)) {
+				oVictim.itemLock = true;
+				const $objet = document.getElementById("objet" + oVictim.id);
+				if ($objet) {
+					let $booImg = document.createElement("img");
+					$booImg.src = "images/items/boo_laugh.png";
+					$booImg.className = "pixelated";
+					Object.assign($booImg.style, {
+						position: "absolute",
+						left: "0px",
+						top: "0px",
+						height: "100%",
+						width: "100%",
+						zIndex: "10"
+					});
+					$objet.appendChild($booImg);
 
-				if (kartIsPlayer(oOwner)) {
-					oOwner.itemLock = true;
-					let flashes = 10;
-					const flashInt = setInterval(function() {
-						let $rImg = document.getElementById("roulette" + oOwner.id);
-						if ($rImg) $rImg = $rImg.firstChild;
-						if ($rImg) $rImg.style.opacity = (flashes % 2 === 0) ? "0" : "1";
-						flashes--;
-						if (flashes <= 0) {
-							clearInterval(flashInt);
-							if ($rImg) $rImg.style.opacity = "1";
-							oOwner.itemLock = false;
+					let victimFlashes = 10;
+					const victimFlashInt = setInterval(function() {
+						$booImg.style.opacity = (victimFlashes % 2 === 0) ? "0" : "1";
+						victimFlashes--;
+						if (victimFlashes <= 0) {
+							clearInterval(victimFlashInt);
+							if ($booImg.parentNode) $booImg.parentNode.removeChild($booImg);
+							
+							if (!oVictim.arme && oVictim.stash) {
+								oVictim.arme = oVictim.stash;
+								oVictim.roulette = oVictim.roulette2;
+								oVictim.stash = false;
+								oVictim.roulette2 = 0;
+							}
+							oVictim.itemLock = false;
+							updateObjHud(oVictim.id);
 						}
 					}, 100);
-				} else {
-					oOwner.itemLock = true;
-					setTimeout(function() { oOwner.itemLock = false; }, 1000);
 				}
-
-				if (oVictim && kartIsPlayer(oVictim)) {
-					oVictim.itemLock = true;
-					const $objet = document.getElementById("objet" + oVictim.id);
-					if ($objet) {
-						let $booImg = document.createElement("img");
-						$booImg.src = "images/items/boo_laugh.png";
-						$booImg.className = "pixelated";
-						Object.assign($booImg.style, {
-							position: "absolute",
-							left: "0px",
-							top: "0px",
-							height: "100%",
-							width: "100%",
-							zIndex: "10"
-						});
-						$objet.appendChild($booImg);
-
-						let victimFlashes = 10;
-						const victimFlashInt = setInterval(function() {
-							$booImg.style.opacity = (victimFlashes % 2 === 0) ? "0" : "1";
-							victimFlashes--;
-							if (victimFlashes <= 0) {
-								clearInterval(victimFlashInt);
-								if ($booImg.parentNode) $booImg.parentNode.removeChild($booImg);
-								
-								if (!oVictim.arme && oVictim.stash) {
-									oVictim.arme = oVictim.stash;
-									oVictim.roulette = oVictim.roulette2;
-									oVictim.stash = false;
-									oVictim.roulette2 = 0;
-								}
-								oVictim.itemLock = false;
-								updateObjHud(oVictim.id);
-							}
-						}, 100);
+			} else if (oVictim) {
+				oVictim.itemLock = true;
+				setTimeout(function() {
+					if (!oVictim.arme && oVictim.stash) {
+						oVictim.arme = oVictim.stash;
+						oVictim.roulette = oVictim.roulette2;
+						oVictim.stash = false;
+						oVictim.roulette2 = 0;
 					}
-				} else if (oVictim) {
-					oVictim.itemLock = true;
-					setTimeout(function() {
-						if (!oVictim.arme && oVictim.stash) {
-							oVictim.arme = oVictim.stash;
-							oVictim.roulette = oVictim.roulette2;
-							oVictim.stash = false;
-							oVictim.roulette2 = 0;
+					oVictim.itemLock = false;
+					for (let i=0;i<oPlayers.length;i++) {
+						if (oPlayers[i] === oVictim && kartIsPlayer(i)) {
+							updateObjHud(i);
 						}
-						oVictim.itemLock = false;
-						for (let i=0;i<oPlayers.length;i++) {
-							if (oPlayers[i] === oVictim && kartIsPlayer(i)) {
-								updateObjHud(i);
-							}
-						}
-					}, 1000);
-				}
+					}
+				}, 1000);
 			}
 			detruit(fSprite);
 		}
