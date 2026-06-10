@@ -1631,6 +1631,31 @@ function initPlan(lMap) {
 	document.body.appendChild(oPlanDiv);
 
 	oPlanDiv2.appendChild(oPlanCtn2);
+	oPlanCtn2.addEventListener("click", function(event) {
+		if (tpMapCheatEnabled && !isOnline && (course != "GP") && (course != "CM") && !$mkScreen.dataset.fs && !document.fullscreenElement) {
+			var rect = oPlanCtn2.getBoundingClientRect();
+			var clickX = event.clientX - rect.left;
+			var clickY = event.clientY - rect.top;
+			
+			var mapW = oPlanWidth2;
+			var tpX = clickX * (oPlanRealSize / mapW);
+			var tpY = clickY * (oPlanRealSize / mapW);
+			
+			if (bSelectedMirror) {
+				tpX = oMap.w - tpX;
+			}
+			
+			var oPlayer = oPlayers[0];
+			oPlayer.x = Math.max(0, tpX);
+			oPlayer.y = Math.max(0, tpY);
+			
+			clLocalVars.cheated = true;
+			if (clSelected) challengeHandleFail();
+			
+			resetRenderState();
+			stopGrinding(0);
+		}
+	});
 	updatePlanFullScreen();
 }
 function resetPlan(lMap) {
@@ -3078,7 +3103,7 @@ function arme(ID, backwards, forwards) {
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
 			
-				delete oKart.boomerangArme;
+			delete oKart.boomerangArme;
 
 			addNewItem(oKart, boomerang);
 			playDistSound(oKart, "musics/events/throw.mp3", 50);
@@ -9950,7 +9975,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = Object.keys(itemBehaviors);
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang","boo"];
 var items = {};
 
 for (var i=0;i<itemTypes.length;i++)
@@ -16301,6 +16326,7 @@ function isSameDistrib(d1,d2) {
 	return true;
 }
 function reinitLocalVars() {
+	tpMapCheatEnabled = false;
 	clLocalVars = {
 		drifted: false,
 		revDrifted: false,
@@ -21325,27 +21351,51 @@ function fallRail(oKart) {
 var clLocalVars, clHud, clSelected;
 //clSelected = challenges["track"]["7037"]["list"][3];
 
-var g_prevCheatString = "";
+var prevCheatString = "";
 var idebugInterval;
+var tpMapCheatEnabled = false;
 function openCheats() {
     let cheatCode = prompt("MKPC Console command");
     if (!cheatCode) return false;
-	if (cheatCode == "!!" && g_prevCheatString?.length) cheatCode = g_prevCheatString
-    const result = processCode(cheatCode);
-    if (result !== true) {
-        alert(typeof result === "string" ? result : "Unknown error.");
-    } else {
-		g_prevCheatString = cheatCode
-        clLocalVars.cheated = true;
-        if (clSelected)
-            challengeHandleFail();
-    }
+	if (cheatCode == "!!" && prevCheatString.length) cheatCode = prevCheatString
+    
+	const codes = cheatCode.split("&&").map(c => c.trim());
+	let anySuccess = false;
+	let errorMsg = null;
+
+	for (let i = 0; i < codes.length; i++) {
+		const code = codes[i];
+		const result = processCode(code);
+		if (result === true) {
+			anySuccess = true;
+		} else {
+			if (result === null) {
+				errorMsg = "Error: This command doesn't exist";
+			} else if (typeof result === "string") {
+				errorMsg = `${code.split(" ")[0]}: ${result}`;
+			} else {
+				errorMsg = "Unknown error.";
+			}
+			break;
+		}
+	}
+
+	if (anySuccess) {
+		prevCheatString = cheatCode;
+		clLocalVars.cheated = true;
+		if (clSelected) challengeHandleFail();
+	}
+	if (errorMsg) {
+		alert(errorMsg);
+	}
 }
+
 function cheatArgs(cheatCode) {
     if (cheatCode.charAt(0) != "/") return null;
     cheatCode = cheatCode.substring(1);
     return cheatCode.split(" ");
 }
+
 function processCode(cheatCode) {
     const rawArgs = cheatArgs(cheatCode);
     if (!rawArgs) return false;
@@ -21355,19 +21405,19 @@ function processCode(cheatCode) {
     const oPlayer = oPlayers[0];
 
     switch (command) {
-		case "give": // /give (!!)item (1) or /give (!!)item1 (!!)item2
+		case "give": // /give (!)item (1) or /give (!)item1 (!)item2
 			// 1 will always replace the first slot
 			// everything else/nothing will pick one automatically
-			// you can force the object with !! e.g /give !!carapacenoire
+			// you can force the object with ! e.g /give !carapacenoire
 			// if its not in your item distrib
-			if (![1,2].includes(args.length)) return "give: Invalid argument count";
+			if (![1, 2].includes(args.length)) return "Invalid argument count";
 
 			const itemMode = getItemMode();
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 
 			const parseItem = (itemName) => {
-				const shouldForce = itemName.startsWith("!!");
-				const parsedName = shouldForce ? itemName.substring(2) : itemName;
+				const shouldForce = itemName.startsWith("!");
+				const parsedName = shouldForce ? itemName.substring(1) : itemName;
 				const isExisting = oItemDistributions.some(oItemDistribution => 
 					oItemDistribution.value.some(item => item[parsedName] != null)
 				);
@@ -21376,7 +21426,7 @@ function processCode(cheatCode) {
 			};
 
 			const setSlotToItem = (item, slot) => {
-				if (slot === 1 || !oPlayer.arme) {
+				if (slot == 1 || !oPlayer.arme) {
 					oPlayer.arme = item;
 					oPlayer.roulette = 25;
 				} else {
@@ -21386,15 +21436,15 @@ function processCode(cheatCode) {
 			};
 
 			const item1 = parseItem(args[0]);
-			if (!item1) return "give: Item 1 is not present in your item distribution";
+			if (!item1) return "Item 1 is not present in your item distribution";
 
-			if (args.length === 1) {
+			if (args.length == 1) {
 				setSlotToItem(item1);
-			} else if (args[1] === "1" || args[1] === "2") {
-				setSlotToItem(item1, parseInt(args[1]));
+			} else if (args[1] == 1) {
+				setSlotToItem(item1, 1);
 			} else {
 				const item2 = parseItem(args[1]);
-				if (!item2) return "give: Item 2 is not present in your item distribution";
+				if (!item2) return "Item 2 is not present in your item distribution";
 				
 				setSlotToItem(item1, 1);
 				setSlotToItem(item2, 2);
@@ -21403,64 +21453,34 @@ function processCode(cheatCode) {
 			return true;
 
         case "tp": // /tp x y (r)
-			// 'x' and 'y' are in px
-			// 'r' is the optional rotation (0-360)
+			if (![2, 3].includes(args.length)) return "Invalid argument count";
 
-			// syntax
-			// 'cur' - current player position
-			// 'n' - position specified
-			// 'n+' | 'n-' - add or decrease the current position
-			// examples: /tp 100 200 90 | /tp cur 50+
-			if (![2, 3].includes(args.length)) return "tp: Invalid argument count";
+			let tpX = parseFloat(args[0]);
+			let tpY = parseFloat(args[1]);
+			let tpR = (args.length == 3) ? parseFloat(args[2]) : oPlayer.rotation;
 
-			function correctTPType(current, arg, onReturn) {
-				let result;
-				if (typeof arg === 'undefined') return current;
-				if (arg === 'cur') {                	  // current pos
-					result = current;
-				} else if (arg.endsWith('+')) {     	  // add to current pos
-					result = current + parseFloat(arg.slice(0, -1));
-				} else if (arg.endsWith('-')) {    	      // decrease current pos
-					result = current - parseFloat(arg.slice(0, -1));
-				} else {                            	  // exact position specified
-					const parsed = parseFloat(arg); 	  // sanity
-					result = isNaN(parsed) ? undefined : parsed;
-				}
+			if (isNaN(tpX)) return "Invalid x value";
+			if (isNaN(tpY)) return "Invalid y value";
+			if (isNaN(tpR)) return "Invalid r value";
 
-				let retval;
-				if (typeof onReturn === 'function') {
-					retval = onReturn(result);
-					if (typeof retval !== 'undefined') result = retval;
-				}
-
-				return result;
-			}
-
-			let newPos = {
-				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
-				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
-				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
-			};
-
-			for (let key in newPos) {
-				if (newPos[key] === undefined || isNaN(newPos[key])) {
-					return 'tp: Invalid '+key+' value';
-				}
-			}
-
-			oPlayer.x = newPos.x;
-			oPlayer.y = newPos.y;
-			oPlayer.rotation = newPos.r;
+			oPlayer.x = Math.max(0, tpX);
+			oPlayer.y = Math.max(0, tpY);
+			oPlayer.rotation = Math.abs(tpR % 360);
 
 			resetRenderState();
 			stopGrinding(0);
+			return true;
+
+		case "tpmap": // /tpmap
+			tpMapCheatEnabled = !tpMapCheatEnabled;
+			alert("Click-to-teleport on minimap: " + (tpMapCheatEnabled ? "ON" : "OFF"));
 			return true;
 
 		case "lapn":
         case "lap": // /lap l c | /lapn l c
 			// 'cur' - current lap or checkpoint
 			// /lapn will make you not teleport to the checkpoint
-            let doNotTeleport = (command === "lapn");
+            let doNotTeleport = (command == "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
             if (args[0] == "cur") t = oPlayer.tours;
@@ -21476,8 +21496,8 @@ function processCode(cheatCode) {
             if (args[1] == "cur") c = oPlayer.demitours;
             if (!args[1]) c = llMap.checkpoint.length - 1;
 
-			if (isNaN(t)) return "lap: Invalid lap value";
-			if (isNaN(c)) return "lap: Invalid checkpoint value";
+			if (isNaN(t)) return "Invalid lap value";
+			if (isNaN(c)) return "Invalid checkpoint value";
 
             const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
 			let curCheckpointCount = llMap.checkpoint.length;
@@ -21487,7 +21507,7 @@ function processCode(cheatCode) {
 
             oPlayer.tours = t;
             oPlayer.demitours = c;
-            const lMap = getCurrentLMap(oPlayer);
+            const lMap = getCurrentLMap(getCurrentLapId(oPlayer));
             const checkpoint = lMap.checkpointCoords[c];
             if (checkpoint) {
                 const nextCp = lMap.checkpointCoords[(c + 1) % lMap.checkpointCoords.length];
@@ -21506,48 +21526,32 @@ function processCode(cheatCode) {
             return true;
 
 		case "size": // /size (float | xs | md | xl)
-			if (args.length === 1) {
-				const sizeArg = args[0];
-				let newSize;
+			if (args.length != 1) return "Invalid argument count";
+			const size = args[0];
+			let newSize;
 
-				if (sizeArg === "xs") { // poison size
-					newSize = 0.6;
-				} else if (sizeArg === "md") {
-					newSize = 1;
-				} else if (sizeArg === "xl") { // mega size
-					newSize = Math.pow(1.05, 8);
-				} else {
-					newSize = parseFloat(sizeArg);
-					if (isNaN(newSize)) {
-						return "size: Invalid argument";
-					}
-				}
-
-				oPlayer.size = newSize;
-				oPlayer.mini = 0;
-				return true;
+			if      (size == "xs") newSize = 0.6; // poison size
+			else if (size == "md") newSize = 1;
+			else if (size == "xl") newSize = Math.pow(1.05, 8); // mega size
+			else {
+				newSize = parseFloat(size);
+				if (isNaN(newSize)) return "Invalid size";
 			}
-			return "size: Invalid argument count";
+
+			oPlayer.size = newSize;
+			oPlayer.mini = 0;
+			return true;
 
 		case "balloon": // /balloon (n)
-			// no n arg will give you 1 balloon
-			if (course != "BB") return "balloon: Not in battle mode";
-			if (![0,1].includes(args.length)) return "balloon: Invalid argument count";
-			let toAdd;
-			if (args.length == 0) {
-				toAdd = 1;
-			} else {
-				toAdd = parseInt(args[0]);
-			}
-			if (toAdd || !isNaN(toAdd)) {
-				oPlayer.reserve += toAdd;
-				if (oPlayer.reserve > 10) {
-					oPlayer.reserve = 10;
-				}
-				updateBalloonHud(document.getElementById("compteur0"), oPlayer);
-				return true;
-			}
-			return "balloon: Unknown error";
+			if (course != "BB") return "Not in battle mode";
+			if (![0, 1].includes(args.length)) return "Invalid argument count";
+
+			let toAdd = (args.length == 0) ? 1 : parseInt(args[0]); // 1 as fallback if no n arg
+			if (isNaN(toAdd)) return "Invalid balloon count";
+
+			oPlayer.reserve = Math.max(0, Math.min(10, oPlayer.reserve + toAdd));
+			updateBalloonHud(document.getElementById("compteur0"), oPlayer);
+			return true;
 
 		case "idebug":
 			if (idebugInterval) {
@@ -21643,9 +21647,10 @@ function processCode(cheatCode) {
 				
 				contentDiv.innerHTML = html;
 			}, 100);
+			return true;
 
-        default:
-            return "Error: This command doesn't exist";
+        default: // cheat not found
+            return null;
     }
 }
 
