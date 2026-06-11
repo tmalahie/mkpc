@@ -90,7 +90,7 @@ if ($course) {
 		mysql_query('SET @place=0');
 		mysql_query(
 			'UPDATE mkplayers p INNER JOIN
-			(SELECT id,(@place:=@place+1) AS nplace FROM mkplayers WHERE course='.$course.' ORDER BY place,id) t
+			(SELECT id,(@place:=@place+1) AS nplace FROM mkplayers WHERE course='.$course.' ORDER BY (place=0),place,RAND()) t
 			ON t.id=p.id SET p.place=t.nplace'
 		);
 	}
