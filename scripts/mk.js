@@ -692,30 +692,52 @@ function updateMusicVolume(embed, volume, lastVolume) {
 	}
 }
 function fadeInMusic(embed, volume, ratio) {
+	if (!embed)
+		return;
 	if (embed.fadingOut)
 		return;
 	embed.fadingIn = true;
 	volume /= ratio;
 	if (volume < 1) {
 		setMusicVolume(embed,volume);
-		setTimeout(function(){fadeInMusic(embed,volume,ratio)},100);
+		if (embed.fadeTimeout)
+			clearTimeout(embed.fadeTimeout);
+		embed.fadeTimeout = setTimeout(function(){
+			delete embed.fadeTimeout;
+			fadeInMusic(embed,volume,ratio);
+		},100);
 	}
 	else {
 		embed.fadingIn = false;
+		if (embed.fadeTimeout) {
+			clearTimeout(embed.fadeTimeout);
+			delete embed.fadeTimeout;
+		}
 		setMusicVolume(embed,1);
 	}
 }
 function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
+	if (!embed)
+		return;
 	if (embed.fadingIn)
 		return;
 	embed.fadingOut = true;
 	volume *= ratio;
 	if (volume > 0.2) {
 		setMusicVolume(embed,volume*vSnd);
-		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,vSnd)},100);
+		if (embed.fadeTimeout)
+			clearTimeout(embed.fadeTimeout);
+		embed.fadeTimeout = setTimeout(function(){
+			delete embed.fadeTimeout;
+			fadeOutMusic(embed,volume,ratio,remove,vSnd);
+		},100);
 	}
 	else {
 		embed.fadingOut = false;
+		if (embed.fadeTimeout) {
+			clearTimeout(embed.fadeTimeout);
+			delete embed.fadeTimeout;
+		}
 		if (remove === false) {
 			pauseMusic(embed);
 			setMusicVolume(embed,vSnd);
@@ -3538,7 +3560,11 @@ function postResumeMusic(elt, ratio) {
 	var vSnd = bMusic ? vMusic : vSfx;
 	fadeOutMusic(cMusicEmbed,1,ratio,true,vSnd);
 	if (elt) {
-		setTimeout(function() {
+		if (elt.resumeTimeout) {
+			clearTimeout(elt.resumeTimeout);
+		}
+		elt.resumeTimeout = setTimeout(function() {
+			delete elt.resumeTimeout;
 			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
 				fadeInMusic(elt,0.2,ratio);
 				unpauseMusic(elt);
