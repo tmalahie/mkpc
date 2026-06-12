@@ -7998,6 +7998,78 @@ function lapIdType(key) {
 		}
 	};
 }
+
+function SpinyShellAlarm(isBlue, target) {
+	this.exists = false;
+	const oKartTarget = aKarts.find(oKart => oKart.id === target);
+
+	for (let i = 0; i < oPlayers.length; i++) {
+		this.sprites = [];
+		if (oKartTarget === oPlayers[i]) {
+			for (let j = 0; j < 2; j++) {
+				const sprite = document.createElement("img");
+				sprite.className = "pixelated";
+				sprite.src = `images/sprites/sprite_${isBlue ? "blue" : "dark"}shell_alarm${j}.png`;
+				sprite.style.position = "absolute";
+				sprite.style.left = `${iScreenScale * 38.5}px`;
+				sprite.style.bottom = `${iScreenScale}px`;
+				sprite.style.zIndex = 19003;
+				sprite.style.transform = "scale(1.4)";
+				sprite.style.transition = `transform ${SPF / 1000}s`;
+				this.sprites.push(sprite);
+				oContainers[i].appendChild(sprite);
+			}
+
+			this.oPlayerIdx = i;
+			this.exists = true;
+			break;
+		}
+	}
+
+	if (kartIsPlayer(oKartTarget) && this.exists) {
+		this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_coming.mp3");
+		this.sfx.loop = true;
+		this.type = 1;
+	}
+}
+
+SpinyShellAlarm.prototype.play = function() {
+	if (!this.exists)
+		return;
+
+	for (let i = 0; i < 2; i++) {
+		this.sprites[i].style.opacity = (timer + i) % 2;
+		this.sprites[i].style.transform = `scale(1.${4 + (timer % 2) * 2})`;
+	}
+}
+
+SpinyShellAlarm.prototype.targetSfx = function() {
+	document.body.removeChild(this.sfx);									
+	this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_target.mp3");
+	this.sfx.volume = 1;
+	this.sfx.loop = true;
+	this.type = 2;
+}
+
+SpinyShellAlarm.prototype.remove = function() {
+	this.sfx.volume = 0;
+	const step = SPF / 1000;
+
+	for (let i = 0; i < 2; i++) {
+		let opacity = 1;
+
+		const timer = setInterval(() => {
+			opacity -= step;
+			if (opacity <= 0) {
+				oContainers[this.oPlayerIdx].removeChild(this.sprites[i]);
+				clearInterval(timer);
+			}
+			else
+				this.sprites[i].style.opacity = opacity;
+		}, SPF);
+	}
+}
+
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
 	"banane": {
@@ -9155,6 +9227,14 @@ var itemBehaviors = {
 			}
 			var aPos = [fSprite.x,fSprite.y];
 			if (fSprite.aipoint == -1) {
+				// create alarm UI
+				if (!fSprite.alarm)
+					fSprite.alarm = new SpinyShellAlarm(true, fSprite.target);
+
+				// play alarm if player is target
+				if (fSprite.alarm.exists)
+					fSprite.alarm.play();
+
 				if (fSprite.cooldown > 0) {
 					var oKart = aKarts[cible];
 					if (oKart) {
@@ -9196,6 +9276,10 @@ var itemBehaviors = {
 							var orbitRadiusV = 8;
 							var orbitBaseZ = 23;
 							if (fSprite.cooldown > itemBehavior.orbitEnd) {
+								// next SFX
+								if (fSprite.alarm.exists && fSprite.alarm.type === 1)
+									fSprite.alarm.targetSfx();
+
 								var orbitR = (itemBehavior.cooldown0 - 1 - fSprite.cooldown)/(itemBehavior.cooldown0 - 2 - itemBehavior.orbitEnd);
 								var angle = (orbitR * 1.5)*Math.PI;
 								var spiralRampTicks = 3;
@@ -9224,6 +9308,10 @@ var itemBehaviors = {
 							}
 							fSprite.cooldown--;
 							if (!fSprite.cooldown) {
+								// alarm fade out
+								if (fSprite.alarm.exists)
+									fSprite.alarm.remove();
+
 								for (var k=0;k<oPlayers.length;k++) {
 									(function(k) {
 										var oSpriteImg = fSprite.sprite[k].img;
@@ -9383,6 +9471,14 @@ var itemBehaviors = {
 			var relSpeed = cappedRelSpeed();
 			var relSpeed2 = relSpeed*relSpeed;
 			if (fSprite.aipoint == -1) {
+				// create alarm UI
+				if (!fSprite.alarm)
+					fSprite.alarm = new SpinyShellAlarm(false, fSprite.target);
+
+				// play alarm if player is target
+				if (fSprite.alarm.exists)
+					fSprite.alarm.play();
+
 				if (fSprite.cooldown > 0) {
 					var oKart = aKarts[cible];
 					if (oKart) {
@@ -9417,6 +9513,10 @@ var itemBehaviors = {
 									fMoveY /= fNewMove;
 								}
 							}
+							// next SFX
+							if (fSprite.alarm.exists && fSprite.alarm.type === 1)
+								fSprite.alarm.targetSfx();
+							
 							var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
 							if (r < 0) r = 0;
 							var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
@@ -9430,6 +9530,10 @@ var itemBehaviors = {
 								fSprite.sprite[k].setState(Math.round(Math.random()));
 							fSprite.cooldown--;
 							if (!fSprite.cooldown) {
+								// alarm fade out
+								if (fSprite.alarm.exists)
+									fSprite.alarm.remove();
+
 								for (var k=0;k<oPlayers.length;k++)
 									fSprite.sprite[k].setState(0);
 							}
