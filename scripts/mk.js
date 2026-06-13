@@ -7974,10 +7974,18 @@ function SpinyShellAlarm(isBlue, target) {
 	}
 }
 
-SpinyShellAlarm.prototype.play = function() {
-	if (!this.exists)
-		return;
+SpinyShellAlarm.prototype.play = function(target) {
+	// force destroy if shell lock resync changed target
+	if (aKarts[this.oPlayerIdx].id !== target) {
+		for (let i = 0; i < 2; i++)
+			oContainers[this.oPlayerIdx].removeChild(this.sprites[i]);
 
+		removeIfExists(this.sfx);
+		this.exists = false;
+		return;
+	}
+
+	// animation
 	for (let i = 0; i < 2; i++) {
 		this.sprites[i].style.opacity = (timer + i) % 2;
 		this.sprites[i].style.transform = `scale(1.${4 + (timer % 2) * 2})`;
@@ -7985,10 +7993,7 @@ SpinyShellAlarm.prototype.play = function() {
 }
 
 SpinyShellAlarm.prototype.targetSfx = function() {
-	if (!this.sfx)
-		return;
-
-	document.body.removeChild(this.sfx);									
+	removeIfExists(this.sfx);
 	this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_target.mp3");
 	this.sfx.volume = 1;
 	this.sfx.loop = true;
@@ -7996,9 +8001,7 @@ SpinyShellAlarm.prototype.targetSfx = function() {
 }
 
 SpinyShellAlarm.prototype.remove = function() {
-	if (this.sfx)
-		this.sfx.volume = 0;
-
+	removeIfExists(this.sfx);
 	const step = SPF / 1000;
 
 	for (let i = 0; i < 2; i++) {
@@ -8069,7 +8072,7 @@ const SpinyShellBehavior = {
 
 			// play alarm if player is target
 			if (fSprite.alarm.exists)
-				fSprite.alarm.play();
+				fSprite.alarm.play(fSprite.target);
 
 			if (fSprite.cooldown > 0) {
 				var oKart = aKarts[cible];
