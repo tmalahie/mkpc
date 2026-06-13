@@ -8026,7 +8026,10 @@ const SpinyShellBehavior = {
 	orbitEnd: 6,
 
 	init: function(fSprite) {
-		nextBlueShellCooldown = 450;
+		if (fSprite.isBlue)
+			nextBlueShellCooldown = 450;
+		else
+			nextDarkShellCooldown = 450;
 	},
 
 	move(fSprite) {
@@ -9506,7 +9509,7 @@ var itemBehaviors = {
 		init: function(fSprite) {
 			SpinyShellBehavior.init(fSprite);
 		},
-		
+
 		move: function(fSprite) {
 			SpinyShellBehavior.move(fSprite);
 		},
@@ -19335,10 +19338,12 @@ function move(getId, triggered) {
 					}
 					if (items["carapace-bleue"].length)
 						forbiddenItems["carapacebleue"] = 1;
-					if (items["carapace-noire"].length)
-						forbiddenItems["carapacenoire"] = 1;
 					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
 						forbiddenItems["carapacebleue"] = 1;
+					if (items["carapace-noire"].length)
+						forbiddenItems["carapacenoire"] = 1;
+					else if (nextDarkShellCooldown && (itemDistribution.blueshelldelay != 0))
+						forbiddenItems["carapacenoire"] = 1;
 					if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
@@ -22068,13 +22073,15 @@ function ai(oKart) {
 		}
 	}
 }
-var nextBlueShellCooldown, nextPowCooldown;
+var nextBlueShellCooldown, nextDarkShellCooldown, nextPowCooldown;
 function moveItems() {
 	collisionTest = COL_OBJ;
 	collisionTeam = undefined;
 	clLocalVars.currentKart = undefined;
 	if (nextBlueShellCooldown)
 		nextBlueShellCooldown--;
+	if (nextDarkShellCooldown)
+		nextDarkShellCooldown--;
 	if (nextPowCooldown)
 		nextPowCooldown--;
 
