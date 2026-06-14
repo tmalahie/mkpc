@@ -27091,6 +27091,7 @@ function selectItemScreen(oScr, callback, options) {
 	oScr2.style.top = "0px";
 	oScr2.style.zIndex = 4;
 	oScr2.style.backgroundColor = "#000";
+	oScr2.focus();
 
 	var oTableItems = document.createElement("table");
 	oTableItems.style.color = "white";
