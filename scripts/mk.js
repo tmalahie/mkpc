@@ -7940,6 +7940,10 @@ function lapIdType(key) {
 
 function SpinyShellAlarm(isBlue, target) {
 	this.exists = false;
+
+	if (gameSettings.alarmDisabled)
+		return;
+
 	const oKartTarget = aKarts.find(oKart => oKart.id === target);
 
 	for (let i = 0; i < oPlayers.length; i++) {
@@ -32968,11 +32972,12 @@ function editCommands(options) {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nowater' : toLanguage('Disable water animation (Palm Shore Arena)', 'Désactiver l\'animation de l\'eau (DS Feuille de Palmier)'),
-		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
+		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map'),
+		'spd': toLanguage('Enable speedometer', 'Activer le compteur de vitesse'),
+		'alarmDisabled': toLanguage('Disable Blue Shell alarm', 'Désactiver l\'alarme de la Carapace Bleue')
 	};
 	for (var key in allGraphicSettings)
 		showGraphicSetting(key, allGraphicSettings[key]);
-	showGraphicSetting('spd', toLanguage('Enable speedometer', 'Activer le compteur de vitesse'));
 	var $controlSettingsH2 = document.createElement("div");
 	$controlSettingsH2.className = "control-settings-info";
 	$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");
