@@ -9666,7 +9666,7 @@ var itemBehaviors = {
 						}
 
 						// give back item
-						if (key) {
+						if (key && owner.tours <= oMap.tours) {
 							owner[key] = "boomerang";
 							owner["roulette" + (key === "arme" ? "" : "2")] = 25;
 
