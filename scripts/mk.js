@@ -3039,9 +3039,7 @@ function arme(ID, backwards, forwards) {
 				collideFrame: null,
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
-			
-			if (oKart.boomerangArme === 1)
-				delete oKart.boomerangArme;
+			delete oKart.boomerangArme;
 
 			addNewItem(oKart, boomerang);
 			playDistSound(oKart, "musics/events/throw.mp3", 50);
