@@ -9690,9 +9690,9 @@ var itemBehaviors = {
 
 				// pierce ground items
 				if (fSprite.z < 12) {
-					while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-					while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-					while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+					while (touche_banane(fSprite.x, fSprite.y, owner.using, speedX, speedY));
+					while (touche_cverte(fSprite.x, fSprite.y, owner.using, speedX, speedY));
+					while (touche_crouge(fSprite.x, fSprite.y, owner.using, speedX, speedY));
 				}
 
 				// refresh SFX sound
