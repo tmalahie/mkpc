@@ -18659,10 +18659,14 @@ function resetDatas() {
 							var lMap = getCurrentLMap(getCurrentLapId(oKart));
 							oKart.demitours = (getLastCp(oKart)+nDemitours)%lMap.checkpoint.length;
 						}
-						if ((oKart.billball >= 25) && !aBillBall) {
-							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
-							resetSpriteHeight(oKart.sprite[0]);
-							oKart.aipoint = undefined;
+						if (oKart.billball) {
+							if (!aBillBall) {
+								oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
+								resetSpriteHeight(oKart.sprite[0]);
+							}
+							if (oKart.controller !== identifiant) {
+								oKart.aipoint = undefined;
+							}
 						}
 						else if ((oKart.etoile >= 50) && !aEtoile)
 							oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
