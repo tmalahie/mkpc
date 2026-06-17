@@ -9552,7 +9552,7 @@ var itemBehaviors = {
 		}
 	},
 	"boomerang": {
-		size: 0.90,
+		size: 0.85,
 		sync: [floatType("x"), floatType("y"), floatType("z"), floatType("vx"), floatType("vy"), intType("owner"), byteType("team"), byteType("throw"), intType("frame"), intType("maxSpeed")],
 		fadedelay: 200,
 		frminv: true,
@@ -17617,7 +17617,7 @@ function touche_boomerang_aux(pos, movement, boomerang) {
 	if (itemInteractionsDisabled(boomerang))
 		return false;
 
-	const size = 8;
+	const size = 6;
 	const rect = [boomerang.x - size, boomerang.y - size, size * 2, size * 2];
 	const inHitbox = pointInRectangle(pos.x, pos.y, rect);
 	const crossHitbox = movement ? pointCrossRectangle(pos.x, pos.y, movement.x, movement.y, rect) : false;
