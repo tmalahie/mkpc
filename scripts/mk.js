@@ -18080,12 +18080,12 @@ function dropBoxDecorLoot(obj, pos, distrib) {
 	}
 }
 
-function touche_asset(aPosX,aPosY,aPosZ, iX,iY, isBoo) {
+function touche_asset(aPosX,aPosY,aPosZ, iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	var turningAssets = ["pointers", "flippers"];
 	for (var i=0;i<turningAssets.length;i++) {
 		var key = turningAssets[i];
-		if (lMap[key] && !isBoo) {
+		if (lMap[key]) {
 			var tau = 2*Math.PI;
 			for (var j=0;j<lMap[key].length;j++) {
 				var asset = lMap[key][j];
@@ -18138,7 +18138,7 @@ function touche_asset(aPosX,aPosY,aPosZ, iX,iY, isBoo) {
 
 	{
 		var key = "oils";
-		if (lMap[key] && !isBoo) {
+		if (lMap[key]) {
 			for (var i=0;i<lMap[key].length;i++) {
 				var asset = lMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cW = Math.max(4,asset[1][2]/2), cH = Math.max(4,asset[1][3]/2);
@@ -19523,16 +19523,17 @@ function move(getId, triggered) {
 
 			if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
-				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY, oKart.boo > 0);
+				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
+				const isBoo = oKart.boo > 0;
 				if (asset) {
 					var decorType = asset[1][0].src;
 					var isCustom = asset[1][0].custom;
 					if (isCustom) decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
-						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0) && !isBoo) {
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(20);
@@ -19542,7 +19543,7 @@ function move(getId, triggered) {
 						break;
 					case "pointers":
 						if (!isCustom) decorType = 'assets/pivothand';
-						if (hittable) {
+						if (hittable && !isBoo) {
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(42);
