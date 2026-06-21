@@ -7999,9 +7999,12 @@ SpinyShellAlarm.prototype.play = function(target) {
 SpinyShellAlarm.prototype.targetSfx = function() {
 	removeIfExists(this.sfx);
 	this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_target.mp3");
-	this.sfx.volume = 1;
-	this.sfx.loop = true;
-	this.type = 2;
+
+	if (this.sfx) {
+		this.sfx.volume = 1;
+		this.sfx.loop = true;
+		this.type = 2;
+	}
 }
 
 SpinyShellAlarm.prototype.remove = function() {
@@ -8313,6 +8316,7 @@ const SpinyShellBehavior = {
 				}
 			}
 		}
+		return 0;
 	},
 
 	create(isBlue, oKart) {
@@ -18793,14 +18797,14 @@ function resetDatas() {
 			iDeco();
 			interruptGame();
 		}
-	});/*.catch(function(e) {
+	}).catch(function(e) {
 		console.error(e);
 		if (!refreshDatas) {
 			refreshDatas = true;
 			for (var i=aSyncItems.length-1;i>=0;i--)
 				syncItems.unshift(aSyncItems[i]);
 		}
-	});*/
+	});
 	refreshDatas = false;
 }
 
