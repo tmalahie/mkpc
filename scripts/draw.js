@@ -972,18 +972,23 @@ function closeShortcutOptions() {
 }
 
 function openBoxDecorOptions(self, decorData) {
-	const decorIdx = self.data.decors.box.indexOf(decorData);
-	if (decorIdx === -1)
-		return;
+    showBoxDecorData({
+        value: decorData,
+        callback: function(value) {
+            storeHistoryData(self.data);
 
-	showBoxDecorData({
-		value: decorData,
-		callback: function(value) {
-			storeHistoryData(self.data),
-			decorData = value;
-			self.data.decors.box[decorIdx] = decorData;
-		}
-	});
+			if (value.applyAll) {
+				for (const decor of self.data.decors[self.state.type]) {
+					decor.items = value.items;
+					decor.throw = value.throw;
+				}
+			}
+			else {
+				decorData.items = value.items;
+				decorData.throw = value.throw;
+			}
+        }
+    });
 }
 function showBoxDecorData(options) {
 	options = options || {};
@@ -1035,16 +1040,14 @@ function showBoxDecorData(options) {
 			const value = {
 				pos: {x: options.value.pos.x, y: options.value.pos.y},
 				items: distrib,
-				throw: $form.elements["throw"].checked
+				throw: $form.elements["throw"].checked,
+				applyAll: event.submitter.getAttribute("name") === "applyAll"
 			};
 
 			options.callback(value);
 		}
 		closeBoxDecorOptions();
 	}
-}
-function applyAllBoxDecors() {
-	// TODO
 }
 function showBoxDecorHelp(helpType) {
 	let msg;
