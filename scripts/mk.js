@@ -2806,10 +2806,9 @@ function setBooState(oKart, getId, duration) {
 	if (oKart.booGiveIn > 0)
 		return false;
 
-	if (oKart.etoile)
-		setStarState(oKart, 1);
+	if (!oKart.etoile)
+		oKart.boo = duration;
 
-	oKart.boo = duration;
 	oKart.booGiveIn = itemBehaviors["boo"].beforeGive;
 	const shroomIdx = itemUniqueTypes.indexOf("champi");
 	addNewItem(oKart, {type: "boo", owner: oKart.id, target: booGetTarget(oKart), stealItem: shroomIdx, stealCount: 1});
