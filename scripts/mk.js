@@ -20152,8 +20152,10 @@ function move(getId, triggered) {
 				delete oKart.boomerangStash;
 
 				// boo opacity
-				oKart.sprite[0].div.style.opacity = "";
-				oKart.driftSprite[0].div.style.opacity = "";
+				for (let i = 0; i < oPlayers.length; i++) {
+					oKart.sprite[i].div.style.opacity = "";
+					oKart.driftSprite[i].div.style.opacity = "";
+				}
 
 				if (oKart.cpu) {
 					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
