@@ -1287,6 +1287,7 @@ CREATE TABLE `mkplayers` (
   `etoile` tinyint(2) NOT NULL DEFAULT 0,
   `megachampi` tinyint(2) NOT NULL DEFAULT 0,
   `billball` tinyint(2) NOT NULL DEFAULT 0,
+  `boo` tinyint(2) NOT NULL DEFAULT 0,
   `eclair` tinyint(3) NOT NULL DEFAULT 0,
   `place` tinyint(1) NOT NULL DEFAULT 0,
   `aipoint` smallint(6) NOT NULL DEFAULT 0,
