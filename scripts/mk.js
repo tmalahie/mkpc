@@ -18719,7 +18719,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aZ = oKart.z, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve, aTourne = oKart.tourne;
+						var aX = oKart.x, aY = oKart.y, aZ = oKart.z, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve, aTourne = oKart.tourne, aBoo = oKart.boo;
 						var nDemitours;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
@@ -18836,6 +18836,9 @@ function resetDatas() {
 							oKart.turnSound = undefined;
 						if ((!aTourne && oKart.tourne) || (!aBillBall && oKart.billball))
 							stopGrinding(j);
+						
+						if (!aBoo)
+							booSetOpacity(oKart, false);
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
 							move(j, true);
