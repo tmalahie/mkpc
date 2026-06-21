@@ -2798,10 +2798,7 @@ function setStarState(oKart, duration) {
 function resetBooState(oKart) {
 	if (oKart.boo) {
 		oKart.boo = 0;
-		for (let i = 0; i < oPlayers.length; i++) {
-			oKart.sprite[i].div.style.opacity = "";
-			oKart.driftSprite[i].div.style.opacity = "";
-		}
+		booSetOpacity(oKart, false);
 	}
 }
 
@@ -17993,6 +17990,20 @@ function booGetItemName(index, count) {
 	return name.replace("-", "");
 }
 
+function booSetOpacity(oKart, enable) {
+	const opacity = enable ? 0.5 : "";
+
+	for (let i = 0; i < oPlayers.length; i++) {
+		oKart.sprite[i].div.style.opacity = opacity;
+		oKart.driftSprite[i].div.style.opacity = opacity;
+
+		if (oKart.ballons) {
+			for (let j = 0; j < oKart.ballons.length; j++)
+				oKart.ballons[j][i].img.style.opacity = opacity;
+		}
+	}
+}
+
 function hopKart(oKart, height = 1) {
 	oKart.z = height;
 	oKart.heightinc = height / 2;
@@ -20150,13 +20161,6 @@ function move(getId, triggered) {
 				delete oKart.champior0;
 				delete oKart.boomerangArme;
 				delete oKart.boomerangStash;
-
-				// boo opacity
-				for (let i = 0; i < oPlayers.length; i++) {
-					oKart.sprite[i].div.style.opacity = "";
-					oKart.driftSprite[i].div.style.opacity = "";
-				}
-
 				if (oKart.cpu) {
 					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
 						oKart.aipoint = lastCp.aipoint;
@@ -20184,6 +20188,7 @@ function move(getId, triggered) {
 					if (oKart.etoile)
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				}
+				booSetOpacity(oKart, false);
 				resetPowerup(oKart);
 				resetWrongWay(oKart);
 				if (!oKart.cpu) {
@@ -21002,25 +21007,18 @@ function move(getId, triggered) {
 	}
 
 	if (oKart.boo) {
-		for (let i = 0; i < oPlayers.length; i++) {
-			oKart.sprite[i].div.style.opacity = 0.5;
-			oKart.driftSprite[i].div.style.opacity = 0.5;
-		}
+		booSetOpacity(oKart, true);
 
-		if (oKart.tours >= oMap.tours + 1 && oKart.boo) // if player finished
+		// if player finished
+		if (oKart.tours >= oMap.tours + 1 && oKart.boo)
 			resetBooState(oKart);
 
 		else {
 			oKart.boo--;
 
-			if (oKart.boo <= 0 && !oKart.etoile) {
-				for (let i = 0; i < oPlayers.length; i++) {
-					oKart.sprite[i].div.style.opacity = "";
-					oKart.driftSprite[i].div.style.opacity = "";
-				}
-
-				if (!oKart.etoile)
-					playIfShould(oKart, "musics/events/boo_end.mp3");
+			if (!oKart.boo) {
+				booSetOpacity(oKart, false);
+				playIfShould(oKart, "musics/events/boo_end.mp3");
 			}
 		}
 	}
