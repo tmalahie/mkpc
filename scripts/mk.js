@@ -8747,7 +8747,7 @@ var itemBehaviors = {
 			if (touche_bobomb_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					if (fSprite.cooldown <= 0) {
-						var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+						var pExplose = fSprite.cooldown < -5 ? 42 : 62;
 						handleExplosionHit(getId, pExplose);
 					}
 				}
@@ -9319,7 +9319,7 @@ var itemBehaviors = {
 			var oKart = aKarts[getId];
 			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
-					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+					var pExplose = fSprite.cooldown < -5 ? 42 : 62;
 					handleExplosionHit(getId, pExplose);
 				}
 			}
@@ -9509,7 +9509,7 @@ var itemBehaviors = {
 			var oKart = aKarts[getId];
 			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
-					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+					var pExplose = fSprite.cooldown < -5 ? 42 : 62;
 					handleExplosionHit(getId, pExplose);
 				}
 			}
@@ -13663,7 +13663,7 @@ function colKart(getId) {
 								loseBall(iKart);
 								if (pKart.ballons.length < 3)
 									addNewBalloon(pKart,qKart.team);
-								qKart.spin(62);
+								qKart.spin(42);
 								stopDrifting(iKart);
 							}
 						}
@@ -13724,7 +13724,7 @@ function colKart(getId) {
 							var iKart = aKarts.indexOf(qKart);
 							handleHit2(pKart,qKart);
 							loseBall(iKart);
-							qKart.spin(62);
+							qKart.spin(42);
 							stopDrifting(iKart);
 							loseUsingItems(qKart);
 							dropCurrentItem(qKart);
@@ -17507,7 +17507,7 @@ function touche_bobomb(iX, iY, iP, opts) {
 				// put on track / thrown
 				if (touche_bobomb_aux(iX,iY, oBox, opts)) {
 					if (oBox.cooldown <= 0) {
-						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
+						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 62):false;
 						if (res) handleHit(oBox);
 						return res;
 					}
@@ -17560,7 +17560,7 @@ function touche_cbleue(iX, iY) {
 	for (var i=0;i<items["carapace-bleue"].length;i++) {
 		var oBox = items["carapace-bleue"][i];
 		if (touche_cbleue_aux(iX,iY, oBox)) {
-			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
+			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 62):false;
 			if (res) handleHit(oBox);
 			return res;
 		}
@@ -17568,7 +17568,7 @@ function touche_cbleue(iX, iY) {
 	for (var i=0;i<items["carapace-noire"].length;i++) {
 		var oBox = items["carapace-noire"][i];
 		if (touche_cbleue_aux(iX,iY, oBox)) {
-			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
+			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 62):false;
 			if (res) handleHit(oBox);
 			return res;
 		}
@@ -17661,7 +17661,7 @@ function hopKart(oKart, height = 1) {
 
 function powEffect(i, oKart, fSprite) {
 	let fullHit = oKart.z == 0;
-	let spinPower = fullHit ? 62 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
+	let spinPower = fullHit ? 42 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
 	if (spinPower % 2 === 1) spinPower++;
 
 	oKart.spin(spinPower);
@@ -20921,7 +20921,7 @@ function handleExplosionHit(getId, pExplose) {
 	loseUsingItems(oKart);
 	stopDrifting(getId);
 
-	if (pExplose >= 84) {
+	if (pExplose >= 62) {
 		oKart.champi = 0;
 		delete oKart.champiType;
 		oKart.speed = 0;
