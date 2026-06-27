@@ -8747,7 +8747,7 @@ var itemBehaviors = {
 			if (touche_bobomb_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					if (fSprite.cooldown <= 0) {
-						var pExplose = fSprite.cooldown < -5 ? 42 : 62;
+						var pExplose = fSprite.cooldown < -5 ? 20 : 62;
 						handleExplosionHit(getId, pExplose);
 					}
 				}
@@ -9319,7 +9319,7 @@ var itemBehaviors = {
 			var oKart = aKarts[getId];
 			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
-					var pExplose = fSprite.cooldown < -5 ? 42 : 62;
+					var pExplose = fSprite.cooldown < -5 ? 20 : 62;
 					handleExplosionHit(getId, pExplose);
 				}
 			}
@@ -9509,7 +9509,7 @@ var itemBehaviors = {
 			var oKart = aKarts[getId];
 			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
-					var pExplose = fSprite.cooldown < -5 ? 42 : 62;
+					var pExplose = fSprite.cooldown < -5 ? 20 : 62;
 					handleExplosionHit(getId, pExplose);
 				}
 			}
@@ -17507,7 +17507,7 @@ function touche_bobomb(iX, iY, iP, opts) {
 				// put on track / thrown
 				if (touche_bobomb_aux(iX,iY, oBox, opts)) {
 					if (oBox.cooldown <= 0) {
-						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 62):false;
+						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 20 : 62):false;
 						if (res) handleHit(oBox);
 						return res;
 					}
@@ -17560,7 +17560,7 @@ function touche_cbleue(iX, iY) {
 	for (var i=0;i<items["carapace-bleue"].length;i++) {
 		var oBox = items["carapace-bleue"][i];
 		if (touche_cbleue_aux(iX,iY, oBox)) {
-			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 62):false;
+			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 20 : 62):false;
 			if (res) handleHit(oBox);
 			return res;
 		}
@@ -17568,7 +17568,7 @@ function touche_cbleue(iX, iY) {
 	for (var i=0;i<items["carapace-noire"].length;i++) {
 		var oBox = items["carapace-noire"][i];
 		if (touche_cbleue_aux(iX,iY, oBox)) {
-			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 62):false;
+			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 20 : 62):false;
 			if (res) handleHit(oBox);
 			return res;
 		}
