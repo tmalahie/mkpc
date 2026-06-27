@@ -8699,7 +8699,6 @@ var itemBehaviors = {
 					}
 					else
 						detruit(fSprite);
-					break;
 				}
 
 				if (isMoving && (i%2) && !fSprite.z && handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY)))
