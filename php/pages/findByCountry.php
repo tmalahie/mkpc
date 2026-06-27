@@ -11,7 +11,6 @@ if (isset($_GET['country'])) {
 }
 $sort = isset($_GET['sort']) ? $_GET['sort']:null;
 $pageNum = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$MAX_INDEXED_PAGE = 100;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -19,12 +18,8 @@ $MAX_INDEXED_PAGE = 100;
 <title>Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
-if ($pageNum > $MAX_INDEXED_PAGE) {
-	?>
-<meta name="robots" content="noindex,follow" />
-	<?php
-}
 ?>
+<meta name="robots" content="noindex,follow" />
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 
 <?php
@@ -93,11 +88,9 @@ $place = ($page-1)*20;
 	<tr><td colspan="3" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
 	<?php
 	function pageLink($page, $isCurrent) {
-		global $MAX_INDEXED_PAGE;
 		$get = $_GET;
 		$get['page'] = $page;
-		$rel = $page > $MAX_INDEXED_PAGE ? ' rel="nofollow"' : '';
-		echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'"'. $rel .'>'.$page.'</a>').'&nbsp; ';
+		echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'" rel="nofollow">'.$page.'</a>').'&nbsp; ';
 	}
 	$limite = ceil($nb_temps/20);
 	require_once('../includes/utils-paging.php');

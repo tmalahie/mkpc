@@ -320,7 +320,7 @@ include('../includes/menu.php');
 				</div>
 				<?php
 				$pts = $getInfos['pts_vs'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs!=5000) AND (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
+				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
 				$place = 1+$place['cnt'];
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
@@ -329,7 +329,7 @@ include('../includes/menu.php');
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_battle'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle!=5000) AND (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
+				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
 				$place = 1+$place['cnt'];
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';

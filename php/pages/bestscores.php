@@ -65,8 +65,8 @@ else
 	<?php
 	$RES_PER_PAGE = 20;
 	$offset = ($page-1)*$RES_PER_PAGE;
-	$where = $joueur ? 'j.nom="'.$joueur.'"':'(j.'.$pts_.'!=5000) AND j.deleted=0';
-	$records = mysql_query('SELECT j.id,j.nom,j.'.$pts_.' AS pts,c.code FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. $where .' ORDER BY j.'.$pts_.' DESC,j.id LIMIT '. $offset .','.$RES_PER_PAGE);
+	$where = $joueur ? 'j.nom="'.$joueur.'"':'j.deleted=0';
+	$records = mysql_query('SELECT r.id,r.nom,r.pts,c.code FROM (SELECT j.id,j.nom,j.'.$pts_.' AS pts FROM `mkjoueurs` j WHERE '. $where .' ORDER BY j.'.$pts_.' DESC,j.id LIMIT '. $offset .','.$RES_PER_PAGE.') r LEFT JOIN `mkprofiles` p ON p.id=r.id LEFT JOIN `mkcountries` c ON c.id=p.country ORDER BY r.pts DESC,r.id');
 	if ($joueur) {
 		if ($record = mysql_fetch_array($records))
 			$nb_temps = $records ? 1:0;
@@ -89,7 +89,7 @@ else
 	</tr>
 	<?php
 		if ($joueur) {
-			$getPlaces = mysql_query('SELECT j.id,j.nom FROM `mkjoueurs` j WHERE (j.'.$pts_.'!=5000) AND (j.'.$pts_.'>'. $record['pts'] .' OR (j.'.$pts_.'='. $record['pts'] .' AND j.id<'. $record['id'] .')) AND j.deleted=0');
+			$getPlaces = mysql_query('SELECT j.id,j.nom FROM `mkjoueurs` j WHERE (j.'.$pts_.'>'. $record['pts'] .' OR (j.'.$pts_.'='. $record['pts'] .' AND j.id<'. $record['id'] .')) AND j.deleted=0');
 			$place = 1+mysql_numrows($getPlaces);
 			$page = 0;
 		}
