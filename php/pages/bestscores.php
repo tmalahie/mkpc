@@ -5,6 +5,8 @@ include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 $game = $isBattle ? 'battle':'vs';
 $pts_ = 'pts_'.$game;
+$pageNum = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$MAX_INDEXED_PAGE = 100;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -12,6 +14,11 @@ $pts_ = 'pts_'.$game;
 <title><?php echo $language ? 'Online mode leaderboard':'Classement mode en ligne'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
+if ($pageNum > $MAX_INDEXED_PAGE) {
+	?>
+<meta name="robots" content="noindex,follow" />
+	<?php
+}
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -130,8 +137,9 @@ else
 	}
 	else {
 		function pageLink($page, $isCurrent) {
-			global $isBattle;
-			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>').'&nbsp; ';
+			global $isBattle, $MAX_INDEXED_PAGE;
+			$rel = $page > $MAX_INDEXED_PAGE ? ' rel="nofollow"' : '';
+			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'"'. $rel .'>'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/$RES_PER_PAGE);
 		require_once('../includes/utils-paging.php');

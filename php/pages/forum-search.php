@@ -3,6 +3,8 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
+$pageNum = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$MAX_INDEXED_PAGE = 100;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -10,6 +12,11 @@ include('../includes/initdb.php');
 <title><?= _('Mario Kart PC Forum') ?></title>
 <?php
 include('../includes/heads.php');
+if ($pageNum > $MAX_INDEXED_PAGE) {
+	?>
+<meta name="robots" content="noindex,follow" />
+	<?php
+}
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -249,8 +256,10 @@ if ($oneset) {
 						$get['page'] = $p;
 						if ($p == $page)
 							echo $p;
-						else
-							echo '<a href="?'. http_build_query($get) .'#search-results">'. $p .'</a>';
+						else {
+							$rel = $p > $MAX_INDEXED_PAGE ? ' rel="nofollow"' : '';
+							echo '<a href="?'. http_build_query($get) .'#search-results"'. $rel .'>'. $p .'</a>';
+						}
 						echo ' &nbsp; ';
 					}
 				}

@@ -10,6 +10,8 @@ if (isset($_GET['country'])) {
 		$countryId = $getCountryId['id'];
 }
 $sort = isset($_GET['sort']) ? $_GET['sort']:null;
+$pageNum = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$MAX_INDEXED_PAGE = 100;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -17,6 +19,11 @@ $sort = isset($_GET['sort']) ? $_GET['sort']:null;
 <title>Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
+if ($pageNum > $MAX_INDEXED_PAGE) {
+	?>
+<meta name="robots" content="noindex,follow" />
+	<?php
+}
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 
@@ -53,11 +60,11 @@ $place = ($page-1)*20;
 	</blockquote>
 	</form>
 	<?php
-	$queries = array();
-	for ($i=0;$i<2;$i++)
-		$queries[] = 'SELECT '. ($i ? 'COUNT(*) AS nb':'j.id,j.nom,j.pts_vs AS pts,c.code,DATE(p.last_connect) AS last_connect') .' FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE j.deleted=0'. ($countryId ? ' AND p.country="'. $countryId .'"':'') .' ORDER BY '. ($sort=='pts' ? 'j.pts_vs':'p.last_connect') .' DESC,j.id DESC'. ($i ? '':' LIMIT '. $place.',20');
-	$records = mysql_query($queries[0]);
-	$getNb = mysql_fetch_array(mysql_query($queries[1]));
+	$where = 'j.deleted=0'. ($countryId ? ' AND p.country="'. $countryId .'"':'');
+	$dataQuery = 'SELECT j.id,j.nom,j.pts_vs AS pts,c.code,DATE(p.last_connect) AS last_connect FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. $where .' ORDER BY '. ($sort=='pts' ? 'j.pts_vs':'p.last_connect') .' DESC,j.id DESC LIMIT '. $place .',20';
+	$countQuery = 'SELECT COUNT(*) AS nb FROM `mkjoueurs` j'. ($countryId ? ' INNER JOIN `mkprofiles` p ON p.id=j.id':'') .' WHERE '. $where;
+	$records = mysql_query($dataQuery);
+	$getNb = mysql_fetch_array(mysql_query($countQuery));
 	$nb_temps = $getNb['nb'];
 	?>
 	<table>
@@ -86,9 +93,11 @@ $place = ($page-1)*20;
 	<tr><td colspan="3" id="page"><strong><?php echo $language ? 'Page:':'Page :'; ?> </strong> 
 	<?php
 	function pageLink($page, $isCurrent) {
+		global $MAX_INDEXED_PAGE;
 		$get = $_GET;
 		$get['page'] = $page;
-		echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'"">'.$page.'</a>').'&nbsp; ';
+		$rel = $page > $MAX_INDEXED_PAGE ? ' rel="nofollow"' : '';
+		echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'"'. $rel .'>'.$page.'</a>').'&nbsp; ';
 	}
 	$limite = ceil($nb_temps/20);
 	require_once('../includes/utils-paging.php');
