@@ -8645,6 +8645,7 @@ var itemBehaviors = {
 				collisionLap = getItemCollisionLap(fSprite);
 				var isMoving = (fSprite.owner != -1);
 				var fTeleport, oRail;
+				const assetHit = touche_asset(fSprite.x, fSprite.y, fSprite.z, fNewPosX, fNewPosY);
 				if (isMoving && fSprite.sender) {
 					z0 = fSprite.sender.z0;
 					delete fSprite.sender;
@@ -8669,6 +8670,19 @@ var itemBehaviors = {
 						dir: oRail.dir,
 						z0: oRail.z0
 					};
+				}
+				else if (isMoving && assetHit) {
+					const angle = Math.atan2(fSprite.vx, fSprite.vy) * 180 / Math.PI;
+					switch (assetHit[0]) {
+						case "bumpers":
+							const shift = getBumperBounce(fSprite.x, fSprite.y, fMoveX, fMoveY, angle, assetHit[1]);
+							fSprite.vx = shift[0];
+							fSprite.vy = shift[1];
+							break;
+						
+						default:
+							break;
+					}
 				}
 				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, false, z0)) {
 					if (ctx && ctx.checkCollisions) {
@@ -19242,27 +19256,7 @@ function move(getId, triggered) {
 					case "bumpers":
 						hittable = false;
 						oKart.speed *= -1;
-						var pushSpeed = 8;
-						var ux = fMoveX, uy = fMoveY;
-						var bumper = asset[1];
-						if (bumper[3]) {
-							ux += bumper[3][0]*Math.sin(bumper[3][1])*bumper[2][5];
-							uy -= bumper[3][0]*Math.cos(bumper[3][1])*bumper[2][5];
-						}
-						var nPosX = aPosX+ux, nPosY = aPosY+uy;
-						var cx = bumper[1][0], cy = bumper[1][1];
-						var rx = (aPosX-cx), ry = (aPosY-cy);
-						var rr = Math.hypot(rx,ry);
-						var nx = rx/rr, ny = ry/rr;
-						var un = ux*nx + uy*ny;
-						var ax = nPosX-un*nx, ay = nPosY-un*ny;
-						ux = aPosX+2*(ax-aPosX)-nPosX;
-						uy = aPosY+2*(ay-aPosY)-nPosY;
-						var uu = Math.hypot(ux,uy);
-						if (uu)
-							oKart.shift = [pushSpeed*ux/uu,pushSpeed*uy/uu,0];
-						else
-							oKart.shift = [-pushSpeed*direction(0,oKart.rotation),-pushSpeed*direction(1,oKart.rotation),0];
+						oKart.shift = getBumperBounce(aPosX, aPosY, fMoveX, fMoveY, oKart.rotation, asset[1]);
 						if (oKart.cpu) {
 							oKart.bounced = true;
 							oKart.bouncedsince = 0;
@@ -20891,6 +20885,30 @@ function dirShoot(oKart, backwards, iStrength) {
 	relSpeed[1] += iStrength*direction(1, oAngleView);
 	return relSpeed;
 }
+
+function getBumperBounce(posX, posY, moveX, moveY, angle, bumper) {
+	var pushSpeed = 8;
+	var ux = moveX, uy = moveY;
+	if (bumper[3]) {
+		ux += bumper[3][0]*Math.sin(bumper[3][1])*bumper[2][5];
+		uy -= bumper[3][0]*Math.cos(bumper[3][1])*bumper[2][5];
+	}
+	var nPosX = posX+ux, nPosY = posY+uy;
+	var cx = bumper[1][0], cy = bumper[1][1];
+	var rx = (posX-cx), ry = (posY-cy);
+	var rr = Math.hypot(rx,ry);
+	var nx = rx/rr, ny = ry/rr;
+	var un = ux*nx + uy*ny;
+	var ax = nPosX-un*nx, ay = nPosY-un*ny;
+	ux = posX+2*(ax-posX)-nPosX;
+	uy = posY+2*(ay-posY)-nPosY;
+	var uu = Math.hypot(ux,uy);
+	if (uu)
+		return [pushSpeed*ux/uu,pushSpeed*uy/uu,0];
+	else
+		return [-pushSpeed*direction(0, angle),-pushSpeed*direction(1, angle),0];
+}
+
 function tendsToSpeed(fSprite, lSpeed, tRes) {
 	var cSpeed = Math.hypot(fSprite.vx,fSprite.vy);
 	if (cSpeed) {
