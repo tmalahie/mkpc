@@ -63,6 +63,7 @@ if ($id) {
 				$playerPayload['data'] = $payloadData;
 			}
 			unset($playerPayload);
+			ksort($playerPayloads);
 			$mkState = mysql_fetch_array(mysql_query('SELECT time,map,cup FROM `mariokart` WHERE id='. $course));
 			if (!$mkState) {
 				$mkState = array(

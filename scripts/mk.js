@@ -1,4 +1,4 @@
-var pause, chatting = false;
+﻿var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
@@ -334,6 +334,12 @@ function removeHUD() {
 	for (var i=0;i<hudScreens.length;i++)
 		$mkScreen.removeChild(hudScreens[i]);
 	hudScreens.length = 0;
+	if (idebugInterval) {
+		clearInterval(idebugInterval);
+		idebugInterval = null;
+		const existing = document.getElementById("idebug-window");
+		if (existing) existing.remove();
+	}
 }
 function updatePlanFullScreen() {
 	if (!oPlanDiv2) return;
@@ -686,30 +692,52 @@ function updateMusicVolume(embed, volume, lastVolume) {
 	}
 }
 function fadeInMusic(embed, volume, ratio) {
+	if (!embed)
+		return;
 	if (embed.fadingOut)
 		return;
 	embed.fadingIn = true;
 	volume /= ratio;
 	if (volume < 1) {
 		setMusicVolume(embed,volume);
-		setTimeout(function(){fadeInMusic(embed,volume,ratio)},100);
+		if (embed.fadeTimeout)
+			clearTimeout(embed.fadeTimeout);
+		embed.fadeTimeout = setTimeout(function(){
+			delete embed.fadeTimeout;
+			fadeInMusic(embed,volume,ratio);
+		},100);
 	}
 	else {
 		embed.fadingIn = false;
+		if (embed.fadeTimeout) {
+			clearTimeout(embed.fadeTimeout);
+			delete embed.fadeTimeout;
+		}
 		setMusicVolume(embed,1);
 	}
 }
 function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
+	if (!embed)
+		return;
 	if (embed.fadingIn)
 		return;
 	embed.fadingOut = true;
 	volume *= ratio;
 	if (volume > 0.2) {
 		setMusicVolume(embed,volume*vSnd);
-		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,vSnd)},100);
+		if (embed.fadeTimeout)
+			clearTimeout(embed.fadeTimeout);
+		embed.fadeTimeout = setTimeout(function(){
+			delete embed.fadeTimeout;
+			fadeOutMusic(embed,volume,ratio,remove,vSnd);
+		},100);
 	}
 	else {
 		embed.fadingOut = false;
+		if (embed.fadeTimeout) {
+			clearTimeout(embed.fadeTimeout);
+			delete embed.fadeTimeout;
+		}
 		if (remove === false) {
 			pauseMusic(embed);
 			setMusicVolume(embed,vSnd);
@@ -1133,6 +1161,8 @@ function setPlanPos(frameState, lMap) {
 					}
 					updatePos = false;
 				}
+			} else {
+				iPlanCharacters[i].style.opacity = oKart.ref.ghost ? 0.4 : 1;
 			}
 			if (updatePos) {
 				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
@@ -1623,6 +1653,31 @@ function initPlan(lMap) {
 	document.body.appendChild(oPlanDiv);
 
 	oPlanDiv2.appendChild(oPlanCtn2);
+	oPlanCtn2.addEventListener("click", function(event) {
+		if (tpMapCheatEnabled && !isOnline && (course != "GP") && (course != "CM") && !$mkScreen.dataset.fs && !document.fullscreenElement) {
+			var rect = oPlanCtn2.getBoundingClientRect();
+			var clickX = event.clientX - rect.left;
+			var clickY = event.clientY - rect.top;
+			
+			var mapW = oPlanWidth2;
+			var tpX = clickX * (oPlanRealSize / mapW);
+			var tpY = clickY * (oPlanRealSize / mapW);
+			
+			if (bSelectedMirror) {
+				tpX = oMap.w - tpX;
+			}
+			
+			var oPlayer = oPlayers[0];
+			oPlayer.x = Math.max(0, tpX);
+			oPlayer.y = Math.max(0, tpY);
+			
+			clLocalVars.cheated = true;
+			if (clSelected) challengeHandleFail();
+			
+			resetRenderState();
+			stopGrinding(0);
+		}
+	});
 	updatePlanFullScreen();
 }
 function resetPlan(lMap) {
@@ -2800,11 +2855,13 @@ function arme(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
 		if (oKart.roulette != 25) return;
+		if (oKart.itemLock) return;
 		if (oKart == oPlayers[0])
 			clLocalVars.itemsUsed = true;
 		var tpsUse, itemKey = oKart.arme;
 		switch(oKart.arme) {
 			case "champi" :
+			case "champiX1" :
 			case "champiX2" :
 			case "champiX3" :
 			itemKey = "champi";
@@ -2884,8 +2941,16 @@ function arme(ID, backwards, forwards) {
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
 
+			case "bananeX1" :
 			case "banane" :
 			loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "bananeX2" :
+			for (var i=0;i<2;i++)
+				loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2906,8 +2971,16 @@ function arme(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "carapaceX1" :
 			case "carapace" :
 			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "carapaceX2" :
+			for (var i=0;i<2;i++)
+				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2918,8 +2991,16 @@ function arme(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "carapacerougeX1" :
 			case "carapacerouge" :
 			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "carapacerougeX2" :
+			for (var i=0;i<2;i++)
+				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -3018,6 +3099,10 @@ function arme(ID, backwards, forwards) {
 			addNewItem(oKart, {type:"pow", owner:oKart.id});
 			break;
 
+			case "boo" :
+			addNewItem(oKart, {type:"boo", owner:oKart.id});
+			oKart.itemLock = true;
+			break;
 			case "boomerang" :
 			const [velX, velY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
 			const [shiftX, shiftY] = dirShoot(oKart, backwards, 3.2);
@@ -3040,11 +3125,11 @@ function arme(ID, backwards, forwards) {
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
 			
-			if (oKart.boomerangArme === 1)
-				delete oKart.boomerangArme;
+			delete oKart.boomerangArme;
 
 			addNewItem(oKart, boomerang);
 			playDistSound(oKart, "musics/events/throw.mp3", 50);
+
 			break;
 		}
 
@@ -3054,7 +3139,10 @@ function arme(ID, backwards, forwards) {
 		var newItem;
 		switch(oKart.arme) {
 		case "champiX2":
-			newItem = "champi";
+			newItem = "champiX1";
+			break;
+		case "champiX1":
+			newItem = false;
 			break;
 		case "champiX3":
 			newItem = "champiX2";
@@ -3065,6 +3153,9 @@ function arme(ID, backwards, forwards) {
 		case "billball":
 			newItem = "billball";
 			break;
+		case "boo":
+			newItem = "boo";
+
 		}
 		if (newItem) {
 			if (oKart.arme !== newItem) {
@@ -3173,6 +3264,17 @@ function arme(ID, backwards, forwards) {
 			default :
 			break;
 		}
+
+		let len = oKart.using.length;
+		if (oKart.arme && len > 0) {
+			let uType = oKart.using[0].type;
+			if (uType === "carapace") oKart.arme = "carapaceX" + len;
+			else if (uType === "carapace-rouge") oKart.arme = "carapacerougeX" + len;
+			else if (uType === "banane") oKart.arme = "bananeX" + len;
+		}
+
+		if (kartIsPlayer(oKart))
+			updateObjHud(ID);
 		if (!oKart.using.length)
 			consumeItemIfDouble(ID);
 	}
@@ -3458,7 +3560,11 @@ function postResumeMusic(elt, ratio) {
 	var vSnd = bMusic ? vMusic : vSfx;
 	fadeOutMusic(cMusicEmbed,1,ratio,true,vSnd);
 	if (elt) {
-		setTimeout(function() {
+		if (elt.resumeTimeout) {
+			clearTimeout(elt.resumeTimeout);
+		}
+		elt.resumeTimeout = setTimeout(function() {
+			delete elt.resumeTimeout;
 			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
 				fadeInMusic(elt,0.2,ratio);
 				unpauseMusic(elt);
@@ -3735,40 +3841,6 @@ function handleEndRace() {
 	challengeCheck("end_game", events);
 	challengeCheck("end_gp", events);
 	clGlobalVars.nbcircuits++;
-
-	if (raceLog.items.length > 0) {
-		let text = "";
-
-		// single items
-		for (let spot = 1; spot <= aKarts.length; spot++) {
-			if (Object.keys(raceLog.getDefinedItemAtSpot(spot)).length === 0) {
-				text += `${spot}: -\n`;
-				continue;
-			}
-
-			text += `${spot}: `;
-			for (const itemName in raceLog.getDefinedItemAtSpot(spot)) {
-				const itemCount = raceLog.getItemSpot(spot, itemName);
-				const spotTotal = raceLog.getTotalSpot(spot);
-				const percent = ((itemCount / spotTotal) * 100).toFixed(2);
-				text += `${itemName}(${itemCount} / ${spotTotal} -> ${percent}%)  `;
-			}
-			text += "\n";
-		}
-
-		// totals
-		text += "\nTotal:\n";
-		for (let i = 0; i < raceLog.items.length; i++) {
-			const itemName = raceLog.items[i];
-			const itemTotal = raceLog.getItemTotal(itemName);
-			const allTotal = raceLog.data.total.all;
-			const percent = ((itemTotal / allTotal) * 100).toFixed(2);
-			text += `${itemName}: ${itemTotal} / ${allTotal} -> ${percent}%\n`;
-		}
-
-		alert(text);
-	}
-	raceLog.reset();
 }
 
 function startGame() {
@@ -8579,6 +8651,172 @@ var itemBehaviors = {
 			}
 		}
 	},
+	"boo": {
+		sync: [intType("owner"), intType("victim")],
+		sprite: false,
+		init: function(fSprite) {
+			if (fSprite.victim !== undefined) return;
+
+			const oOwner = aKarts.find(kart => kart.id === fSprite.owner);
+			
+			// GUARD: only the local controller is allowed to calculate target
+			if (isOnline && oOwner && oOwner.controller !== identifiant) {
+				return;
+			}
+
+			const aTargets = aKarts.filter(k =>
+				k.id !== fSprite.owner // not us
+				&& (k.arme || k.using.length > 0) // has item/trail
+				&& k.roulette >= 25 // roulette anim finished
+				&& !k.billball // not in bill
+				&& !k.loose // not dead in bb
+				&& !k.ghost // not a ghost
+				&& !friendlyFire(k, oOwner) // not in our team
+				&& (course == "BB" || k.place < oOwner.place) // ahead of us (vs)
+				&& (course == "BB" || k.tours <= oMap.tours) // not finished (vs)
+			);
+
+			//console.debug("[boo] targets:", aTargets.map(k => ({id: k.id, arme: k.arme})));
+
+			let targetId = -1;
+			if (aTargets.length) {
+				const targetKart = aTargets[Math.floor(Math.random() * aTargets.length)];
+				targetId = targetKart.id;
+			}
+
+			fSprite.victim = targetId;
+		},
+		move: function(fSprite) {
+			// code before this check runs every frame
+			// after it only once
+			if (fSprite._initialized) return;
+			fSprite._initialized = true;
+			
+			const oOwner = aKarts.find(kart => kart.id === fSprite.owner);
+			const oVictim = aKarts.find(kart => kart.id === fSprite.victim);
+			let stolenItem = "champi";
+			let stolenBoomerangArme;
+			let hadArme = oVictim?.arme;
+			let hadUsing = oVictim?.using?.length > 0;
+			
+			if (hadUsing) { // steal trail item e.g. poison
+				let uType = oVictim.using[0].type;
+				let len = oVictim.using.length;
+				
+				switch (uType) {
+					case "carapace":       stolenItem = `carapaceX${len}`;      break;
+					case "carapace-rouge": stolenItem = `carapacerougeX${len}`; break;
+					case "banane":         stolenItem = `bananeX${len}`;        break;
+					case "bobomb":         stolenItem = "bobomb";               break;
+					case "fauxobjet":      stolenItem = "fauxobjet";            break;
+					case "poison":         stolenItem = "poison";               break;
+				}
+
+				// HACK: this allows us to quietly delete trailing items
+				// without the game engine automatically forcing 
+				// the 2nd item slot to shift forward.
+				let oldDouble = oDoubleItemsEnabled;
+				oDoubleItemsEnabled = false;
+				deleteUsingItems(oVictim);
+				oDoubleItemsEnabled = oldDouble;
+				
+				oVictim.arme = false;
+				oVictim.roulette = 25;
+			} else if (hadArme) { // steal non-trail item e.g. banana
+				stolenItem = oVictim.arme;
+				if (stolenItem === "boomerang") {
+					stolenBoomerangArme = oVictim.boomerangArme;
+					delete oVictim.boomerangArme;
+				}
+				oVictim.arme = false;
+				oVictim.roulette = 25;
+			}
+
+			//console.debug("stole:", stolenItem, "from:", oVictim);
+			
+			oOwner.arme = stolenItem;
+			if (stolenItem == "boomerang" && stolenBoomerangArme) {
+				oOwner.boomerangArme = stolenBoomerangArme;
+			}
+			oOwner.roulette = 25;
+			oOwner.ghost = 64; // 4sec
+			
+			if (oPlayers.includes(oOwner)) updateObjHud(oOwner.id);
+			if (oVictim && oPlayers.includes(oVictim)) updateObjHud(oVictim.id);
+			if (shouldPlaySound(oOwner) || (oVictim && shouldPlaySound(oVictim))) {
+				playSoundEffect("musics/events/boo_steal.mp3");
+			}
+
+			if (kartIsPlayer(oOwner)) {
+				oOwner.itemLock = true;
+				let ownerFlashes = 10;
+				const ownerFlashInt = setInterval(function() {
+					let $rImg = document.getElementById("roulette" + oOwner.id);
+					if ($rImg) $rImg = $rImg.firstChild;
+					if ($rImg) $rImg.style.opacity = (ownerFlashes % 2 === 0) ? "0" : "1";
+					ownerFlashes--;
+					if (ownerFlashes <= 0) {
+						clearInterval(ownerFlashInt);
+						if ($rImg) $rImg.style.opacity = "1";
+						oOwner.itemLock = false;
+					}
+				}, 100);
+			} else {
+				oOwner.itemLock = true;
+				setTimeout(function() { oOwner.itemLock = false; }, 1000);
+			}
+
+			if (oVictim && kartIsPlayer(oVictim)) {
+				oVictim.itemLock = true;
+				const $objet = document.getElementById("objet" + oVictim.id);
+				if ($objet) {
+					let $booImg = document.createElement("img");
+					$booImg.src = "images/items/boo_laugh.png";
+					$booImg.className = "pixelated";
+					Object.assign($booImg.style, {
+						position: "absolute",
+						left: "0px",
+						top: "0px",
+						height: "100%",
+						width: "100%",
+						zIndex: "10"
+					});
+					$objet.appendChild($booImg);
+
+					let victimFlashes = 10;
+					const victimFlashInt = setInterval(function() {
+						$booImg.style.opacity = (victimFlashes % 2 === 0) ? "0" : "1";
+						victimFlashes--;
+						if (victimFlashes <= 0) {
+							clearInterval(victimFlashInt);
+							if ($booImg.parentNode) $booImg.parentNode.removeChild($booImg);
+							
+							if (!oVictim.arme && oVictim.stash) {
+								oVictim.arme = oVictim.stash;
+								oVictim.roulette = oVictim.roulette2;
+								oVictim.stash = false;
+								oVictim.roulette2 = 0;
+							}
+							oVictim.itemLock = false;
+							updateObjHud(oVictim.id);
+						}
+					}, 100);
+				}
+			} else if (oVictim) {
+				oVictim.itemLock = true;
+				setTimeout(function() {
+					if (!oVictim.arme && oVictim.stash) {
+						oVictim.arme = oVictim.stash;
+						oVictim.roulette = oVictim.roulette2;
+						oVictim.stash = false;
+						oVictim.roulette2 = 0;
+					}
+					oVictim.itemLock = false;
+				}, 1000);
+			}
+			detruit(fSprite); // delete item, finished
+		}
+	},
 	"carapace": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
@@ -8800,7 +9038,8 @@ var itemBehaviors = {
 				const fellOff = oKart.fell;
 				const inCannon = oKart.cannon;
 				const isDead = oKart.loose;
-				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead);
+				const isGhost = oKart.ghost;
+				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead && !isGhost);
 			}
 
 			var fNewPosX;
@@ -9478,7 +9717,7 @@ var itemBehaviors = {
 					for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace && !aKarts[k].loose) {
-								if (!friendlyHit(fSprite.team,aKarts[k].team)) {
+								if (!friendlyHit(fSprite.team,aKarts[k].team) && !aKarts[k].ghost) {
 									cible = k;
 									cPlace = 0;
 								}
@@ -9762,63 +10001,8 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang","boo"];
 var items = {};
-
-var raceLog = {
-	items: [],
-	data: {total: {all: 0}},
-
-	reset: function() {
-		this.enabled = false;
-		this.items = [];
-		this.data = {total: {all: 0}};
-		delete oPlayers[0].autoplay;
-	},
-
-	addTotal: function() {
-		this.data.total.all++;
-	},
-
-	addTotalSpot: function(spot) {
-		this.data[spot] ??= {}; // creates spot
-		this.data[spot].total ??= 0; // creates total at spot
-		this.data[spot].total++; // inc total at spot
-	},
-
-	getTotalSpot: function(spot) {
-		return this.data[spot].total;
-	},
-
-	addItemSpot: function(spot, item) {
-		this.data[spot] ??= {}; // creates spot
-		this.data[spot][item] ??= 0; // creates item at this spot
-		this.data[spot][item]++; // inc item at this spot
-	},
-
-	getItemSpot: function(spot, item) {
-		return this.data[spot][item] ?? 0;
-	},
-
-	addItemTotal: function(item) {
-		this.data.total[item] ??= 0; // creates total for item
-		this.data.total[item]++; // inc total for item
-	},
-
-	getItemTotal: function(item) {
-		return this.data.total[item] ??= 0;
-	},
-
-	getDefinedItemAtSpot: function(spot) {
-		const itemNames = {};
-
-		for (const key in this.data[spot]) 
-			if (key !== "total")
-				itemNames[key] = true;
-
-		return itemNames;
-	}
-};
 
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -12073,7 +12257,7 @@ function initAiPoints(lMap, oKart, inc) {
 			aishortcut = aishortcut.slice(1);
 			if (!aishortcut[2]) aishortcut[2] = {};
 			var aiOptions = aishortcut[2];
-			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
+			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX1", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
 			if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 			if (aiOptions.cc == null) aiOptions.cc = 150;
 			if (aiOptions.ccm == null) aiOptions.ccm = 1000;
@@ -12917,31 +13101,80 @@ function getItemAvgRange(x1,x2) {
 	}
 	return Math.min(0.99999, res);
 }
+function getForbiddenItems(oKart) {
+	const forbiddenItems = {};
+	if (course == "BB") return forbiddenItems;
+	if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
+		forbiddenItems["bloops"] = 1;
+		forbiddenItems["carapaceX3"] = 1;
+		forbiddenItems["carapacerougeX3"] = 1;
+	}
+	if (typeof timer !== "undefined" && timer < 375) {
+		if (itemDistribution.powstart != 1)
+			forbiddenItems["pow"] = 1;
+		if (itemDistribution.lightningstart != 1)
+			forbiddenItems["eclair"] = 1;
+		if (itemDistribution.blueshellstart != 1) {
+			forbiddenItems["carapacebleue"] = 1;
+			forbiddenItems["carapacenoire"] = 1;
+		}
+	}
+	if (oKart.place == 1)
+		forbiddenItems["carapacebleue"] = 1;
+
+	const preventDuplicateItems = {
+		carapacebleue: 1,
+		carapacenoire: 1,
+		eclair: 1,
+		bloops: 1,
+		pow: 1,
+		bananeX3: 1,
+		boomerang: 1
+	};
+	if (itemDistribution.powx2 == 1) {
+		delete preventDuplicateItems["pow"];
+	}
+	if (itemDistribution.lightningx2 == 1)
+		delete preventDuplicateItems["eclair"];
+	if (itemDistribution.blueshellx2 == 1) {
+		delete preventDuplicateItems["carapacebleue"];
+		delete preventDuplicateItems["carapacenoire"];
+	}
+	for (var i=0;i<aKarts.length;i++) {
+		var iKart = aKarts[i];
+		for (var j=0;j<oArmeKeys.length;j++) {
+			var oArmeKey = oArmeKeys[j];
+			if (preventDuplicateItems[iKart[oArmeKey]])
+				forbiddenItems[iKart[oArmeKey]] = 1;
+		}
+	}
+	if (typeof items !== "undefined") {
+		if (items["carapace-bleue"].length)
+			forbiddenItems["carapacebleue"] = 1;
+		if (items["carapace-noire"].length)
+			forbiddenItems["carapacenoire"] = 1;
+		else if (typeof nextBlueShellCooldown !== "undefined" && nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
+			forbiddenItems["carapacebleue"] = 1;
+		if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
+			forbiddenItems["eclair"] = 1;
+		if (items.bloops.length)
+			forbiddenItems["bloops"] = 1;
+		if (items.pow.length || (typeof nextPowCooldown !== "undefined" && nextPowCooldown > 0))
+			forbiddenItems["pow"] = 1;
+		if (items.boomerang.length)
+			forbiddenItems["boomerang"] = 1;
+	}
+	if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
+		if (oKart.arme === "champiX2" || oKart.arme === "champiX1")
+			forbiddenItems["champiX3"] = 1;
+		else
+			forbiddenItems[oKart.arme] = 1;
+	}
+	return forbiddenItems;
+}
 function randObj(oKart) {
 	var distrib = getItemDistributionRange(oKart);
 	var a = distrib[0], b = distrib[1];
-	/*if (oKart == oPlayers[0]) { // Uncomment to test item distribution
-		var pdf = {};
-		var a_ = Math.floor(a), b_ = Math.ceil(b);
-		for (var i=a_;i<b_;i++) {
-			var x = 1;
-			if (i == a_)
-				x -= (a-a_);
-			if (i == b_-1)
-				x -= (b_-b);
-			var distribution = itemDistribution.value[i];
-			for (var key in distribution) {
-				if (!pdf[key]) pdf[key] = 0;
-				pdf[key] += x*distribution[key];
-			}
-		}
-		var totalProb = 0;
-		for (var key in pdf)
-			totalProb += pdf[key];
-		for (var key in pdf)
-			pdf[key] = Math.round(pdf[key]*100/totalProb);
-		alert(JSON.stringify(pdf,null,2));
-	}*/
 	var i = Math.floor(a + (b-a)*Math.random());
 	var distribution = itemDistribution.value[i];
 	var nbObjs = 0;
@@ -13634,6 +13867,7 @@ function colKart(getId) {
 		var kart = aKarts[i];
 		var lap2 = getCurrentLapId(kart);
 		if (lapInteractionsDisabled(lap1,lap2)) continue;
+		if (oKart.ghost || kart.ghost) continue;
 		var protect1 = oKart.protect ? ((oKart.etoile||oKart.billball)?2:1) : 0;
 		var protect2 = kart.protect ? ((kart.etoile||kart.billball)?2:1) : 0;
 		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
@@ -16118,6 +16352,7 @@ function isSameDistrib(d1,d2) {
 	return true;
 }
 function reinitLocalVars() {
+	tpMapCheatEnabled = false;
 	clLocalVars = {
 		drifted: false,
 		revDrifted: false,
@@ -16818,7 +17053,9 @@ var itemDistributions = {
 			"banane": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 4,
+			"boo": 2,
 			"boomerang": 3
+
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -16827,7 +17064,8 @@ var itemDistributions = {
 			"champi": 3,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"boo": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
@@ -16841,13 +17079,17 @@ var itemDistributions = {
 			"carapacerouge": 12,
 			"carapace": 6,
 			"bobomb": 4,
+			"boo": 1,
 			"boomerang": 4
+
 		}, {
 			"carapacerouge": 8,
 			"carapace": 5,
 			"bobomb": 4,
 			"carapaceX3": 3,
+			"boo": 2,
 			"boomerang": 4
+
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -16858,7 +17100,8 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1,
 			"bloops": 1,
-			"pow": 1
+			"pow": 1,
+			"boo": 2
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -16941,20 +17184,25 @@ var itemDistributions = {
 			"carapacerouge": 6,
 			"bobomb": 3,
 			"champiX3": 2,
+			"boo": 1,
 			"boomerang": 3
+
 		}, {
 			"bobomb": 4,
 			"champi": 5,
 			"carapacerouge": 4,
 			"champiX3": 3,
 			"carapacerougeX3": 3,
+			"boo": 2,
 			"pow": 1,
 			"boomerang": 4
+
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
 			"champiX3": 6,
 			"megachampi": 3,
+			"boo": 2,
 			"pow": 1
 		}, {
 			"champiX3": 8,
@@ -17009,7 +17257,8 @@ var itemDistributions = {
 			"champi": 2,
 			"poison": 5,
 			"bobomb": 10,
-			"bloops": 3
+			"bloops": 3,
+			"boo": 1
 		}, {
 			"carapacerouge": 10,
 			"carapaceX3": 12,
@@ -17017,12 +17266,16 @@ var itemDistributions = {
 			"poison": 4,
 			"bobomb": 8,
 			"bloops": 2,
+			"boo": 2,
 			"boomerang": 8
+
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
 			"bobomb": 8,
+			"boo": 2,
 			"boomerang": 8
+
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
@@ -17030,7 +17283,9 @@ var itemDistributions = {
 			"champiX3": 1,
 			"carapacerougeX3": 6,
 			"pow": 2,
+			"boo": 1,
 			"boomerang": 8
+
 		}, {
 			"champi": 4,
 			"champiX3": 3,
@@ -18166,7 +18421,7 @@ function findFirstRacingPlayer(fSprite) {
 	for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 		for (var k=0;k<aKarts.length;k++) {
 			if (aKarts[k].place == cPlace) {
-				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team))
+				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team) && !aKarts[k].ghost)
 					return k;
 			}
 		}
@@ -18404,10 +18659,14 @@ function resetDatas() {
 							var lMap = getCurrentLMap(getCurrentLapId(oKart));
 							oKart.demitours = (getLastCp(oKart)+nDemitours)%lMap.checkpoint.length;
 						}
-						if ((oKart.billball >= 25) && !aBillBall) {
-							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
-							resetSpriteHeight(oKart.sprite[0]);
-							oKart.aipoint = undefined;
+						if (oKart.billball) {
+							if (!aBillBall) {
+								oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
+								resetSpriteHeight(oKart.sprite[0]);
+							}
+							if (oKart.controller !== identifiant) {
+								oKart.aipoint = undefined;
+							}
 						}
 						else if ((oKart.etoile >= 50) && !aEtoile)
 							oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
@@ -19053,6 +19312,28 @@ function move(getId, triggered) {
 		}
 		else if (oKart.speed && !oKart.billball && !oKart.cannon && !isActivelyGrinding(oKart))
 			oKart.rotation += angleInc(oKart);
+		if (oKart.ghost) { // semi transparent effect (used for boo item)
+			oKart.ghost--;
+			let tgtOpacity = oKart.ghost ? 0.6 : 1;
+
+			// smooth fadein
+			if (oKart.ghost >= 50) tgtOpacity = 0.6 + ((oKart.ghost - 50) / 14) * 0.4;
+
+			// blink
+			if ((oKart.ghost <= 16) && (oKart.ghost % 3)) tgtOpacity = 1;
+			for (var j=0;j<strPlayer.length;j++) {
+				if (oKart.sprite[j]) {
+					if (oKart.sprite[j].div) oKart.sprite[j].div.style.opacity = tgtOpacity;
+					if (oKart.sprite[j].img) oKart.sprite[j].img.style.opacity = tgtOpacity;
+				}
+				if (oKart.driftSprite && oKart.driftSprite[j]) {
+					if (oKart.driftSprite[j].div) oKart.driftSprite[j].div.style.opacity = tgtOpacity;
+					if (oKart.driftSprite[j].img) oKart.driftSprite[j].img.style.opacity = tgtOpacity;
+				}
+			}
+			if (oKart.ghost)
+				oKart.frminv = 2;
+		}
 		if (oKart.frminv) {
 			oKart.frminv--;
 			if (!oKart.frminv)
@@ -19157,11 +19438,11 @@ function move(getId, triggered) {
 			for (var i=0;i<aKarts.length;i++)
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
-		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
+		var pExplose = oKart.ghost ? 0 : touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
-			if (!oKart.cannon) {
+			if (!oKart.ghost && !oKart.cannon) {
 				while (touche_champi(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y) && !oKart.tourne) {
 					oKart.champi = 20;
 					oKart.champiType = CHAMPI_TYPE_ITEM;
@@ -19194,6 +19475,9 @@ function move(getId, triggered) {
 				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
+				if (asset && oKart.ghost && !["bumpers", "flowers", "flippers"].includes(asset[0])) {
+					asset = null;
+				}
 				if (asset) {
 					var decorType = asset[1][0].src;
 					var isCustom = asset[1][0].custom;
@@ -19300,7 +19584,7 @@ function move(getId, triggered) {
 					}
 				}
 			}
-			if (!oKart.cpu) {
+			if (!oKart.cpu && !oKart.ghost) {
 				while (touche_piece(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y)) {
 					clLocalVars.nbCoins++;
 					updateChallengeHud("coins", clLocalVars.nbCoins);
@@ -19309,7 +19593,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		if (touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
+		if (!oKart.ghost && touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
 			if (!oKart.protect && !oKart.frminv)
 				handleHardHit(getId);
 	}
@@ -19332,71 +19616,8 @@ function move(getId, triggered) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);
-					var forbiddenItems = {};
-					if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
-						forbiddenItems["bloops"] = 1;
-						forbiddenItems["carapaceX3"] = 1;
-						forbiddenItems["carapacerougeX3"] = 1;
-					}
-					if (timer < 375) {
-						if (itemDistribution.powstart != 1)
-							forbiddenItems["pow"] = 1;
-						if (itemDistribution.lightningstart != 1)
-							forbiddenItems["eclair"] = 1;
-						if (itemDistribution.blueshellstart != 1) {
-							forbiddenItems["carapacebleue"] = 1;
-							forbiddenItems["carapacenoire"] = 1;
-						}
-					}
-					if (oKart.place == 1)
-						forbiddenItems["carapacebleue"] = 1;
+					var forbiddenItems = getForbiddenItems(oKart);
 
-					var preventDuplicateItems = {
-						carapacebleue: 1,
-						carapacenoire: 1,
-						eclair: 1,
-						bloops: 1,
-						pow: 1,
-						bananeX3: 1,
-						boomerang: 1
-					};
-					if (itemDistribution.powx2 == 1) {
-						delete preventDuplicateItems["pow"];
-					}
-					if (itemDistribution.lightningx2 == 1)
-						delete preventDuplicateItems["eclair"];
-					if (itemDistribution.blueshellx2 == 1) {
-						delete preventDuplicateItems["carapacebleue"];
-						delete preventDuplicateItems["carapacenoire"];
-					}
-					for (var i=0;i<aKarts.length;i++) {
-						var iKart = aKarts[i];
-						for (var j=0;j<oArmeKeys.length;j++) {
-							var oArmeKey = oArmeKeys[j];
-							if (preventDuplicateItems[iKart[oArmeKey]])
-								forbiddenItems[iKart[oArmeKey]] = 1;
-						}
-					}
-					if (items["carapace-bleue"].length)
-						forbiddenItems["carapacebleue"] = 1;
-					if (items["carapace-noire"].length)
-						forbiddenItems["carapacenoire"] = 1;
-					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
-						forbiddenItems["carapacebleue"] = 1;
-					if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
-						forbiddenItems["eclair"] = 1;
-					if (items.bloops.length)
-						forbiddenItems["bloops"] = 1;
-					if (items.pow.length || nextPowCooldown > 0)
-						forbiddenItems["pow"] = 1;
-					if (items.boomerang.length)
-						forbiddenItems["boomerang"] = 1;
-					if (oKart.arme && (itemDistribution.doubleitemx2 != 1)) {
-						if (oKart.arme === "champiX2")
-							forbiddenItems["champiX3"] = 1;
-						else
-							forbiddenItems[oKart.arme] = 1;
-					}
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
 							iObj = randObj(oKart);
@@ -19410,14 +19631,6 @@ function move(getId, triggered) {
 						var ghostItems = ["fauxobjet", "banane", "carapace", "bobomb"];
 						iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 					}
-				}
-
-				raceLog.addTotal();
-				raceLog.addTotalSpot(oKart.place);
-
-				if (raceLog.items.includes(iObj)) {
-					raceLog.addItemSpot(oKart.place, iObj);
-					raceLog.addItemTotal(iObj);
 				}
 
 				/*if (oKart === oPlayers[0]) { // Uncomment to test all objs
@@ -20985,6 +21198,7 @@ function updateObjHud(ID) {
 		var oArmeKey = oArmeKeys[i];
 		var oArme = oKart[oArmeKey];
 		var isArme = false, isRoulette = false;
+
 		if (oArme) {
 			if (oKart["roulette"+prefix] < 25)
 				isRoulette = true;
@@ -21076,6 +21290,7 @@ function updateSpeedometer(getId, aPosX,aPosY) {
 		speedKmH = -speedKmH;
 	if (oKart.tombe)
 		speedKmH = 0;
+	
 	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
 }
 
@@ -21166,24 +21381,51 @@ function fallRail(oKart) {
 var clLocalVars, clHud, clSelected;
 //clSelected = challenges["track"]["7037"]["list"][3];
 
+var prevCheatString = "";
+var idebugInterval;
+var tpMapCheatEnabled = false;
 function openCheats() {
-    var cheatCode = prompt("MKPC Console command");
-    if (!cheatCode)
-        return false;
-    const result = processCode(cheatCode);
-    if (result !== true) {
-        alert(typeof result === "string" ? result : "Unspecified error.");
-    } else {
-        clLocalVars.cheated = true;
-        if (clSelected)
-            challengeHandleFail();
-    }
+    let cheatCode = prompt("MKPC Console command");
+    if (!cheatCode) return false;
+	if (cheatCode == "!!" && prevCheatString.length) cheatCode = prevCheatString
+    
+	const codes = cheatCode.split("&&").map(c => c.trim());
+	let anySuccess = false;
+	let errorMsg = null;
+
+	for (let i = 0; i < codes.length; i++) {
+		const code = codes[i];
+		const result = processCode(code);
+		if (result === true) {
+			anySuccess = true;
+		} else {
+			if (result === null) {
+				errorMsg = "Error: This command doesn't exist";
+			} else if (typeof result === "string") {
+				errorMsg = `${code.split(" ")[0]}: ${result}`;
+			} else {
+				errorMsg = "Unknown error.";
+			}
+			break;
+		}
+	}
+
+	if (anySuccess) {
+		prevCheatString = cheatCode;
+		clLocalVars.cheated = true;
+		if (clSelected) challengeHandleFail();
+	}
+	if (errorMsg) {
+		alert(errorMsg);
+	}
 }
+
 function cheatArgs(cheatCode) {
     if (cheatCode.charAt(0) != "/") return null;
     cheatCode = cheatCode.substring(1);
     return cheatCode.split(" ");
 }
+
 function processCode(cheatCode) {
     const rawArgs = cheatArgs(cheatCode);
     if (!rawArgs) return false;
@@ -21193,90 +21435,82 @@ function processCode(cheatCode) {
     const oPlayer = oPlayers[0];
 
     switch (command) {
-		case "give": // /give item (1)
+		case "give": // /give (!)item (1) or /give (!)item1 (!)item2
 			// 1 will always replace the first slot
 			// everything else/nothing will pick one automatically
-			if (![1,2].includes(args.length)) return "give: Invalid argument count";
+			// you can force the object with ! e.g /give !carapacenoire
+			// if its not in your item distrib
+			if (![1, 2].includes(args.length)) return "Invalid argument count";
 
-			const wObject = args[0];
-			let isExistingObj = false;
 			const itemMode = getItemMode();
-			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 
-			// check if the item exists in the current item distrib
-			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
+			const parseItem = (itemName) => {
+				const shouldForce = itemName.startsWith("!");
+				const parsedName = shouldForce ? itemName.substring(1) : itemName;
+				const isExisting = oItemDistributions.some(oItemDistribution => 
+					oItemDistribution.value.some(item => item[parsedName] != null)
+				);
+				if (!isExisting && !shouldForce) return null;
+				return parsedName;
+			};
 
-			if (!isExistingObj) return "give: This item is not present in your item distribution";
-			if (itemSlot === 1 || !oPlayer.arme) {
-				oPlayer.arme = wObject;
-				oPlayer.roulette = 25;
+			const setSlotToItem = (item, slot) => {
+				if (slot == 1 || !oPlayer.arme) {
+					oPlayer.arme = item;
+					oPlayer.roulette = 25;
+				} else {
+					oPlayer.stash = item;
+					oPlayer.roulette2 = 25;
+				}
+			};
+
+			const item1 = parseItem(args[0]);
+			if (!item1) return "Item 1 is not present in your item distribution";
+
+			if (args.length == 1) {
+				setSlotToItem(item1);
+			} else if (args[1] == 1) {
+				setSlotToItem(item1, 1);
 			} else {
-				oPlayer.stash = wObject;
-				oPlayer.roulette2 = 25;
+				const item2 = parseItem(args[1]);
+				if (!item2) return "Item 2 is not present in your item distribution";
+				
+				setSlotToItem(item1, 1);
+				setSlotToItem(item2, 2);
 			}
 			updateObjHud(0);
 			return true;
 
         case "tp": // /tp x y (r)
-			// 'x' and 'y' are in px
-			// 'r' is the optional rotation (0-360)
+			if (![2, 3].includes(args.length)) return "Invalid argument count";
 
-			// syntax
-			// 'cur' - current player position
-			// 'n' - position specified
-			// 'n+' | 'n-' - add or decrease the current position
-			// examples: /tp 100 200 90 | /tp cur 50+
-			if (![2, 3].includes(args.length)) return "tp: Invalid argument count";
+			let tpX = parseFloat(args[0]);
+			let tpY = parseFloat(args[1]);
+			let tpR = (args.length == 3) ? parseFloat(args[2]) : oPlayer.rotation;
 
-			function correctTPType(current, arg, onReturn) {
-				let result;
-				if (typeof arg === 'undefined') return current;
-				if (arg === 'cur') {                	  // current pos
-					result = current;
-				} else if (arg.endsWith('+')) {     	  // add to current pos
-					result = current + parseFloat(arg.slice(0, -1));
-				} else if (arg.endsWith('-')) {    	      // decrease current pos
-					result = current - parseFloat(arg.slice(0, -1));
-				} else {                            	  // exact position specified
-					const parsed = parseFloat(arg); 	  // sanity
-					result = isNaN(parsed) ? undefined : parsed;
-				}
+			if (isNaN(tpX)) return "Invalid x value";
+			if (isNaN(tpY)) return "Invalid y value";
+			if (isNaN(tpR)) return "Invalid r value";
 
-				let retval;
-				if (typeof onReturn === 'function') {
-					retval = onReturn(result);
-					if (typeof retval !== 'undefined') result = retval;
-				}
-
-				return result;
-			}
-
-			let newPos = {
-				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
-				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
-				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
-			};
-
-			for (let key in newPos) {
-				if (newPos[key] === undefined || isNaN(newPos[key])) {
-					return 'tp: Invalid '+key+' value';
-				}
-			}
-
-			oPlayer.x = newPos.x;
-			oPlayer.y = newPos.y;
-			oPlayer.rotation = newPos.r;
+			oPlayer.x = Math.max(0, tpX);
+			oPlayer.y = Math.max(0, tpY);
+			oPlayer.rotation = Math.abs(tpR % 360);
 
 			resetRenderState();
 			stopGrinding(0);
+			return true;
+
+		case "tpmap": // /tpmap
+			tpMapCheatEnabled = !tpMapCheatEnabled;
+			alert("Click-to-teleport on minimap: " + (tpMapCheatEnabled ? "ON" : "OFF"));
 			return true;
 
 		case "lapn":
         case "lap": // /lap l c | /lapn l c
 			// 'cur' - current lap or checkpoint
 			// /lapn will make you not teleport to the checkpoint
-            let doNotTeleport = (command === "lapn");
+            let doNotTeleport = (command == "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
             if (args[0] == "cur") t = oPlayer.tours;
@@ -21292,8 +21526,8 @@ function processCode(cheatCode) {
             if (args[1] == "cur") c = oPlayer.demitours;
             if (!args[1]) c = llMap.checkpoint.length - 1;
 
-			if (isNaN(t)) return "lap: Invalid lap value";
-			if (isNaN(c)) return "lap: Invalid checkpoint value";
+			if (isNaN(t)) return "Invalid lap value";
+			if (isNaN(c)) return "Invalid checkpoint value";
 
             const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
 			let curCheckpointCount = llMap.checkpoint.length;
@@ -21303,7 +21537,7 @@ function processCode(cheatCode) {
 
             oPlayer.tours = t;
             oPlayer.demitours = c;
-            const lMap = getCurrentLMap(oPlayer);
+            const lMap = getCurrentLMap(getCurrentLapId(oPlayer));
             const checkpoint = lMap.checkpointCoords[c];
             if (checkpoint) {
                 const nextCp = lMap.checkpointCoords[(c + 1) % lMap.checkpointCoords.length];
@@ -21322,71 +21556,131 @@ function processCode(cheatCode) {
             return true;
 
 		case "size": // /size (float | xs | md | xl)
-			if (args.length === 1) {
-				const sizeArg = args[0];
-				let newSize;
+			if (args.length != 1) return "Invalid argument count";
+			const size = args[0];
+			let newSize;
 
-				if (sizeArg === "xs") {
-					newSize = 0.6;
-				} else if (sizeArg === "md") {
-					newSize = 1;
-				} else if (sizeArg === "xl") {
-					newSize = Math.pow(1.05, 8);
-				} else {
-					newSize = parseFloat(sizeArg);
-					if (isNaN(newSize)) {
-						return "size: Invalid argument";
-					}
-				}
-
-				oPlayer.size = newSize;
-				oPlayer.mini = 0;
-				return true;
+			if      (size == "xs") newSize = 0.6; // poison size
+			else if (size == "md") newSize = 1;
+			else if (size == "xl") newSize = Math.pow(1.05, 8); // mega size
+			else {
+				newSize = parseFloat(size);
+				if (isNaN(newSize)) return "Invalid size";
 			}
-			return "size: Invalid argument count";
 
-		case "balloon": // /balloon (n)
-			// no n arg will give you 1 balloon
-			if (course != "BB") return "balloon: Not in battle mode";
-			if (![0,1].includes(args.length)) return "balloon: Invalid argument count";
-			let toAdd;
-			if (args.length == 0) {
-				toAdd = 1;
-			} else {
-				toAdd = parseInt(args[0]);
-			}
-			if (toAdd || !isNaN(toAdd)) {
-				oPlayer.reserve += toAdd;
-				if (oPlayer.reserve > 10) {
-					oPlayer.reserve = 10;
-				}
-				updateBalloonHud(document.getElementById("compteur0"), oPlayer);
-				return true;
-			}
-			return "balloon: Unknown error";
-
-		// Comment to play tracks automatically whcile testing the item distribution
-		/*case "autoplay": // /autoplay (items)
-		case "fastforward":
-		case "fastforwards":
-		case "ff":
-			// plays the race automatically at high speed, used for simulating races abd test item distributions
-			// 'items' are items to display distribution results at the end of the race (must be sparated by a space)
-			raceLog.items = args.slice();
-
-			oPlayer.cpu = true;
-			oPlayer.autoplay = true;
-			oPlayer.maxspeed = 5.7;
-			oPlayer.maxspeed0 = oPlayer.maxspeed;
-
-			SPF = 1;
-			clearInterval(cycleHandler);
-			cycleHandler = null;
-			cycle();
+			oPlayer.size = newSize;
+			oPlayer.mini = 0;
 			return true;
 
-        default:
-            return "Error: This command doesn't exist";*/
+		case "balloon": // /balloon (n)
+			if (course != "BB") return "Not in battle mode";
+			if (![0, 1].includes(args.length)) return "Invalid argument count";
+
+			let toAdd = (args.length == 0) ? 1 : parseInt(args[0]); // 1 as fallback if no n arg
+			if (isNaN(toAdd)) return "Invalid balloon count";
+
+			oPlayer.reserve = Math.max(0, Math.min(10, oPlayer.reserve + toAdd));
+			updateBalloonHud(document.getElementById("compteur0"), oPlayer);
+			return true;
+
+		case "idebug":
+			if (idebugInterval) {
+				clearInterval(idebugInterval);
+				idebugInterval = null;
+				const existing = document.getElementById("idebug-window");
+				if (existing) existing.remove();
+				return true;
+			}
+
+			const idebugWindow = document.createElement("div");
+			idebugWindow.id = "idebug-window";
+			Object.assign(idebugWindow.style, {
+				position: "fixed",
+				top: "10px",
+				right: "10px",
+				backgroundColor: "rgba(0, 0, 0, 0.8)",
+				color: "white",
+				padding: "10px",
+				fontFamily: "monospace",
+				zIndex: "99999"
+			});
+			
+			const headerDiv = document.createElement("div");
+			headerDiv.innerHTML = `<label style="cursor: pointer;"><input type="checkbox" id="idebug-adjust-forbidden"> Remove forbidden items</label><br><br>`;
+			idebugWindow.appendChild(headerDiv);
+
+			const contentDiv = document.createElement("div");
+			idebugWindow.appendChild(contentDiv);
+			document.body.appendChild(idebugWindow);
+
+			idebugInterval = setInterval(() => {
+				const pPlayer = (typeof oPlayers !== "undefined" && oPlayers.length > 0) ? oPlayers[0] : null;
+				if (!pPlayer || !pPlayer.place) {
+					contentDiv.innerHTML = "Waiting for race to start...";
+					return;
+				}
+				
+				const adjustForbidden = document.getElementById("idebug-adjust-forbidden").checked;
+				const forbiddenItems = adjustForbidden ? getForbiddenItems(pPlayer) : {};
+
+				// the engine handles different algos and battle mode cases
+				const distrib = getItemDistributionRange(pPlayer);
+				const a = distrib[0];
+				const b = distrib[1];
+				
+				let html = `<strong>Distrib range:</strong> ${a.toFixed(2)} - ${b.toFixed(2)}<br><br>`;
+				
+				const a_ = Math.floor(distrib[0]);
+				const b_ = Math.ceil(distrib[1]);
+				const pdf = {};
+				
+				html += `<table border='1' cellspacing='0' cellpadding='2' style='border-collapse: collapse; text-align: right; width: 100%; color: white;'>
+					<tr><th>Slot</th><th>Chance</th></tr>`;
+
+				// iterate over all slots within distrib range
+				for (let i = a_; i < b_; i++) {
+					let x = 1;
+					// adjust weight for partial slots
+					if (i === a_) x -= (distrib[0] - a_);
+					if (i === b_ - 1) x -= (b_ - distrib[1]);
+					
+					// convert the slot overlap to a percentage
+					const slotChance = (x / (distrib[1] - distrib[0]) * 100);
+					html += `<tr><td>${i}</td><td>${slotChance.toFixed(1)}%</td></tr>`;
+
+					const distribution = itemDistribution.value[i];
+					if (distribution) {
+						for (const key in distribution) {
+							if (adjustForbidden && forbiddenItems[key]) continue; // skip items that are forbidden for this player
+
+							// accumulate the item probabilities into the total PDF
+							if (!pdf[key]) pdf[key] = 0;
+							pdf[key] += x * distribution[key];
+						}
+					}
+				}
+				html += `</table><br>`;
+
+				const totalProb = Object.values(pdf).reduce((sum, val) => sum + val, 0);
+				
+				if (totalProb > 0) {
+					html += `<table border='1' cellspacing='0' cellpadding='2' style='border-collapse: collapse; text-align: right; width: 100%; color: white;'>
+						<tr><th style='text-align: left;'>Item</th><th>Chance</th></tr>`;
+					
+					const keys = Object.keys(pdf).sort((k1, k2) => pdf[k2] - pdf[k1]);
+					for (const key of keys) {
+						const itemChance = (pdf[key] * 100 / totalProb);
+						html += `<tr><td style='text-align: left;'>${key}</td><td>${itemChance.toFixed(1)}%</td></tr>`;
+					}
+					html += `</table>`;
+				}
+				
+				contentDiv.innerHTML = html;
+			}, 100);
+			return true;
+
+        default: // cheat not found
+            return null;
     }
 }
 
@@ -22064,6 +22358,7 @@ function ai(oKart) {
 							arme(aKarts.indexOf(oKart));
 						break;
 					case "champi":
+					case "champiX1": // placeholder for telling apart a single shroom with a X3 and used 2
 					case "champiX2":
 					case "champiX3":
 						if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
@@ -27135,45 +27430,38 @@ function selectItemScreen(oScr, callback, options) {
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	
-	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang", "carapacerougeX3", "pow", "carapacebleue", "champiX3", "megachampi", "etoile", "champior", "billball", "eclair"];
-	const possibleItems = distribOrder.slice();
-	const battleForbidden = ["billball", "eclair"];
+	const distribOrder = [
+		"fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge",
+		"champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang",
+		"boo", "carapacerougeX3", "pow", "carapacebleue", "megachampi",
+		"champiX3", "etoile", "champior", "billball", "eclair"
+	];
 
-	// remove battle forbidden items
-	if (itemMode == "BB") {
-		battleForbidden.forEach(function(item) {
-			const idx = possibleItems.indexOf(item);
-			if (idx !== -1)
-				possibleItems.splice(idx, 1);
-		});
-	}
+	const battleForbidden = ["billball", "eclair"];
+	const possibleItems = itemMode === "BB" // remove battle forbidden items
+		? distribOrder.filter(item => !battleForbidden.includes(item))
+		: [...distribOrder];
 
 	// add typed secret items
-	for (const code in secretCodes) {
-		const data = secretCodes[code];
-
-		const name = data[0];
-		const typed = data[2];
-
-		if (typed && !(possibleItems.includes(name)))
-			possibleItems.push(name);
-	}
+	Object.values(secretCodes)
+		.filter(data => data[2] && !possibleItems.includes(data[0]))
+		.forEach(data => possibleItems.push(data[0]));
 
 	// add secret items that are already in any distrib
-	oItemDistributions.forEach(function(distrib) {
-		distrib.value.forEach(function(spot) {
-			for (const item in spot) {
-				if (!possibleItems.includes(item)) {
-					for (const code in secretCodes) {
-						const data = secretCodes[code];
-						const name = data[0];
-						possibleItems.push(item);
-						if (name === item)
-							secretCodes[code][2] = true;
-					}
-				}
+	const distribItems = new Set(
+		oItemDistributions.flatMap(d => d.value.flatMap(spot => Object.keys(spot)))
+	);
+
+	// add secret items with codes
+	distribItems.forEach(item => {
+		if (!possibleItems.includes(item)) {
+			possibleItems.push(item);
+			
+			const secretCodeEntry = Object.values(secretCodes).find(data => data[0] === item);
+			if (secretCodeEntry) {
+				secretCodeEntry[2] = true;
 			}
-		});
+		}
 	});
 
 	var itemDistribution0 = oItemDistributions[0].value;
