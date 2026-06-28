@@ -46,21 +46,23 @@ $place = ($page-1)*20;
 		</select></div>
 		<div style="margin: 4px 0"><label><?php echo $language ? 'Sort by:':'Trier par :'; ?>
 		<select name="sort">
-			<option value="connect"><?php echo $language ? 'Last connect':'Dernière connexion'; ?>
-			<option value="pts"<?php if ($sort == 'pts') echo ' selected="selected"'; ?>><?php echo $language ? 'Online score':'Score en ligne'; ?>
+			<option value="pts"><?php echo $language ? 'Online score':'Score en ligne'; ?>
+			<option value="connect"<?php if ($sort == 'connect') echo ' selected="selected"'; ?>><?php echo $language ? 'Last connect':'Dernière connexion'; ?>
 		</select></div>
 		<div style="margin-top: 8px">
+			<input type="hidden" name="s" />
 			<input type="submit" class="action_button" value="<?php echo $language ? 'Search':'Rechercher'; ?>" />
 		</div>
 	</blockquote>
 	</form>
 	<?php
-	$where = 'j.deleted=0'. ($countryId ? ' AND p.country="'. $countryId .'"':'');
-	$dataQuery = 'SELECT j.id,j.nom,j.pts_vs AS pts,c.code,DATE(p.last_connect) AS last_connect FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. $where .' ORDER BY '. ($sort=='pts' ? 'j.pts_vs':'p.last_connect') .' DESC,j.id DESC LIMIT '. $place .',20';
-	$countQuery = 'SELECT COUNT(*) AS nb FROM `mkjoueurs` j'. ($countryId ? ' INNER JOIN `mkprofiles` p ON p.id=j.id':'') .' WHERE '. $where;
-	$records = mysql_query($dataQuery);
-	$getNb = mysql_fetch_array(mysql_query($countQuery));
-	$nb_temps = $getNb['nb'];
+	if (isset($_GET['s'])) {
+		$where = 'j.deleted=0'. ($countryId ? ' AND p.country="'. $countryId .'"':'');
+		$dataQuery = 'SELECT j.id,j.nom,j.pts_vs AS pts,c.code,DATE(p.last_connect) AS last_connect FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. $where .' ORDER BY '. ($sort=='pts' ? 'j.pts_vs':'p.last_connect') .' DESC,j.id DESC LIMIT '. $place .',20';
+		$countQuery = 'SELECT COUNT(*) AS nb FROM `mkjoueurs` j'. ($countryId ? ' INNER JOIN `mkprofiles` p ON p.id=j.id':'') .' WHERE '. $where;
+		$records = mysql_query($dataQuery);
+		$getNb = mysql_fetch_array(mysql_query($countQuery));
+		$nb_temps = $getNb['nb'];
 	?>
 	<table>
 	<tr id="titres">
@@ -104,6 +106,9 @@ $place = ($page-1)*20;
 	?>
 	</td></tr>
 	</table>
+	<?php
+	}
+	?>
 	<p>
 		<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
 	</p>
