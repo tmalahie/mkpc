@@ -3039,9 +3039,7 @@ function arme(ID, backwards, forwards) {
 				collideFrame: null,
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
-			
-			if (oKart.boomerangArme === 1)
-				delete oKart.boomerangArme;
+			delete oKart.boomerangArme;
 
 			addNewItem(oKart, boomerang);
 			playDistSound(oKart, "musics/events/throw.mp3", 50);
@@ -9554,7 +9552,7 @@ var itemBehaviors = {
 		}
 	},
 	"boomerang": {
-		size: 0.90,
+		size: 0.85,
 		sync: [floatType("x"), floatType("y"), floatType("z"), floatType("vx"), floatType("vy"), intType("owner"), byteType("team"), byteType("throw"), intType("frame"), intType("maxSpeed")],
 		fadedelay: 200,
 		frminv: true,
@@ -9666,7 +9664,7 @@ var itemBehaviors = {
 						}
 
 						// give back item
-						if (key) {
+						if (key && (owner.tours <= oMap.tours || course === "BB")) {
 							owner[key] = "boomerang";
 							owner["roulette" + (key === "arme" ? "" : "2")] = 25;
 
@@ -9690,9 +9688,9 @@ var itemBehaviors = {
 
 				// pierce ground items
 				if (fSprite.z < 12) {
-					while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-					while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-					while (touche_crouge(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
+					while (touche_banane(fSprite.x, fSprite.y, owner.using, speedX, speedY));
+					while (touche_cverte(fSprite.x, fSprite.y, owner.using, fSprite.vx, fSprite.vy));
+					while (touche_crouge(fSprite.x, fSprite.y, owner.using, fSprite.vx, fSprite.vy));
 				}
 
 				// refresh SFX sound
@@ -17619,7 +17617,7 @@ function touche_boomerang_aux(pos, movement, boomerang) {
 	if (itemInteractionsDisabled(boomerang))
 		return false;
 
-	const size = 8;
+	const size = 6;
 	const rect = [boomerang.x - size, boomerang.y - size, size * 2, size * 2];
 	const inHitbox = pointInRectangle(pos.x, pos.y, rect);
 	const crossHitbox = movement ? pointCrossRectangle(pos.x, pos.y, movement.x, movement.y, rect) : false;
