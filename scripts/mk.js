@@ -2684,7 +2684,7 @@ function dropNewItem(oKart, item) {
 }
 function addNewItem(kart,item) {
 	var collection = item.type;
-	var itemBehavior = itemBehaviors[collection];
+	var itemBehavior = getItemBehavior(collection);
 	if (itemBehavior.sprite !== false) {
 		item.sprite = new Sprite(collection);
 		item.size = itemBehavior.size;
@@ -2931,73 +2931,12 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "carapacebleue" :
-			var minDist = Infinity, minAiPt = 0, minAiMap = 0, lapId = 0, lMap;
-			if (course != "BB") {
-				lapId = getCurrentLapId(oKart);
-				lMap = getCurrentLMap(lapId);
-				var demitour = oKart.demitours+1;
-				if (demitour >= lMap.checkpoint.length)
-					demitour = 0;
-				for (var i=0;i<lMap.airoutesmeta.cpu;i++) {
-					var aipoints = lMap.aipoints[i];
-					for (var j=0;j<aipoints.length;j++) {
-						var aipoint = aipoints[j];
-						var lastAipoint = aipoints[(j?j:aipoints.length)-1];
-						var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
-						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
-						if (!isFront)
-							dist += lMap.w+lMap.h;
-						var nextCp = lMap.checkpointCoords[demitour];
-						if (nextCp) {
-							var cpX = nextCp.O[0], cpY = nextCp.O[1];
-							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
-							if (ddist)
-								dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
-						}
-						if (dist < minDist) {
-							minAiMap = i;
-							minAiPt = j;
-							minDist = dist;
-						}
-					}
-				}
-			}
-			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, ailapc:1, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
-			addNewItem(oKart, item);
+			addNewItem(oKart, SpinyShellBehavior.create(true, oKart));
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "carapacenoire" :
-			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
-			if (course != "BB") {
-				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
-					var aipoints = oMap.aipoints[i];
-					for (var j=0;j<aipoints.length;j++) {
-						var aipoint = aipoints[j];
-						var lastAipoint = aipoints[(j?j:aipoints.length)-1];
-						var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
-						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
-						if (!isFront)
-							dist += oMap.w+oMap.h;
-						var demitour = oKart.demitours+1;
-						if (demitour >= oMap.checkpoint.length)
-							demitour = 0;
-						var nextCp = oMap.checkpointCoords[demitour];
-						if (nextCp) {
-							var cpX = nextCp.O[0], cpY = nextCp.O[1];
-							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
-							if (ddist)
-								dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
-						}
-						if (dist < minDist) {
-							minAiMap = i;
-							minAiPt = j;
-							minDist = dist;
-						}
-					}
-				}
-			}
-			addNewItem(oKart, {type: "carapace-noire", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, cooldown:itemBehaviors["carapace-noire"].cooldown0});
+			addNewItem(oKart, SpinyShellBehavior.create(false, oKart));
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -3034,7 +2973,7 @@ function arme(ID, backwards, forwards) {
 				z: oKart.z + 2,
 				vx: velX,
 				vy: velY,
-				throw: oKart.boomerangArme ?? itemBehaviors.boomerang.MAX_USES,
+				throw: oKart.boomerangArme ?? getItemBehavior("boomerang").MAX_USES,
 				frame: 0,
 				collideFrame: null,
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
@@ -7998,6 +7937,446 @@ function lapIdType(key) {
 		}
 	};
 }
+
+function SpinyShellAlarm(isBlue, target) {
+	this.exists = false;
+
+	if (gameSettings.alarmDisabled)
+		return;
+
+	const oKartTarget = aKarts.find(oKart => oKart.id === target);
+
+	for (let i = 0; i < oPlayers.length; i++) {
+		this.sprites = [];
+		if (oKartTarget === oPlayers[i]) {
+			for (let j = 0; j < 2; j++) {
+				const sprite = document.createElement("img");
+				sprite.className = "pixelated";
+				sprite.src = `images/sprites/sprite_${isBlue ? "blue" : "dark"}shell_alarm${j}.png`;
+				sprite.style.position = "absolute";
+				sprite.style.left = `${iScreenScale * 38.5}px`;
+				sprite.style.bottom = `${iScreenScale}px`;
+				sprite.style.zIndex = 19003;
+				sprite.style.transform = "scale(1.4)";
+				sprite.style.transition = `transform ${SPF / 1000}s`;
+				this.sprites.push(sprite);
+				oContainers[i].appendChild(sprite);
+			}
+
+			this.oPlayerIdx = i;
+			this.exists = true;
+			break;
+		}
+	}
+
+	if (oKartTarget && kartIsPlayer(oKartTarget) && this.exists) {
+		this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_coming.mp3");
+		if (this.sfx) {
+			this.sfx.loop = true;
+			this.type = 1;
+		}
+	}
+}
+
+SpinyShellAlarm.prototype.play = function(target) {
+	// force destroy if shell lock resync changed target
+	if (aKarts[this.oPlayerIdx].id !== target) {
+		for (let i = 0; i < 2; i++)
+			oContainers[this.oPlayerIdx].removeChild(this.sprites[i]);
+
+		removeIfExists(this.sfx);
+		this.exists = false;
+		return;
+	}
+
+	// animation
+	for (let i = 0; i < 2; i++) {
+		this.sprites[i].style.opacity = (timer + i) % 2;
+		this.sprites[i].style.transform = `scale(1.${4 + (timer % 2) * 2})`;
+	}
+}
+
+SpinyShellAlarm.prototype.targetSfx = function() {
+	removeIfExists(this.sfx);
+	this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_target.mp3");
+
+	if (this.sfx) {
+		this.sfx.volume = 1;
+		this.sfx.loop = true;
+		this.type = 2;
+	}
+}
+
+SpinyShellAlarm.prototype.remove = function() {
+	removeIfExists(this.sfx);
+	const step = SPF / 1000;
+
+	for (let i = 0; i < 2; i++) {
+		let opacity = 1;
+
+		const timer = setInterval(() => {
+			opacity -= step;
+			if (opacity <= 0) {
+				oContainers[this.oPlayerIdx].removeChild(this.sprites[i]);
+				clearInterval(timer);
+			}
+			else
+				this.sprites[i].style.opacity = opacity;
+		}, SPF);
+	}
+}
+
+const SpinyShellBehavior = {
+	size: 1,
+	sync: [byteType("team"), floatType("x"), floatType("y"), floatType("z"), intType("target"), byteType("cooldown"),
+		   shortType("aipoint"), byteType("aimap"), lapIdType("ailap"), byteType("ailapt"), byteType("isBlue")],
+	fadedelay: 0,
+	cooldown0: 20,
+	cooldown1: 2,
+	orbitEnd: 6,
+
+	init: function(fSprite) {
+		if (fSprite.isBlue)
+			nextBlueShellCooldown = 450;
+		else
+			nextDarkShellCooldown = 450;
+	},
+
+	move(fSprite) {
+		var cible = -1;
+		if (fSprite.target != -1) {
+			for (var k=0;k<aKarts.length;k++) {
+				if (aKarts[k].id == fSprite.target) {
+					cible = k;
+					break;
+				}
+			}
+		}
+
+		const spdMult = 4/3;
+		var relSpeed = cappedRelSpeed();
+		var relSpeed2 = relSpeed*relSpeed;
+		var fTeleport = inTeleport(fSprite.x,fSprite.y);
+		if (fTeleport) {
+			fSprite.x = fTeleport[0];
+			fSprite.y = fTeleport[1];
+			if (fSprite.aipoint != -1) {
+				var lMap = getCurrentLMap(fSprite.ailap);
+				var aipoints = lMap.aipoints[fSprite.aimap];
+				var aipoint = aipoints[fSprite.aipoint];
+				if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
+					fSprite.aipoint++;
+					if (fSprite.aipoint >= aipoints.length)
+						fSprite.aipoint = 0;
+				}
+			}
+		}
+		var aPos = [fSprite.x,fSprite.y];
+		if (fSprite.aipoint == -1) {
+			// create alarm UI
+			if (!fSprite.alarm)
+				fSprite.alarm = new SpinyShellAlarm(fSprite.isBlue, fSprite.target);
+
+			// play alarm if player is target
+			if (fSprite.alarm.exists)
+				fSprite.alarm.play(fSprite.target);
+
+			if (fSprite.cooldown > 0) {
+				var oKart = aKarts[cible];
+				if (oKart) {
+					var fMoveX = fSprite.x - oKart.x;
+					var fMoveY = fSprite.y - oKart.y;
+					var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
+					if (fSprite.cooldown == SpinyShellBehavior.cooldown0) {
+						var dSpeed = 10*relSpeed * spdMult;
+						if (fMove2 > dSpeed*dSpeed) {
+							var fNewMove = Math.sqrt(fMove2)/dSpeed;
+							fMoveX /= fNewMove;
+							fMoveY /= fNewMove;
+
+							for (var k=0;k<oPlayers.length;k++)
+								fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
+						}
+						else
+							fSprite.cooldown--;
+					}
+					else {
+						if (fSprite.cooldown < 5) {
+							var maxSpeed2 = 32;
+							if (oKart.champi > 0) {
+								if (!fSprite.isBlue || (oKart.champi < (oKart.champior ? 8:16)) || (oKart.champiType !== CHAMPI_TYPE_ITEM))
+									maxSpeed2 = 200;
+							}
+							else if (oKart.turbodrift)
+								maxSpeed2 = 64;
+							maxSpeed2 *= relSpeed2*relSpeed2;
+							if (fMove2 > maxSpeed2) {
+								var fNewMove = Math.sqrt(fMove2/maxSpeed2);
+								fMoveX /= fNewMove;
+								fMoveY /= fNewMove;
+							}
+						}
+						var pTheta = oKart.rotation*Math.PI/180;
+						var orbitRadiusH = 6;
+						var orbitRadiusV = 8;
+						var orbitBaseZ = 23;
+						if (fSprite.cooldown > SpinyShellBehavior.orbitEnd) {
+							// next SFX
+							if (fSprite.alarm.exists && fSprite.alarm.type === 1)
+								fSprite.alarm.targetSfx();
+
+							var orbitR = (SpinyShellBehavior.cooldown0 - 1 - fSprite.cooldown)/(SpinyShellBehavior.cooldown0 - 2 - SpinyShellBehavior.orbitEnd);
+							var angle = (orbitR * 1.5)*Math.PI;
+							var spiralRampTicks = 3;
+							var orbitTicksElapsed = SpinyShellBehavior.cooldown0 - fSprite.cooldown;
+							var rampScale = Math.min(1, orbitTicksElapsed/spiralRampTicks);
+							var hOff = orbitRadiusH*rampScale*Math.cos(angle);
+							fMoveX += hOff*Math.cos(pTheta);
+							fMoveY -= hOff*Math.sin(pTheta);
+							var initialZ = 15;
+							fSprite.z = initialZ + rampScale*(orbitBaseZ + orbitRadiusV*Math.sin(angle) - initialZ);
+							if ((SpinyShellBehavior.cooldown0-fSprite.cooldown-1) % 3 === 0) {
+								for (var k=0;k<oPlayers.length;k++)
+									fSprite.sprite[k].setState(1 - fSprite.sprite[k].getState());
+							}
+						}
+						else {
+							var bounceR = (SpinyShellBehavior.orbitEnd - fSprite.cooldown)/(SpinyShellBehavior.orbitEnd - SpinyShellBehavior.cooldown1);
+							if (bounceR < 0) bounceR = 0;
+							if (bounceR > 1) bounceR = 1;
+							var bounceLow = orbitBaseZ - orbitRadiusV;
+							var bouncePeak = orbitBaseZ + orbitRadiusV;
+							fSprite.z = bounceLow + (bouncePeak - bounceLow)*Math.sin(Math.PI*bounceR);
+							var spriteFrame = (bounceR < 0.75) ? 2 : 3;
+							for (var k=0;k<oPlayers.length;k++)
+								fSprite.sprite[k].setState(spriteFrame);
+						}
+						fSprite.cooldown--;
+						if (!fSprite.cooldown) {
+							// alarm fade out
+							if (fSprite.alarm.exists)
+								fSprite.alarm.remove();
+
+							for (var k=0;k<oPlayers.length;k++) {
+								(function(k) {
+									var oSpriteImg = fSprite.sprite[k].img;
+									function resetOnChange() {
+										fSprite.sprite[k].setState(0);
+										oSpriteImg.removeEventListener('load', resetOnChange);
+									}
+									oSpriteImg.addEventListener('load', resetOnChange);
+								})(k);
+							}
+						}
+					}
+
+					fSprite.x -= fMoveX;
+					fSprite.y -= fMoveY;
+					fSprite.ailap = getCurrentLapId(oKart);
+				}
+				else if (cible == -1) {
+					cible = fSprite.isBlue ? SpinyShellBehavior.findFirstRacingPlayer(fSprite) : SpinyShellBehavior.findLastRacingPlayer(fSprite);
+					fSprite.target = aKarts[cible].id;
+				}
+			}
+			else {
+				fSprite.z = 0;
+				if (isOnline && isControlledByPlayer(fSprite.target) && (fSprite.cooldown < -10))
+					fSprite.cooldown = 0;
+				fSprite.cooldown--;
+				var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -120:-10;
+				if (fSprite.cooldown < delLimit)
+					detruit(fSprite);
+				else {
+					collisionLap = getItemCollisionLap(fSprite);
+					handleDecorExplosions(fSprite, touche_cbleue_aux);
+				}
+			}
+		}
+		else {
+			var isBB = (course == "BB");
+			if (!isBB) {
+				var lMap = getCurrentLMap(fSprite.ailap);
+				var aipoints = lMap.aipoints[fSprite.aimap];
+				if (!aipoints) {
+					fSprite.aimap = 0;
+					aipoints = lMap.aipoints[fSprite.aimap];
+				}
+				var dSpeed = 15*relSpeed * spdMult;
+				var aX = fSprite.x, aY = fSprite.y;
+				while (dSpeed > 0) {
+					var target = aipoints[fSprite.aipoint];
+					if (!target) {
+						fSprite.aipoint = 0;
+						target = aipoints[fSprite.aipoint];
+					}
+					if (!target) break;
+					var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
+					if (dist > dSpeed) {
+						fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
+						fSprite.y += (target[1]-fSprite.y)*dSpeed/dist;
+						dSpeed = 0;
+					}
+					else {
+						dSpeed -= dist;
+						fSprite.x = target[0];
+						fSprite.y = target[1];
+						fSprite.aipoint++;
+						if (fSprite.aipoint === aipoints.length)
+							fSprite.aipoint = 0;
+					}
+				}
+			}
+			checkItemLap(fSprite, { aPos: aPos, fast: true });
+			if (cible == -1)
+				cible = fSprite.isBlue ? SpinyShellBehavior.findFirstRacingPlayer(fSprite) : SpinyShellBehavior.findLastRacingPlayer(fSprite);
+			var oKart = aKarts[cible];
+			var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
+			if ((fDist2 < 20000) || isBB) {
+				if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
+					fSprite.target = oKart.id;
+					if (isOnline)
+						syncItems.push(fSprite);
+				}
+				if (fSprite.target != -1) {
+					var aDist2 = (oKart.x-aX)*(oKart.x-aX) + (oKart.y-aY)*(oKart.y-aY);
+					if ((fDist2 < 5000) || (fDist2 > aDist2) || isBB)
+						fSprite.aipoint = -1;
+				}
+			}
+			for (var k=0;k<oPlayers.length;k++)
+				fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
+		}
+	},
+
+	checkCollisions: function(fSprite, getId) {
+		var oKart = aKarts[getId];
+		if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
+			if (!friendlyHit(oKart.team, fSprite.team)) {
+				var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+				handleExplosionHit(getId, pExplose);
+			}
+		}
+	},
+
+	render: function(fSprite, i) {
+		if (fSprite.cooldown > 0)
+			return;
+
+		if (!i && (fSprite.size == 1)) {
+			var fLoad;
+			for (var k=0;k<strPlayer.length;k++) {
+				makeSpriteExplode(fSprite, fSprite.isBlue ? "0" : "D", k);
+				if (fSprite.sprite[k].div.style.display == "block")
+					fLoad = k;
+			}
+			var cible = -1;
+			for (var k=0;k<aKarts.length;k++) {
+				if (aKarts[k].id == fSprite.target) {
+					cible = k;
+					break;
+				}
+			}
+			if (!isOnline && (fLoad != undefined)) {
+				fSprite.sprite[fLoad].img.onload = function() {
+					bCounting = false;
+					fSprite.sprite[fLoad].img.onload = undefined;
+					fSprite.size = 8;
+					reprendre(false);
+					playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+				}
+				bCounting = true;
+				interruptGame();
+			}
+			else {
+				fSprite.size = 8;
+				playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+			}
+		}
+		fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
+	},
+
+	findFirstRacingPlayer(fSprite) {
+		for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
+			for (var k=0;k<aKarts.length;k++) {
+				if (aKarts[k].place == cPlace) {
+					if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team))
+						return k;
+				}
+			}
+		}
+		return aKarts.length-1;
+	},
+
+	findLastRacingPlayer(fSprite) {
+		for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
+			for (var k=0;k<aKarts.length;k++) {
+				if (aKarts[k].place == cPlace && !aKarts[k].loose && !friendlyHit(fSprite.team,aKarts[k].team)) {
+					return k;
+				}
+			}
+		}
+		return 0;
+	},
+
+	create(isBlue, oKart) {
+		var minDist = Infinity, minAiPt = 0, minAiMap = 0, lapId = 0, lMap;
+		if (course != "BB") {
+			lapId = getCurrentLapId(oKart);
+			lMap = getCurrentLMap(lapId);
+			var demitour = oKart.demitours+1;
+			if (demitour >= lMap.checkpoint.length)
+				demitour = 0;
+			for (var i=0;i<lMap.airoutesmeta.cpu;i++) {
+				var aipoints = lMap.aipoints[i];
+				for (var j=0;j<aipoints.length;j++) {
+					var aipoint = aipoints[j];
+					var lastAipoint = aipoints[(j?j:aipoints.length)-1];
+					var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
+					var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
+					if (!isFront)
+						dist += lMap.w+lMap.h;
+					var nextCp = lMap.checkpointCoords[demitour];
+					if (nextCp) {
+						var cpX = nextCp.O[0], cpY = nextCp.O[1];
+						var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
+						if (ddist)
+							dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
+					}
+					if (dist < minDist) {
+						minAiMap = i;
+						minAiPt = j;
+						minDist = dist;
+					}
+				}
+			}
+		}
+
+		return {
+			type: isBlue ? "carapace-bleue" : "carapace-noire",
+			team: oKart.team,
+			x: oKart.x,
+			y: oKart.y,
+			z: 15,
+			target: -1,
+			aipoint: minAiPt,
+			aimap: minAiMap,
+			ailap: lapId,
+			ailapt: oKart.tours,
+			ailapc: 1,
+			cooldown: SpinyShellBehavior.cooldown0,
+			isBlue: +isBlue
+		};
+	}
+};
+
+function getItemBehavior(itemType) {
+	if (["carapace-bleue", "carapace-noire"].includes(itemType))
+		return SpinyShellBehavior;
+
+	return itemBehaviors[itemType];
+}
+
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
 	"banane": {
@@ -8181,7 +8560,7 @@ var itemBehaviors = {
 				}
 			}
 
-			var itemBehavior = itemBehaviors["pow"];
+			var itemBehavior = getItemBehavior("pow");
 			var sTime = itemBehavior.countdowns[fSprite.countstate];
 			var iTime = fSprite.countdown/sTime;
 			fSprite.countdown++;
@@ -8327,7 +8706,7 @@ var itemBehaviors = {
 					return (this.countstate == 13) && !oKart.unbloop && this.owner !== oKart.id;
 				}
 			}
-			var itemBehavior = itemBehaviors["bloops"];
+			var itemBehavior = getItemBehavior("bloops");
 			var sTime = itemBehavior.countdowns[fSprite.countstate];
 			var iTime = fSprite.countdown/sTime;
 			fSprite.countdown++;
@@ -9119,438 +9498,39 @@ var itemBehaviors = {
 		}
 	},
 	"carapace-bleue": {
-		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt")],
-		fadedelay: 0,
-		cooldown0: 20,
-		cooldown1: 2,
-		orbitEnd: 6,
+		// check SpinyShellBehavior for actual behavior
+		init: function(fSprite) {
+			SpinyShellBehavior.init(fSprite);
+		},
+
 		move: function(fSprite) {
-			var cible = -1;
-			if (fSprite.target != -1) {
-				for (var k=0;k<aKarts.length;k++) {
-					if (aKarts[k].id == fSprite.target) {
-						cible = k;
-						break;
-					}
-				}
-			}
-			const spdMult = 4/3;
-			var relSpeed = cappedRelSpeed();
-			var relSpeed2 = relSpeed*relSpeed;
-			var fTeleport = inTeleport(fSprite.x,fSprite.y);
-			if (fTeleport) {
-				fSprite.x = fTeleport[0];
-				fSprite.y = fTeleport[1];
-				if (fSprite.aipoint != -1) {
-					var lMap = getCurrentLMap(fSprite.ailap);
-					var aipoints = lMap.aipoints[fSprite.aimap];
-					var aipoint = aipoints[fSprite.aipoint];
-					if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
-						fSprite.aipoint++;
-						if (fSprite.aipoint >= aipoints.length)
-							fSprite.aipoint = 0;
-					}
-				}
-			}
-			var aPos = [fSprite.x,fSprite.y];
-			if (fSprite.aipoint == -1) {
-				if (fSprite.cooldown > 0) {
-					var oKart = aKarts[cible];
-					if (oKart) {
-						var fMoveX = fSprite.x - oKart.x;
-						var fMoveY = fSprite.y - oKart.y;
-						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-						var itemBehavior = itemBehaviors["carapace-bleue"];
-						if (fSprite.cooldown == itemBehavior.cooldown0) {
-							var dSpeed = 10*relSpeed * spdMult;
-							if (fMove2 > dSpeed*dSpeed) {
-								var fNewMove = Math.sqrt(fMove2)/dSpeed;
-								fMoveX /= fNewMove;
-								fMoveY /= fNewMove;
-
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
-							}
-							else
-								fSprite.cooldown--;
-						}
-						else {
-							if (fSprite.cooldown < 5) {
-								var maxSpeed2 = 32;
-								if (oKart.champi > 0) {
-									if ((oKart.champi < (oKart.champior ? 8:16)) || (oKart.champiType !== CHAMPI_TYPE_ITEM))
-										maxSpeed2 = 200;
-								}
-								else if (oKart.turbodrift)
-									maxSpeed2 = 64;
-								maxSpeed2 *= relSpeed2*relSpeed2;
-								if (fMove2 > maxSpeed2) {
-									var fNewMove = Math.sqrt(fMove2/maxSpeed2);
-									fMoveX /= fNewMove;
-									fMoveY /= fNewMove;
-								}
-							}
-							var pTheta = oKart.rotation*Math.PI/180;
-							var orbitRadiusH = 6;
-							var orbitRadiusV = 8;
-							var orbitBaseZ = 23;
-							if (fSprite.cooldown > itemBehavior.orbitEnd) {
-								var orbitR = (itemBehavior.cooldown0 - 1 - fSprite.cooldown)/(itemBehavior.cooldown0 - 2 - itemBehavior.orbitEnd);
-								var angle = (orbitR * 1.5)*Math.PI;
-								var spiralRampTicks = 3;
-								var orbitTicksElapsed = itemBehavior.cooldown0 - fSprite.cooldown;
-								var rampScale = Math.min(1, orbitTicksElapsed/spiralRampTicks);
-								var hOff = orbitRadiusH*rampScale*Math.cos(angle);
-								fMoveX += hOff*Math.cos(pTheta);
-								fMoveY -= hOff*Math.sin(pTheta);
-								var initialZ = 15;
-								fSprite.z = initialZ + rampScale*(orbitBaseZ + orbitRadiusV*Math.sin(angle) - initialZ);
-								if ((itemBehavior.cooldown0-fSprite.cooldown-1) % 3 === 0) {
-									for (var k=0;k<oPlayers.length;k++)
-										fSprite.sprite[k].setState(1 - fSprite.sprite[k].getState());
-								}
-							}
-							else {
-								var bounceR = (itemBehavior.orbitEnd - fSprite.cooldown)/(itemBehavior.orbitEnd - itemBehavior.cooldown1);
-								if (bounceR < 0) bounceR = 0;
-								if (bounceR > 1) bounceR = 1;
-								var bounceLow = orbitBaseZ - orbitRadiusV;
-								var bouncePeak = orbitBaseZ + orbitRadiusV;
-								fSprite.z = bounceLow + (bouncePeak - bounceLow)*Math.sin(Math.PI*bounceR);
-								var spriteFrame = (bounceR < 0.75) ? 2 : 3;
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(spriteFrame);
-							}
-							fSprite.cooldown--;
-							if (!fSprite.cooldown) {
-								for (var k=0;k<oPlayers.length;k++) {
-									(function(k) {
-										var oSpriteImg = fSprite.sprite[k].img;
-										function resetOnChange() {
-											fSprite.sprite[k].setState(0);
-											oSpriteImg.removeEventListener('load', resetOnChange);
-										}
-										oSpriteImg.addEventListener('load', resetOnChange);
-									})(k);
-								}
-							}
-						}
-
-						fSprite.x -= fMoveX;
-						fSprite.y -= fMoveY;
-						fSprite.ailap = getCurrentLapId(oKart);
-					}
-					else if (cible == -1) {
-						cible = findFirstRacingPlayer(fSprite);
-						fSprite.target = aKarts[cible].id;
-					}
-				}
-				else {
-					fSprite.z = 0;
-					if (isOnline && isControlledByPlayer(fSprite.target) && (fSprite.cooldown < -10))
-						fSprite.cooldown = 0;
-					fSprite.cooldown--;
-					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -120:-10;
-					if (fSprite.cooldown < delLimit)
-						detruit(fSprite);
-					else {
-						collisionLap = getItemCollisionLap(fSprite);
-						handleDecorExplosions(fSprite, touche_cbleue_aux);
-					}
-				}
-			}
-			else {
-				var isBB = (course == "BB");
-				if (!isBB) {
-					var lMap = getCurrentLMap(fSprite.ailap);
-					var aipoints = lMap.aipoints[fSprite.aimap];
-					if (!aipoints) {
-						fSprite.aimap = 0;
-						aipoints = lMap.aipoints[fSprite.aimap];
-					}
-					var dSpeed = 15*relSpeed * spdMult;
-					var aX = fSprite.x, aY = fSprite.y;
-					while (dSpeed > 0) {
-						var target = aipoints[fSprite.aipoint];
-						if (!target) {
-							fSprite.aipoint = 0;
-							target = aipoints[fSprite.aipoint];
-						}
-						if (!target) break;
-						var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
-						if (dist > dSpeed) {
-							fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
-							fSprite.y += (target[1]-fSprite.y)*dSpeed/dist;
-							dSpeed = 0;
-						}
-						else {
-							dSpeed -= dist;
-							fSprite.x = target[0];
-							fSprite.y = target[1];
-							fSprite.aipoint++;
-							if (fSprite.aipoint === aipoints.length)
-								fSprite.aipoint = 0;
-						}
-					}
-				}
-				checkItemLap(fSprite, { aPos: aPos, fast: true });
-				if (cible == -1)
-					cible = findFirstRacingPlayer(fSprite);
-				var oKart = aKarts[cible];
-				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
-				if ((fDist2 < 20000) || isBB) {
-					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
-						fSprite.target = oKart.id;
-						if (isOnline)
-							syncItems.push(fSprite);
-					}
-					if (fSprite.target != -1) {
-						var aDist2 = (oKart.x-aX)*(oKart.x-aX) + (oKart.y-aY)*(oKart.y-aY);
-						if ((fDist2 < 5000) || (fDist2 > aDist2) || isBB)
-							fSprite.aipoint = -1;
-					}
-				}
-				for (var k=0;k<oPlayers.length;k++)
-					fSprite.sprite[k].setState(1-(fSprite.sprite[k].getState()&1));
-			}
+			SpinyShellBehavior.move(fSprite);
 		},
+
 		checkCollisions: function(fSprite, getId) {
-			var oKart = aKarts[getId];
-			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
-				if (!friendlyHit(oKart.team, fSprite.team)) {
-					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
-					handleExplosionHit(getId, pExplose);
-				}
-			}
+			SpinyShellBehavior.checkCollisions(fSprite, getId);
 		},
-		render: function(fSprite,i) {
-			if (fSprite.cooldown <= 0) {
-				if (!i && (fSprite.size == 1)) {
-					var fLoad;
-					for (var k=0;k<strPlayer.length;k++) {
-						makeSpriteExplode(fSprite,"0",k);
-						if (fSprite.sprite[k].div.style.display == "block")
-							fLoad = k;
-					}
-					var cible = -1;
-					for (var k=0;k<aKarts.length;k++) {
-						if (aKarts[k].id == fSprite.target) {
-							cible = k;
-							break;
-						}
-					}
-					if (!isOnline && (fLoad != undefined)) {
-						fSprite.sprite[fLoad].img.onload = function() {
-							bCounting = false;
-							fSprite.sprite[fLoad].img.onload = undefined;
-							fSprite.size = 8;
-							reprendre(false);
-							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
-						}
-						bCounting = true;
-						interruptGame();
-					}
-					else {
-						fSprite.size = 8;
-						playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
-					}
-				}
-				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
-			}
-		},
-		"init": function(item) {
-			nextBlueShellCooldown = 450;
+
+		render: function(fSprite, i) {
+			SpinyShellBehavior.render(fSprite, i);
 		}
 	},
 	"carapace-noire": {
-		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap")],
-		fadedelay: 0,
-		cooldown0: 15,
-		cooldown1: 2,
+		// check SpinyShellBehavior for actual behavior
+		init: function(fSprite) {
+			SpinyShellBehavior.init(fSprite);
+		},
+
 		move: function(fSprite) {
-			var cible = -1;
-			if (fSprite.target != -1) {
-				for (var k=0;k<aKarts.length;k++) {
-					if (aKarts[k].id == fSprite.target) {
-						cible = k;
-						break;
-					}
-				}
-			}
-			const spdMult = 4/3;
-			var relSpeed = cappedRelSpeed();
-			var relSpeed2 = relSpeed*relSpeed;
-			if (fSprite.aipoint == -1) {
-				if (fSprite.cooldown > 0) {
-					var oKart = aKarts[cible];
-					if (oKart) {
-						var fMoveX = fSprite.x - oKart.x;
-						var fMoveY = fSprite.y - oKart.y;
-						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-						var itemBehavior = itemBehaviors["carapace-noire"];
-						if (fSprite.cooldown == itemBehavior.cooldown0) {
-							var dSpeed = 10*relSpeed * spdMult;
-							if (fMove2 > dSpeed*dSpeed) {
-								var fNewMove = Math.sqrt(fMove2)/dSpeed;
-								fMoveX /= fNewMove;
-								fMoveY /= fNewMove;
-
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-							}
-							else
-								fSprite.cooldown--;
-						}
-						else {
-							if (fSprite.cooldown < 5) {
-								var maxSpeed2 = 32;
-								if (oKart.champi > 0)
-									maxSpeed2 = 200;
-								else if (oKart.turbodrift)
-									maxSpeed2 = 64;
-								maxSpeed2 *= relSpeed2*relSpeed2;
-								if (fMove2 > maxSpeed2) {
-									var fNewMove = Math.sqrt(fMove2/maxSpeed2);
-									fMoveX /= fNewMove;
-									fMoveY /= fNewMove;
-								}
-							}
-							var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
-							if (r < 0) r = 0;
-							var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
-							var theta = 2*Math.PI*r;
-							var pTheta = oKart.rotation*Math.PI/180;
-							var z0 = (15 + rZ0);
-							fSprite.z = z0 - rZ*Math.cos(theta);
-							fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
-							fMoveY += rX*Math.sin(theta)*Math.sin(pTheta);
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(Math.round(Math.random()));
-							fSprite.cooldown--;
-							if (!fSprite.cooldown) {
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(0);
-							}
-						}
-
-						fSprite.x -= fMoveX;
-						fSprite.y -= fMoveY;
-					}
-				}
-				else {
-					fSprite.z = 0;
-					if (isOnline && isControlledByPlayer(fSprite.target) && (fSprite.cooldown < -10))
-						fSprite.cooldown = 0;
-					fSprite.cooldown--;
-					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -70:-10;
-					if (fSprite.cooldown < delLimit)
-						detruit(fSprite);
-				}
-			}
-			else {
-				var isBB = (course == "BB");
-				if (!isBB) {
-					var aipoints = oMap.aipoints[fSprite.aimap];
-					var dSpeed = 15*relSpeed * spdMult;
-					var aX = fSprite.x, aY = fSprite.y;
-					while (dSpeed > 0) {
-						var target = aipoints[fSprite.aipoint];
-						var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
-						if (dist > dSpeed) {
-							fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
-							fSprite.y += (target[1]-fSprite.y)*dSpeed/dist;
-							dSpeed = 0;
-						}
-						else {
-							dSpeed -= dist;
-							fSprite.x = target[0];
-							fSprite.y = target[1];
-							fSprite.aipoint++;
-							if (fSprite.aipoint === aipoints.length)
-								fSprite.aipoint = 0;
-						}
-					}
-				}
-				if (cible == -1) {
-					cible = 0;
-					for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
-						for (var k=0;k<aKarts.length;k++) {
-							if (aKarts[k].place == cPlace && !aKarts[k].loose) {
-								if (!friendlyHit(fSprite.team,aKarts[k].team)) {
-									cible = k;
-									cPlace = 0;
-								}
-								break;
-							}
-						}
-					}
-				}
-				var oKart = aKarts[cible];
-				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
-				if ((fDist2 < 20000) || isBB) {
-					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
-						fSprite.target = oKart.id;
-						if (isOnline)
-							syncItems.push(fSprite);
-					}
-					if (fSprite.target != -1) {
-						var aDist2 = (oKart.x-aX)*(oKart.x-aX) + (oKart.y-aY)*(oKart.y-aY);
-						if ((fDist2 < 5000) || (fDist2 > aDist2) || isBB)
-							fSprite.aipoint = -1;
-					}
-				}
-				for (var k=0;k<oPlayers.length;k++)
-					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-			}
+			SpinyShellBehavior.move(fSprite);
 		},
+
 		checkCollisions: function(fSprite, getId) {
-			var oKart = aKarts[getId];
-			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
-				if (!friendlyHit(oKart.team, fSprite.team)) {
-					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
-					handleExplosionHit(getId, pExplose);
-				}
-			}
+			SpinyShellBehavior.checkCollisions(fSprite, getId);
 		},
-		render: function(fSprite,i) {
-			if (fSprite.cooldown <= 0) {
-				if (!i && (fSprite.size == 1)) {
-					var fLoad;
-					for (var k=0;k<strPlayer.length;k++) {
-						makeSpriteExplode(fSprite,"D",k);
-						if (fSprite.sprite[k].div.style.display == "block")
-							fLoad = k;
-					}
-					var cible = -1;
-					for (var k=0;k<aKarts.length;k++) {
-						if (aKarts[k].id == fSprite.target) {
-							cible = k;
-							break;
-						}
-					}
-					if (!isOnline && (fLoad != undefined)) {
-						fSprite.sprite[fLoad].img.onload = function() {
-							bCounting = false;
-							fSprite.sprite[fLoad].img.onload = undefined;
-							fSprite.size = 8;
-							reprendre(false);
-							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
-						}
-						bCounting = true;
-						interruptGame();
-					}
-					else {
-						fSprite.size = 8;
-						playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
-					}
-				}
-				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
-			}
-		},
-		"init": function(item) {
-			nextBlueShellCooldown = 450;
+
+		render: function(fSprite, i) {
+			SpinyShellBehavior.render(fSprite, i);
 		}
 	},
 	"boomerang": {
@@ -9566,10 +9546,11 @@ var itemBehaviors = {
 		UPDATE_STEPS: 4,
 
 		move: function(fSprite, ctx) {
-			const frameSlowdown = itemBehaviors[fSprite.type].FRAME_SLOWDOWN;
-			const frameBack = itemBehaviors[fSprite.type].FRAME_BACK;
-			const frameBackZ = itemBehaviors[fSprite.type].FRAME_BACK_Z;
-			const steps = itemBehaviors[fSprite.type].UPDATE_STEPS;
+			const behavior = getItemBehavior("boomerang");
+			const frameSlowdown = behavior.FRAME_SLOWDOWN;
+			const frameBack = behavior.FRAME_BACK;
+			const frameBackZ = behavior.FRAME_BACK_Z;
+			const steps = behavior.UPDATE_STEPS;
 
 			const shouldCollideWalls = fSprite.frame < frameBack || fSprite.throw === 1;
 			const isSlowdown = fSprite.frame >= frameSlowdown && fSprite.frame < frameBack && fSprite.throw > 1;
@@ -12770,7 +12751,7 @@ function render() {
 					fSprite = frameState.items[key][j];
 					var fSpriteRef = fSprite.ref;
 					if (lastFrame) {
-						var itemBehavior = itemBehaviors[key];
+						var itemBehavior = getItemBehavior(key);
 						if (itemBehavior.render)
 							itemBehavior.render(fSpriteRef,i);
 					}
@@ -13035,7 +13016,7 @@ function supprime(item, sound) {
 	var key = item.type;
 	var id = items[key].indexOf(item);
 	if (id != -1) {
-		var itemBehavior = itemBehaviors[key];
+		var itemBehavior = getItemBehavior(key);
 		if (item.sprite) {
 			for (var i=0;i<oPlayers.length;i++) {
 				var oPlayer = getPlayerAtScreen(i);
@@ -13133,7 +13114,7 @@ function loseUsingItems(oKart) {
 			if (tombe(oItem.x, oItem.y))
 				detruit(oItem);
 
-			var itemBehavior = itemBehaviors[oItem.type];
+			var itemBehavior = getItemBehavior(oItem.type);
 			if (itemBehavior.drop)
 				itemBehavior.drop(oItem,oKart);
 			if (isOnline)
@@ -17252,7 +17233,7 @@ function isHitSound(oBox) {
 function handleHit(oBox) {
 	if (!clLocalVars.currentKart) return;
 	if (clLocalVars.currentKart.tourne || clLocalVars.currentKart.protect) return;
-	if (clLocalVars.currentKart.frminv && itemBehaviors[oBox.type] && itemBehaviors[oBox.type].frminv) return;
+	if (clLocalVars.currentKart.frminv && getItemBehavior(oBox.type) && getItemBehavior(oBox.type).frminv) return;
 	if (clLocalVars.hitItems && (clLocalVars.currentKart == oPlayers[0]))
 		incItemHits(oBox.type);
 	if (clLocalVars.myItems && clLocalVars.currentKart && (clLocalVars.currentKart != oPlayers[0]) && (clLocalVars.myItems.indexOf(oBox) != -1))
@@ -18162,17 +18143,6 @@ function getCpRespawn(lastCp, lMap) {
 	}
 	return [lastCp.x,lastCp.y, lastCp.rotation/90];
 }
-function findFirstRacingPlayer(fSprite) {
-	for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
-		for (var k=0;k<aKarts.length;k++) {
-			if (aKarts[k].place == cPlace) {
-				if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team))
-					return k;
-			}
-		}
-	}
-	return aKarts.length-1;
-}
 
 function int8ToHexString(arr) {
 	return [].slice.call(arr).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
@@ -18299,7 +18269,7 @@ function resetDatas() {
 				if (!syncItem.id) continue;
 			}
 			else {
-				var itemBehavior = itemBehaviors[syncItem.type];
+				var itemBehavior = getItemBehavior(syncItem.type);
 				for (var j=0;j<itemBehavior.sync.length;j++) {
 					var syncParams = itemBehavior.sync[j];
 					if (syncParams.type === "custom")
@@ -18545,7 +18515,7 @@ function resetDatas() {
 				}
 				if (uData) {
 					var cur = 0;
-					var itemBehavior = itemBehaviors[uType];
+					var itemBehavior = getItemBehavior(uType);
 					for (var j=0;j<itemBehavior.sync.length;j++) {
 						var syncParams = itemBehavior.sync[j];
 						if (syncParams.type === "custom") {
@@ -18591,9 +18561,9 @@ function resetDatas() {
 				if (uData && (uHolder == 0)) {
 					var start = uConn;
 					var end = rCode[2];
-					var moveFn = itemBehaviors[uType].move;
-					if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
-						var checkCollisions = itemBehaviors[uType].checkCollisions;
+					var moveFn = getItemBehavior(uType).move;
+					if (moveFn && (getItemBehavior(uType).onlineResync !== false)) {
+						var checkCollisions = getItemBehavior(uType).checkCollisions;
 						function checkLocalCollisions(fSprite) {
 							for (var j=0;j<localKarts.length;j++) {
 								var l = localKarts[j];
@@ -19379,10 +19349,12 @@ function move(getId, triggered) {
 					}
 					if (items["carapace-bleue"].length)
 						forbiddenItems["carapacebleue"] = 1;
-					if (items["carapace-noire"].length)
-						forbiddenItems["carapacenoire"] = 1;
 					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
 						forbiddenItems["carapacebleue"] = 1;
+					if (items["carapace-noire"].length)
+						forbiddenItems["carapacenoire"] = 1;
+					else if (nextDarkShellCooldown && (itemDistribution.blueshelldelay != 0))
+						forbiddenItems["carapacenoire"] = 1;
 					if (((itemDistribution.lightninglast != 0) && (oKart.place < aKarts.length)) || items.eclair.length)
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
@@ -20644,7 +20616,7 @@ function move(getId, triggered) {
 		}
 	}
 	if (oKart.boomerangArme && oKart.arme === "boomerang")
-		updateItemCountdownHud(getId, oKart.boomerangArme / itemBehaviors.boomerang.MAX_USES);
+		updateItemCountdownHud(getId, oKart.boomerangArme / getItemBehavior("boomerang").MAX_USES);
 	if (oKart.megachampi) {
 		oKart.megachampi--;
 		if (oKart.megachampi > 71)
@@ -22112,19 +22084,21 @@ function ai(oKart) {
 		}
 	}
 }
-var nextBlueShellCooldown, nextPowCooldown;
+var nextBlueShellCooldown, nextDarkShellCooldown, nextPowCooldown;
 function moveItems() {
 	collisionTest = COL_OBJ;
 	collisionTeam = undefined;
 	clLocalVars.currentKart = undefined;
 	if (nextBlueShellCooldown)
 		nextBlueShellCooldown--;
+	if (nextDarkShellCooldown)
+		nextDarkShellCooldown--;
 	if (nextPowCooldown)
 		nextPowCooldown--;
 
 	var lapId = getCurrentLapId(getPlayerAtScreen(0));
 	for (var key in itemBehaviors) {
-		var moveFn = itemBehaviors[key].move;
+		var moveFn = getItemBehavior(key).move;
 		if (moveFn) {
 			collisionLap = lapId;
 			var kItems = items[key];
@@ -27121,6 +27095,7 @@ function selectItemScreen(oScr, callback, options) {
 	oScr2.style.top = "0px";
 	oScr2.style.zIndex = 4;
 	oScr2.style.backgroundColor = "#000";
+	oScr2.focus();
 
 	var oTableItems = document.createElement("table");
 	oTableItems.style.color = "white";
@@ -33002,11 +32977,12 @@ function editCommands(options) {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nowater' : toLanguage('Disable water animation (Palm Shore Arena)', 'Désactiver l\'animation de l\'eau (DS Feuille de Palmier)'),
-		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
+		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map'),
+		'spd': toLanguage('Enable speedometer', 'Activer le compteur de vitesse'),
+		'alarmDisabled': toLanguage('Disable Blue Shell alarm', 'Désactiver l\'alarme de la Carapace Bleue')
 	};
 	for (var key in allGraphicSettings)
 		showGraphicSetting(key, allGraphicSettings[key]);
-	showGraphicSetting('spd', toLanguage('Enable speedometer', 'Activer le compteur de vitesse'));
 	var $controlSettingsH2 = document.createElement("div");
 	$controlSettingsH2.className = "control-settings-info";
 	$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");
