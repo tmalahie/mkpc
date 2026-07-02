@@ -8671,18 +8671,11 @@ var itemBehaviors = {
 						z0: oRail.z0
 					};
 				}
-				else if (isMoving && assetHit) {
+				else if (isMoving && assetHit && assetHit[0] === "bumpers") {
 					const angle = Math.atan2(fSprite.vx, fSprite.vy) * 180 / Math.PI;
-					switch (assetHit[0]) {
-						case "bumpers":
-							const shift = getBumperBounce(fSprite.x, fSprite.y, fMoveX, fMoveY, angle, assetHit[1]);
-							fSprite.vx = shift[0];
-							fSprite.vy = shift[1];
-							break;
-						
-						default:
-							break;
-					}
+					const shift = getBumperBounce(fSprite.x, fSprite.y, fMoveX, fMoveY, angle, assetHit[1]);
+					fSprite.vx = shift[0];
+					fSprite.vy = shift[1];
 				}
 				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY, false, z0)) {
 					if (ctx && ctx.checkCollisions) {
@@ -19173,6 +19166,7 @@ function move(getId, triggered) {
 		}
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
+		var cc = fSelectedClass;
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
@@ -19188,10 +19182,8 @@ function move(getId, triggered) {
 					setStarState(oKart, 80);
 				}
 
-				var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
-
-				var cc = fSelectedClass;
-				if (oKart.rail) cc *= 2;
+				if (oKart.rail)
+					cc *= 2;
 
 				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems)))))
 					if (!oKart.protect && !oKart.frminv)
