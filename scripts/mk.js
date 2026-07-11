@@ -2099,7 +2099,7 @@ function initMap() {
 			if (res !== undefined) return res;
 
 			res = lMaps.length;
-			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides }, sMaps[lapId]);
+			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides.slice() }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
 				var oId = conditionOverrides[i];
