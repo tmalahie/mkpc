@@ -1138,15 +1138,16 @@ function setPlanPos(frameState, lMap) {
 				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW);
+				const booOpacity = oKart.ref.boo ? 0.5 : 1;
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW).style.opacity = booOpacity;
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
 					var iTeamW2 = Math.round(oTeamWidth2*iCharR);
-					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
+					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2).style.opacity = booOpacity;
 					oPlanTeams[i].style.width = iTeamW +"px";
 					oPlanTeams[i].style.height = iTeamW +"px";
-					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
+					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2).style.opacity = booOpacity;
 					oPlanTeams2[i].style.width = iTeamW2 +"px";
 					oPlanTeams2[i].style.height = iTeamW2 +"px";
 				}
@@ -2793,6 +2794,39 @@ function setStarState(oKart, duration) {
 	delete oKart.shift;
 	oKart.protect = true;
 	oKart.etoile = duration;
+	resetBooState(oKart);
+}
+
+function resetBooState(oKart) {
+	if (oKart.boo) {
+		oKart.boo = 0;
+		booSetOpacity(oKart, false);
+	}
+}
+
+function setBooState(oKart, getId, duration) {
+	if (oKart.booGiveIn > 0)
+		return false;
+
+	if (!oKart.etoile)
+		oKart.boo = duration;
+
+	oKart.booGiveIn = itemBehaviors["boo"].beforeGive;
+	const shroomIdx = itemUniqueTypes.indexOf("champi");
+	addNewItem(oKart, {type: "boo", owner: oKart.id, target: booGetTarget(oKart), stealItem: shroomIdx, stealCount: 1});
+	playIfShould(oKart, "musics/events/boo_use.mp3");
+
+	if (oDoubleItemsEnabled) {
+		oKart.arme = oKart.stash;
+		oKart.roulette = oKart.roulette2;
+		oKart.stash = "boo";
+		oKart.roulette2 = 25;
+		if (kartIsPlayer(oKart))
+			updateObjHud(getId);
+		return true;
+	}
+
+	return false;
 }
 
 var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
@@ -2802,11 +2836,14 @@ function arme(ID, backwards, forwards) {
 		if (oKart.roulette != 25) return;
 		if (oKart == oPlayers[0])
 			clLocalVars.itemsUsed = true;
+
+		const itemExpr = oKart.arme.match(/^(.+)X(\d+)$/);
+		const itemType = !itemExpr ? oKart.arme : itemExpr[1];
+		const itemCount = !itemExpr ? 1 : Number(itemExpr[2]);
 		var tpsUse, itemKey = oKart.arme;
-		switch(oKart.arme) {
+
+		switch(itemType) {
 			case "champi" :
-			case "champiX2" :
-			case "champiX3" :
 			itemKey = "champi";
 			tpsUse = 20;
 			oKart.champiType = CHAMPI_TYPE_ITEM;
@@ -2870,6 +2907,7 @@ function arme(ID, backwards, forwards) {
 			delete oKart.champiType;
 			delete oKart.shift;
 			resetPowerup(oKart);
+			resetBooState(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
 			stopDrifting(ID);
 			break;
@@ -2885,14 +2923,10 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "banane" :
-			loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
-			playIfShould(oKart,"musics/events/item_store.mp3");
-			break;
-
-			case "bananeX3" :
-			for (var i=0;i<3;i++)
+			for (let i = 0; i < itemCount; i++)
 				loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
-			oKart.rotitem = 0;
+			if (itemCount > 1)
+				oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2907,26 +2941,18 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "carapace" :
-			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
-			playIfShould(oKart,"musics/events/item_store.mp3");
-			break;
-
-			case "carapaceX3" :
-			for (var i=0;i<3;i++)
+			for (let i = 0; i < itemCount; i++)
 				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
-			oKart.rotitem = 0;
+			if (itemCount > 1)
+				oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerouge" :
-			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
-			playIfShould(oKart,"musics/events/item_store.mp3");
-			break;
-
-			case "carapacerougeX3" :
-			for (var i=0;i<3;i++)
+			for (let i = 0; i < itemCount; i++)
 				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
-			oKart.rotitem = 0;
+			if (itemCount > 1)
+				oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -3018,6 +3044,13 @@ function arme(ID, backwards, forwards) {
 			addNewItem(oKart, {type:"pow", owner:oKart.id});
 			break;
 
+			case "boo" :
+			const shouldReturn = setBooState(oKart, ID, 80);
+			if (shouldReturn)
+				return;
+
+			break;
+
 			case "boomerang" :
 			const [velX, velY] = dirShoot(oKart, backwards, 6.7 * (fSelectedClass + 0.5));
 			const [shiftX, shiftY] = dirShoot(oKart, backwards, 3.2);
@@ -3062,6 +3095,9 @@ function arme(ID, backwards, forwards) {
 			break;
 		case "billball":
 			newItem = "billball";
+			break;
+		case "boo":
+			newItem = "boo";
 			break;
 		}
 		if (newItem) {
@@ -3859,6 +3895,8 @@ function startGame() {
 			champi : 0,
 			etoile : 0,
 			megachampi : 0,
+			boo : 0,
+			booGiveIn : 0,
 			mini : 0,
 			using : []
 		};
@@ -3950,6 +3988,8 @@ function startGame() {
 			champi : 0,
 			etoile : 0,
 			megachampi : 0,
+			boo : 0,
+			booGiveIn : 0,
 			mini : 0,
 			using : [],
 
@@ -4209,6 +4249,8 @@ function startGame() {
 					champi : 0,
 					etoile : 0,
 					megachampi : 0,
+					boo : 0,
+					booGiveIn : 0,
 					using : [],
 
 					tours : 1,
@@ -5063,7 +5105,7 @@ function startGame() {
 							case "balloon" :
 								if (pause) return;
 								if (course == "BB") {
-									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
+									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && (!oPlayers[0].sprite[0].div.style.opacity || oPlayers[0].boo)) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
@@ -5106,7 +5148,7 @@ function startGame() {
 								if (pause) return;
 								if (!oPlayers[1]) return;
 								if (course == "BB") {
-									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
+									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && (!oPlayers[1].sprite[0].div.style.opacity || oPlayers[1].boo)) {
 										oPlayers[1].ballons[oPlayers[1].ballons.length] = createBalloonSprite(oPlayers[1]);
 										oPlayers[1].reserve--;
 										updateBalloonHud(document.getElementById("compteur1"),oPlayers[1]);
@@ -8057,7 +8099,7 @@ var itemBehaviors = {
 					for (var i=0;i<aKarts.length;i++) {
 						var kart = aKarts[i];
 						if (!friendlyFire(kart,oKart)) {
-							if (!kart.protect) {
+							if (!kart.protect && !kart.boo) {
 								if (!isOnline || !i || kart.controller == identifiant)
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 110-(kart.place-1)*35/(aKarts.length-1)));
@@ -8070,7 +8112,7 @@ var itemBehaviors = {
 								handleItemHit(kart, "eclair");
 							}
 							else {
-								if (kart.megachampi && !kart.etoile) {
+								if (kart.megachampi && !kart.etoile && !kart.boo) {
 									if (kart.megachampi > 8)
 										playIfShould(kart, "musics/events/megamushroom_end.mp3");
 
@@ -8167,7 +8209,7 @@ var itemBehaviors = {
 								oPow.style.width = (iScreenScale*7) +"px";
 								oSprites.pow.x = 36;
 								oSprites.pow.y = 14;
-								oPow.style.zIndex = 19003;
+								oPow.style.zIndex = 19005;
 								oPow.style.transition = "left "+ (SPF/1000) +"s ease-out, top "+ (SPF/1000) +"s ease-out, transform "+ (SPF/1000) +"s ease, height "+ (SPF/1000) +"s ease";
 								oPow.style.opacity = friendlyFire(oKart,oKartOwner) ? 1 : 0;
 								oContainers[i].appendChild(oPow);
@@ -8577,6 +8619,259 @@ var itemBehaviors = {
 			}
 		}
 	},
+	"boo": {
+		size: 1,
+		sync: [intType("owner"), intType("target"), shortType("stealItem"), shortType("stealCount"), byteType("cancel")],
+		fadedelay: 0,
+		sprite: false,
+		onlineResync: false,
+		countdowns: [
+			36, // boo animation on target + steal / flies up from owner
+			15, // fall down to the owner
+			1, // give item to the owner
+			30 // lifetime delay to prevent early detruit call
+		],
+		beforeGive: 1 + 35 + 15 + 2, // countdowns 0, 1 and 2, + 2 to fix timing
+		scales: [1.25, 1.50, 1.75, 1.50],
+		
+		init: function(fSprite) {
+			fSprite.countstate = 0;
+			fSprite.countdown = 0;
+			fSprite.sprites = [];
+
+			for (let i = 0; i < oPlayers.length; i++) {				
+				const oPlayer = oPlayers[i];
+				const sprites = [document.createElement("img"), document.createElement("img")];
+
+				sprites[0].style.left = `${iScreenScale * 36.5}px`;
+				sprites[0].style.width = `${iScreenScale * 7}px`;
+
+				for (let j = 0; j < 2; j++) {
+					const sprite = sprites[j];
+					sprite.className = "pixelated";
+					sprite.style.position = "absolute";
+					sprite.style.zIndex = 19003 + j;
+				}
+
+				// owner
+				if (fSprite.owner === oPlayer.id) {
+					sprites[0].src = "images/sprites/sprite_boo_owner.png";
+					sprites[0].style.opacity = 0;
+					sprites[0].gameY = 30;
+					sprites[1].style.left = `${iScreenScale * 39.6}px`;
+					sprites[1].style.width = `${iScreenScale * 4}px`;
+
+					for (let j = 0; j < 2; j++)
+						sprites[j].style.transition = `opacity ${SPF / 1000}s linear, top ${SPF / 1000}s linear`;
+				}
+
+				else if (fSprite.target === oPlayer.id) {
+					for (let j = 0; j < 2; j++) {
+						sprites[j].src = `images/sprites/sprite_boo_target${j}.png`;
+						sprites[j].gameY = 13;
+						sprites[j].style.opacity = 0;
+						sprites[j].style.transition = `transform ${SPF / 1000}s ease`;
+					}
+
+					sprites[1].style.left = sprites[0].style.left;
+					sprites[1].style.width = sprites[0].style.width;
+				}
+
+				for (let j = 0; j < 2; j++)
+					oContainers[i].appendChild(sprites[j]);
+	
+				fSprite.sprites.push(sprites);
+			}
+		},
+
+		move: function(fSprite) {
+			fSprite.countdown++;
+
+			for (let i = 0; i < aKarts.length; i++) {
+				const animIdx = i < oPlayers.length ? i : null;
+				const oKart = aKarts[i];
+				const checkingOwner = oKart.id === fSprite.owner;
+				const checkingTarget = oKart.id === fSprite.target;
+				const raceEnd = course !== "BB" && oKart.tours >= oMap.tours + 1;
+
+				// if owner fell off since Boo use
+				if (checkingOwner && oKart.booGiveIn === 0 && animIdx !== null) {
+					for (let j = 0; j < 2; j++)
+						fSprite.sprites[animIdx][j].style.opacity = 0;
+					continue;
+				}
+
+				switch (fSprite.countstate) {
+					case 0: // anim on owner (goes up) and steal target (laughs)
+						// steal target, checks if target still has an item
+						// this should handle online ping and target using their items on the frame Boo tries stealing them
+						const stillHasItem = !(oKart.using.length === 0 && !oKart.arme);
+						const targetClientSide = !isOnline || (oKart.id === identifiant || oKart.controller === identifiant);
+
+						// still target's item if they still have an item to steal
+						if (checkingTarget && fSprite.countdown === 1 && stillHasItem) {
+							playIfShould(oKart, "musics/events/boo_steal.mp3");
+							
+							// usings
+							if (oKart.using.length > 0) {
+								fSprite.stealItem = itemUniqueTypes.indexOf(booFixItemName(oKart.using[0].type));
+								fSprite.stealCount = oKart.using.length;
+								
+								if (targetClientSide)
+									deleteUsingItems(oKart);
+							}
+
+							// 1st slot
+							else {
+								const itemExpr = oKart.arme.match(/^(.+)X(\d+)$/);
+
+								if (!itemExpr) { // if single item
+									fSprite.stealItem = itemUniqueTypes.indexOf(oKart.arme);
+									fSprite.stealCount = 1;
+								}
+								else {
+									fSprite.stealItem = itemUniqueTypes.indexOf(itemExpr[1]);
+									fSprite.stealCount = Number(itemExpr[2]);
+								}
+								
+								consumeItem(i);
+								delete oKart.champior;
+							}
+
+							if (targetClientSide)
+								syncItems.push(fSprite);
+						}
+
+						// if target doesn't have an item anymore, cancel Boo
+						else if (checkingTarget && fSprite.countdown === 1 && !stillHasItem && targetClientSide) {
+							fSprite.target = -1;
+							fSprite.cancel = true;
+							syncItems.push(fSprite);
+						}
+
+						// goes up from owner
+						if (checkingOwner && animIdx !== null) {
+							const booImg = fSprite.sprites[animIdx][0];
+
+							booImg.style.opacity = Math.min(fSprite.countdown * 0.15, 1);
+
+							booImg.gameY -= 4;
+							booImg.style.top = `${iScreenScale * booImg.gameY}px`;
+						}
+
+						// laughs at target
+						else if (checkingTarget && animIdx !== null && !fSprite.cancel) {
+							if (fSprite.countdown < 30) {
+								const animFrame = fSprite.countdown % 6 < 3;
+								fSprite.sprites[animIdx][0].style.opacity = animFrame ? 1 : 0;
+								fSprite.sprites[animIdx][1].style.opacity = animFrame ? 0 : 1;
+	
+								const scales = itemBehaviors["boo"].scales;
+								const scale = scales[fSprite.countdown % scales.length];
+	
+								for (let i = 0; i < 2; i++) {
+									const img = fSprite.sprites[animIdx][i];
+									img.style.top = `${iScreenScale * img.gameY}px`;
+									img.style.transform = `scale(${scale})`;
+								}
+							}
+
+							else {
+								if (fSprite.countdown === 29)
+									fSprite.sprites[animIdx][0].style.transition = `opacity ${SPF / 1000}s linear`;
+
+								fSprite.sprites[animIdx][0].style.opacity = 1 - (fSprite.countdown - 30) * 0.2;
+								fSprite.sprites[animIdx][1].style.opacity = 0;
+							}
+						}
+						break;
+
+					case 1: // anim on owner (goes back)
+						if (checkingOwner && animIdx !== null && !raceEnd) {
+							const itemName = fSprite.target === -1 ? "champi" : booGetItemName(fSprite.stealItem, fSprite.stealCount);
+							fSprite.sprites[animIdx][1].src = `images/items/${itemName}.png`;
+							
+							for (let i = 0; i < 2; i++) {
+								const img = fSprite.sprites[animIdx][i];
+								const lastFrame = itemBehaviors["boo"].countdowns[2];
+
+								switch (fSprite.countdown) {
+									case 1:
+										img.style.transition = `top ${SPF / 1000}s linear`;
+										img.gameY = -30 - i * 0.5;
+										break;
+	
+									case 5:
+										playIfShould(oKart, "musics/events/boo_back.mp3");
+										break;
+	
+									case lastFrame:
+										img.style.opacity = 0;
+										break;
+								}
+	
+								if (fSprite.countdown >= 10)
+									img.style.opacity = 1 - (fSprite.countdown - 10) * 0.2;
+	
+								img.gameY += 4;
+								img.style.top = `${iScreenScale * img.gameY}px`;
+							}
+						}
+						break;
+
+					case 2: // set stolen item to owner
+						if (checkingOwner && oKart.booGiveIn > 0) {
+							const itemName = fSprite.target === -1 ? "champi" : booGetItemName(fSprite.stealItem, fSprite.stealCount);
+							let slotIdx = null;
+
+							if (!oDoubleItemsEnabled)
+								slotIdx = 0;
+							else if (!oKart.arme)
+								slotIdx = 0
+							else
+								slotIdx = oKart.stash === "boo" ? 1 : 0;
+
+							if (slotIdx !== null) {
+								oKart[oArmeKeys[slotIdx]] = itemName
+								oKart["roulette" + oRoulettesPrefixes[slotIdx]] = 25;
+
+								if (slotIdx === 0 && oKart.stash === "boo") {
+									oKart.stash = false;
+									oKart.roulette2 = 0;
+								}
+							}
+
+							if (kartIsPlayer(oKart)) {
+								const isP1 = oKart === oPlayers[0];
+								const getId = isP1 ? 0 : 1;
+
+								updateObjHud(getId);
+								playIfShould(oKart, "musics/events/boo_give.mp3");
+							}
+						}
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			// update state
+			if (fSprite.countdown >= itemBehaviors["boo"].countdowns[fSprite.countstate]) {
+				fSprite.countstate++;
+				fSprite.countdown = 0;
+
+				if (fSprite.countstate >= itemBehaviors["boo"].countdowns.length)
+					detruit(fSprite);
+			}
+		},
+
+		del: function(fSprite) {
+			for (let i = 0; i < oPlayers.length; i++)
+				for (let j = 0; j < 2; j++)
+					oContainers[i].removeChild(fSprite.sprites[i][j]);
+		}
+	},
 	"carapace": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
@@ -8742,7 +9037,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if (touche_bobomb_aux(oKart.x,oKart.y, fSprite)) {
+			if (!oKart.boo && touche_bobomb_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					if (fSprite.cooldown <= 0) {
 						var pExplose = fSprite.cooldown < -5 ? 42 : 84;
@@ -8798,7 +9093,8 @@ var itemBehaviors = {
 				const fellOff = oKart.fell;
 				const inCannon = oKart.cannon;
 				const isDead = oKart.loose;
-				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead);
+				const inBoo = oKart.boo;
+				return (!isOwner && !friendlyHit(fSprite.team, oKart.team) && !isHurt && !fellOff && !inCannon && !isDead && !inBoo);
 			}
 
 			var fNewPosX;
@@ -9315,7 +9611,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
+			if (!oKart.boo && touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
 					handleExplosionHit(getId, pExplose);
@@ -9505,7 +9801,7 @@ var itemBehaviors = {
 		},
 		checkCollisions: function(fSprite, getId) {
 			var oKart = aKarts[getId];
-			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
+			if (!oKart.boo && touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 				if (!friendlyHit(oKart.team, fSprite.team)) {
 					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
 					handleExplosionHit(getId, pExplose);
@@ -9760,7 +10056,10 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang"];
+
+const itemOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang", "boo", "carapacerougeX3", "pow", "carapacebleue", "champiX3", "megachampi", "etoile", "champior", "billball", "eclair"];
+const itemUniqueTypes = ["fauxobjet", "banane", "carapace", "carapacerouge", "champi", "poison", "bloops", "bobomb", "boomerang", "pow", "boo", "carapacebleue", "megachampi", "etoile", "champior", "billball", "eclair", "carapacenoire"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile","boomerang","boo"];
 var items = {};
 
 var raceLog = {
@@ -13103,10 +13402,16 @@ function supprArme(i) {
 function consumeItem(i) {
 	var oKart = aKarts[i];
 	passBoomerangThrows(oKart);
-	oKart.arme = oKart.stash;
-	oKart.stash = false;
-	oKart.roulette = oKart.roulette2;
-	oKart.roulette2 = 0;
+	if (oKart.stash === "boo" && oKart.booGiveIn > 0) {
+		oKart.arme = false;
+		oKart.roulette = 0;
+	}
+	else {
+		oKart.arme = oKart.stash;
+		oKart.stash = false;
+		oKart.roulette = oKart.roulette2;
+		oKart.roulette2 = 0;
+	}
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
@@ -13630,6 +13935,8 @@ function colKart(getId) {
 	var lap1 = getCurrentLapId(oKart);
 	for (var i=0;i<getId;i++) {
 		var kart = aKarts[i];
+		if (kart.boo)
+			continue;
 		var lap2 = getCurrentLapId(kart);
 		if (lapInteractionsDisabled(lap1,lap2)) continue;
 		var protect1 = oKart.protect ? ((oKart.etoile||oKart.billball)?2:1) : 0;
@@ -13956,8 +14263,11 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						continue;
 
 					let fromSelf;
-					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0])
+					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0]) {
+						if (collisionPlayer.boo)
+							continue;
 						fromSelf = true;
+					}
 					else if (collisionTest === COL_OBJ && collisionItem && collisionItem.owner === oPlayers[0].id)
 						fromSelf = true;
 					
@@ -16816,7 +17126,8 @@ var itemDistributions = {
 			"banane": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 4,
-			"boomerang": 3
+			"boomerang": 3,
+			"boo": 2
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
@@ -16825,7 +17136,8 @@ var itemDistributions = {
 			"champi": 3,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"boo": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
@@ -16845,7 +17157,8 @@ var itemDistributions = {
 			"carapace": 5,
 			"bobomb": 4,
 			"carapaceX3": 3,
-			"boomerang": 4
+			"boomerang": 4,
+			"boo": 3
 		}, {
 			"carapacerouge": 7,
 			"carapacebleue": 4,
@@ -16856,7 +17169,8 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1,
 			"bloops": 1,
-			"pow": 1
+			"pow": 1,
+			"boo": 3
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -16933,13 +17247,15 @@ var itemDistributions = {
 			"carapacerouge": 5,
 			"bobomb": 3,
 			"bloops": 2,
-			"boomerang": 3
+			"boomerang": 3,
+			"boo": 1
 		}, {
 			"champi": 8,
 			"carapacerouge": 6,
 			"bobomb": 3,
 			"champiX3": 2,
-			"boomerang": 3
+			"boomerang": 3,
+			"boo": 1
 		}, {
 			"bobomb": 4,
 			"champi": 5,
@@ -16947,13 +17263,15 @@ var itemDistributions = {
 			"champiX3": 3,
 			"carapacerougeX3": 3,
 			"pow": 1,
-			"boomerang": 4
+			"boomerang": 4,
+			"boo": 2
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
 			"champiX3": 6,
 			"megachampi": 3,
-			"pow": 1
+			"pow": 1,
+			"boo": 2
 		}, {
 			"champiX3": 8,
 			"carapacerougeX3": 8,
@@ -16961,13 +17279,15 @@ var itemDistributions = {
 			"etoile": 4,
 			"champior": 2,
 			"carapacebleue": 5,
-			"pow": 1
+			"pow": 1,
+			"boo": 3
 		}, {
 			"megachampi": 7,
 			"champiX3": 6,
 			"etoile": 5,
 			"champior": 3,
-			"carapacebleue": 5
+			"carapacebleue": 5,
+			"boo": 1
 		}, {
 			"megachampi": 8,
 			"champiX3": 6,
@@ -17015,12 +17335,14 @@ var itemDistributions = {
 			"poison": 4,
 			"bobomb": 8,
 			"bloops": 2,
-			"boomerang": 8
+			"boomerang": 8,
+			"boo": 3
 		}, {
 			"carapacerouge": 12,
 			"champi": 4,
 			"bobomb": 8,
-			"boomerang": 8
+			"boomerang": 8,
+			"boo": 3
 		}, {
 			"carapacerouge": 8,
 			"champi": 5,
@@ -17028,27 +17350,31 @@ var itemDistributions = {
 			"champiX3": 1,
 			"carapacerougeX3": 6,
 			"pow": 2,
-			"boomerang": 8
+			"boomerang": 8,
+			"boo": 4
 		}, {
 			"champi": 4,
 			"champiX3": 3,
 			"carapacerougeX3": 10,
 			"megachampi": 3,
-			"pow": 2
+			"pow": 2,
+			"boo": 3
 		}, {
 			"champiX3": 4,
 			"carapacerougeX3": 10,
 			"megachampi": 6,
 			"etoile": 4,
 			"carapacebleue": 12,
-			"pow": 3
+			"pow": 3,
+			"boo": 4
 		}, {
 			"champiX3": 3,
 			"megachampi": 7,
 			"etoile": 5,
 			"champior": 1,
 			"carapacebleue": 10,
-			"pow": 2
+			"pow": 2,
+			"boo": 2
 		}, {
 			"champiX3": 3,
 			"megachampi": 8,
@@ -17651,6 +17977,55 @@ function powCpuDodge(oKart) {
 	}
 }
 
+function booCanStealPlayer(owner, target) {
+	return (
+		owner !== target &&				// owner and target are different players
+		(target.using.length > 0 || (target.arme && target.roulette === 25)) &&
+										// target has an item in 1st slot or is trailing items
+		(target.using.length > 0 || target.arme !== "boo") &&
+										// target's item to steal is not boo
+		!target.billball &&				// target is not in bill
+		target.place < owner.place &&	// target is at a lower spot than owner
+		(course === "BB" || target.tours < (oMap.tours + 1))
+										// target has not finished the race
+	);
+}
+
+function booGetTarget(owner) {
+	const canSteal = [];
+
+	for (let i = 0; i < aKarts.length; i++) {
+		const target = aKarts[i];
+		if (booCanStealPlayer(owner, target))
+			canSteal.push(target.id);
+	}
+
+	return canSteal.length === 0 ? -1 : canSteal[Math.floor(Math.random() * canSteal.length)];
+}
+
+function booFixItemName(name) {
+	return name.replace("carapace-rouge", "carapacerouge");
+}
+
+function booGetItemName(index, count) {
+	const name = itemUniqueTypes[index] + (count > 1 ? `X${count}` : "")
+	return name.replace("-", "");
+}
+
+function booSetOpacity(oKart, enable) {
+	const opacity = enable ? 0.5 : "";
+
+	for (let i = 0; i < oPlayers.length; i++) {
+		oKart.sprite[i].div.style.opacity = opacity;
+		oKart.driftSprite[i].div.style.opacity = opacity;
+
+		if (oKart.ballons) {
+			for (let j = 0; j < oKart.ballons.length; j++)
+				oKart.ballons[j][i].img.style.opacity = opacity;
+		}
+	}
+}
+
 function hopKart(oKart, height = 1) {
 	oKart.z = height;
 	oKart.heightinc = height / 2;
@@ -17695,7 +18070,7 @@ function playPow(i, oKart, oKartOwner, fSprite) {
             powCpuDodge(oKart);
 
     if (fSprite.countstate === 6 && fSprite.countdown === 1) {
-        if ((!isOnline || !i || oKart.controller == identifiant)) {
+        if ((!isOnline || !i || oKart.controller == identifiant) && !oKart.boo) {
             if (!isIFrames) {
                 loseUsingItems(oKart);
                 dropCurrentItem(oKart);
@@ -18224,8 +18599,8 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","boo","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi","boo"];
 	var playerMappingExtra = (course != "BB") ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
@@ -18367,7 +18742,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aZ = oKart.z, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve, aTourne = oKart.tourne;
+						var aX = oKart.x, aY = oKart.y, aZ = oKart.z, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve, aTourne = oKart.tourne, aBoo = oKart.boo;
 						var nDemitours;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
@@ -18484,6 +18859,9 @@ function resetDatas() {
 							oKart.turnSound = undefined;
 						if ((!aTourne && oKart.tourne) || (!aBillBall && oKart.billball))
 							stopGrinding(j);
+						
+						if (!aBoo)
+							booSetOpacity(oKart, false);
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
 							move(j, true);
@@ -19155,7 +19533,7 @@ function move(getId, triggered) {
 			for (var i=0;i<aKarts.length;i++)
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
-		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
+		var pExplose = oKart.boo ? 0 : (touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY));
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
@@ -19176,15 +19554,17 @@ function move(getId, triggered) {
 				var cc = fSelectedClass;
 				if (oKart.rail) cc *= 2;
 
-				if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKartItems))))
-					if (!oKart.protect && !oKart.frminv)
-						handleHardHit(getId);
-				if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
-					if (!oKart.protect && !oKart.frminv)
-						handleSoftHit(getId);
-				if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))))
-					if (!oKart.protect && !oKart.frminv)
-						handlePoisonHit(getId);
+				if (!oKart.boo) {
+					if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (cc>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (cc>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems)) || (cc>1.5 && touche_crouge(fNewPosX, fNewPosY, oKartItems)) || (cc>1.5 && touche_crouge_future(fNewPosX, fNewPosY, oKartItems))))
+						if (!oKart.protect && !oKart.frminv)
+							handleHardHit(getId);
+					if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))))
+						if (!oKart.protect && !oKart.frminv)
+							handleSoftHit(getId);
+					if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (cc>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))))
+						if (!oKart.protect && !oKart.frminv)
+							handlePoisonHit(getId);
+				}
 			}
 
 			if (!oKart.tourne && (oKart.z < 1.2)) {
@@ -19192,13 +19572,14 @@ function move(getId, triggered) {
 				var asset = touche_asset(aPosX,aPosY,aPosZ,fNewPosX,fNewPosY);
 				var stopped = true;
 				var decorHit = false;
+				const isBoo = oKart.boo > 0;
 				if (asset) {
 					var decorType = asset[1][0].src;
 					var isCustom = asset[1][0].custom;
 					if (isCustom) decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
-						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0) && !isBoo) {
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(20);
@@ -19208,7 +19589,7 @@ function move(getId, triggered) {
 						break;
 					case "pointers":
 						if (!isCustom) decorType = 'assets/pivothand';
-						if (hittable) {
+						if (hittable && !isBoo) {
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(42);
@@ -19308,7 +19689,7 @@ function move(getId, triggered) {
 			}
 		}
 		if (touche_boomerang({x: fNewPosX, y: fNewPosY, z: oKart.z}, {x: fNewPosX - oKart.x, y: fNewPosY - oKart.y}, [], oKart.id, false, oKart.billball || oKart.etoile))
-			if (!oKart.protect && !oKart.frminv)
+			if (!oKart.protect && !oKart.frminv && !oKart.boo)
 				handleHardHit(getId);
 	}
 
@@ -19356,7 +19737,8 @@ function move(getId, triggered) {
 						bloops: 1,
 						pow: 1,
 						bananeX3: 1,
-						boomerang: 1
+						boomerang: 1,
+						boo: 1
 					};
 					if (itemDistribution.powx2 == 1) {
 						delete preventDuplicateItems["pow"];
@@ -19796,6 +20178,8 @@ function move(getId, triggered) {
 				oKart.fell = true;
 				oKart.heightinc = 0;
 				oKart.champi = 0;
+				oKart.boo = 0;
+				oKart.booGiveIn = 0;
 				kartReplaced = true;
 				delete oKart.champiType;
 				delete oKart.champior;
@@ -19829,6 +20213,7 @@ function move(getId, triggered) {
 					if (oKart.etoile)
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				}
+				booSetOpacity(oKart, false);
 				resetPowerup(oKart);
 				resetWrongWay(oKart);
 				if (!oKart.cpu) {
@@ -20665,6 +21050,31 @@ function move(getId, triggered) {
 				oKart.size = 1;
 		}
 	}
+
+	if (oKart.boo) {
+		booSetOpacity(oKart, true);
+
+		// if player finished
+		if (oKart.tours >= oMap.tours + 1 && oKart.boo)
+			resetBooState(oKart);
+
+		else {
+			oKart.boo--;
+
+			if (!oKart.boo) {
+				booSetOpacity(oKart, false);
+				playIfShould(oKart, "musics/events/boo_end.mp3");
+			}
+		}
+	}
+
+	if (oKart.booGiveIn) {
+		oKart.booGiveIn--;
+
+		if ((oKart.arme === "boo" || oKart.booGiveIn === 0) && !oKart.champior && !oKart.billball)
+			updateItemCountdownHud(getId, oKart.booGiveIn / itemBehaviors["boo"].beforeGive);
+	}
+
 	if (oKart.cannon) {
 		var transitionFactor = 3*Math.pow(cappedRelSpeed(oKart),-2);
 		oKart.speed = (oKart.speed*transitionFactor+20)/(transitionFactor+1);
@@ -21363,12 +21773,12 @@ function processCode(cheatCode) {
 			}
 			return "balloon: Unknown error";
 
-		// Comment to play tracks automatically whcile testing the item distribution
+		// Uncomment to play tracks automatically while testing the item distribution
 		/*case "autoplay": // /autoplay (items)
 		case "fastforward":
 		case "fastforwards":
 		case "ff":
-			// plays the race automatically at high speed, used for simulating races abd test item distributions
+			// plays the race automatically at high speed, used for simulating races and test item distributions
 			// 'items' are items to display distribution results at the end of the race (must be sparated by a space)
 			raceLog.items = args.slice();
 
@@ -21381,10 +21791,10 @@ function processCode(cheatCode) {
 			clearInterval(cycleHandler);
 			cycleHandler = null;
 			cycle();
-			return true;
+			return true;*/
 
         default:
-            return "Error: This command doesn't exist";*/
+            return "Error: This command doesn't exist";
     }
 }
 
@@ -21990,7 +22400,7 @@ function ai(oKart) {
 			for (var i=0;i<nbPlayers;i++) {
 				var iKart = aKarts[i];
 				var iMaxAngle = maxAngle*Math.max(0.2,Math.min(Math.abs(iKart.speed)/5, 1));
-				if (!iKart.loose && !iKart.protect && !iKart.cpu) {
+				if (!iKart.loose && !iKart.protect && !iKart.cpu && !iKart.boo) {
 					var dDist2 = (iKart.x-oKart.x)*(iKart.x-oKart.x) + (iKart.y-oKart.y)*(iKart.y-oKart.y);
 					if ((dDist2 >= minDist2) && (dDist2 < maxDist2)) {
 						var iAngle = Math.atan2(iKart.x-oKart.x, iKart.y-oKart.y)*180/Math.PI;
@@ -22514,7 +22924,8 @@ function runOneFrame() {
 		handleGamepadEvents();
 		if (!timeTrialMode()) {
 			for (var i=0;i<aKarts.length;i++)
-				colKart(i);
+				if (!aKarts[i].boo)
+					colKart(i);
 		}
 		for (var i=0;i<aKarts.length;i++) {
 			var oKart = aKarts[i];
@@ -27133,8 +27544,7 @@ function selectItemScreen(oScr, callback, options) {
 	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
 		oItemDistributions.push(selectedItemDistrib);
 	
-	const distribOrder = ["fauxobjet", "banane", "bananeX3", "carapace", "carapacerouge", "champi", "poison", "carapaceX3", "bloops", "bobomb", "boomerang", "carapacerougeX3", "pow", "carapacebleue", "champiX3", "megachampi", "etoile", "champior", "billball", "eclair"];
-	const possibleItems = distribOrder.slice();
+	const possibleItems = itemOrder.slice();
 	const battleForbidden = ["billball", "eclair"];
 
 	// remove battle forbidden items
