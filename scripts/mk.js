@@ -9652,20 +9652,15 @@ var itemBehaviors = {
 					if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: -speedX, y: -speedY}, fSprite) && step === 0) {
 						// give back to owner
 						let key;
-						
-						// update uses
-						if (!owner.arme) {
+						if (!owner.arme)
 							key = "arme";
-							owner.boomerangArme = fSprite.throw - 1;
-						}
-						else if (!owner.stash && oDoubleItemsEnabled) {
+						else if (!owner.stash && oDoubleItemsEnabled)
 							key = "stash";
-							owner.boomerangStash = fSprite.throw - 1;
-						}
 
 						// give back item
 						if (key && (owner.tours <= oMap.tours || course === "BB")) {
 							owner[key] = "boomerang";
+							owner[key === "arme" ? "boomerangArme" : "boomerangStash"] = fSprite.throw - 1;
 							owner["roulette" + (key === "arme" ? "" : "2")] = 25;
 
 							if (kartIsPlayer(owner))
@@ -13094,6 +13089,8 @@ function supprArme(i) {
 		oKart["roulette"+prefix] = 0;
 		oKart[oArmeKeys[j]] = false;
 	}
+	delete oKart.boomerangArme;
+	delete oKart.boomerangStash;
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
