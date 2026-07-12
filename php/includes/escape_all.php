@@ -3,6 +3,7 @@ global $alreadyEscaped;
 if (!isset($alreadyEscaped)) {
 	$alreadyEscaped = true;
 	function mres($s) {
+		global $dbh;
 		if (is_array($s))
 			return $s;
 		if (!isset($dbh))

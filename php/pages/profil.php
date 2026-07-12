@@ -319,9 +319,16 @@ include('../includes/menu.php');
 				?>
 				</div>
 				<?php
+				function getPlayerRank($column, $pts, $profileId, $defaultPts) {
+					$sql = 'SELECT (SELECT COUNT(*) FROM `mkjoueurs` j WHERE j.'.$column.'>"'. $pts .'" AND j.deleted=0)';
+					if ($pts != $defaultPts)
+						$sql .= '+(SELECT COUNT(*) FROM `mkjoueurs` j WHERE j.'.$column.'="'. $pts .'" AND j.id<"'. $profileId .'" AND j.deleted=0)';
+					$sql .= ' AS cnt';
+					$res = mysql_fetch_array(mysql_query($sql));
+					return 1+$res['cnt'];
+				}
 				$pts = $getInfos['pts_vs'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
-				$place = 1+$place['cnt'];
+				$place = getPlayerRank('pts_vs', $pts, $profileId, 5000);
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
 					echo '<strong>'. $pts . ' pts</strong> ';
@@ -329,8 +336,7 @@ include('../includes/menu.php');
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_battle'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
-				$place = 1+$place['cnt'];
+				$place = getPlayerRank('pts_battle', $pts, $profileId, 5000);
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';
 					echo '<strong>'. $pts . ' pts</strong> ';
