@@ -5148,21 +5148,7 @@ function startGame() {
 								delete oPlayers[0].ctrl;
 								if (oPlayers[0].driftinc) {
 									oPlayers[0].driftinc = 0;
-									if (oPlayers[0].driftcpt >= fTurboDriftCpt) {
-										oPlayers[0].turbodrift = 15;
-										clLocalVars.miniTurbo++;
-										var ruleVars;
-										if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].mini_turbo))
-											updateChallengeHud("miniTurbo", clLocalVars.miniTurbo+ruleVars.miniTurbo);
-										if (oPlayers[0].driftcpt >= fTurboDriftCpt2) {
-											oPlayers[0].turbodrift += 15;
-											clLocalVars.superTurbo++;
-											if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].super_turbo))
-												updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
-										}
-										oPlayers[0].turbodrift0 = oPlayers[0].turbodrift;
-										resetDriftSprite(oPlayers[0]);
-									}
+									releaseDriftTurbo(oPlayers[0]);
 									oPlayers[0].driftcpt = 0;
 									if (oPlayers[0].driftSound) {
 										oPlayers[0].driftSound.pause();
@@ -5207,13 +5193,7 @@ function startGame() {
 								delete oPlayers[1].ctrl;
 								if (oPlayers[1].driftinc) {
 									oPlayers[1].driftinc = 0;
-									if (oPlayers[1].driftcpt >= fTurboDriftCpt) {
-										oPlayers[1].turbodrift = 15;
-										if (oPlayers[1].driftcpt >= fTurboDriftCpt2)
-											oPlayers[1].turbodrift += 15;
-										oPlayers[1].turbodrift0 = oPlayers[1].turbodrift;
-										resetDriftSprite(oPlayers[1]);
-									}
+									releaseDriftTurbo(oPlayers[1]);
 									oPlayers[1].driftcpt = 0;
 									if (oPlayers[1].driftSound) {
 										oPlayers[1].driftSound.pause();
@@ -13287,6 +13267,25 @@ function resetGrindingSprite(oKart) {
 		delete oKart.rail;
 	}
 }
+function releaseDriftTurbo(oKart) {
+	if (oKart.driftcpt < fTurboDriftCpt) return;
+	oKart.turbodrift = 15;
+	if (oKart.driftcpt >= fTurboDriftCpt2)
+		oKart.turbodrift += 15;
+	oKart.turbodrift0 = oKart.turbodrift;
+	resetDriftSprite(oKart);
+	if (oKart === oPlayers[0]) {
+		clLocalVars.miniTurbo++;
+		var ruleVars;
+		if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].mini_turbo))
+			updateChallengeHud("miniTurbo", clLocalVars.miniTurbo+ruleVars.miniTurbo);
+		if (oKart.driftcpt >= fTurboDriftCpt2) {
+			clLocalVars.superTurbo++;
+			if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].super_turbo))
+				updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
+		}
+	}
+}
 
 function isJumpEnabled() {
     return !(isOnline && shareLink.options && shareLink.options.noJump);
@@ -13345,6 +13344,8 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 		if (oRail) {
 			if (!oKart.cpu)
 				oKart.ctrled = oKart.ctrl;
+			if (oKart.driftinc)
+				releaseDriftTurbo(oKart);
 			stopDrifting(getId, { preserveTurbo:true });
 			delete oKart.shift;
 			oKart.z = 0;
@@ -13401,6 +13402,10 @@ function checkNextRail(getId, aPosX,aPosY,aPosZ, shouldEnd) {
 			if (aPosZ && oRail.shiftTilt)
 				oKart.rail.side = oRail.shiftTilt;
 		}
+	}
+	else if (shouldEnd && (oRail.exitReason === 'stunt') && (oRail.boostcpt >= railGlobalConfig.superTurboCpt) && (oKart.turbodrift > 15)) {
+		oKart.turbodrift += railGlobalConfig.superTurboExitTime;
+		oKart.turbodrift0 = oKart.turbodrift;
 	}
 }
 function followRail(oRail,oKart) {
@@ -14702,6 +14707,7 @@ var railGlobalConfig = {
 	superTurboCpt: 25,
 	miniTurboTime: 15,
 	superTurboTime: 30,
+	superTurboExitTime: 15,
 	boostW: 22,
 	boostH: 22,
 	boostR: 63/22,
@@ -19675,7 +19681,7 @@ function move(getId, triggered) {
 				else if (boostcpt >= railGlobalConfig.miniTurboCpt)
 					nextTurbo = railGlobalConfig.miniTurboTime;
 				else
-					nextTurbo = 1;
+					nextTurbo = 0;
 			}
 			else {
 				nextTurbo = 15;
@@ -20465,6 +20471,17 @@ function move(getId, triggered) {
 
 	if (isActivelyGrinding(oKart))
 		oKart.maxspeed = railGlobalConfig.baseSpeed;
+	else if (oKart.rail && (oKart.maxspeed < railGlobalConfig.baseSpeed)) {
+		var oRail = oKart.rail;
+		switch (oRail.exitReason) {
+		case 'stunt':
+			oKart.maxspeed = railGlobalConfig.baseSpeed;
+			break;
+		case 'end':
+			var cooldownRamp = Math.max(0, 1-(oRail.exitCooldown||0)/3);
+			oKart.maxspeed = oKart.maxspeed*(1-cooldownRamp) + railGlobalConfig.baseSpeed*cooldownRamp;
+		}
+	}
 	if (oKart.turbodrift) {
 		var nSpeed = 8;
 		if (oKart.turbodrift > 15) {
