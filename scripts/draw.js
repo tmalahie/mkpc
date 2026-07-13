@@ -970,3 +970,112 @@ function closeShortcutOptions() {
 	if ($mask)
 		$mask.close();
 }
+
+function openBoxDecorOptions(self, decorData) {
+    showBoxDecorData({
+        value: decorData,
+        callback: function(value) {
+            storeHistoryData(self.data);
+
+			if (value.applyAll) {
+				for (const decor of self.data.decors[self.state.type]) {
+					decor.items = value.items;
+					decor.throw = value.throw;
+				}
+			}
+			else {
+				decorData.items = value.items;
+				decorData.throw = value.throw;
+			}
+        }
+    });
+}
+function showBoxDecorData(options) {
+	options = options || {};
+	options.value = options.value || {};
+	
+	const items = ["fauxobjet", "banane", "carapace", "carapace-rouge", "champi", "poison", "etoile", "bobomb"];
+	const defaultOptions = {
+		items: {"banane": 1, "champi": 1},
+		throw: false
+	};
+
+	for (const key in defaultOptions)
+		if (options.value[key] === undefined)
+			options.value[key] = defaultOptions[key];
+
+	const $boxDecorOptions = document.getElementById("box-decor-options");
+	document.body.removeChild($boxDecorOptions);
+
+	const $mask = createMask();
+	$mask.id = "mask-box-decor";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($boxDecorOptions);
+	$boxDecorOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($boxDecorOptions);
+		$boxDecorOptions.classList.remove("fs-shown");
+		document.body.appendChild($boxDecorOptions);
+		this.defaultClose();
+	};
+
+	const $form = $boxDecorOptions.querySelector("form");
+
+	for (const item of items) {
+		const value = options.value.items[item];
+		$form.elements[`box-decor-${item}`].value = value === undefined ? "" : value;
+	}
+	$form.elements["throw"].checked = options.value.throw;
+
+	$form.onsubmit = function(event) {
+		event.preventDefault();
+		if (options.callback) {
+			const distrib = {};
+			for (const item of items) {
+				const nbr = Number($form.elements[`box-decor-${item}`].value);
+				if (nbr > 0)
+					distrib[item] = nbr;
+			}
+
+			const value = {
+				pos: {x: options.value.pos.x, y: options.value.pos.y},
+				items: distrib,
+				throw: $form.elements["throw"].checked,
+				applyAll: event.submitter.getAttribute("name") === "applyAll"
+			};
+
+			options.callback(value);
+		}
+		closeBoxDecorOptions();
+	}
+}
+function showBoxDecorHelp(helpType) {
+	let msg;
+
+	switch (helpType) {
+		case "items":
+			msg = language
+			? "In Time trial, the item distribution will be ignored as crates will only drop turbo mushrooms. However if a crate does not have turbo mushrooms to in its distribution, it will not drop anything."
+			: "En mode Contre-la-montre, la distribution d'objets sera ignorée car seuls les champignons turbos peuvent y être lâchés. Cependant si la caisse ne possède pas de champignon turbo dans sa distribution, elle ne lâchera aucun objet."
+			break;
+
+		case "throw":
+			msg = language
+			? "If checked, the dropped item will be thrown further away to give the player enough reaction time."
+			: "Si coché, les objets seront lancés afin de donner un temps de réaction au joueur.";
+			break;
+
+		case "applyAll":
+			msg = language
+			? "Apply these decor settings to every decor of the same type."
+			: "Appliquez les paramètres de ce décor à tous les décors du même type.";
+	}
+
+	if (msg)
+		alert(msg);
+}
+function closeBoxDecorOptions() {
+	const $mask = document.getElementById("mask-box-decor");
+	if ($mask)
+		$mask.close();
+}
