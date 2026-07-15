@@ -14700,6 +14700,7 @@ function inTeleport(iX, iY) {
 
 var railGlobalConfig = {
 	hitboxW: 5,
+	magnetW: 10,
 	minEnterAngle: 0.6,
 	minComboAngle: 0.4,
 	sparkCpt: 3,
@@ -14752,7 +14753,9 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 			minAngleSimilarity = railGlobalConfig.minComboAngle;
 		else if (aS < railGlobalConfig.idleSpeed)
 			minAngleSimilarity = railGlobalConfig.minIdleAngle;
-		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,minAngleSimilarity);
+		var isAirborneKart = iZ && (aR != null) && !previousRail;
+		var hitboxW = isAirborneKart ? railGlobalConfig.magnetW : railGlobalConfig.hitboxW;
+		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, hitboxW,minAngleSimilarity);
 		if (nRes && (!res || (nRes.d2 < res.d2))) {
 			res = nRes;
 			var iZ1 = oRailProps.z0 && getPointHeight(oRailProps.z0);
