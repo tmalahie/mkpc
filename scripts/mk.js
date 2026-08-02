@@ -13351,6 +13351,7 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 			oKart.z = 0;
 			oKart.heightinc = 0;
 			oKart.drift = 0;
+			delete oKart.jumped;
 			var boostSprite = new Sprite("drift");
 			function easeTransform(x) {
 				return 25*Math.atan(17*x-16.43) + 36.75;
