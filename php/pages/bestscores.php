@@ -5,6 +5,8 @@ include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 $game = $isBattle ? 'battle':'vs';
 $pts_ = 'pts_'.$game;
+$pageNum = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$MAX_INDEXED_PAGE = 100;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -12,6 +14,11 @@ $pts_ = 'pts_'.$game;
 <title><?php echo $language ? 'Online mode leaderboard':'Classement mode en ligne'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
+if ($pageNum > $MAX_INDEXED_PAGE) {
+	?>
+<meta name="robots" content="noindex,follow" />
+	<?php
+}
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -58,8 +65,8 @@ else
 	<?php
 	$RES_PER_PAGE = 20;
 	$offset = ($page-1)*$RES_PER_PAGE;
-	$where = $joueur ? 'j.nom="'.$joueur.'"':'(j.'.$pts_.'!=5000) AND j.deleted=0';
-	$records = mysql_query('SELECT j.id,j.nom,j.'.$pts_.' AS pts,c.code FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. $where .' ORDER BY j.'.$pts_.' DESC,j.id LIMIT '. $offset .','.$RES_PER_PAGE);
+	$where = $joueur ? 'j.nom="'.$joueur.'"':'j.deleted=0';
+	$records = mysql_query('SELECT r.id,r.nom,r.pts,c.code FROM (SELECT j.id,j.nom,j.'.$pts_.' AS pts FROM `mkjoueurs` j WHERE '. $where .' ORDER BY j.'.$pts_.' DESC,j.id LIMIT '. $offset .','.$RES_PER_PAGE.') r LEFT JOIN `mkprofiles` p ON p.id=r.id LEFT JOIN `mkcountries` c ON c.id=p.country ORDER BY r.pts DESC,r.id');
 	if ($joueur) {
 		if ($record = mysql_fetch_array($records))
 			$nb_temps = $records ? 1:0;
@@ -82,7 +89,7 @@ else
 	</tr>
 	<?php
 		if ($joueur) {
-			$getPlaces = mysql_query('SELECT j.id,j.nom FROM `mkjoueurs` j WHERE (j.'.$pts_.'!=5000) AND (j.'.$pts_.'>'. $record['pts'] .' OR (j.'.$pts_.'='. $record['pts'] .' AND j.id<'. $record['id'] .')) AND j.deleted=0');
+			$getPlaces = mysql_query('SELECT j.id,j.nom FROM `mkjoueurs` j WHERE (j.'.$pts_.'>'. $record['pts'] .' OR (j.'.$pts_.'='. $record['pts'] .' AND j.id<'. $record['id'] .')) AND j.deleted=0');
 			$place = 1+mysql_numrows($getPlaces);
 			$page = 0;
 		}
@@ -130,8 +137,9 @@ else
 	}
 	else {
 		function pageLink($page, $isCurrent) {
-			global $isBattle;
-			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>').'&nbsp; ';
+			global $isBattle, $MAX_INDEXED_PAGE;
+			$rel = $page > $MAX_INDEXED_PAGE ? ' rel="nofollow"' : '';
+			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'"'. $rel .'>'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/$RES_PER_PAGE);
 		require_once('../includes/utils-paging.php');

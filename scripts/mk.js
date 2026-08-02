@@ -2099,7 +2099,7 @@ function initMap() {
 			if (res !== undefined) return res;
 
 			res = lMaps.length;
-			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides }, sMaps[lapId]);
+			var lMap = Object.assign({ parentOverrideId: lapId, conditionOverrideIds: conditionOverrides.slice() }, sMaps[lapId]);
 			var pMap = {};
 			for (var i=0;i<conditionOverrides.length;i++) {
 				var oId = conditionOverrides[i];
@@ -3039,9 +3039,7 @@ function arme(ID, backwards, forwards) {
 				collideFrame: null,
 				maxSpeed: Math.sqrt(velX * velX + velY * velY)
 			};
-			
-			if (oKart.boomerangArme === 1)
-				delete oKart.boomerangArme;
+			delete oKart.boomerangArme;
 
 			addNewItem(oKart, boomerang);
 			playDistSound(oKart, "musics/events/throw.mp3", 50);
@@ -5150,21 +5148,7 @@ function startGame() {
 								delete oPlayers[0].ctrl;
 								if (oPlayers[0].driftinc) {
 									oPlayers[0].driftinc = 0;
-									if (oPlayers[0].driftcpt >= fTurboDriftCpt) {
-										oPlayers[0].turbodrift = 15;
-										clLocalVars.miniTurbo++;
-										var ruleVars;
-										if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].mini_turbo))
-											updateChallengeHud("miniTurbo", clLocalVars.miniTurbo+ruleVars.miniTurbo);
-										if (oPlayers[0].driftcpt >= fTurboDriftCpt2) {
-											oPlayers[0].turbodrift += 15;
-											clLocalVars.superTurbo++;
-											if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].super_turbo))
-												updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
-										}
-										oPlayers[0].turbodrift0 = oPlayers[0].turbodrift;
-										resetDriftSprite(oPlayers[0]);
-									}
+									releaseDriftTurbo(oPlayers[0]);
 									oPlayers[0].driftcpt = 0;
 									if (oPlayers[0].driftSound) {
 										oPlayers[0].driftSound.pause();
@@ -5209,13 +5193,7 @@ function startGame() {
 								delete oPlayers[1].ctrl;
 								if (oPlayers[1].driftinc) {
 									oPlayers[1].driftinc = 0;
-									if (oPlayers[1].driftcpt >= fTurboDriftCpt) {
-										oPlayers[1].turbodrift = 15;
-										if (oPlayers[1].driftcpt >= fTurboDriftCpt2)
-											oPlayers[1].turbodrift += 15;
-										oPlayers[1].turbodrift0 = oPlayers[1].turbodrift;
-										resetDriftSprite(oPlayers[1]);
-									}
+									releaseDriftTurbo(oPlayers[1]);
 									oPlayers[1].driftcpt = 0;
 									if (oPlayers[1].driftSound) {
 										oPlayers[1].driftSound.pause();
@@ -9561,7 +9539,7 @@ var itemBehaviors = {
 		}
 	},
 	"boomerang": {
-		size: 0.90,
+		size: 0.85,
 		sync: [floatType("x"), floatType("y"), floatType("z"), floatType("vx"), floatType("vy"), intType("owner"), byteType("team"), byteType("throw"), intType("frame"), intType("maxSpeed")],
 		fadedelay: 200,
 		frminv: true,
@@ -9661,20 +9639,15 @@ var itemBehaviors = {
 					if (touche_boomerang_aux({x: owner.x, y: owner.y, z: null}, {x: -speedX, y: -speedY}, fSprite) && step === 0) {
 						// give back to owner
 						let key;
-						
-						// update uses
-						if (!owner.arme) {
+						if (!owner.arme)
 							key = "arme";
-							owner.boomerangArme = fSprite.throw - 1;
-						}
-						else if (!owner.stash && oDoubleItemsEnabled) {
+						else if (!owner.stash && oDoubleItemsEnabled)
 							key = "stash";
-							owner.boomerangStash = fSprite.throw - 1;
-						}
 
 						// give back item
-						if (key) {
+						if (key && (owner.tours <= oMap.tours || course === "BB")) {
 							owner[key] = "boomerang";
+							owner[key === "arme" ? "boomerangArme" : "boomerangStash"] = fSprite.throw - 1;
 							owner["roulette" + (key === "arme" ? "" : "2")] = 25;
 
 							if (kartIsPlayer(owner))
@@ -9697,9 +9670,9 @@ var itemBehaviors = {
 
 				// pierce ground items
 				if (fSprite.z < 12) {
-					while (touche_banane(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-					while (touche_cverte(fSprite.x, fSprite.y, [owner.using[0]], speedX, speedY));
-					while (touche_crouge(fSprite.x, fSprite.y, fSprite.z, [owner.using[0]], speedX, speedY));
+					while (touche_banane(fSprite.x, fSprite.y, owner.using, speedX, speedY));
+					while (touche_cverte(fSprite.x, fSprite.y, owner.using, fSprite.vx, fSprite.vy));
+					while (touche_crouge(fSprite.x, fSprite.y, owner.using, fSprite.vx, fSprite.vy));
 				}
 
 				// refresh SFX sound
@@ -13103,6 +13076,8 @@ function supprArme(i) {
 		oKart["roulette"+prefix] = 0;
 		oKart[oArmeKeys[j]] = false;
 	}
+	delete oKart.boomerangArme;
+	delete oKart.boomerangStash;
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
@@ -13299,6 +13274,25 @@ function resetGrindingSprite(oKart) {
 		delete oKart.rail;
 	}
 }
+function releaseDriftTurbo(oKart) {
+	if (oKart.driftcpt < fTurboDriftCpt) return;
+	oKart.turbodrift = 15;
+	if (oKart.driftcpt >= fTurboDriftCpt2)
+		oKart.turbodrift += 15;
+	oKart.turbodrift0 = oKart.turbodrift;
+	resetDriftSprite(oKart);
+	if (oKart === oPlayers[0]) {
+		clLocalVars.miniTurbo++;
+		var ruleVars;
+		if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].mini_turbo))
+			updateChallengeHud("miniTurbo", clLocalVars.miniTurbo+ruleVars.miniTurbo);
+		if (oKart.driftcpt >= fTurboDriftCpt2) {
+			clLocalVars.superTurbo++;
+			if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].super_turbo))
+				updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
+		}
+	}
+}
 
 function isJumpEnabled() {
     return !(isOnline && shareLink.options && shareLink.options.noJump);
@@ -13357,6 +13351,8 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 		if (oRail) {
 			if (!oKart.cpu)
 				oKart.ctrled = oKart.ctrl;
+			if (oKart.driftinc)
+				releaseDriftTurbo(oKart);
 			stopDrifting(getId, { preserveTurbo:true });
 			delete oKart.shift;
 			oKart.z = 0;
@@ -13413,6 +13409,10 @@ function checkNextRail(getId, aPosX,aPosY,aPosZ, shouldEnd) {
 			if (aPosZ && oRail.shiftTilt)
 				oKart.rail.side = oRail.shiftTilt;
 		}
+	}
+	else if (shouldEnd && (oRail.exitReason === 'stunt') && (oRail.boostcpt >= railGlobalConfig.superTurboCpt) && (oKart.turbodrift > 15)) {
+		oKart.turbodrift += railGlobalConfig.superTurboExitTime;
+		oKart.turbodrift0 = oKart.turbodrift;
 	}
 }
 function followRail(oRail,oKart) {
@@ -14707,6 +14707,7 @@ function inTeleport(iX, iY) {
 
 var railGlobalConfig = {
 	hitboxW: 5,
+	magnetW: 10,
 	minEnterAngle: 0.6,
 	minComboAngle: 0.4,
 	sparkCpt: 3,
@@ -14714,6 +14715,7 @@ var railGlobalConfig = {
 	superTurboCpt: 25,
 	miniTurboTime: 15,
 	superTurboTime: 30,
+	superTurboExitTime: 15,
 	boostW: 22,
 	boostH: 22,
 	boostR: 63/22,
@@ -14758,7 +14760,9 @@ function inRail(aX,aY,aZ, iX,iY,iZ, aZ0,aR,aS, previousRail) {
 			minAngleSimilarity = railGlobalConfig.minComboAngle;
 		else if (aS < railGlobalConfig.idleSpeed)
 			minAngleSimilarity = railGlobalConfig.minIdleAngle;
-		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, railGlobalConfig.hitboxW,minAngleSimilarity);
+		var isAirborneKart = iZ && (aR != null) && !previousRail;
+		var hitboxW = isAirborneKart ? railGlobalConfig.magnetW : railGlobalConfig.hitboxW;
+		var nRes = getGrindingLine(aX,aY,aZ,aZ0,aR,iX,iY, oRail, hitboxW,minAngleSimilarity);
 		if (nRes && (!res || (nRes.d2 < res.d2))) {
 			res = nRes;
 			var iZ1 = oRailProps.z0 && getPointHeight(oRailProps.z0);
@@ -17626,7 +17630,7 @@ function touche_boomerang_aux(pos, movement, boomerang) {
 	if (itemInteractionsDisabled(boomerang))
 		return false;
 
-	const size = 8;
+	const size = 6;
 	const rect = [boomerang.x - size, boomerang.y - size, size * 2, size * 2];
 	const inHitbox = pointInRectangle(pos.x, pos.y, rect);
 	const crossHitbox = movement ? pointCrossRectangle(pos.x, pos.y, movement.x, movement.y, rect) : false;
@@ -19672,7 +19676,7 @@ function move(getId, triggered) {
 				else if (boostcpt >= railGlobalConfig.miniTurboCpt)
 					nextTurbo = railGlobalConfig.miniTurboTime;
 				else
-					nextTurbo = 1;
+					nextTurbo = 0;
 			}
 			else {
 				nextTurbo = 15;
@@ -20462,6 +20466,17 @@ function move(getId, triggered) {
 
 	if (isActivelyGrinding(oKart))
 		oKart.maxspeed = railGlobalConfig.baseSpeed;
+	else if (oKart.rail && (oKart.maxspeed < railGlobalConfig.baseSpeed)) {
+		var oRail = oKart.rail;
+		switch (oRail.exitReason) {
+		case 'stunt':
+			oKart.maxspeed = railGlobalConfig.baseSpeed;
+			break;
+		case 'end':
+			var cooldownRamp = Math.max(0, 1-(oRail.exitCooldown||0)/3);
+			oKart.maxspeed = oKart.maxspeed*(1-cooldownRamp) + railGlobalConfig.baseSpeed*cooldownRamp;
+		}
+	}
 	if (oKart.turbodrift) {
 		var nSpeed = 8;
 		if (oKart.turbodrift > 15) {

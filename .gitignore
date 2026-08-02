@@ -19,3 +19,4 @@ node_modules/
 /CLAUDE.local.md
 /.claude
 /docker-compose.override.yml
+.code-graph/
