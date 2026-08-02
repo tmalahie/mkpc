@@ -20155,7 +20155,6 @@ function move(getId, triggered) {
 				oKart.fell = true;
 				oKart.heightinc = 0;
 				oKart.champi = 0;
-				oKart.boo = 0;
 				oKart.booGiveIn = 0;
 				kartReplaced = true;
 				delete oKart.champiType;
@@ -20190,7 +20189,7 @@ function move(getId, triggered) {
 					if (oKart.etoile)
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				}
-				booSetOpacity(oKart, false);
+				resetBooState(oKart);
 				resetPowerup(oKart);
 				resetWrongWay(oKart);
 				if (!oKart.cpu) {
