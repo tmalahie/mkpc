@@ -13663,7 +13663,7 @@ function colKart(getId) {
 								loseBall(iKart);
 								if (pKart.ballons.length < 3)
 									addNewBalloon(pKart,qKart.team);
-								qKart.spin(42);
+								qKart.spin(20);
 								stopDrifting(iKart);
 							}
 						}
