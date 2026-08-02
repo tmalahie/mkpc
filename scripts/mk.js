@@ -1117,12 +1117,16 @@ function setPlanPos(frameState, lMap) {
 	}
 
 	function setKartsPos(iPlanCharacters, iCharWidth, iMapW) {
+		const battleLoseOpacity = 0.25;
 		for (var i=0;i<frameState.karts.length;i++) {
 			var oKart = frameState.karts[i];
 			var updatePos = true;
+			let isBattleLose = false;
 			if (oKart.ref.loose) {
-				if ((isOnline && !finishing) || (oKart == oPlayer))
-					iPlanCharacters[i].style.opacity = 0.25;
+				if ((isOnline && !finishing) || (oKart == oPlayer)) {
+					iPlanCharacters[i].style.opacity = battleLoseOpacity;
+					isBattleLose = true;
+				}
 				else {
 					iPlanCharacters[i].style.display = "none";
 					if (iTeamPlay && (iCharWidth==oCharWidth)) {
@@ -1136,7 +1140,7 @@ function setPlanPos(frameState, lMap) {
 				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				const booOpacity = oKart.ref.boo ? 0.5 : 1;
+				const booOpacity = isBattleLose ? battleLoseOpacity : (oKart.ref.boo ? 0.5 : 1);
 				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW).style.opacity = booOpacity;
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
