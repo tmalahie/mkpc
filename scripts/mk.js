@@ -7997,7 +7997,7 @@ SpinyShellAlarm.prototype.play = function(target) {
 }
 
 SpinyShellAlarm.prototype.targetSfx = function() {
-	removeIfExists(this.sfx);
+	this.destroySfx();
 	this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_target.mp3");
 
 	if (this.sfx) {
@@ -8007,9 +8007,12 @@ SpinyShellAlarm.prototype.targetSfx = function() {
 	}
 }
 
-SpinyShellAlarm.prototype.remove = function() {
+SpinyShellAlarm.prototype.destroySfx = function() {
 	removeIfExists(this.sfx);
-	const step = SPF / 1000;
+}
+
+SpinyShellAlarm.prototype.remove = function() {
+	const step = SPF / 300;
 
 	for (let i = 0; i < 2; i++) {
 		let opacity = 1;
@@ -8153,9 +8156,9 @@ const SpinyShellBehavior = {
 						}
 						fSprite.cooldown--;
 						if (!fSprite.cooldown) {
-							// alarm fade out
+							// remove alarm sfx when shell blows up
 							if (fSprite.alarm.exists)
-								fSprite.alarm.remove();
+								fSprite.alarm.destroySfx();
 
 							for (var k=0;k<oPlayers.length;k++) {
 								(function(k) {
@@ -8367,6 +8370,12 @@ const SpinyShellBehavior = {
 			cooldown: SpinyShellBehavior.cooldown0,
 			isBlue: +isBlue
 		};
+	},
+
+	del(fSprite) {
+		// alarm fade out
+		if (fSprite.alarm.exists)
+			fSprite.alarm.remove();
 	}
 };
 
