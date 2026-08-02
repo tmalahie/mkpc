@@ -8705,11 +8705,11 @@ var itemBehaviors = {
 					case 0: // anim on owner (goes up) and steal target (laughs)
 						// steal target, checks if target still has an item
 						// this should handle online ping and target using their items on the frame Boo tries stealing them
-						const stillHasItem = !(oKart.using.length === 0 && !oKart.arme);
+						const isStillStealable = !(oKart.using.length === 0 && !oKart.arme) && !oKart.billball;
 						const targetClientSide = !isOnline || (oKart.id === identifiant || oKart.controller === identifiant);
 
 						// still target's item if they still have an item to steal
-						if (checkingTarget && fSprite.countdown === 1 && stillHasItem) {
+						if (checkingTarget && fSprite.countdown === 1 && isStillStealable) {
 							playIfShould(oKart, "musics/events/boo_steal.mp3");
 							
 							// usings
@@ -18837,7 +18837,7 @@ function resetDatas() {
 						if ((!aTourne && oKart.tourne) || (!aBillBall && oKart.billball))
 							stopGrinding(j);
 						
-						if (!aBoo)
+						if (aBoo && !oKart.boo)
 							booSetOpacity(oKart, false);
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
