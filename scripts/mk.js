@@ -7954,8 +7954,9 @@ function SpinyShellAlarm(isBlue, target) {
 				sprite.className = "pixelated";
 				sprite.src = `images/sprites/sprite_${isBlue ? "blue" : "dark"}shell_alarm${j}.png`;
 				sprite.style.position = "absolute";
-				sprite.style.left = `${iScreenScale * 38.5}px`;
+				sprite.style.left = `${iScreenScale * 38.25}px`;
 				sprite.style.bottom = `${iScreenScale}px`;
+				sprite.style.width = `${iScreenScale * 3.5}px`;
 				sprite.style.zIndex = 19003;
 				sprite.style.transform = "scale(1.4)";
 				sprite.style.transition = `transform ${SPF / 1000}s`;
@@ -8001,7 +8002,7 @@ SpinyShellAlarm.prototype.targetSfx = function() {
 	this.sfx = playIfShould(oPlayers[this.oPlayerIdx], "musics/events/alarm_target.mp3");
 
 	if (this.sfx) {
-		this.sfx.volume = 1;
+		this.sfx.volume = vSfx;
 		this.sfx.loop = true;
 		this.type = 2;
 	}
