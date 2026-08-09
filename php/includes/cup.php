@@ -96,7 +96,7 @@ echo getCollabUrl($collabPlaceholder);
 			if ($language) {
 				?>
 			Create a &quot;Battle cup&quot; to gather the arenas you shared!<br />
-			To make the cup, it's quite easy: select 4 arenas in any order and validate.<br />
+			To make the cup, it's quite easy: select 4 arenas in any order and confirm.<br />
 			Your cup will be created!
 				<?php
 			}
@@ -112,7 +112,7 @@ echo getCollabUrl($collabPlaceholder);
 			if ($language) {
 				?>
 			Create a &quot;Grand Prix&quot; cup from the circuits you shared!<br />
-			To make the cup, it's quite easy: select 4 circuits in any order and validate.<br />
+			To make the cup, it's quite easy: select 4 circuits in any order and confirm.<br />
 			Your cup will be created!
 				<?php
 			}

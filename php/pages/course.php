@@ -982,7 +982,7 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 							"Introduced in Mario Kart World, rails are areas where karts follow a predefined path while being able to trick to gain speed.<br />
 							You define them the same way you define <a href=\"javascript:selectHelpTab('aipoints')\">CPUs route</a>: with a path delimited by nodes.<br />
-							Once you finished drawing the path, click on any node to validate. Then you can define some additional properties by right clicking on it:
+							Once you have finished drawing the path, click on any node to confirm. Then you can define some additional properties by right clicking on it:
 							<ul>
 								<li>Rail height: minimum altitude required to start riding it (default = 0)</li>
 								<li>Target height: altitude of the kart once on the rail (default = rail height). Works like <a href=\"javascript:selectHelpTab('elevators')\">elevators</a>, specify this value if the rail goes over a wall for example.</li>
