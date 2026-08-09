@@ -350,7 +350,7 @@ else
 if ($lap)
 	echo '<input type="hidden" name="lap" value="'.$lap.'" />';
 ?>
-<input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" />
+<input type="submit" value="<?php echo $language ? 'Confirm':'Valider'; ?>" id="modifier" disabled="disabled" />
 <?php
 if ($lap && !$newImg)
 	echo '&nbsp;<a class="del-override" href="changeMap.php?'. http_build_query($_GET) .'&amp;delete" onclick="return confirmRemoveOverride()">'. ($language ? "Remove image override" : "Supprimer l'image") .'</a>';
