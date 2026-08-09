@@ -37,7 +37,8 @@ include('../includes/menu.php');
 	}
 	$dateFormat = $language ? '%Y-%m-%d':'le %d/%m/%y';
 	$today = time();
-	$getUsers = mysql_query('SELECT followed,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkfollowusers` WHERE follower="'. $id .'" ORDER BY date DESC');
+	require_once('../includes/banUtils.php');
+	$getUsers = mysql_query('SELECT followed,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkfollowusers` WHERE follower="'. $id .'" AND '. notPermanentlyBannedSql('followed') .' ORDER BY date DESC');
 	$users = array();
 	while ($user = mysql_fetch_array($getUsers))
 		$users[] = $user;

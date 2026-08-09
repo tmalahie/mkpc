@@ -291,7 +291,8 @@ include('../includes/menu.php');
 				<h2><?php echo $language ? 'General stats':'Stats générales'; ?></h2>
 				<div class="player-followers">
 				<?php
-				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $profileId .'"'));
+				require_once('../includes/banUtils.php');
+				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $profileId .'" AND '. notPermanentlyBannedSql('follower')));
 				$s = plural($followedUsers['nb']);
 				$view = $language ? 'View' : 'Voir';
 				echo '<img src="images/followers.png" alt="Followers" />';
@@ -302,13 +303,14 @@ include('../includes/menu.php');
 				}
 				elseif ($id) {
 					$isFollower = $followedUsers['userisfollower'];
-					echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
+					if ($isFollower || !isPermanentlyBanned($profileId))
+						echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
 				}
 				?>
 				</div>
 				<div class="player-followers">
 				<?php
-				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $profileId .'"'));
+				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $profileId .'" AND '. notPermanentlyBannedSql('followed')));
 				$s = plural($followingUsers['nb']);
 				echo '<img src="images/followed.png" alt="Following" />';
 				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following' : 'abonnement'.$s) .'</strong>';
