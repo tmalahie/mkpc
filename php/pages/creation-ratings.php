@@ -113,7 +113,7 @@ if (isset($_GET['url'])) {
             if ($getCircuit = fetchCreationData($circuitType, $circuitId, array('select' => 'c.identifiant'))) {
                 $myCircuit = ($getCircuit['identifiant'] == $identifiants[0]);
                 ?>
-                <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars($getCircuit['name']); ?> :</h2>
+                <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars($getCircuit['name']); ?><?php echo $language ? ':':' :'; ?></h2>
                 <table>
                 	<tr id="titres">
                         <td style="min-width: 120px"><?php echo $language ? 'Username':'Pseudo'; ?></td>

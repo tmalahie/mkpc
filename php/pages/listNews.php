@@ -40,7 +40,7 @@ showRegularAdSection();
 <p class="newsButtons">
 <?php
 if ($id)
-	echo '<a href="addNews.php" class="action_button">'. ($language ? 'Add a news':'Créer une news') .'</a>';
+	echo '<a href="addNews.php" class="action_button">'. ($language ? 'Add news':'Créer une news') .'</a>';
 ?>
 </p>
 <table class="listNews listPublish">
@@ -210,7 +210,7 @@ if (hasRight('publisher')) {
 <p class="newsButtons">
 <?php
 if ($id)
-	echo '<a href="addNews.php" class="action_button">'. ($language ? 'Add a news':'Créer une news') .'</a>';
+	echo '<a href="addNews.php" class="action_button">'. ($language ? 'Add news':'Créer une news') .'</a>';
 ?>
 <a href="index.php"><?php echo $language ? 'Back to the homepage':'Retour &agrave; l\'accueil'; ?></a>
 </p>

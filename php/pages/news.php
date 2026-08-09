@@ -136,7 +136,7 @@ $nbComments = count($comments);
 include('../includes/avatars.php');
 echo '<div class="news-nbcomments">'. ($language ? 'Comments':'Commentaires') .' ('. $nbComments .')</div>';
 if (!$nbComments)
-	echo '<div class="news-nocomment">'. ($language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !') .'</div>';
+	echo '<div class="news-nocomment">'. ($language ? 'No comments yet. Be the first one to give your opinion!':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !') .'</div>';
 ?>
 <form method="post" action="addNewscom.php?news=<?php echo $newsId; ?>" id="news-comment-ctn-0" class="news-comment-ctn news-comment-editting">
 	<div class="news-avatar"><?php

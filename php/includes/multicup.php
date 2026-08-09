@@ -171,7 +171,7 @@ include('handleCupOptions.php');
 					echo '<input type="hidden" name="collab" value="'. htmlspecialchars($collab['key']) .'" />';
 				?>
 				<input type="hidden" id="cup-options" name="opt" value="<?php if ($cOptions !== null) echo htmlspecialchars($cOptions) ?>" />
-				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
+				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Confirm!':'Valider !'; ?>" /></span>
 				<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced&nbsp;options':'Options&nbsp;avancées'; ?></a>
 			</p>
 		</div>
@@ -209,7 +209,7 @@ include('handleCupOptions.php');
 				</div>
 			</div>
 			<p>
-				<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></div>
+				<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Confirm!':'Valider !'; ?>" /></div>
 				<a class="editor-switch-options" href="javascript:showEditorContent(0)"><?php echo $language ? 'Back':'Retour'; ?></a>
 			</p>
 		</div>

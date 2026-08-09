@@ -196,7 +196,7 @@ function setFps(iValue) {
 			'<input type="range" min="1" max="16" step="1" class="customOptionDialog-cursor" />'+
 			'<div class="customOptionDialog-textValue"></div>' +
 			'<div class="customOptionDialog-submit">'+
-				'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+				'<input type="submit" value="'+ toLanguage("Confirm", "Valider") +'" />'+
 				'<a href="#null" class="customOptionDialog-cancel">'+ toLanguage("Cancel", "Annuler") +'</a>'+
 			'</div>' +
 		'</form>';
@@ -387,7 +387,7 @@ function setScreenScale(iValue, triggered) {
 			'<input type="range" min="2" max="36" step="2" class="customOptionDialog-cursor" />'+
 			'<div class="customOptionDialog-textValue"></div>' +
 			'<div class="customOptionDialog-submit">'+
-				'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+				'<input type="submit" value="'+ toLanguage("Confirm", "Valider") +'" />'+
 				'<a href="#null" class="customOptionDialog-cancel">'+ toLanguage("Cancel", "Annuler") +'</a>'+
 			'</div>' +
 		'</form>';
@@ -6511,7 +6511,7 @@ function continuer() {
 				interruptGame();
 				var posX = [29,22,36];
 				var posY = [15,17,19];
-				document.body.innerHTML = toLanguage('You are', 'Vous &ecirc;tes') +' <span id="position"></span> !<br /><a href="javascript:location.reload()" style="color: white;">'+ toLanguage('Back', 'Retour') +'</a><img alt="." src="images/podium.gif" style="position: absolute; left: '+ iScreenScale * 20 +'px; top: '+ iScreenScale * 20 +'px; width: '+ iScreenScale * 24 +'px;" />';
+				document.body.innerHTML = toLanguage('You placed', 'Vous &ecirc;tes') +' <span id="position"></span>'+ toLanguage('!', ' !') +'<br /><a href="javascript:location.reload()" style="color: white;">'+ toLanguage('Back', 'Retour') +'</a><img alt="." src="images/podium.gif" style="position: absolute; left: '+ iScreenScale * 20 +'px; top: '+ iScreenScale * 20 +'px; width: '+ iScreenScale * 24 +'px;" />';
 				var oPlace;
 				var placement = new Array();
 				for (var i=1;i<=aKarts.length;i++) {
@@ -6564,7 +6564,7 @@ function continuer() {
 									uwPerso = uwPerso.charAt(0).toUpperCase() + uwPerso.substring(1);
 									document.body.innerHTML += '<div style="position: absolute; left: '+ iScreenScale * 16 +'px; top: '+ iScreenScale * 30 +'px; text-align: center">' +
 									toLanguage(
-										'You can now play<br />with '+ uwPerso +' !',
+										'You can now play<br />with '+ uwPerso +'!',
 										'Vous pouvez d&eacute;sormais<br />jouer avec '+ uwPerso +' !'
 									) +
 									'<br /><img src="'+ getWinnerSrc(newPerso) +'" style="width: '+ iScreenScale*4 +'px" /></div>';
@@ -6752,7 +6752,7 @@ function continuer() {
 								showBackUi(false);
 								switch (enregistre) {
 								case 0:
-									aPara2.innerHTML = toLanguage("You did a better score on this race before.<br />Your score has not been registered.", "Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;.");
+									aPara2.innerHTML = toLanguage("You had a better record on this track before.<br />Your score has not been registered.", "Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;.");
 									break;
 								case 1:
 									aPara2.innerHTML = toLanguage("This username is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
@@ -16624,7 +16624,7 @@ function showClSelectedPopup() {
 		'</div>'+
 		'<div class="clselected-ctn">'+
 			'<div>\u2714</div>'+
-			'<div><strong>'+ toLanguage('Challenge selected :','Défi sélectionné:') +'</strong> '+ (clSelected.name || clSelected.description.main) +'</div>'+
+			'<div><strong>'+ toLanguage('Challenge selected:','Défi sélectionné:') +'</strong> '+ (clSelected.name || clSelected.description.main) +'</div>'+
 		'</div>';
 	$popup.querySelector(".clselected-close a").onclick = function() {
 		document.body.removeChild($popup);
@@ -23637,7 +23637,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		oVInput.style.top = (34*iScreenScale+4)+"px";
 		oVInput.type = "submit";
 		oVInput.style.fontSize = (iScreenScale*3) +"px";
-		oVInput.value = toLanguage("Validate","Valider");
+		oVInput.value = toLanguage("Confirm","Valider");
 		oVInput.style.marginLeft = iScreenScale +"px";
 		oScr2.appendChild(oVInput);
 
@@ -24683,7 +24683,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.style.marginTop = (2*iScreenScale)+"px";
 	var oSubmit = document.createElement("input");
 	oSubmit.type = "submit";
-	oSubmit.value = toLanguage("Validate", "Valider");
+	oSubmit.value = toLanguage("Confirm", "Valider");
 	oSubmit.style.fontSize = (3*iScreenScale)+"px";
 	oSubmit.style.width = (18*iScreenScale)+"px";
 	oDiv.appendChild(oSubmit);
@@ -25760,7 +25760,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		var oTr = document.createElement("tr");
 		var oTd1 = document.createElement("td");
 		oTd1.className = "rgt";
-		oTd1.innerHTML = sCaracteristiques[i] +" :";
+		oTd1.innerHTML = sCaracteristiques[i] + toLanguage(":", " :");
 		oTr.appendChild(oTd1);
 		var oTd2 = document.createElement("td");
 		dCaracteristiques[i] = document.createElement("div");
@@ -26521,7 +26521,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 			var oH1 = document.createElement("h1");
 			oH1.style.fontSize = (3*iScreenScale) +"px";
-			oH1.innerHTML = toLanguage("Item distribution :", "Distribution des objets :");
+			oH1.innerHTML = toLanguage("Item distribution:", "Distribution des objets :");
 			oH1.style.marginTop = iScreenScale +"px";
 			oH1.style.marginBottom = "0px";
 			oLabel.appendChild(oH1);
@@ -26648,7 +26648,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 				var oH1 = document.createElement("h1");
 				oH1.style.fontSize = (3*iScreenScale) +"px";
-				oH1.innerHTML = toLanguage("Point distribution :", "Distribution des points :");
+				oH1.innerHTML = toLanguage("Point distribution:", "Distribution des points :");
 				oH1.style.marginTop = iScreenScale +"px";
 				oH1.style.marginBottom = "0px";
 				oLabel.appendChild(oH1);
@@ -27108,7 +27108,7 @@ function handleCcSelectChange(oSelect,oScr, onSubmit) {
 				'<label>'+toLanguage("Class", "Cylindrée&nbsp;")+': <input type="number" style="font-size: '+ Math.round(iScreenScale*2.5) +'px" name="cc" value="'+ parseInt(oSelect.currentValue) +'" style="width: 3em" required min="1" max="999" /></label>',
 				'<label><input type="checkbox" style="transform: scale('+ Math.round(iScreenScale/4) +')" name="mirror" '+ (oSelect.currentValue.endsWith("m") ? ' checked="checked"':'') +' />&nbsp;'+ toLanguage("Mirror", "Miroir") +'</label>',
 			],
-			submitVal: toLanguage("Validate", "Valider"),
+			submitVal: toLanguage("Confirm", "Valider"),
 			submit: function(e) {
 				var customNb = +e.target.elements["cc"].value;
 				var customMirror = +e.target.elements["mirror"].checked;
@@ -27541,7 +27541,7 @@ function selectItemScreen(oScr, callback, options) {
 				'</div>'+
 				'<div class="item-submit">'+
 					'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
-					'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+					'<input type="submit" value="'+ toLanguage("Confirm", "Valider") +'" />'+
 				'</siv>'+
 			'</form>';
 			oOptionsScreen.querySelector(".item-submit a").onclick = function() {
@@ -27579,7 +27579,7 @@ function selectItemScreen(oScr, callback, options) {
 		var oVInput = document.createElement("input");
 		oVInput.type = "submit";
 		oVInput.style.fontSize = (iScreenScale*2) +"px";
-		oVInput.value = toLanguage("Validate!","Valider !");
+		oVInput.value = toLanguage("Confirm!","Valider !");
 		oVInput.style.marginLeft = iScreenScale +"px";
 		oSetForm.appendChild(oVInput);
 
@@ -27623,7 +27623,7 @@ function selectItemScreen(oScr, callback, options) {
 						'</div>'+
 						'<div class="tab-export-submit">'+
 							'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
-							'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+							'<input type="submit" value="'+ toLanguage("Confirm", "Valider") +'" />'+
 						'</div>'+
 					'</form>'+
 				'</div>'+
@@ -27874,7 +27874,7 @@ function selectPtScreen(oScr, callback, options) {
 	oSubmit.type = "submit";
 	oSubmit.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 	oSubmit.style.marginTop = iScreenScale+"px";
-	oSubmit.value = toLanguage("Validate", "Valider");
+	oSubmit.value = toLanguage("Confirm", "Valider");
 	oForm.appendChild(oSubmit);
 
 	oScr2.appendChild(oForm);
@@ -27962,7 +27962,7 @@ function selectCpuNamesScreen(oScr, callback, options) {
 	var oSubmit = document.createElement("input");
 	oSubmit.type = "submit";
 	oSubmit.style.fontSize = (3*iScreenScale)+"px";
-	oSubmit.value = toLanguage("Validate", "Valider");
+	oSubmit.value = toLanguage("Confirm", "Valider");
 	oScroll.appendChild(oSubmit);
 
 	oScr2.appendChild(oScroll);
@@ -29186,7 +29186,7 @@ function searchCourse(opts) {
 							oMusicAlert.style.top = "-1000px";
 							document.body.appendChild(oMusicAlert);
 							var sTime = new Date().getTime();
-							alert(toLanguage("Opponents have been found !\nGood luck !", "Des adversaires ont \xE9t\xE9 trouv\xE9s !\nBonne chance !"));
+							alert(toLanguage("Opponents have been found!\nGood luck!", "Des adversaires ont \xE9t\xE9 trouv\xE9s !\nBonne chance !"));
 							reponse.time -= Math.round((new Date().getTime()-sTime)/1000);
 							document.body.removeChild(oMusicAlert);
 						}
@@ -31013,7 +31013,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oTeamsSelected.style.marginTop = iScreenScale +"px";
 		oTeamsSelected.style.color = "#DFC";
 		if (selectedTeams)
-			oTeamsSelected.innerHTML = toLanguage("Teams have been selected !", "Les équipes ont été sélectionnées !");
+			oTeamsSelected.innerHTML = toLanguage("Teams have been selected!", "Les équipes ont été sélectionnées !");
 		else
 			oTeamsSelected.innerHTML = toLanguage("Mode &quot;no teams&quot; selected. In this game, you're playing for yourself!", "Mode &quot;Chacun pour soi&quot; sélectionné. Cette partie se déroulera sans équipes");
 		oTableCtn.appendChild(oTeamsSelected);
@@ -31084,7 +31084,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oSubmit.type = "button";
 	oSubmit.style.fontSize = (iScreenScale*3) +"px";
 	oSubmit.style.marginTop = iScreenScale +"px";
-	oSubmit.value = toLanguage("Validate","Valider");
+	oSubmit.value = toLanguage("Confirm","Valider");
 	oSubmit.onclick = function() {
 		clearTimeout(forceTeamHandler);
 		var teamsPayload = "";

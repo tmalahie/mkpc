@@ -94,8 +94,8 @@ include('../includes/menu.php');
 		?>
 		<form method="post" action="new-password.php?code=<?php echo urlencode($code); ?>">
 		<table>
-		<tr><td class="ligne"><label for="nouveau"><?php echo $language ? 'New password':'Nouveau mot de passe'; ?> :</label></td><td><input type="password" name="nouveau" id="nouveau" value="<?php if (isset($nouveau)) echo htmlspecialchars($nouveau) ?>" maxlength="30" /></td></tr>
-		<tr><td class="ligne"><label for="confirm"><?php echo $language ? 'Re-enter the password':'Retapez le mot de passe'; ?> :</label></td><td><input type="password" name="confirm" id="confirm" value="<?php if (isset($confirm)) echo htmlspecialchars($confirm) ?>" maxlength="30" /></td></tr>
+		<tr><td class="ligne"><label for="nouveau"><?php echo $language ? 'New password':'Nouveau mot de passe'; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="password" name="nouveau" id="nouveau" value="<?php if (isset($nouveau)) echo htmlspecialchars($nouveau) ?>" maxlength="30" /></td></tr>
+		<tr><td class="ligne"><label for="confirm"><?php echo $language ? 'Re-enter the password':'Retapez le mot de passe'; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="password" name="confirm" id="confirm" value="<?php if (isset($confirm)) echo htmlspecialchars($confirm) ?>" maxlength="30" /></td></tr>
 		<tr><td colspan="2"><input type="submit" value="<?php echo $language ? 'Submit':'Valider'; ?>" class="action_button" /></td></tr>
 		</table>
 		</form>

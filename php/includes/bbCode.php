@@ -49,7 +49,7 @@ function bbcode($msg) {
 function print_league($pts,$ic) {
 	echo '<div class="player-league" style="color:'.get_league_color($pts).'">';
 	echo '<img src="images/'.$ic.'_pts.png" alt="'.$ic.'" class="mPtsIc" />';
-		echo $pts . ' pts ';
+		echo $pts . ' pt'. (($pts != 1) ? 's':'') .' ';
 		echo '&#9733;&nbsp;'.get_league_name($pts);
 	echo '</div>';
 }
@@ -96,7 +96,7 @@ function print_forum_msg($message,$options=array()) {
 		}
 	}
 	else {
-		echo '<div class="mPseudo"><em>Compte supprimé</em></div>';
+		echo '<div class="mPseudo"><em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em></div>';
 		print_avatar($message['auteur'], 100);
 	}
 	echo '</div>';

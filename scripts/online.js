@@ -239,8 +239,8 @@ function o_refreshtable() {
 										catch (e) {
 											return false;
 										}
-										o_invitevs_pts.innerHTML = pts[0] +" pts";
-										o_invitebattle_pts.innerHTML = pts[1] +" pts";
+										o_invitevs_pts.innerHTML = pts[0] +" pt"+ ((pts[0] != 1) ? "s":"");
+										o_invitebattle_pts.innerHTML = pts[1] +" pt"+ ((pts[1] != 1) ? "s":"");
 										return true;
 									});
 								};

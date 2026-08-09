@@ -1685,7 +1685,7 @@ function getItemHitOptions() {
 			<?php
 		}
 		?>
-		<button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Validate!':'Valider !'; ?></button>
+		<button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Confirm!':'Valider !'; ?></button>
 	</form>
 	<div class="collab-popup" id="collab-popup-char" onclick="closeCollabImportPopup()">
 		<div class="popup-content" onclick="event.stopPropagation()">
