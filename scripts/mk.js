@@ -16624,7 +16624,7 @@ function showClSelectedPopup() {
 		'</div>'+
 		'<div class="clselected-ctn">'+
 			'<div>\u2714</div>'+
-			'<div><strong>'+ toLanguage('Challenge selected:','Défi sélectionné:') +'</strong> '+ (clSelected.name || clSelected.description.main) +'</div>'+
+			'<div><strong>'+ toLanguage('Challenge selected:','Défi sélectionné :') +'</strong> '+ (clSelected.name || clSelected.description.main) +'</div>'+
 		'</div>';
 	$popup.querySelector(".clselected-close a").onclick = function() {
 		document.body.removeChild($popup);

@@ -708,7 +708,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						if ($i)
 							$title .= ', ';
 						$pts = number_format($activePlayer['pts'],0,'.',($language ? ',':'&nbsp;'));
-						$title .= $activePlayer['nom'] .' ('. $pts .' pts)';
+						$title .= $activePlayer['nom'] .' ('. $pts .' pt'. (($pts != 1) ? 's':'') .')';
 						$i++;
 					}
 					echo '<span class="ranking_activeplayernb" title="'. $title .'">';

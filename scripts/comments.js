@@ -94,7 +94,7 @@ var circuitNbComments = 0;
 	var commentsLockButton = $('<span id="comments-lock-btn" class="comments-lock-button" title="'+ (language ? 'Lock comments':'Verrouiller les commentaires') +'">🔓</span>');
 	commentsHeader.append(commentsLockButton);
 	$commentsScroller.append(commentsHeader);
-	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion!':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
+	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion!':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !') +'</div>');
 	var comments = $('<div id="comments"></div>');
 	$commentsScroller.append(comments);
 	$("#comments-section").append($commentsScroller);

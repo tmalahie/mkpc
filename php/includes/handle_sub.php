@@ -18,7 +18,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm'])
 	elseif ($code != $confirm)
 		$message = $language ? 'You made a mistake re-entering your password':'Vous avez fait une erreur en retapant votre mot de passe';
 	elseif (!preg_match('#^[a-zA-Z0-9_\-]+$#', $pseudo))
-		$message = $language ? 'You username mustn\'t contain special chars.<br />Allowed chars are: letters, numbers, the dash - and the underscore _':'Votre pseudo ne doit pas contenir de caract&egrave;res spéciaux.<br />Les caract&egrave;res autoris&eacute;s sont les lettres sans accents, les chiffres, le tiret - et le underscore _';
+		$message = $language ? 'Your username mustn\'t contain special chars.<br />Allowed chars are: letters, numbers, the dash - and the underscore _':'Votre pseudo ne doit pas contenir de caract&egrave;res spéciaux.<br />Les caract&egrave;res autoris&eacute;s sont les lettres sans accents, les chiffres, le tiret - et le underscore _';
 	elseif ($email && !preg_match("#^[a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$#i", $email))
 		$message = ($language ? 'Please enter a valid email address':'Veuillez entrer une adresse email valide');
 	elseif ($getData=mysql_fetch_array(mysql_query('SELECT deleted FROM `mkjoueurs` WHERE nom="'.$pseudo.'"'))) {
