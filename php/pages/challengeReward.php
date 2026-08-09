@@ -91,7 +91,7 @@ include('../includes/o_online.php');
 ?></h1>
 <form method="post" action="" class="challenge-edit-form">
     <fieldset class="challenge-reward">
-        <?php echo $language ? 'Unlocked character':'Perso à débloquer'; ?> :<br />
+        <?php echo $language ? 'Unlocked character':'Perso à débloquer'; ?><?php echo $language ? ':':' :'; ?><br />
         <input type="text" name="perso" required="required" style="display:none" />
         <input type="hidden" name="collab" />
         <?php
@@ -152,7 +152,7 @@ include('../includes/o_online.php');
             </label>
         </div>
         <br />
-        <?php echo $language ? 'Challenge(s) to succeed':'Défi(s) à réaliser'; ?> :<br />
+        <?php echo $language ? 'Challenge(s) to succeed':'Défi(s) à réaliser'; ?><?php echo $language ? ':':' :'; ?><br />
         <?php
         if (empty($challenges)) {
             echo '<div class="challenge-reward-empty">';
@@ -178,7 +178,7 @@ include('../includes/o_online.php');
             }
             ?>
         </select>
-        <button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Validate!':'Valider !'; ?></button>
+        <button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Confirm!':'Valider !'; ?></button>
     </fieldset>
 </form>
 <div class="challenge-navigation">

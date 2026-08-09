@@ -864,7 +864,7 @@ if ($id) {
                                 if (!$myVote) {
                                     ?>
                                     <div class="mTeamsVote">
-                                        <button><?php echo $language ? 'Validate my bet' : 'Valider mon pari'; ?></button>
+                                        <button><?php echo $language ? 'Confirm my bet' : 'Valider mon pari'; ?></button>
                                     </div>
                                     <?php
                                 }

@@ -331,7 +331,7 @@ include('../includes/menu.php');
 				$place = getPlayerRank('pts_vs', $pts, $profileId, 5000);
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
-					echo '<strong>'. $pts . ' pts</strong> ';
+					echo '<strong>'. $pts . ' pt'. plural($pts) .'</strong> ';
 					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
@@ -339,7 +339,7 @@ include('../includes/menu.php');
 				$place = getPlayerRank('pts_battle', $pts, $profileId, 5000);
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';
-					echo '<strong>'. $pts . ' pts</strong> ';
+					echo '<strong>'. $pts . ' pt'. plural($pts) .'</strong> ';
 					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
@@ -562,7 +562,7 @@ include('../includes/menu.php');
 					$oneData = true;
 					?>
 					<div>
-						<strong><?php echo ($language ? 'Validator':'Validateur'); ?></strong> <?php echo $language ? 'of challenges':'de défis'; ?>
+						<?php if ($language) { ?><strong>Challenge validator</strong><?php } else { ?><strong>Validateur</strong> de défis<?php } ?>
 					</div>
 					<?php
 				}
@@ -574,7 +574,7 @@ include('../includes/menu.php');
 						<strong><?php echo htmlspecialchars($award['name']); ?></strong><?php
 						if ($award['link'])
 							echo '<sup><a href="'. htmlspecialchars($award['link']) .'">[?]</a></sup>';
-						?> : <?php
+						?><?php echo $language ? ':':' :'; ?> <?php
 						echo htmlspecialchars($award['value']);
 						?>
 					</div>
@@ -637,7 +637,7 @@ include('../includes/menu.php');
 			}
 			if (!empty($lastMessages)) {
 				?>
-				<h2><?php echo $language ? 'Last messages on the forum:':'Derniers messages sur le forum&nbsp;:'; ?></h2>
+				<h2><?php echo $language ? 'Latest messages on the forum:':'Derniers messages sur le forum&nbsp;:'; ?></h2>
 				<?php
 				require_once('../includes/reactions.php');
 				printReactionUI();
@@ -649,7 +649,7 @@ include('../includes/menu.php');
 				<?php
 			}
 			else
-				echo '<h2><em>'. ($language ? 'No message on the forum':'Aucun message sur le forum') .'</em></h2>';
+				echo '<h2><em>'. ($language ? 'No messages on the forum':'Aucun message sur le forum') .'</em></h2>';
 			?>
 			<hr />
 			<?php
@@ -891,7 +891,7 @@ include('../includes/menu.php');
 					return "images/sprites/sprite_" . $playerName . ".png";
 				}
 				?>
-				<h2><?php echo $language ? 'Best scores in time trial:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
+				<h2><?php echo $language ? 'Best time trial records:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
 				<table class="clm-records">
 					<tr>
 						<td><?php echo $language ? 'Rank':'Place'; ?></td>

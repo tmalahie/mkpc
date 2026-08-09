@@ -72,7 +72,7 @@ if (isset($_GET['member'])) {
 	<blockquote>
 		<p><label for="joueur"><strong><?php echo $language ? 'Last username':'Ancien pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); else echo $autocompleteNick; ?>" required="required" /></p>
 		<p><label for="newpseudo"><strong><?php echo $language ? 'New username':'Nouveau pseudo'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); ?>" required="required" /></p>
-		<p><input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
+		<p><input type="submit" value="<?php echo $language ? 'Confirm':'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />

@@ -481,7 +481,7 @@ if (isset($_GET['i'])) {
 					<?php
 					echo $language ? 'This menu allows you to override the circuit parameters on a given lap.<br />
 									  It allows you to give more diversity to your track (decors appearing progressively, falling platforms...)
-									  or even change it completely accorss laps (e.g MKT city tracks)'
+									  or even change it completely across laps (e.g. MKT city tracks)'
 								   : 'Ce menu vous permet de modifier les paramètres du circuit pour un tour donné.<br />
 								   	  Vous pouvez ainsi ajouter de la diversité à votre circuit (décors qui apparaissent au fur et à mesure, plateformes qui tombent...)
 									  ou même le changer complètement d\'un tour à l\'autre (comme les circuits &quot;villes&quot; sur MKT).';
@@ -664,7 +664,7 @@ if (isset($_GET['i'])) {
 						<ul id="lapoverride-reorder-list"></ul>
 						<div class="popup-buttons">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
-							<button class="options" onclick="applyLapOverrideReorder()"><?php echo $language ? 'Validate':'Valider'; ?></button>
+							<button class="options" onclick="applyLapOverrideReorder()"><?php echo $language ? 'Confirm':'Valider'; ?></button>
 						</div>
 					</div>
 				</div>
@@ -1312,9 +1312,9 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 							"If you want to edit, resize, or rotate the circuit image, you can do it in this menu.
 							<ul>
-								<li>Change the circuit image: select the new image from your hard drive, and click on &quot;Validate&quot;.</li>
-								<li>Resize the image: enter the new desired dimensions and click on &quot;Validate&quot;.</li>
-								<li>Rotate / flip the image: click on the desired option and click on &quot;Validate&quot;.</li>
+								<li>Change the circuit image: select the new image from your hard drive, and click on &quot;Confirm&quot;.</li>
+								<li>Resize the image: enter the new desired dimensions and click on &quot;Confirm&quot;.</li>
+								<li>Rotate / flip the image: click on the desired option and click on &quot;Confirm&quot;.</li>
 							</ul>
 							In the second and third case, in addition to the image, the various elements of the circuit (starting position, walls, etc.) are also modified to adapt to the transformation."
 							:
@@ -1376,8 +1376,8 @@ if (isset($_GET['i'])) {
 				<div class="fs-popup" onclick="event.stopPropagation()" style="display:block">
 					<div>
 						<div><?php
-							echo $language ? 'The circuit has been created successfully !<br />
-							Now you need to specify the circuit settings : location of walls, objects, ...<br />
+							echo $language ? 'The circuit has been created successfully!<br />
+							Now you need to specify the circuit settings: location of walls, objects, ...<br />
 							If necessary, click on the &quot;Help&quot; link at the bottom in the right menu.<br />
 							When you have finished, don\'t forget to save the data by clicking on &quot;Save&quot;.<br />
 							Then you can access, edit or delete your circuit from the creation mode home.' :
@@ -1541,7 +1541,7 @@ else {
 				?>
 				<h2><?php echo $language ? 'Your circuits':'Vos circuits'; ?> (<?php echo $nbTracks; ?>)</h2>
 				<?php
-				echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
+				echo '<div class="file-quotas">'. ($language ? 'You have used '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
 				?>
 				<div id="editor-tracks-list">
 					<?php

@@ -134,7 +134,7 @@ if ($clMsg)
         ?>
     </div>
     <input type="hidden" name="order" value="<?php echo implode(',', $challengeIds); ?>" />
-    <button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Validate order':'Valider l\'ordre'; ?></button>
+    <button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Confirm order':'Valider l\'ordre'; ?></button>
     <div class="challenge-order-reset">
         <a href="javascript:resetOrder()"><?php echo $language ? "Reset order" : "Réintialiser l'ordre"; ?></a>
     </div>

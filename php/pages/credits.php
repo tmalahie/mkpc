@@ -91,7 +91,7 @@ include('../includes/menu.php');
                 'base_url' => 'https://downloads.khinsider.com/',
                 'res_url' => 'https://downloads.khinsider.com/search?search=mario+kart',
                 'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'musics':'musiques'
+                'description' => $language ? 'music':'musiques'
             )
         ),
         ($language ? 'Other resources - Sprites':'Autres ressources - Sprites') => array(
@@ -199,61 +199,61 @@ include('../includes/menu.php');
                 'description' => $language ? 'blue shell\'s sprite':'sprite de la carapace bleue'
             )
         ),
-        ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
+        ($language ? 'Other resources - Music':'Autres ressources - Musiques') => array(
             array(
                 'author_raw' => '<strong>Teck</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_wario.mp3',
-                'description' => $language ? 'theme of Wario':'thème de Wario'
+                'description' => $language ? 'Wario\'s theme':'thème de Wario'
             ),
             array(
                 'author_raw' => '<strong>Jeff Daily</strong>, <strong>Mark7</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_daisy.mp3',
-                'description' => $language ? 'theme of Daisy':'thème de Daisy'
+                'description' => $language ? 'Daisy\'s theme':'thème de Daisy'
             ),
             array(
                 'author_raw' => '<strong>辰</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? 'theme of <a href="musics/endings/ending_roi_boo.mp3">King Boo</a>, <a href="musics/endings/ending_bowser_skelet.mp3">Dry Bowser</a>, and <a href="musics/endings/ending_bowser_jr.mp3">Bowser Jr</a>':'thème de <a href="musics/endings/ending_roi_boo.mp3">Roi Boo</a>, <a href="musics/endings/ending_bowser_skelet.mp3">Bowser Skelet</a> et <a href="musics/endings/ending_bowser_jr.mp3">Bowser Jr</a>'
+                'for' => $language ? 'for':'pour le',
+                'description' => $language ? '<a href="musics/endings/ending_roi_boo.mp3">King Boo</a>\'s, <a href="musics/endings/ending_bowser_skelet.mp3">Dry Bowser</a>\'s, and <a href="musics/endings/ending_bowser_jr.mp3">Bowser Jr</a>\'s themes':'thème de <a href="musics/endings/ending_roi_boo.mp3">Roi Boo</a>, <a href="musics/endings/ending_bowser_skelet.mp3">Bowser Skelet</a> et <a href="musics/endings/ending_bowser_jr.mp3">Bowser Jr</a>'
             ),
             array(
                 'author_raw' => '<strong>ledinred</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_frere_marto.mp3',
-                'description' => $language ? 'theme of Hammer Bro':'thème de Frère Marto'
+                'description' => $language ? 'Hammer Bro\'s theme':'thème de Frère Marto'
             ),
             array(
                 'author_raw' => '<strong>PianoMan547</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_flora_piranha.mp3',
-                'description' => $language ? 'theme of Petey Piranha':'thème de Flora Piranha'
+                'description' => $language ? 'Petey Piranha\'s theme':'thème de Flora Piranha'
             ),
             array(
                 'author_raw' => '<strong>Luigi P.</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_link.mp3',
-                'description' => $language ? 'theme of Link':'thème de Link'
+                'description' => $language ? 'Link\'s theme':'thème de Link'
             ),
             array(
                 'author_raw' => '<strong>Blue.Nocturne</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_harmonie.mp3',
-                'description' => $language ? 'theme of Rosalina':'thème de Harmonie'
+                'description' => $language ? 'Rosalina\'s theme':'thème de Harmonie'
             ),
             array(
                 'author_raw' => '<strong>Sephiroth3</strong> '. ($language ? 'and':'et') .' <a>Link-Triforce-8</a>',
                 'base_url' => 'profil.php?id=4576',
-                'for' => $language ? 'for the':'pour le',
+                'for' => $language ? 'for':'pour le',
                 'res_url' => 'musics/endings/ending_diddy-kong.mp3',
-                'description' => $language ? 'theme of Diddy-Kong':'thème de Diddy-Kong'
+                'description' => $language ? 'Diddy-Kong\'s theme':'thème de Diddy-Kong'
             ),
             array(
                 'author' => 'Hoppingicon',

@@ -58,7 +58,7 @@ if (isset($draftSaved)) {
 	<?php
 }
 ?>
-<h1><?= _('Add a news') ?></h1>
+<h1><?= _('Add news') ?></h1>
 <?php
 require_once('../includes/utils-ads.php');
 showRegularAdSection();

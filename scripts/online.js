@@ -239,8 +239,8 @@ function o_refreshtable() {
 										catch (e) {
 											return false;
 										}
-										o_invitevs_pts.innerHTML = pts[0] +" pts";
-										o_invitebattle_pts.innerHTML = pts[1] +" pts";
+										o_invitevs_pts.innerHTML = pts[0] +" pt"+ ((pts[0] != 1) ? "s":"");
+										o_invitebattle_pts.innerHTML = pts[1] +" pt"+ ((pts[1] != 1) ? "s":"");
 										return true;
 									});
 								};
@@ -1473,7 +1473,7 @@ function o_refresh() {
 			}
 			for (var i=0;i<newDemandes.length;i++) {
 				o_updateactivity(newDemandes[i][0], 10);
-				var o_msgId = displayMsg(o_language ? '<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) wants to play an online <b>'+(newDemandes[i][3]?"battle":"race")+'</b> with you<br /><input type="button" value="Accept" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Reject" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />':'<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose de vous affronter sur une <b>'+(newDemandes[i][3]?"bataille":"course")+'</b> en ligne<br /><input type="button" value="Accepter" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuser" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />', true);
+				var o_msgId = displayMsg(o_language ? '<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pt'+ ((newDemandes[i][2] != 1) ? 's':'') +') wants to play an online <b>'+(newDemandes[i][3]?"battle":"race")+'</b> with you<br /><input type="button" value="Accept" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Reject" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />':'<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pt'+ ((newDemandes[i][2] != 1) ? 's':'') +') propose de vous affronter sur une <b>'+(newDemandes[i][3]?"bataille":"course")+'</b> en ligne<br /><input type="button" value="Accepter" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuser" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />', true);
 				if (o_msgId != -1) {
 					var cross = document.getElementById("comsg"+ o_msgId).getElementsByTagName("a")[0];
 					cross.player = newDemandes[i][0];

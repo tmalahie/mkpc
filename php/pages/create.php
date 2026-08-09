@@ -260,7 +260,7 @@ else {
 }
 ?>
 <div id="crossing-warning">
-	<?php echo $language ? 'Warning ! For a crossing, you have to go straight, like on this image':'Attention ! Lors d\'un croisement, vous devez aller tout droit, comme sur cette image' ?> :</caption>
+	<?php echo $language ? 'Warning! For a crossing, you have to go straight, like on this image':'Attention ! Lors d\'un croisement, vous devez aller tout droit, comme sur cette image' ?><?php echo $language ? ':':' :'; ?></caption>
 	<p id="croisement">
 		<img src="images/mktoutdroit.png" alt="Croisement" />
 	</p>

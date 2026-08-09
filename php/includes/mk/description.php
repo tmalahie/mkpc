@@ -3,13 +3,13 @@
 if ($language) {
 	?>
 <strong><a href="index.php">Mario Kart PC</a></strong><br />
-Challenge up to 8 players in 6 game modes !<br />
-In the <strong>Grand Prix</strong> tournaments, win 5 cups of 4 races in order to unlock the 9 secret characters !<br />
-With the <strong>Time trial</strong> mode, break the other players' <a href="classement.php" target="_blank">records</a> and become world champion !<br />
-In <strong>VS</strong> races, confront CPUs and/or a friend on not less than 20 races !<br />
-On <strong>battle mode</strong>, destroy your opponents' balloons in fierce fighting !<br />
-With the <strong>track builder</strong>, create as many circuits and courses as you want, with your imagination the only limit !<br />
-On <strong><a href="online.php">online mode</a></strong>, compete against players from around the world and climb in the <a href="bestscores.php" target="_blank">rankings</a> !
+Challenge up to 8 players in 6 game modes!<br />
+In the <strong>Grand Prix</strong> tournaments, win 5 cups of 4 races in order to unlock the 9 secret characters!<br />
+With the <strong>Time trial</strong> mode, break the other players' <a href="classement.php" target="_blank">records</a> and become world champion!<br />
+In <strong>VS</strong> races, confront CPUs and/or a friend on not less than 20 races!<br />
+On <strong>battle mode</strong>, destroy your opponents' balloons in fierce fighting!<br />
+With the <strong>track builder</strong>, create as many circuits and courses as you want, with your imagination the only limit!<br />
+On <strong><a href="online.php">online mode</a></strong>, compete against players from around the world and climb in the <a href="bestscores.php" target="_blank">rankings</a>!
 	<?php
 }
 else {

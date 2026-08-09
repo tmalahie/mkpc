@@ -121,7 +121,7 @@ include('../includes/menu.php');
 	<form method="get" action="chat-logs.php">
 	<blockquote>
 	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($memberNick)) echo htmlspecialchars($memberNick); ?>" /> <input type="submit" value="<?php echo $language ? 'Search' : 'Rechercher'; ?>" class="action_button" />
-	<br /><strong><?php echo $language ? '&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <small>&nbsp; &nbsp;</small>OR':'&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp;OU'; ?> : <a href="?all"><?php echo $language ? 'See all logs' : 'Voir tous les logs'; ?></a></strong></p>
+	<br /><strong><?php echo $language ? '&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <small>&nbsp; &nbsp;</small>OR':'&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp;OU'; ?><?php echo $language ? ':':' :'; ?> <a href="?all"><?php echo $language ? 'See all logs' : 'Voir tous les logs'; ?></a></strong></p>
 	</blockquote>
 	</form>
 	<?php
@@ -171,7 +171,7 @@ include('../includes/menu.php');
 						</select><br />
 						<input type="checkbox" id="mute-ip" />
 						<label for="mute-ip"><?php echo $language ? "Also mute IP":"Muter également l'adresse IP"; ?></label><br />
-						<input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" />
+						<input type="submit" value="<?php echo $language ? 'Confirm':'Valider'; ?>" class="action_button" />
 					</form>
 					</div>
 					<?php

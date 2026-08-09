@@ -40,16 +40,16 @@ $defaultTheme = isset($_GET['theme']) ? $_GET['theme'] : null;
 $editorContext = array();
 switch ($type) {
 	case 'zones':
-		$submitTitle = $language ? 'Validate zones':'Valider les zones';
+		$submitTitle = $language ? 'Confirm zones':'Valider les zones';
 	break;
 	case 'coins':
-		$submitTitle = $language ? 'Validate coins':'Valider les pièces';
+		$submitTitle = $language ? 'Confirm coins':'Valider les pièces';
 	break;
 	case 'items':
-		$submitTitle = $language ? 'Validate items':'Valider les objets';
+		$submitTitle = $language ? 'Confirm items':'Valider les objets';
 	break;
 	case 'decors':
-		$submitTitle = $language ? 'Validate decors':'Valider les décors';
+		$submitTitle = $language ? 'Confirm decors':'Valider les décors';
 		$getDecors = mysql_query('SELECT id,name,type,sprites,img_data FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" AND extra_parent_id IS NULL ORDER BY id');
 		$myDecors = array();
 		$customDecors = new \stdClass();
@@ -70,16 +70,16 @@ switch ($type) {
 		$editorContext['customDecors'] = $customDecors;
 	break;
 	case 'arms':
-		$submitTitle = $language ? 'Validate items':'Valider les objets';
+		$submitTitle = $language ? 'Confirm items':'Valider les objets';
 		$editorContext['customIcons'] = array(
 			'fauxobjet' => 'objet'
 		);
 		break;
 	case 'startpos':
-		$submitTitle = $language ? 'Validate location':'Valider la position';
+		$submitTitle = $language ? 'Confirm location':'Valider la position';
 	break;
 	default:
-		$submitTitle = $language ? 'Validate zone':'Valider la zone';
+		$submitTitle = $language ? 'Confirm zone':'Valider la zone';
 }
 ?>
 <html>

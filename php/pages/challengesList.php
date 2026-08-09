@@ -465,7 +465,7 @@ include('../includes/menu.php');
 							echo '<h2>'. htmlspecialchars($challenge['name']) .'</h2>';
 						echo '<h3>';
 						if ($circuit['name'])
-							echo '<strong>'. $circuit['name'] .'</strong> : ';
+							echo '<strong>'. $circuit['name'] .'</strong>'. ($language ? ': ':' : ');
 						echo $challenge['description']['main'];
 						echo '</h3>';
 						if (isset($challenge['description']['extra']))
