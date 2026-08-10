@@ -63,7 +63,6 @@ if ($id) {
 				$playerPayload['data'] = $payloadData;
 			}
 			unset($playerPayload);
-			ksort($playerPayloads);
 			$mkState = mysql_fetch_array(mysql_query('SELECT time,map,cup FROM `mariokart` WHERE id='. $course));
 			if (!$mkState) {
 				$mkState = array(
@@ -226,7 +225,7 @@ if ($id) {
 			echo json_encode($updatedItems);
 			echo '],'.$lConnect;
 			$finishing = false;
-			if (($racing < 2) || !$racingHumans || (!$isBattle&&($mkState['time'] <= ($time-35)))) {
+			if ($players && ($racing < 2) || !$racingHumans || (!$isBattle&&($mkState['time'] <= ($time-35)))) {
 				$finishing = !$finished;
 				if ($finishing) {
 					$mkState['time'] = $time+35;
