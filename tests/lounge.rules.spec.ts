@@ -109,6 +109,38 @@ test('the vote is incomplete until the POW choice is sent too', async ({ page })
 	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
 });
 
+test('the vote screen groups the mode and item choices', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	const groups = page.locator('.lounge-vote-group');
+	await expect(groups).toHaveCount(2);
+	await expect(groups.nth(0).locator('.lounge-vote-group-title')).toHaveText('Game mode');
+	await expect(groups.nth(1).locator('.lounge-vote-group-title')).toHaveText('Items');
+
+	// the POW toggle and its explanation live together, under the Items heading
+	const items = groups.nth(1);
+	const toggle = items.locator('.lounge-pow-toggle');
+	await expect(toggle).toBeVisible();
+	await expect(toggle.locator('.lounge-pow-name')).toHaveText('POW Block');
+	await expect(toggle.locator('.lounge-pow-tally')).toHaveText('0 / 1 agreed');
+	await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+	await expect(items.locator('.lounge-pow-note')).toContainText('only added if every player agrees');
+
+	// toggling before a mode is picked stays local; nothing is submitted yet
+	await toggle.click();
+	await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+	await expect(toggle).toHaveClass(/is-selected/);
+	const [member]: any = await sql(
+		`SELECT voted_pow FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`,
+		[queueId]
+	);
+	expect(member.voted_pow).toBeNull();
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
 test('a unanimous yes puts the POW Block in the item distribution', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
