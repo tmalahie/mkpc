@@ -7,6 +7,7 @@ define('LOUNGE_AFK_SECONDS', 300);
 define('LOUNGE_HEARTBEAT_POLL_SECONDS', 5);
 define('LOUNGE_LOCK_WAIT_SECONDS', 300);
 define('LOUNGE_VOTE_WAIT_SECONDS', 60);
+define('LOUNGE_RACES_PER_MATCH', 12);
 
 function lounge_get_player_state($playerId) {
 	$row = mysql_fetch_array(mysql_query(
@@ -59,7 +60,7 @@ function lounge_get_active_queue_for_player($playerId) {
 		INNER JOIN `mklounge_queue_members` m ON m.queue=q.id
 		WHERE m.player="'. intval($playerId) .'"
 		AND m.dropped_at IS NULL
-		AND q.status IN ("open","locked","voting","launched")
+		AND q.status IN ("open","locked","voting","launching","launched")
 		LIMIT 1'
 	));
 }
@@ -153,14 +154,69 @@ function lounge_allowed_modes($playerCount) {
 	return $modes;
 }
 
-function lounge_mode_to_rules($mode) {
+function lounge_mode_team_count($mode) {
 	switch ($mode) {
-		case '2v2':     return array('team' => 1, 'nbTeams' => 2);
-		case '3v3':     return array('team' => 1, 'nbTeams' => 2);
-		case '4v4':     return array('team' => 1, 'nbTeams' => 2);
-		case '2v2v2v2': return array('team' => 1, 'nbTeams' => 4);
-		default:        return array();
+		case '2v2':     return 2;
+		case '3v3':     return 2;
+		case '4v4':     return 2;
+		case '2v2v2v2': return 4;
+		default:        return 0;
 	}
+}
+
+function lounge_item_distribution() {
+	return array(
+		array('fauxobjet'=>3, 'banane'=>4, 'bananeX3'=>2, 'carapace'=>5, 'bobomb'=>1),
+		array('banane'=>2, 'bananeX3'=>3, 'carapace'=>5, 'carapacerouge'=>4, 'champi'=>2, 'poison'=>2, 'bobomb'=>1),
+		array('bananeX3'=>3, 'carapace'=>3, 'carapacerouge'=>4, 'champi'=>4, 'poison'=>3, 'carapaceX3'=>1, 'bobomb'=>2, 'boomerang'=>2),
+		array('carapacerouge'=>3, 'champi'=>4, 'poison'=>2, 'carapaceX3'=>2, 'boomerang'=>1, 'carapacerougeX3'=>1, 'megachampi'=>1),
+		array('champi'=>4, 'carapacerougeX3'=>1, 'pow'=>2, 'champiX3'=>3, 'megachampi'=>2),
+		array('champi'=>1, 'carapacebleue'=>1, 'champiX3'=>4, 'megachampi'=>3, 'etoile'=>2),
+		array('carapacebleue'=>1, 'champiX3'=>4, 'megachampi'=>2, 'etoile'=>3, 'champior'=>2, 'billball'=>2),
+		array('carapacebleue'=>2, 'champiX3'=>4, 'etoile'=>3, 'champior'=>3, 'billball'=>3, 'eclair'=>2)
+	);
+}
+
+function lounge_point_distribution($playerCount) {
+	$distributions = array(
+		4 => array(10,7,3,1),
+		5 => array(10,7,5,3,1),
+		6 => array(10,8,6,4,2,1),
+		7 => array(10,8,6,4,3,2,1),
+		8 => array(10,8,6,5,4,3,2,1)
+	);
+	if (isset($distributions[$playerCount]))
+		return $distributions[$playerCount];
+	$fallback = array();
+	for ($i = 0; $i < $playerCount; $i++)
+		$fallback[] = max(1, 10 - $i);
+	return $fallback;
+}
+
+function lounge_build_game_rules($mode, $playerCount) {
+	$rules = array(
+		'friendly' => 1,
+		'localScore' => 1,
+		'minPlayers' => $playerCount,
+		'maxPlayers' => $playerCount,
+		'itemDistrib' => array(
+			'value' => lounge_item_distribution(),
+			'name' => 'CTP Distrib'
+		),
+		'ptDistrib' => array(
+			'value' => lounge_point_distribution($playerCount),
+			'name' => $playerCount .'p'
+		),
+		'noBumps' => 1
+	);
+	$nbTeams = lounge_mode_team_count($mode);
+	if ($nbTeams) {
+		$rules['team'] = 1;
+		$rules['manualTeams'] = 1;
+		$rules['friendlyFire'] = 1;
+		$rules['nbTeams'] = $nbTeams;
+	}
+	return $rules;
 }
 
 function lounge_tally_vote($votes, $allowedModes) {
@@ -204,19 +260,23 @@ function lounge_launch_match($queueId) {
 	$mode = lounge_tally_vote($votes, $allowedModes);
 
 	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues` SET status="launching"
+		WHERE id="'. intval($queueId) .'" AND status="voting"'
+	);
+	if (!mysql_affected_rows())
+		return null;
+
 	do {
 		$key = rand();
 		if (!$key) continue;
 		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'. $key .'",player=0');
 	} while (!mysql_affected_rows());
 
-	$rules = lounge_mode_to_rules($mode);
-	if (!empty($rules)) {
-		$rulesJson = mysql_real_escape_string(json_encode($rules));
-		mysql_query(
-			'INSERT INTO `mkgameoptions` SET id="'. $key .'", rules="'. $rulesJson .'", public=0'
-		);
-	}
+	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members))));
+	mysql_query(
+		'INSERT INTO `mkgameoptions` SET id="'. $key .'", rules="'. $rulesJson .'", public=0'
+	);
 
 	mysql_query(
 		'UPDATE `mklounge_queues`
@@ -240,6 +300,81 @@ function lounge_launch_match($queueId) {
 	}
 
 	return array('mode' => $mode, 'key' => $key, 'multicup_id' => intval($queueRow['multicup_id']));
+}
+
+function lounge_match_race_count($privgameKey) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT raceCount FROM `mkgamedata` WHERE game="'. intval($privgameKey) .'"'
+	));
+	return $row ? intval($row['raceCount']) : 0;
+}
+
+function lounge_finish_match($queueId) {
+	$queue = mysql_fetch_array(mysql_query(
+		'SELECT id, privgame_key FROM `mklounge_queues`
+		WHERE id="'. intval($queueId) .'" AND status="launched" AND privgame_key IS NOT NULL'
+	));
+	if (!$queue)
+		return false;
+
+	$match = mysql_fetch_array(mysql_query(
+		'SELECT id FROM `mklounge_matches`
+		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
+	));
+	if (!$match)
+		return false;
+	$matchId = intval($match['id']);
+
+	$standings = array();
+	$getStandings = mysql_query(
+		'SELECT r.player, r.pts FROM `mkgamerank` r
+		INNER JOIN `mklounge_match_players` mp
+			ON mp.player=r.player AND mp.`match`="'. $matchId .'"
+		WHERE r.game="'. intval($queue['privgame_key']) .'"
+		ORDER BY r.pts DESC, r.player'
+	);
+	while ($row = mysql_fetch_array($getStandings))
+		$standings[] = array('player' => intval($row['player']), 'pts' => intval($row['pts']));
+
+	$position = 0;
+	$previousPts = null;
+	foreach ($standings as $i => $standing) {
+		if (is_null($previousPts) || ($standing['pts'] < $previousPts)) {
+			$position = $i + 1;
+			$previousPts = $standing['pts'];
+		}
+		$isWin = ($position === 1) ? 1 : 0;
+		mysql_query(
+			'UPDATE `mklounge_match_players`
+			SET final_score="'. $standing['pts'] .'", final_position="'. $position .'"
+			WHERE `match`="'. $matchId .'" AND player="'. $standing['player'] .'"'
+		);
+		mysql_query(
+			'INSERT INTO `mklounge_players` (player, season, games, wins)
+			VALUES ("'. $standing['player'] .'", "'. LOUNGE_CURRENT_SEASON .'", 1, "'. $isWin .'")
+			ON DUPLICATE KEY UPDATE games=games+1, wins=wins+'. $isWin
+		);
+	}
+
+	lounge_apply_mmr($matchId);
+
+	mysql_query('UPDATE `mklounge_matches` SET ended_at=NOW() WHERE id="'. $matchId .'"');
+	mysql_query('UPDATE `mklounge_queues` SET status="finished" WHERE id="'. intval($queueId) .'"');
+	mysql_query(
+		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
+		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
+	);
+	return true;
+}
+
+function lounge_apply_mmr($matchId) {
+	mysql_query(
+		'UPDATE `mklounge_match_players` mp
+		INNER JOIN `mklounge_players` p
+			ON p.player=mp.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
+		SET mp.mmr_before=p.mmr
+		WHERE mp.`match`="'. intval($matchId) .'" AND mp.mmr_before IS NULL'
+	);
 }
 
 function lounge_cancel_voting($queueId, $reason) {
@@ -317,6 +452,17 @@ function lounge_tick() {
 	}
 	foreach ($affected as $queueId => $_) {
 		lounge_update_queue_status($queueId);
+	}
+
+	$launched = mysql_query(
+		'SELECT q.id, IFNULL(d.raceCount, 0) AS races
+		FROM `mklounge_queues` q
+		LEFT JOIN `mkgamedata` d ON d.game=q.privgame_key
+		WHERE q.status="launched" AND q.privgame_key IS NOT NULL'
+	);
+	while ($row = mysql_fetch_array($launched)) {
+		if (intval($row['races']) >= LOUNGE_RACES_PER_MATCH)
+			lounge_finish_match(intval($row['id']));
 	}
 
 	$lockTimedOut = mysql_query(

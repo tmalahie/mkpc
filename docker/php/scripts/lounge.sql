@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queues` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `season` int(10) unsigned NOT NULL,
   `tier` int(10) unsigned NOT NULL,
-  `status` enum('open','locked','voting','launched','cancelled') NOT NULL DEFAULT 'open',
+  `status` enum('open','locked','voting','launching','launched','finished','cancelled') NOT NULL DEFAULT 'open',
   `opened_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `locked_at` timestamp NULL DEFAULT NULL,
   `ready_at` timestamp NULL DEFAULT NULL,
