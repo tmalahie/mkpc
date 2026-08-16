@@ -10,6 +10,7 @@ import {
   backToCupScreen,
   waitForTrackScreen,
   CUSTOM_ICON,
+  useCreationCleanup,
 } from './helpers/mkpc';
 
 // End-to-end coverage of the multicup flow: build a real multicup from scratch
@@ -23,6 +24,7 @@ import {
 //   page 1 -> line  2    -> 2 cups over 1 row
 // Every cup uses a custom (data-uri) icon, so a reset to default icons is
 // detectable.
+const OWNER = 'e2e-mc-bot';
 const NB_CUPS = 6;
 const MULTICUP_OPTIONS = {
   lines: [2, 2, 2],
@@ -39,18 +41,24 @@ test.describe('multicup', () => {
   let mid: number;
   let firstCupId: number;
 
+  // Clears creations left by any earlier run before building this run's fixtures,
+  // and again afterwards so a passing run leaves the database as it found it.
+  // Own owner tag, so a concurrently running spec's cleanup cannot delete these.
+  useCreationCleanup(OWNER);
+
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
     await login(page);
-    const circuitIds = await createCircuits(page.request, 2);
+    const circuitIds = await createCircuits(page.request, 2, OWNER);
     const cupIds: number[] = [];
     for (let i = 0; i < NB_CUPS; i++)
-      cupIds.push(await createCup(page.request, { name: 'e2e-cup-' + (i + 1), circuitIds }));
+      cupIds.push(await createCup(page.request, { name: 'e2e-cup-' + (i + 1), circuitIds, author: OWNER }));
     firstCupId = cupIds[0];
     mid = await createMulticup(page.request, {
       name: 'e2e-multicup',
       cupIds,
       options: MULTICUP_OPTIONS,
+      author: OWNER,
     });
     await page.close();
   });

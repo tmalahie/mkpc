@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { login, createCircuits } from './helpers/mkpc';
+import { login, createCircuits, useCreationCleanup } from './helpers/mkpc';
+
+// Own owner tag so this file's cleanup cannot touch fixtures belonging to a
+// spec running concurrently in another worker.
+const OWNER = 'e2e-cup-bot';
+useCreationCleanup(OWNER);
 
 test('simple cup editor shows Advanced Options with per-CPU rows', async ({ page }) => {
   await login(page);
@@ -161,7 +166,7 @@ test.describe('circuit runtime cupOpts', () => {
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
     await login(page);
-    const ids = await createCircuits(page.request, 4);
+    const ids = await createCircuits(page.request, 4, OWNER);
     cupQuery = [0, 1, 2, 3].map((i) => 'cid' + i + '=' + ids[i % ids.length]).join('&');
     await page.close();
   });
