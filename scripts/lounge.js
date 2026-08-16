@@ -326,7 +326,23 @@
 			'Ne pas voter à temps compte comme un strike et annule la partie.'
 		);
 		section.appendChild(hint);
+		section.appendChild(renderModeVote(queue));
+		section.appendChild(renderPowVote(queue));
+		return section;
+	}
 
+	function voteGroup(titleEn, titleFr) {
+		var group = document.createElement('section');
+		group.className = 'lounge-vote-group';
+		var title = document.createElement('h3');
+		title.className = 'lounge-vote-group-title';
+		title.textContent = toLanguage(titleEn, titleFr);
+		group.appendChild(title);
+		return group;
+	}
+
+	function renderModeVote(queue) {
+		var group = voteGroup('Game mode', 'Mode de jeu');
 		var btns = document.createElement('div');
 		btns.className = 'lounge-vote-buttons';
 		for (var i = 0; i < queue.allowed_modes.length; i++) {
@@ -338,53 +354,65 @@
 				+ (queue.my_vote === mode ? ' is-selected' : '');
 			btn.setAttribute('data-mode', mode);
 			btn.innerHTML = '<span class="lounge-vote-label"></span>'
-				+ '<span class="lounge-vote-count">' + voteCount + '</span>';
+				+ '<span class="lounge-vote-count"></span>';
 			btn.querySelector('.lounge-vote-label').textContent = mode;
+			btn.querySelector('.lounge-vote-count').textContent = voteCount + ' '
+				+ (voteCount === 1 ? toLanguage('vote', 'vote') : toLanguage('votes', 'votes'));
 			btn.addEventListener('click', onVoteClick);
 			btns.appendChild(btn);
 		}
-		section.appendChild(btns);
-		section.appendChild(renderPowVote(queue));
-		return section;
+		group.appendChild(btns);
+		return group;
 	}
 
 	// Rule 3h: the POW Block only goes in when the whole lineup agreed, so this is an
 	// opt-in that has to be set before the mode vote is accepted.
 	function renderPowVote(queue) {
-		var box = document.createElement('div');
-		box.className = 'lounge-pow-vote';
-
-		var label = document.createElement('label');
-		var checkbox = document.createElement('input');
-		checkbox.type = 'checkbox';
-		checkbox.className = 'lounge-pow-check';
+		var group = voteGroup('Items', 'Objets');
 		if (powChoice === null && queue.my_pow_vote !== null && queue.my_pow_vote !== undefined)
 			powChoice = queue.my_pow_vote;
-		checkbox.checked = !!powChoice;
-		checkbox.addEventListener('change', onPowChange);
-		label.appendChild(checkbox);
-		var text = document.createElement('span');
-		text.textContent = toLanguage('Add the POW Block', 'Ajouter le POW Block');
-		label.appendChild(text);
-		box.appendChild(label);
+
+		var total = queue.members ? queue.members.length : 0;
+		var agreed = queue.pow_votes || 0;
+		var unanimous = (total > 0 && agreed === total);
+
+		var toggle = document.createElement('button');
+		toggle.type = 'button';
+		toggle.className = 'lounge-pow-toggle' + (powChoice ? ' is-selected' : '');
+		toggle.setAttribute('aria-pressed', powChoice ? 'true' : 'false');
+		toggle.innerHTML = '<span class="lounge-pow-name"></span>'
+			+ '<span class="lounge-pow-tally"></span>'
+			+ '<span class="lounge-pow-switch" aria-hidden="true"></span>';
+		toggle.querySelector('.lounge-pow-name').textContent = toLanguage('POW Block', 'POW Block');
+		toggle.querySelector('.lounge-pow-tally').textContent = agreed + ' / ' + total + ' '
+			+ toLanguage('agreed', 'd\'accord');
+		toggle.addEventListener('click', onPowToggle);
+		group.appendChild(toggle);
 
 		var note = document.createElement('p');
-		note.className = 'lounge-pow-note';
-		var total = queue.members ? queue.members.length : 0;
-		note.textContent = toLanguage(
-			'Only added if everyone agrees (' + (queue.pow_votes || 0) + '/' + total + ').',
-			'Ajouté seulement si tout le monde est d\'accord (' + (queue.pow_votes || 0) + '/' + total + ').'
-		);
-		box.appendChild(note);
-		return box;
+		note.className = 'lounge-pow-note' + (unanimous ? ' is-unanimous' : '');
+		note.textContent = unanimous
+			? toLanguage(
+				'Everyone agreed — the POW Block will be in the item distribution.',
+				'Tout le monde est d\'accord — le POW Block sera dans la distribution d\'objets.'
+			)
+			: toLanguage(
+				'The POW Block is only added if every player agrees.',
+				'Le POW Block n\'est ajouté que si tous les joueurs sont d\'accord.'
+			);
+		group.appendChild(note);
+		return group;
 	}
 
 	function currentPowChoice() {
 		return powChoice ? 1 : 0;
 	}
 
-	function onPowChange() {
-		powChoice = this.checked ? 1 : 0;
+	function onPowToggle() {
+		if (actionInFlight) return;
+		powChoice = powChoice ? 0 : 1;
+		this.classList.toggle('is-selected', !!powChoice);
+		this.setAttribute('aria-pressed', powChoice ? 'true' : 'false');
 		// only meaningful once a mode has been picked; otherwise it rides along with it
 		if (!currentQueue || !currentQueue.my_vote) return;
 		sendVote(currentQueue.my_vote);

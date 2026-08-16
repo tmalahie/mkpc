@@ -301,6 +301,23 @@ a {
 	font-style: italic;
 }
 
+.lounge-vote-group {
+	margin-bottom: 18px;
+}
+
+.lounge-vote-group:last-child {
+	margin-bottom: 0;
+}
+
+.lounge-vote-group-title {
+	margin: 0 0 8px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #8a8d96;
+}
+
 .lounge-vote-buttons {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -355,6 +372,97 @@ a {
 
 .lounge-vote-btn.is-selected .lounge-vote-count {
 	color: #fff;
+}
+
+.lounge-pow-toggle {
+	appearance: none;
+	width: 100%;
+	background: #1f2128;
+	color: #fff;
+	border: 1px solid #2a2c33;
+	border-radius: 8px;
+	padding: 12px 14px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-align: left;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+.lounge-pow-toggle:hover:not(:disabled) {
+	border-color: #E65130;
+}
+
+.lounge-pow-toggle.is-selected {
+	background: #E65130;
+	border-color: #E65130;
+}
+
+.lounge-pow-name {
+	font-size: 15px;
+	font-weight: 700;
+	color: #f0c92e;
+}
+
+.lounge-pow-toggle.is-selected .lounge-pow-name {
+	color: #fff;
+}
+
+.lounge-pow-tally {
+	font-size: 11px;
+	color: #8a8d96;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.lounge-pow-toggle.is-selected .lounge-pow-tally {
+	color: #ffd9cf;
+}
+
+/* pushed right, so the on/off state reads at a glance from the switch alone */
+.lounge-pow-switch {
+	margin-left: auto;
+	flex: none;
+	width: 34px;
+	height: 18px;
+	border-radius: 9px;
+	background: #2a2c33;
+	border: 1px solid #3a3d45;
+	position: relative;
+	transition: background 0.15s;
+}
+
+.lounge-pow-switch::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: #8a8d96;
+	transition: transform 0.15s, background 0.15s;
+}
+
+.lounge-pow-toggle.is-selected .lounge-pow-switch {
+	background: rgba(0, 0, 0, 0.35);
+	border-color: rgba(0, 0, 0, 0.35);
+}
+
+.lounge-pow-toggle.is-selected .lounge-pow-switch::after {
+	background: #fff;
+	transform: translateX(16px);
+}
+
+.lounge-pow-note {
+	margin: 6px 0 0;
+	font-size: 12px;
+	color: #8a8d96;
+}
+
+.lounge-pow-note.is-unanimous {
+	color: #27dd6a;
 }
 
 .lounge-launching {
