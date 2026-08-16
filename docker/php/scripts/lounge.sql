@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS `mklounge_ranks` (
 CREATE TABLE IF NOT EXISTS `mklounge_players` (
   `player` int(11) NOT NULL,
   `season` int(10) unsigned NOT NULL,
-  `mmr` int(11) NOT NULL DEFAULT 500,
-  `peak_mmr` int(11) NOT NULL DEFAULT 500,
+  `mmr` double NOT NULL DEFAULT 600,
+  `peak_mmr` double NOT NULL DEFAULT 600,
   `games` int(11) NOT NULL DEFAULT 0,
   `wins` int(11) NOT NULL DEFAULT 0,
   `total_score` int(11) NOT NULL DEFAULT 0,
@@ -98,9 +98,9 @@ CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
   `team` tinyint(3) unsigned DEFAULT NULL,
   `final_score` int(11) DEFAULT NULL,
   `final_position` tinyint(3) unsigned DEFAULT NULL,
-  `mmr_before` int(11) DEFAULT NULL,
-  `mmr_after` int(11) DEFAULT NULL,
-  `mmr_delta` int(11) DEFAULT NULL,
+  `mmr_before` double DEFAULT NULL,
+  `mmr_after` double DEFAULT NULL,
+  `mmr_delta` double DEFAULT NULL,
   `strike_reason` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`match`,`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -108,16 +108,19 @@ CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
 INSERT IGNORE INTO `mklounge_seasons` (`id`,`name`,`multicup_id`) VALUES
   (1, 'Season 1', 10813);
 
-INSERT IGNORE INTO `mklounge_ranks` (`code`,`label_en`,`label_fr`,`min_mmr`,`color`,`ordering`) VALUES
-  ('iron',     'Iron',     'Fer',      0,    '#8d8d8d', 0),
-  ('bronze',   'Bronze',   'Bronze',   250,  '#b0703c', 1),
-  ('silver',   'Silver',   'Argent',   500,  '#b9c3cc', 2),
-  ('gold',     'Gold',     'Or',       900,  '#e0b234', 3),
-  ('platinum', 'Platinum', 'Platine',  1300, '#4bc0a8', 4),
-  ('sapphire', 'Sapphire', 'Saphir',   1700, '#4a90d9', 5),
-  ('ruby',     'Ruby',     'Rubis',    2100, '#d0455c', 6),
-  ('diamond',  'Diamond',  'Diamant',  2500, '#7ad3ef', 7),
-  ('master',   'Master',   'Maitre',   3000, '#f0c92e', 8);
+-- Ranks and their colours mirror the production ladder (gb.hlorenzi.com/reg/oAFkjh).
+-- Reference data: replaced wholesale so a re-run picks up threshold changes.
+DELETE FROM `mklounge_ranks`;
+INSERT INTO `mklounge_ranks` (`code`,`label_en`,`label_fr`,`min_mmr`,`color`,`ordering`) VALUES
+  ('iron',     'Iron',     'Fer',      0,    '#796f6f', 0),
+  ('bronze',   'Bronze',   'Bronze',   500,  '#cd7f32', 1),
+  ('silver',   'Silver',   'Argent',   900,  '#a7b4b4', 2),
+  ('gold',     'Gold',     'Or',       1200, '#f4d80b', 3),
+  ('platinum', 'Platinum', 'Platine',  1400, '#9aabc6', 4),
+  ('emerald',  'Emerald',  'Emeraude', 1600, '#27dd6a', 5),
+  ('diamond',  'Diamond',  'Diamant',  1800, '#31f4ff', 6),
+  ('master',   'Master',   'Maitre',   2000, '#4c4c4c', 7),
+  ('gm',       'GM',       'GM',       2500, '#a32937', 8);
 
 INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`ordering`) VALUES
   ('all', 'Tier All', 'Tier All', 0,    NULL, 0),
