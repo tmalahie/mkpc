@@ -7,9 +7,9 @@ define('LOUNGE_DEFAULT_MIN_PLAYERS', 4);
 define('LOUNGE_QUEUE_READY_THRESHOLD', 8);
 define('LOUNGE_AFK_SECONDS', 300);
 define('LOUNGE_HEARTBEAT_POLL_SECONDS', 5);
-define('LOUNGE_LOCK_WAIT_SECONDS', 300);
+define('LOUNGE_LOCK_WAIT_SECONDS', 10);
 define('LOUNGE_VOTE_WAIT_SECONDS', 60);
-define('LOUNGE_RACES_PER_MATCH', 12);
+define('LOUNGE_RACES_PER_MATCH', 2);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
 define('LOUNGE_JOIN_TIMEOUT_SECONDS', 180);
@@ -399,6 +399,17 @@ function lounge_finish_match($queueId) {
 	if (!$queue)
 		return false;
 
+	// Claim the queue before doing any work. lounge_tick() runs on every poll, so two
+	// requests can reach this at once; without the claim both would tally the standings
+	// and both would apply the rating change, counting the match twice.
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues` SET status="finished"
+		WHERE id="'. intval($queueId) .'" AND status="launched"'
+	);
+	if (!mysql_affected_rows())
+		return false;
+
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT id FROM `mklounge_matches`
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
@@ -451,7 +462,6 @@ function lounge_finish_match($queueId) {
 	lounge_apply_mmr($matchId);
 
 	mysql_query('UPDATE `mklounge_matches` SET ended_at=NOW() WHERE id="'. $matchId .'"');
-	mysql_query('UPDATE `mklounge_queues` SET status="finished" WHERE id="'. intval($queueId) .'"');
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
@@ -526,6 +536,15 @@ function lounge_cancel_no_show_match($queueId) {
 	if (!$queue)
 		return false;
 
+	// same claim as lounge_finish_match: only one caller may strike the no-shows
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues` SET status="cancelled"
+		WHERE id="'. intval($queueId) .'" AND status="launched"'
+	);
+	if (!mysql_affected_rows())
+		return false;
+
 	$joined = lounge_match_joined_players($queue['privgame_key']);
 	$members = lounge_queue_members($queueId);
 	foreach ($members as $member) {
@@ -544,7 +563,6 @@ function lounge_cancel_no_show_match($queueId) {
 		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="no_show"
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
 	);
-	mysql_query('UPDATE `mklounge_queues` SET status="cancelled" WHERE id="'. intval($queueId) .'"');
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
