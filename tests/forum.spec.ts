@@ -28,11 +28,14 @@ async function cleanupTopics() {
   const ids = topics.map((t: any) => t.id);
 
   // Before the messages go, so the per-author counts are still there to subtract.
+  // nbmessages is `int unsigned`, and MariaDB evaluates the subtraction before
+  // GREATEST: without the CAST an underflow raises ER_DATA_OUT_OF_RANGE instead
+  // of flooring at 0, turning a stale count into a hard failure of the hook.
   await sql(
     `UPDATE mkprofiles p
      JOIN (SELECT auteur, COUNT(*) AS nb FROM mkmessages WHERE topic IN (?) GROUP BY auteur) c
        ON c.auteur = p.id
-     SET p.nbmessages = GREATEST(p.nbmessages - c.nb, 0)`,
+     SET p.nbmessages = GREATEST(CAST(p.nbmessages AS SIGNED) - c.nb, 0)`,
     [ids]
   );
   await sql('DELETE FROM mkfollowers WHERE topic IN (?)', [ids]);
@@ -43,7 +46,23 @@ async function cleanupTopics() {
       'DELETE FROM `' + table + '` WHERE type = "topic" AND SUBSTRING_INDEX(link, ",", 1) IN (?)',
       [ids]
     );
+  // Goes further than supprtopic.php, which leaves these behind: newtopic.php
+  // notifies every follower of the poster, and the seeded Wargor account has 386
+  // of them, so each run buried 386 rows pointing at a topic about to be deleted.
+  // That was the single largest leak in the suite.
+  await sql(
+    `DELETE FROM mknotifs
+     WHERE type IN ('follower_topic', 'forum_mention', 'forum_quote')
+       AND SUBSTRING_INDEX(link, ',', 1) IN (?)`,
+    [ids]
+  );
 }
+
+// Serial for the same reason as the other specs that install cleanup hooks:
+// beforeAll/afterAll run once per worker, and cleanupTopics deletes every topic
+// matching the pattern, not just this worker's. One test makes that moot today,
+// but a second one added under fullyParallel would race without this.
+test.describe.configure({ mode: 'serial' });
 
 // afterAll is the contract, beforeAll is what protects this run: a killed run
 // never reaches afterAll, and that is exactly when leftovers are created.

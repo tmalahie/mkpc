@@ -18,56 +18,58 @@ const ADMIN_PASSWORD = 'aaaa';
 export const SIMPLE_CIRCUIT_PIECES =
   '11,5,4,5,9,4,11,8,8,8,5,7,11,8,8,8,6,4,11,8,6,7,11,2,5,7,11,11,11,8,6,9,9,9,9,7'.split(',');
 
-// The site the cleanup posts to. Taken from the Playwright config so it cannot
-// drift from the one the tests themselves use — setting `use.baseURL` in the
-// config instead of via BASE_URL is supported, and a cleanup pointed at another
-// host would silently delete nothing.
+// Read from the Playwright config rather than the environment, so cleanup cannot
+// target a different site than the tests when baseURL is set in the config.
 function cleanupBaseURL(): string {
   const configured = test.info().project.use.baseURL;
   if (!configured) throw new Error('cleanup needs a baseURL: set use.baseURL or BASE_URL');
   return configured;
 }
 
+// saveCreation/saveCup/saveMCup each notify every follower of the poster, and no
+// delete path removes those rows. The prefix in `link` identifies the kind of
+// creation: 0=circuit, 3=cup, 4=multicup.
+const NOTIF_PREFIX = { circuits: 0, cups: 3, mcups: 4 };
+
+async function deleteFollowerNotifs(kind: keyof typeof NOTIF_PREFIX, ids: string[]) {
+  if (!ids.length) return;
+  await sql('DELETE FROM mknotifs WHERE type = "follower_circuit" AND link IN (?)',
+    [ids.map((id) => NOTIF_PREFIX[kind] + ',' + id)]);
+}
+
 // Removes every creation owned by `author`, whether this run or an earlier one
 // made it, so a crashed run is healed instead of leaving fixtures behind forever.
+// `author` is required so that a spec file cannot silently share another's scope.
 //
-// `author` is required rather than defaulted: spec files run in parallel workers,
-// so a cleanup scoped to a tag shared between files would delete another file's
-// fixtures while it is still using them. Requiring it surfaces a forgotten tag as
-// a type error rather than as a race that only shows up under load.
-//
-// Deletion goes through supprCreation.php rather than raw SQL on purpose: the
-// endpoint cascades to cups, orphaned multicups, records, ghosts and challenge
-// references, and unlinks the track thumbnail from disk (postCircuitDelete).
-// Reproducing that in SQL would leak rows and files on every schema change.
+// Circuits go through supprCreation.php rather than raw SQL: the endpoint cascades
+// to cups, orphaned multicups, records, ghosts and challenge references, and
+// unlinks the track thumbnail from disk (postCircuitDelete).
 export async function cleanupCreations(author: string) {
-  const circuits: any = await sql('SELECT id FROM mkcircuits WHERE auteur = ?', [author]);
+  const scope = async (table: string): Promise<string[]> =>
+    (await sql('SELECT id FROM `' + table + '` WHERE auteur = ?', [author])).map((r: any) => String(r.id));
+  const circuits = await scope('mkcircuits');
+  const cups = await scope('mkcups');
+  const mcups = await scope('mkmcups');
+
   if (circuits.length) {
     const ctx = await apiRequest.newContext({ baseURL: cleanupBaseURL() });
     try {
       // Wargor holds "admin", which getUserRights expands to "moderator", so the
-      // ownership check in supprCreation.php is satisfied regardless of which
-      // browser identity originally created the track.
-      //
-      // The response is checked because testcode.php answers "0" on a failed
-      // login while supprCreation.php echoes "1" even when it matched no row.
-      // Unverified, the whole cleanup would no-op silently and the suite would
-      // still pass while the leak this exists to stop carried on.
+      // ownership check in supprCreation.php passes whichever browser identity
+      // originally created the track.
       const auth = await ctx.post('/api/testcode.php', { form: { pseudo: ADMIN_USER, code: ADMIN_PASSWORD } });
-      const adminId = Number((await auth.text()).trim());
-      if (!(adminId > 0))
+      const body = (await auth.text()).trim();
+      if (!(Number(body) > 0))
         throw new Error(
-          'cleanup could not log in as ' + ADMIN_USER + ' (testcode.php returned "' + adminId + '"). ' +
+          'cleanup could not log in as ' + ADMIN_USER + ' (testcode.php returned "' + body + '"). ' +
           'Check the seeded credentials and that baseURL points at the site under test.'
         );
-      // Deleted in batches: a first run against a database with a large backlog
-      // would otherwise spend minutes on sequential round-trips (measured over 40
-      // deletes: 144ms one at a time, 32ms batched at 10).
-      const ids = circuits.map((c: any) => String(c.id));
+      // Batched because a first run against an existing backlog is otherwise slow
+      // enough to exhaust the hook timeout (40 deletes: 144ms serially, 32ms here).
       const CONCURRENCY = 10;
-      for (let i = 0; i < ids.length; i += CONCURRENCY) {
+      for (let i = 0; i < circuits.length; i += CONCURRENCY) {
         await Promise.all(
-          ids.slice(i, i + CONCURRENCY).map((id: string) =>
+          circuits.slice(i, i + CONCURRENCY).map((id: string) =>
             ctx.post('/api/supprCreation.php', { form: { id, collab: '' } })
           )
         );
@@ -81,20 +83,31 @@ export async function cleanupCreations(author: string) {
   await sql('DELETE t FROM mkmcups_tracks t JOIN mkmcups m ON m.id = t.mcup WHERE m.auteur = ?', [author]);
   await sql('DELETE FROM mkmcups WHERE auteur = ?', [author]);
   await sql('DELETE FROM mkcups WHERE auteur = ?', [author]);
-  // The endpoint reports success even when it deleted nothing, so confirm the
-  // scope is actually empty rather than trusting the responses above.
-  const left: any = await sql('SELECT COUNT(*) AS n FROM mkcircuits WHERE auteur = ?', [author]);
-  if (Number(left[0].n))
-    throw new Error('cleanup left ' + left[0].n + ' circuit(s) owned by ' + author);
+  await deleteFollowerNotifs('circuits', circuits);
+  await deleteFollowerNotifs('cups', cups);
+  await deleteFollowerNotifs('mcups', mcups);
+
+  // supprCreation.php echoes success even when it matched no row, so verify.
+  const left: any = await sql(
+    `SELECT
+       (SELECT COUNT(*) FROM mkcircuits WHERE auteur = ?) AS circuits,
+       (SELECT COUNT(*) FROM mkcups     WHERE auteur = ?) AS cups,
+       (SELECT COUNT(*) FROM mkmcups    WHERE auteur = ?) AS mcups`,
+    [author, author, author]
+  );
+  const remaining = Object.entries(left[0]).filter(([, n]) => Number(n) > 0);
+  if (remaining.length)
+    throw new Error(
+      'cleanup left ' + remaining.map(([t, n]) => n + ' ' + t).join(', ') + ' owned by ' + author
+    );
 }
 
-// Installs the cleanup hooks for a spec that builds creations. Call it at the top
-// of the file: the spec still declares that it owns this cleanup, but without
-// repeating the hook/timeout boilerplate.
+// Installs the cleanup hooks for a spec that builds creations. Must be called from
+// a serial scope: beforeAll/afterAll run once per worker, so under fullyParallel a
+// worker finishing early would delete fixtures another worker is still using.
 //
 // afterAll is the contract, beforeAll is what protects this run - a killed run
-// never reaches afterAll, and that is exactly when leftovers get created. The
-// raised timeout only matters the first time, when clearing an existing backlog.
+// never reaches afterAll, and that is exactly when leftovers get created.
 export function useCreationCleanup(author: string) {
   const run = async () => {
     test.setTimeout(120_000);

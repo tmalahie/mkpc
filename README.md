@@ -67,3 +67,21 @@ npx playwright test --debug
 npx playwright codegen
   Auto generate tests with Codegen.
 ```
+
+The tests create real data (tracks, cups, forum topics) and delete it again afterwards,
+which needs a direct connection to the database as well as to the site. Both default to
+the addresses `docker-compose.yml` publishes, and are overridable:
+
+```
+BASE_URL          site under test        (default http://127.0.0.1:8080)
+MKPC_DB_HOST      database host          (default 127.0.0.1)
+MKPC_DB_PORT      database port          (default 8306)
+MKPC_DB_USER      database user          (default mkpc_user)
+MKPC_DB_PASSWORD  database password      (default mkpc_pwd)
+MKPC_DB_NAME      database name          (default mkpc)
+```
+
+Cleanup removes everything matching a spec's scope, from previous runs as well as the
+current one, so a run that was interrupted is repaired by the next one. Because that scope
+is per spec file and not per checkout, run only one copy of the suite against a given
+database at a time.
