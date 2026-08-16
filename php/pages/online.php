@@ -62,6 +62,17 @@ if (isset($_GET['key'])) {
 		exit;
 	}
 }
+$isRanked = isset($_GET['ranked']);
+if ($isRanked && $id && isset($privateLink)) {
+	if ($getRankedPerso = mysql_fetch_array(mysql_query(
+		'SELECT mp.perso FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+		WHERE m.privgame_key="'. $privateLink .'" AND mp.player="'. $id .'"'
+	))) {
+		if ($getRankedPerso['perso'])
+			$rankedPerso = $getRankedPerso['perso'];
+	}
+}
 if ($isCustom) {
 	if (!$NBCIRCUITS) {
 		mysql_close();
@@ -216,6 +227,8 @@ var isCup = <?php echo $isCustom ? 'true':'false'; ?>;
 var complete = <?php echo $complete ? 'true':'false'; ?>;
 var simplified = <?php echo $simplified ? 'true':'false'; ?>;
 var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
+var isRanked = <?php echo $isRanked ? 'true':'false'; ?>;
+var rankedPerso = <?php echo isset($rankedPerso) ? json_encode($rankedPerso):'null'; ?>;
 var shareLink = {
 	key: <?php echo isset($privateLink) ? "'$privateLink'":'null'; ?>,
 	player: <?php echo isset($privateLinkData) ? $privateLinkData['player']:'null'; ?>,

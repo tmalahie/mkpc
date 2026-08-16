@@ -3,6 +3,7 @@ USE mkpc;
 CREATE TABLE IF NOT EXISTS `mklounge_seasons` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
+  `multicup_id` int(10) unsigned NOT NULL,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `ended_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -16,7 +17,6 @@ CREATE TABLE IF NOT EXISTS `mklounge_tiers` (
   `label_fr` varchar(32) NOT NULL,
   `min_mmr` int(11) NOT NULL DEFAULT 0,
   `max_mmr` int(11) DEFAULT NULL,
-  `multicup_id` int(10) unsigned NOT NULL,
   `ordering` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
   `player` int(11) NOT NULL,
   `joined_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_heartbeat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `perso` varchar(250) DEFAULT NULL,
   `voted_mode` varchar(8) DEFAULT NULL,
   `dropped_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`queue`,`player`),
@@ -79,6 +80,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_matches` (
 CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
   `match` int(10) unsigned NOT NULL,
   `player` int(11) NOT NULL,
+  `perso` varchar(250) DEFAULT NULL,
   `team` tinyint(3) unsigned DEFAULT NULL,
   `final_score` int(11) DEFAULT NULL,
   `final_position` tinyint(3) unsigned DEFAULT NULL,
@@ -89,12 +91,12 @@ CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
   PRIMARY KEY (`match`,`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT IGNORE INTO `mklounge_seasons` (`id`,`name`) VALUES
-  (1, 'Season 1');
+INSERT IGNORE INTO `mklounge_seasons` (`id`,`name`,`multicup_id`) VALUES
+  (1, 'Season 1', 10813);
 
-INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`multicup_id`,`ordering`) VALUES
-  ('all', 'Tier All', 'Tier All', 0,    NULL, 10813, 0),
-  ('C',   'Tier C',   'Tier C',   0,    999,  10813, 1),
-  ('B',   'Tier B',   'Tier B',   1000, 1999, 10813, 2),
-  ('A',   'Tier A',   'Tier A',   2000, 2999, 10813, 3),
-  ('X',   'Tier X',   'Tier X',   3000, NULL, 10813, 4);
+INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`ordering`) VALUES
+  ('all', 'Tier All', 'Tier All', 0,    NULL, 0),
+  ('C',   'Tier C',   'Tier C',   0,    999,  1),
+  ('B',   'Tier B',   'Tier B',   1000, 1999, 2),
+  ('A',   'Tier A',   'Tier A',   2000, 2999, 3),
+  ('X',   'Tier X',   'Tier X',   3000, NULL, 4);
