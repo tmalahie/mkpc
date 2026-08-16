@@ -29604,6 +29604,8 @@ function chooseWithin(min,range) {
 }
 
 function selectMapScreen(opts) {
+	if (exitIfRaceLimitReached())
+		return;
 	if (!opts) opts = {};
 	if (typeof shareLink !== "undefined")
 		bSelectedMirror = (shareLink.options && shareLink.options.mirror);
@@ -30124,6 +30126,23 @@ function exitCircuit() {
 		document.location.href = "index.php";
 }
 
+function getRaceLimit() {
+	if (isOnline && shareLink.options && shareLink.options.raceLimit)
+		return +shareLink.options.raceLimit;
+	return 0;
+}
+
+function exitIfRaceLimitReached() {
+	var iLimit = getRaceLimit();
+	if (!iLimit || (iRaceCount < iLimit))
+		return false;
+	if (shareLink.options.lounge)
+		document.location.href = "lounge.php?key=" + encodeURIComponent(shareLink.key);
+	else
+		document.location.href = "localscores.php?key=" + encodeURIComponent(shareLink.key);
+	return true;
+}
+
 // race counter in track selection
 function showRaceCountIfRelevant(oScr, opts) {
 	if ((course != "CM") && isLocalScore() && iRaceCount > 0) {
@@ -30146,6 +30165,8 @@ function appendContainers() {
 }
 
 function selectRaceScreen(cup) {
+	if (exitIfRaceLimitReached())
+		return;
 	if (isOnline || (!isSingle && course != "GP")) {
 		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "trackSelect", cup: cup});
 		var oScr = document.createElement("div");
