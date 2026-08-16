@@ -9,8 +9,8 @@ import mysql from 'mysql2/promise';
 // databases (see the migration rule in CLAUDE.md).
 //
 // Sibling worktrees share one MariaDB container while each gets its own web port,
-// and owner tags are per spec file rather than per checkout - so running the suite
-// in two checkouts at once makes them clean up each other's fixtures.
+// and the cleanup scope is a name prefix rather than a checkout - so running the
+// suite in two checkouts at once makes them clean up each other's fixtures.
 const config = {
   host: process.env.MKPC_DB_HOST || '127.0.0.1',
   port: Number(process.env.MKPC_DB_PORT || 8306),

@@ -1,4 +1,4 @@
-import { Page, APIRequestContext, expect, test, request as apiRequest } from '@playwright/test';
+import { Page, APIRequestContext, expect, request as apiRequest } from '@playwright/test';
 import { sql } from './db';
 
 // Shared helpers for end-to-end tests that build their own creations
@@ -18,13 +18,9 @@ const ADMIN_PASSWORD = 'aaaa';
 export const SIMPLE_CIRCUIT_PIECES =
   '11,5,4,5,9,4,11,8,8,8,5,7,11,8,8,8,6,4,11,8,6,7,11,2,5,7,11,11,11,8,6,9,9,9,9,7'.split(',');
 
-// Read from the Playwright config rather than the environment, so cleanup cannot
-// target a different site than the tests when baseURL is set in the config.
-function cleanupBaseURL(): string {
-  const configured = test.info().project.use.baseURL;
-  if (!configured) throw new Error('cleanup needs a baseURL: set use.baseURL or BASE_URL');
-  return configured;
-}
+// Every author tag a spec creates under must match this, or its fixtures survive
+// the sweep in tests/global-cleanup.ts.
+const TEST_AUTHOR_PATTERN = 'e2e-%';
 
 // saveCreation/saveCup/saveMCup each notify every follower of the poster, and no
 // delete path removes those rows. The prefix in `link` identifies the kind of
@@ -37,22 +33,27 @@ async function deleteFollowerNotifs(kind: keyof typeof NOTIF_PREFIX, ids: string
     [ids.map((id) => NOTIF_PREFIX[kind] + ',' + id)]);
 }
 
-// Removes every creation owned by `author`, whether this run or an earlier one
-// made it, so a crashed run is healed instead of leaving fixtures behind forever.
-// `author` is required so that a spec file cannot silently share another's scope.
+// Removes every creation whose author matches TEST_AUTHOR_PATTERN, whether this
+// run or an earlier one made it, so a crashed run is healed instead of leaving
+// fixtures behind forever.
+//
+// Matching a pattern rather than a list of owners is what keeps this out of the
+// spec files: a new spec only has to tag its creations `e2e-*` to be cleaned up,
+// with nothing to register here.
 //
 // Circuits go through supprCreation.php rather than raw SQL: the endpoint cascades
 // to cups, orphaned multicups, records, ghosts and challenge references, and
 // unlinks the track thumbnail from disk (postCircuitDelete).
-export async function cleanupCreations(author: string) {
+export async function cleanupCreations(baseURL: string) {
   const scope = async (table: string): Promise<string[]> =>
-    (await sql('SELECT id FROM `' + table + '` WHERE auteur = ?', [author])).map((r: any) => String(r.id));
+    (await sql('SELECT id FROM `' + table + '` WHERE auteur LIKE ?', [TEST_AUTHOR_PATTERN]))
+      .map((r: any) => String(r.id));
   const circuits = await scope('mkcircuits');
   const cups = await scope('mkcups');
   const mcups = await scope('mkmcups');
 
   if (circuits.length) {
-    const ctx = await apiRequest.newContext({ baseURL: cleanupBaseURL() });
+    const ctx = await apiRequest.newContext({ baseURL });
     try {
       // Wargor holds "admin", which getUserRights expands to "moderator", so the
       // ownership check in supprCreation.php passes whichever browser identity
@@ -80,9 +81,10 @@ export async function cleanupCreations(author: string) {
   }
   // Cups and multicups whose tracks were already gone are never reached by the
   // cascade above, so sweep them by the same author scope.
-  await sql('DELETE t FROM mkmcups_tracks t JOIN mkmcups m ON m.id = t.mcup WHERE m.auteur = ?', [author]);
-  await sql('DELETE FROM mkmcups WHERE auteur = ?', [author]);
-  await sql('DELETE FROM mkcups WHERE auteur = ?', [author]);
+  const p = TEST_AUTHOR_PATTERN;
+  await sql('DELETE t FROM mkmcups_tracks t JOIN mkmcups m ON m.id = t.mcup WHERE m.auteur LIKE ?', [p]);
+  await sql('DELETE FROM mkmcups WHERE auteur LIKE ?', [p]);
+  await sql('DELETE FROM mkcups WHERE auteur LIKE ?', [p]);
   await deleteFollowerNotifs('circuits', circuits);
   await deleteFollowerNotifs('cups', cups);
   await deleteFollowerNotifs('mcups', mcups);
@@ -90,31 +92,14 @@ export async function cleanupCreations(author: string) {
   // supprCreation.php echoes success even when it matched no row, so verify.
   const left: any = await sql(
     `SELECT
-       (SELECT COUNT(*) FROM mkcircuits WHERE auteur = ?) AS circuits,
-       (SELECT COUNT(*) FROM mkcups     WHERE auteur = ?) AS cups,
-       (SELECT COUNT(*) FROM mkmcups    WHERE auteur = ?) AS mcups`,
-    [author, author, author]
+       (SELECT COUNT(*) FROM mkcircuits WHERE auteur LIKE ?) AS circuits,
+       (SELECT COUNT(*) FROM mkcups     WHERE auteur LIKE ?) AS cups,
+       (SELECT COUNT(*) FROM mkmcups    WHERE auteur LIKE ?) AS mcups`,
+    [p, p, p]
   );
   const remaining = Object.entries(left[0]).filter(([, n]) => Number(n) > 0);
   if (remaining.length)
-    throw new Error(
-      'cleanup left ' + remaining.map(([t, n]) => n + ' ' + t).join(', ') + ' owned by ' + author
-    );
-}
-
-// Installs the cleanup hooks for a spec that builds creations. Must be called from
-// a serial scope: beforeAll/afterAll run once per worker, so under fullyParallel a
-// worker finishing early would delete fixtures another worker is still using.
-//
-// afterAll is the contract, beforeAll is what protects this run - a killed run
-// never reaches afterAll, and that is exactly when leftovers get created.
-export function useCreationCleanup(author: string) {
-  const run = async () => {
-    test.setTimeout(120_000);
-    await cleanupCreations(author);
-  };
-  test.beforeAll(run);
-  test.afterAll(run);
+    throw new Error('cleanup left ' + remaining.map(([t, n]) => n + ' ' + t).join(', '));
 }
 
 export async function login(page: Page) {

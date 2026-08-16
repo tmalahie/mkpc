@@ -10,7 +10,6 @@ import {
   backToCupScreen,
   waitForTrackScreen,
   CUSTOM_ICON,
-  useCreationCleanup,
 } from './helpers/mkpc';
 
 // End-to-end coverage of the multicup flow: build a real multicup from scratch
@@ -40,11 +39,6 @@ test.describe.configure({ mode: 'serial' });
 test.describe('multicup', () => {
   let mid: number;
   let firstCupId: number;
-
-  // Clears creations left by any earlier run before building this run's fixtures,
-  // and again afterwards so a passing run leaves the database as it found it.
-  // Own owner tag, so a concurrently running spec's cleanup cannot delete these.
-  useCreationCleanup(OWNER);
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();

@@ -81,7 +81,8 @@ MKPC_DB_PASSWORD  database password      (default mkpc_pwd)
 MKPC_DB_NAME      database name          (default mkpc)
 ```
 
-Cleanup removes everything matching a spec's scope, from previous runs as well as the
-current one, so a run that was interrupted is repaired by the next one. Because that scope
-is per spec file and not per checkout, run only one copy of the suite against a given
-database at a time.
+Cleanup runs once before the suite and once after it (`tests/global-cleanup.ts`), and
+removes everything in scope from previous runs as well as the current one, so a run that
+was interrupted is repaired by the next one. A new test needs nothing registered there: it
+only has to name its creations `e2e-*`. Because the scope is a name prefix and not a
+checkout, run only one copy of the suite against a given database at a time.

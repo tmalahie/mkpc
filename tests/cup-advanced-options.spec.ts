@@ -1,12 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { login, createCircuits, useCreationCleanup } from './helpers/mkpc';
+import { login, createCircuits } from './helpers/mkpc';
 
-// Own owner tag so this file's cleanup cannot touch fixtures belonging to a
-// spec running concurrently in another worker. The cleanup hooks live inside the
-// `circuit runtime cupOpts` describe below - the only place here that creates
-// anything - rather than at file scope: beforeAll/afterAll run once per *worker*,
-// so a file-scope hook would let one worker wipe the circuits another is still
-// using. That describe is serial, which confines both to a single worker.
+// Tags this file's creations so tests/global-cleanup.ts sweeps them up afterwards.
 const OWNER = 'e2e-cup-bot';
 
 test('simple cup editor shows Advanced Options with per-CPU rows', async ({ page }) => {
@@ -164,7 +159,6 @@ test('cup editor preserves orphaned custom item distribution', async ({ page }) 
 // circuits by id with no ownership check, so a fresh page can load them.
 test.describe('circuit runtime cupOpts', () => {
   test.describe.configure({ mode: 'serial' });
-  useCreationCleanup(OWNER);
   let cupQuery: string;
 
   test.beforeAll(async ({ browser }) => {

@@ -1,73 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { randomBytes } from 'crypto';
-import { sql } from './helpers/db';
+import { newTopicName } from './helpers/forum';
 
 const ADMIN_USER = 'wargor';
 const ADMIN_PASSWORD = 'aaaa';
 const ADMIN_USERNAME_PRINTED = "Wargor";
 
-const RANDOM_ID = randomBytes(10).toString('hex');
-const TOPIC_NAME = "New topic " + RANDOM_ID;
-const TOPIC_CONTENT = "New topic content " + RANDOM_ID;
-
-// Each run posts a topic under a fresh random suffix, so cleanup matches the
-// shape of the generated title rather than one run's value: it clears this run's
-// topic and any left behind by earlier ones. The anchored regexp keeps it from
-// touching a real topic that merely starts with "New topic".
-const TOPIC_PATTERN = '^New topic [0-9a-f]{20}$';
-
-// Mirrors what php/pages/supprtopic.php does, because posting a topic touches
-// more than mktopics/mkmessages: newtopic.php also follows the topic for its
-// author and bumps mkprofiles.nbmessages. Deleting only the two obvious tables
-// leaves an orphaned mkfollowers row and inflates the poster's message count by
-// one on every run. The page itself is not reusable here - it is a CSRF-guarded
-// HTML page rather than an API endpoint - so the cascade is reproduced instead.
-async function cleanupTopics() {
-  const topics: any = await sql('SELECT id FROM mktopics WHERE titre REGEXP ?', [TOPIC_PATTERN]);
-  if (!topics.length) return;
-  const ids = topics.map((t: any) => t.id);
-
-  // Before the messages go, so the per-author counts are still there to subtract.
-  // nbmessages is `int unsigned`, and MariaDB evaluates the subtraction before
-  // GREATEST: without the CAST an underflow raises ER_DATA_OUT_OF_RANGE instead
-  // of flooring at 0, turning a stale count into a hard failure of the hook.
-  await sql(
-    `UPDATE mkprofiles p
-     JOIN (SELECT auteur, COUNT(*) AS nb FROM mkmessages WHERE topic IN (?) GROUP BY auteur) c
-       ON c.auteur = p.id
-     SET p.nbmessages = GREATEST(CAST(p.nbmessages AS SIGNED) - c.nb, 0)`,
-    [ids]
-  );
-  await sql('DELETE FROM mkfollowers WHERE topic IN (?)', [ids]);
-  await sql('DELETE FROM mkmessages WHERE topic IN (?)', [ids]);
-  await sql('DELETE FROM mktopics WHERE id IN (?)', [ids]);
-  for (const table of ['mkreactions', 'mkreports', 'mkreportshist'])
-    await sql(
-      'DELETE FROM `' + table + '` WHERE type = "topic" AND SUBSTRING_INDEX(link, ",", 1) IN (?)',
-      [ids]
-    );
-  // Goes further than supprtopic.php, which leaves these behind: newtopic.php
-  // notifies every follower of the poster, and the seeded Wargor account has 386
-  // of them, so each run buried 386 rows pointing at a topic about to be deleted.
-  // That was the single largest leak in the suite.
-  await sql(
-    `DELETE FROM mknotifs
-     WHERE type IN ('follower_topic', 'forum_mention', 'forum_quote')
-       AND SUBSTRING_INDEX(link, ',', 1) IN (?)`,
-    [ids]
-  );
-}
-
-// Serial for the same reason as the other specs that install cleanup hooks:
-// beforeAll/afterAll run once per worker, and cleanupTopics deletes every topic
-// matching the pattern, not just this worker's. One test makes that moot today,
-// but a second one added under fullyParallel would race without this.
-test.describe.configure({ mode: 'serial' });
-
-// afterAll is the contract, beforeAll is what protects this run: a killed run
-// never reaches afterAll, and that is exactly when leftovers are created.
-test.beforeAll(cleanupTopics);
-test.afterAll(cleanupTopics);
+// Named so tests/global-cleanup.ts recognises and removes it afterwards.
+const TOPIC_NAME = newTopicName();
+const TOPIC_CONTENT = "New topic content " + randomBytes(10).toString('hex');
 
 test('logging in and creating a new topic', async ({ page }) => {
   // Log in
