@@ -6,7 +6,7 @@ function isPermanentlyBanned($player) {
 function notPermanentlyBannedJoin($playerColumn) {
 	return ' LEFT JOIN `mkjoueurs` pbj ON pbj.id='. $playerColumn .' LEFT JOIN `mkbans` pbb ON pbb.player='. $playerColumn;
 }
-function notPermanentlyBannedWhere() {
+function notPermanentlyBannedCondition() {
 	return 'NOT (COALESCE(pbj.banned,0)!=0 AND pbb.end_date IS NULL)';
 }
 ?>
