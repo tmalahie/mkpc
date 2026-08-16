@@ -8,6 +8,8 @@ if (!$id) {
 include('../../includes/initdb.php');
 include('../../includes/lounge/common.php');
 
+lounge_tick();
+
 $state = lounge_get_player_state($id);
 
 $tiers = array();
