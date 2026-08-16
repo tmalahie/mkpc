@@ -24,14 +24,9 @@ if (!$tier) {
 
 $playerState = lounge_get_player_state($id);
 if ($playerState['banned_until']) {
-	$banExpired = mysql_fetch_array(mysql_query(
-		'SELECT 1 AS expired WHERE "'. mysql_real_escape_string($playerState['banned_until']) .'" < NOW()'
-	));
-	if (!$banExpired) {
-		echo json_encode(array('error' => 'banned', 'banned_until' => $playerState['banned_until']));
-		mysql_close();
-		exit;
-	}
+	echo json_encode(array('error' => 'banned', 'banned_until' => $playerState['banned_until']));
+	mysql_close();
+	exit;
 }
 
 if (!lounge_tier_eligible($tier, $playerState['mmr'])) {
