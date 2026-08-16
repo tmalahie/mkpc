@@ -447,3 +447,52 @@ a {
 .lounge-results-back:hover {
 	background: #343740;
 }
+
+.lounge-leaderboard-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.lounge-leaderboard-table th {
+	text-align: left;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #8a8d96;
+	padding: 6px 10px;
+	border-bottom: 1px solid #2a2c33;
+}
+
+.lounge-leaderboard-row td {
+	padding: 9px 10px;
+	border-bottom: 1px solid #1f2128;
+	color: #c9cbd3;
+}
+
+.lounge-leaderboard-row.is-self td {
+	background: #1f2128;
+	color: #fff;
+}
+
+.lounge-lb-place {
+	width: 60px;
+	font-weight: bold;
+	color: #f0c92e;
+}
+
+.lounge-lb-rank {
+	font-weight: bold;
+}
+
+.lounge-lb-mmr,
+.lounge-lb-games,
+.lounge-lb-avg {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.lounge-empty {
+	color: #8a8d96;
+	text-align: center;
+	padding: 40px 20px;
+}

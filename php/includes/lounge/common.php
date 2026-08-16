@@ -19,22 +19,42 @@ function lounge_get_season_multicup() {
 	return $row ? intval($row['multicup_id']) : 0;
 }
 
+function lounge_rank_for_mmr($mmr) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT code, label_en, label_fr, color FROM `mklounge_ranks`
+		WHERE min_mmr <= "'. intval($mmr) .'"
+		ORDER BY min_mmr DESC LIMIT 1'
+	));
+	if (!$row)
+		return null;
+	return array(
+		'code' => $row['code'],
+		'label_en' => $row['label_en'],
+		'label_fr' => $row['label_fr'],
+		'color' => $row['color']
+	);
+}
+
 function lounge_get_player_state($playerId) {
 	$row = mysql_fetch_array(mysql_query(
-		'SELECT mmr, peak_mmr, games, wins, strikes, placed,
+		'SELECT mmr, peak_mmr, games, wins, total_score, strikes, placed,
 			IF(banned_until > NOW(), banned_until, NULL) AS banned_until
 		FROM `mklounge_players`
 		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
 	));
 	if ($row) {
+		$games = intval($row['games']);
 		return array(
 			'mmr' => intval($row['mmr']),
 			'peak_mmr' => intval($row['peak_mmr']),
-			'games' => intval($row['games']),
+			'games' => $games,
 			'wins' => intval($row['wins']),
+			'total_score' => intval($row['total_score']),
+			'avg_score' => $games ? round(intval($row['total_score']) / $games, 1) : null,
 			'strikes' => intval($row['strikes']),
 			'banned_until' => $row['banned_until'],
-			'placed' => intval($row['placed'])
+			'placed' => intval($row['placed']),
+			'rank' => lounge_rank_for_mmr($row['mmr'])
 		);
 	}
 	return array(
@@ -42,9 +62,12 @@ function lounge_get_player_state($playerId) {
 		'peak_mmr' => LOUNGE_DEFAULT_MMR,
 		'games' => 0,
 		'wins' => 0,
+		'total_score' => 0,
+		'avg_score' => null,
 		'strikes' => 0,
 		'banned_until' => null,
-		'placed' => 0
+		'placed' => 0,
+		'rank' => lounge_rank_for_mmr(LOUNGE_DEFAULT_MMR)
 	);
 }
 
@@ -382,9 +405,9 @@ function lounge_finish_match($queueId) {
 			WHERE `match`="'. $matchId .'" AND player="'. $standing['player'] .'"'
 		);
 		mysql_query(
-			'INSERT INTO `mklounge_players` (player, season, games, wins)
-			VALUES ("'. $standing['player'] .'", "'. LOUNGE_CURRENT_SEASON .'", 1, "'. $isWin .'")
-			ON DUPLICATE KEY UPDATE games=games+1, wins=wins+'. $isWin
+			'INSERT INTO `mklounge_players` (player, season, games, wins, total_score)
+			VALUES ("'. $standing['player'] .'", "'. LOUNGE_CURRENT_SEASON .'", 1, "'. $isWin .'", "'. $standing['pts'] .'")
+			ON DUPLICATE KEY UPDATE games=games+1, wins=wins+'. $isWin .', total_score=total_score+'. $standing['pts']
 		);
 	}
 
