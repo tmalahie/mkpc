@@ -129,3 +129,24 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	const frame = page.frameLocator('#lounge-overlay iframe');
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
+
+test('ranked entry picks a character on the CT multicup then opens the lounge', async ({ page }) => {
+	await login(page);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+
+	await page.goto('http://127.0.0.1:8080/ranked.php');
+	await expect(page).toHaveURL(/online\.php\?mid=\d+&ranked/);
+
+	// the roster comes from the multicup, so selection happens inside the game
+	await page.locator('#perso-selector-mario').click();
+
+	const lounge = page.frameLocator('#lounge-overlay iframe');
+	await expect(lounge.locator('.lounge-header h1')).toHaveText('CT Lounge');
+	await lounge.locator('.lounge-tier').first().locator('.lounge-tier-join').click();
+	await expect(lounge.locator('.lounge-member.is-self')).toHaveCount(1);
+
+	const queue = await (await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php')).json();
+	expect(queue.queue.members[0].perso).toBe('mario');
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+});
