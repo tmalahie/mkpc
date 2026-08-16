@@ -225,7 +225,7 @@ if ($id) {
 			echo json_encode($updatedItems);
 			echo '],'.$lConnect;
 			$finishing = false;
-			if ($players && ($racing < 2) || !$racingHumans || (!$isBattle&&($mkState['time'] <= ($time-35)))) {
+			if ($players && (($racing < 2) || !$racingHumans || (!$isBattle&&($mkState['time'] <= ($time-35))))) {
 				$finishing = !$finished;
 				if ($finishing) {
 					$mkState['time'] = $time+35;
