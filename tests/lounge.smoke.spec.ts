@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// These tests share the same account and mutate queue state, so they cannot run concurrently.
+test.describe.configure({ mode: 'serial' });
+
 async function login(page, pseudo = 'wargor', code = 'aaaa') {
 	const res = await page.request.post('http://127.0.0.1:8080/api/testcode.php', {
 		form: { pseudo, code },

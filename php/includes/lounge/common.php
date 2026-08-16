@@ -8,10 +8,13 @@ define('LOUNGE_HEARTBEAT_POLL_SECONDS', 5);
 define('LOUNGE_LOCK_WAIT_SECONDS', 300);
 define('LOUNGE_VOTE_WAIT_SECONDS', 60);
 define('LOUNGE_RACES_PER_MATCH', 12);
+define('LOUNGE_STRIKES_BEFORE_BAN', 3);
+define('LOUNGE_BAN_MINUTES', 60);
 
 function lounge_get_player_state($playerId) {
 	$row = mysql_fetch_array(mysql_query(
-		'SELECT mmr, peak_mmr, games, wins, strikes, banned_until, placed
+		'SELECT mmr, peak_mmr, games, wins, strikes, placed,
+			IF(banned_until > NOW(), banned_until, NULL) AS banned_until
 		FROM `mklounge_players`
 		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
 	));
@@ -207,7 +210,9 @@ function lounge_build_game_rules($mode, $playerCount) {
 			'value' => lounge_point_distribution($playerCount),
 			'name' => $playerCount .'p'
 		),
-		'noBumps' => 1
+		'noBumps' => 1,
+		'raceLimit' => LOUNGE_RACES_PER_MATCH,
+		'lounge' => 1
 	);
 	$nbTeams = lounge_mode_team_count($mode);
 	if ($nbTeams) {
@@ -302,6 +307,25 @@ function lounge_launch_match($queueId) {
 	return array('mode' => $mode, 'key' => $key, 'multicup_id' => intval($queueRow['multicup_id']));
 }
 
+function lounge_add_strike($playerId, $reason) {
+	mysql_query(
+		'INSERT INTO `mklounge_players` (player, season, strikes)
+		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
+		ON DUPLICATE KEY UPDATE strikes=strikes+1'
+	);
+	if (!LOUNGE_STRIKES_BEFORE_BAN)
+		return false;
+
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_players`
+		SET strikes=0, banned_until=(NOW() + INTERVAL '. intval(LOUNGE_BAN_MINUTES) .' MINUTE)
+		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"
+		AND strikes >= '. intval(LOUNGE_STRIKES_BEFORE_BAN)
+	);
+	return (bool) mysql_affected_rows();
+}
+
 function lounge_match_race_count($privgameKey) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT raceCount FROM `mkgamedata` WHERE game="'. intval($privgameKey) .'"'
@@ -367,6 +391,53 @@ function lounge_finish_match($queueId) {
 	return true;
 }
 
+function lounge_match_result($privgameKey, $forPlayerId) {
+	$match = mysql_fetch_array(mysql_query(
+		'SELECT m.id, m.mode, m.ended_at,
+			t.label_en AS tier_label_en, t.label_fr AS tier_label_fr
+		FROM `mklounge_matches` m
+		INNER JOIN `mklounge_tiers` t ON t.id=m.tier
+		WHERE m.privgame_key="'. intval($privgameKey) .'"'
+	));
+	if (!$match)
+		return null;
+	$participant = mysql_fetch_array(mysql_query(
+		'SELECT 1 AS ok FROM `mklounge_match_players`
+		WHERE `match`="'. intval($match['id']) .'" AND player="'. intval($forPlayerId) .'"'
+	));
+	if (!$participant)
+		return null;
+
+	$players = array();
+	$res = mysql_query(
+		'SELECT mp.player, mp.final_score, mp.final_position, mp.mmr_before, mp.mmr_after, mp.mmr_delta, j.nom
+		FROM `mklounge_match_players` mp
+		INNER JOIN `mkjoueurs` j ON j.id=mp.player
+		WHERE mp.`match`="'. intval($match['id']) .'"
+		ORDER BY (mp.final_position IS NULL), mp.final_position, j.nom'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$players[] = array(
+			'id' => intval($row['player']),
+			'name' => $row['nom'],
+			'score' => is_null($row['final_score']) ? null : intval($row['final_score']),
+			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
+			'mmr_before' => is_null($row['mmr_before']) ? null : intval($row['mmr_before']),
+			'mmr_after' => is_null($row['mmr_after']) ? null : intval($row['mmr_after']),
+			'mmr_delta' => is_null($row['mmr_delta']) ? null : intval($row['mmr_delta'])
+		);
+	}
+	return array(
+		'id' => intval($match['id']),
+		'mode' => $match['mode'],
+		'tier_label_en' => $match['tier_label_en'],
+		'tier_label_fr' => $match['tier_label_fr'],
+		'ended_at' => $match['ended_at'],
+		'races' => LOUNGE_RACES_PER_MATCH,
+		'players' => $players
+	);
+}
+
 function lounge_apply_mmr($matchId) {
 	mysql_query(
 		'UPDATE `mklounge_match_players` mp
@@ -383,11 +454,7 @@ function lounge_cancel_voting($queueId, $reason) {
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL AND voted_mode IS NULL'
 	);
 	while ($r = mysql_fetch_array($nonVoters)) {
-		mysql_query(
-			'INSERT INTO `mklounge_players` (player, season, strikes)
-			VALUES ("'. intval($r['player']) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
-			ON DUPLICATE KEY UPDATE strikes=strikes+1'
-		);
+		lounge_add_strike($r['player'], 'vote_timeout');
 	}
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
@@ -444,11 +511,7 @@ function lounge_tick() {
 			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
 			AND dropped_at IS NULL'
 		);
-		mysql_query(
-			'INSERT INTO `mklounge_players` (player, season, strikes)
-			VALUES ("'. intval($row['player']) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
-			ON DUPLICATE KEY UPDATE strikes=strikes+1'
-		);
+		lounge_add_strike($row['player'], 'afk');
 	}
 	foreach ($affected as $queueId => $_) {
 		lounge_update_queue_status($queueId);

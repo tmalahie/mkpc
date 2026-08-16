@@ -331,11 +331,76 @@
 		});
 	}
 
+	function renderResults(match) {
+		var container = $('lounge-results');
+		if (!container) return;
+		container.innerHTML = '';
+
+		var header = document.createElement('div');
+		header.className = 'lounge-results-header';
+		var label = language ? match.tier_label_en : match.tier_label_fr;
+		header.innerHTML = '<h2></h2><p class="lounge-results-sub"></p>';
+		header.querySelector('h2').textContent = toLanguage('Mogi results', 'Résultats du mogi');
+		header.querySelector('.lounge-results-sub').textContent =
+			label + ' — ' + match.mode + ' — ' + match.races + ' ' + toLanguage('races', 'courses');
+		container.appendChild(header);
+
+		var table = document.createElement('table');
+		table.className = 'lounge-results-table';
+		var head = document.createElement('tr');
+		head.innerHTML = '<th></th><th></th><th></th><th></th>';
+		var headCells = head.querySelectorAll('th');
+		headCells[0].textContent = toLanguage('Place', 'Place');
+		headCells[1].textContent = toLanguage('Player', 'Joueur');
+		headCells[2].textContent = toLanguage('Score', 'Score');
+		headCells[3].textContent = 'MMR';
+		table.appendChild(head);
+
+		for (var i = 0; i < match.players.length; i++) {
+			var p = match.players[i];
+			var row = document.createElement('tr');
+			row.className = 'lounge-results-row' + (p.id === mId ? ' is-self' : '');
+			row.innerHTML = '<td class="lounge-results-place"></td><td class="lounge-results-name"></td>'
+				+ '<td class="lounge-results-score"></td><td class="lounge-results-mmr"></td>';
+			row.querySelector('.lounge-results-place').textContent = (p.position === null) ? '–' : p.position;
+			row.querySelector('.lounge-results-name').textContent = p.name;
+			row.querySelector('.lounge-results-score').textContent = (p.score === null) ? '–' : p.score;
+			row.querySelector('.lounge-results-mmr').textContent = formatMmrChange(p);
+			table.appendChild(row);
+		}
+		container.appendChild(table);
+
+		var back = document.createElement('button');
+		back.type = 'button';
+		back.className = 'lounge-results-back';
+		back.textContent = toLanguage('Back to the lounge', 'Retour au lounge');
+		back.addEventListener('click', function() {
+			mResultKey = null;
+			container.style.display = 'none';
+			switchView('tiers');
+		});
+		container.appendChild(back);
+	}
+
+	function formatMmrChange(player) {
+		if (player.mmr_delta === null || player.mmr_after === null)
+			return toLanguage('pending', 'en attente');
+		return player.mmr_after + ' (' + (player.mmr_delta >= 0 ? '+' : '') + player.mmr_delta + ')';
+	}
+
 	function switchView(next) {
 		view = next;
 		var queueUp = $('lounge-queueup');
 		var tiers = $('lounge-tiers');
+		var results = $('lounge-results');
 		if (!queueUp || !tiers) return;
+		if (view === 'results') {
+			queueUp.style.display = 'none';
+			tiers.style.display = 'none';
+			if (results) results.style.display = '';
+			return;
+		}
+		if (results) results.style.display = 'none';
 		if (view === 'tiers') {
 			queueUp.style.display = 'none';
 			tiers.style.display = '';
@@ -388,6 +453,23 @@
 
 	function init() {
 		setupTabs();
+		if (mResultKey) {
+			postJSON('lounge/result.php', 'key=' + encodeURIComponent(mResultKey), function(data) {
+				if (data && data.player) renderPlayerStrip(data.player);
+				if (data && data.match) {
+					renderResults(data.match);
+					switchView('results');
+				} else {
+					mResultKey = null;
+					initQueueView();
+				}
+			});
+			return;
+		}
+		initQueueView();
+	}
+
+	function initQueueView() {
 		postJSON('lounge/poll.php', '', function(data) {
 			if (data && data.player) renderPlayerStrip(data.player);
 			if (data && data.queue) {

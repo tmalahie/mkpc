@@ -100,6 +100,15 @@ $rulesList = array(
 	'doubleItems' => array(
 		'default' => 1,
 		'accepted' => array(1,1)
+	),
+	'raceLimit' => array(
+		'default' => 0,
+		'min_value' => 0,
+		'max_value' => 99
+	),
+	'lounge' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
 	)
 );
 function rulesEqual($rules1,$rules2) {
