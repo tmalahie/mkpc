@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_tiers` (
   `label_fr` varchar(32) NOT NULL,
   `min_mmr` int(11) NOT NULL DEFAULT 0,
   `max_mmr` int(11) DEFAULT NULL,
+  `min_players` tinyint(3) unsigned NOT NULL DEFAULT 4,
   `ordering` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
   `last_heartbeat` timestamp NOT NULL DEFAULT current_timestamp(),
   `perso` varchar(250) DEFAULT NULL,
   `voted_mode` varchar(8) DEFAULT NULL,
+  `voted_pow` tinyint(1) DEFAULT NULL,
   `dropped_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`queue`,`player`),
   KEY `player_active` (`player`,`dropped_at`)
@@ -83,6 +85,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_matches` (
   `tier` int(10) unsigned NOT NULL,
   `privgame_key` int(10) unsigned NOT NULL,
   `mode` varchar(8) NOT NULL,
+  `pow` tinyint(1) NOT NULL DEFAULT 0,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `ended_at` timestamp NULL DEFAULT NULL,
   `cancelled_reason` varchar(64) DEFAULT NULL,
@@ -122,9 +125,11 @@ INSERT INTO `mklounge_ranks` (`code`,`label_en`,`label_fr`,`min_mmr`,`color`,`or
   ('master',   'Master',   'Maitre',   2000, '#4c4c4c', 7),
   ('gm',       'GM',       'GM',       2500, '#a32937', 8);
 
-INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`ordering`) VALUES
-  ('all', 'Tier All', 'Tier All', 0,    NULL, 0),
-  ('C',   'Tier C',   'Tier C',   0,    999,  1),
-  ('B',   'Tier B',   'Tier B',   1000, 1999, 2),
-  ('A',   'Tier A',   'Tier A',   2000, 2999, 3),
-  ('X',   'Tier X',   'Tier X',   3000, NULL, 4);
+-- min_players: Tier All needs 6 to gather, every other tier 4 (rule 3aa), so that
+-- players are pushed towards their own tier rather than all piling into Tier All.
+INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`min_players`,`ordering`) VALUES
+  ('all', 'Tier All', 'Tier All', 0,    NULL, 6, 0),
+  ('C',   'Tier C',   'Tier C',   0,    999,  4, 1),
+  ('B',   'Tier B',   'Tier B',   1000, 1999, 4, 2),
+  ('A',   'Tier A',   'Tier A',   2000, 2999, 4, 3),
+  ('X',   'Tier X',   'Tier X',   3000, NULL, 4, 4);
