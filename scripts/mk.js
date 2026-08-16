@@ -7,6 +7,8 @@ var customDecorData = {};
 var customBgData = {};
 var customOffroadData = {};
 var nBasePersos, customPersos;
+// set by online.php only; declared here so the other pages loading mk.js keep them undefined
+var isRanked, rankedPerso;
 var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
@@ -25433,14 +25435,14 @@ function selectOnlineScreen(options) {
 
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
-	oPInput.value = language ? "Ranked (CT Lounge)":"Classé (CT Lounge)";
+	oPInput.value = toLanguage("Ranked (CT Lounge)", "Classé (CT Lounge)");
 	oPInput.style.fontSize = Math.round(2*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
 	oPInput.style.top = (32*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
-		openLoungeOverlay();
+		document.location.href = "ranked.php";
 	};
 	oScr.appendChild(oPInput);
 
@@ -25450,9 +25452,10 @@ function selectOnlineScreen(options) {
 }
 
 window.openLoungeOverlay = openLoungeOverlay;
-function openLoungeOverlay() {
+function openLoungeOverlay(opts) {
 	if (document.getElementById("lounge-overlay"))
 		return;
+	if (!opts) opts = {};
 	var oOverlay = document.createElement("div");
 	oOverlay.id = "lounge-overlay";
 	oOverlay.style.position = "fixed";
@@ -25467,7 +25470,7 @@ function openLoungeOverlay() {
 	oOverlay.style.justifyContent = "center";
 
 	var oFrame = document.createElement("iframe");
-	oFrame.src = "lounge.php";
+	oFrame.src = opts.perso ? ("lounge.php?perso=" + encodeURIComponent(opts.perso)) : "lounge.php";
 	oFrame.style.width = "min(960px, 95vw)";
 	oFrame.style.height = "min(720px, 92vh)";
 	oFrame.style.border = "1px solid #2a2c33";
@@ -25501,6 +25504,9 @@ function openLoungeOverlay() {
 		document.removeEventListener("keydown", onKey);
 		if (oOverlay.parentNode)
 			oOverlay.parentNode.removeChild(oOverlay);
+		// the ranked flow replaces the game screen, so there is nothing to go back to
+		if (opts.perso)
+			document.location.href = "index.php";
 	}
 	document.addEventListener("keydown", onKey);
 
@@ -26051,7 +26057,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							});
 						}
 					}
-					if (isOnline) {
+					if (isOnline && isRanked && !shareLink.key)
+						openLoungeOverlay({ perso: strPlayer[0] });
+					else if (isOnline) {
 						var shownOptions = {};
 						var autoAcceptedRules = {
 							nbTeams:1,
@@ -26070,7 +26078,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							if (!autoAcceptedRules[key])
 								shownOptions[key] = shareLink.options[key];
 						}
-						if (!enableSpectatorMode && isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
+						// ranked players accepted the lounge rules by queueing up
+						if (!isRanked && !enableSpectatorMode && isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
 							acceptRulesScreen();
 						else {
 							searchCourse({
@@ -27093,6 +27102,30 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				persoSelector.onclick();
 				return;
 			}
+		}
+	}
+
+	if (rankedPerso && !force && !isCustomSel) {
+		var rankedPersoKey = rankedPerso;
+		rankedPerso = null;
+		var rankedCharCb;
+		if (isCustomPerso(rankedPersoKey, {
+			forceReload: true,
+			callback: function() { rankedCharCb() }
+		})) {
+			rankedCharCb = function() {
+				pUnlockMap[rankedPersoKey] = 1;
+				var oDiv = createPersoSelector(rankedPersoKey);
+				oDiv.dataset.autoset = 1;
+				oDiv.onclick();
+			}
+			oScr.style.visibility = "hidden";
+			return;
+		}
+		var rankedSelector = document.getElementById("perso-selector-"+rankedPersoKey);
+		if (rankedSelector && rankedSelector.onclick) {
+			rankedSelector.onclick();
+			return;
 		}
 	}
 
