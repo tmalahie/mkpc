@@ -23,7 +23,7 @@ var mId = <?php echo $id ? intval($id) : 'null'; ?>;
 	<p><?php echo $language
 		? 'You must be logged in to access the ranked lounge.'
 		: 'Vous devez &ecirc;tre connect&eacute; pour acc&eacute;der au lounge class&eacute;.'; ?></p>
-	<p><a href="inscription.php" target="_top"><?php echo $language ? 'Log in or sign up':'Se connecter / S\'inscrire'; ?></a></p>
+	<p><a href="forum.php" target="_top"><?php echo $language ? 'Log in or sign up':'Se connecter / S\'inscrire'; ?></a></p>
 </div>
 <?php } else { ?>
 <div id="lounge">
