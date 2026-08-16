@@ -2,6 +2,7 @@ import { FullConfig } from '@playwright/test';
 import { cleanupCreations } from './helpers/mkpc';
 import { cleanupTopics } from './helpers/forum';
 import { cleanupChallenges } from './helpers/challenges';
+import { cleanupLoungeQueues } from './helpers/lounge';
 
 // Runs once before the suite and once after it, outside every worker.
 //
@@ -22,4 +23,5 @@ export default async function globalCleanup(config: FullConfig) {
   await cleanupChallenges();
   await cleanupCreations(baseURL);
   await cleanupTopics();
+  await cleanupLoungeQueues();
 }
