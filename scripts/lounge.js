@@ -130,7 +130,10 @@
 		var tierId = this.getAttribute('data-tier');
 		actionInFlight = true;
 		this.disabled = true;
-		postJSON('lounge/join.php', 'tier=' + encodeURIComponent(tierId), function(data) {
+		var body = 'tier=' + encodeURIComponent(tierId);
+		if (mPerso)
+			body += '&perso=' + encodeURIComponent(mPerso);
+		postJSON('lounge/join.php', body, function(data) {
 			actionInFlight = false;
 			if (data.error) {
 				alert(joinErrorMessage(data));
@@ -282,7 +285,7 @@
 		);
 		container.appendChild(box);
 
-		var url = 'online.php?mid=' + queue.multicup_id + '&key=' + queue.privgame_key;
+		var url = 'online.php?mid=' + queue.multicup_id + '&ranked&key=' + queue.privgame_key;
 		setTimeout(function() {
 			if (window.parent && window.parent !== window) {
 				window.parent.location.href = url;
@@ -375,9 +378,8 @@
 		back.className = 'lounge-results-back';
 		back.textContent = toLanguage('Back to the lounge', 'Retour au lounge');
 		back.addEventListener('click', function() {
-			mResultKey = null;
-			container.style.display = 'none';
-			switchView('tiers');
+			// re-enter through the ranked flow so the character gets picked again
+			(window.top || window).location.href = 'ranked.php';
 		});
 		container.appendChild(back);
 	}

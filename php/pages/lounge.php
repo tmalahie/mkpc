@@ -13,6 +13,7 @@ include('../includes/language.php');
 var language = <?php echo $language ? 'true':'false'; ?>;
 var mId = <?php echo $id ? intval($id) : 'null'; ?>;
 var mResultKey = <?php echo isset($_GET['key']) ? intval($_GET['key']) : 'null'; ?>;
+var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\-]#', '', $_GET['perso'])) : 'null'; ?>;
 </script>
 <script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript" src="scripts/lounge.js?reload=1" defer></script>
