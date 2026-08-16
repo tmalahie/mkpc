@@ -9,6 +9,8 @@
 	var lastPlayerState = null;
 	var pollTimer = null;
 	var actionInFlight = false;
+	// Kept out of the DOM so a poll-driven re-render does not wipe a pending choice.
+	var powChoice = null;
 
 	function toLanguage(en, fr) {
 		return language ? en : fr;
@@ -173,7 +175,11 @@
 
 			var count = document.createElement('p');
 			count.className = 'lounge-tier-count';
-			count.textContent = tier.queue_count + ' / 8 ' + toLanguage('in queue', 'en file');
+			count.textContent = tier.queue_count + ' / 8 ' + toLanguage('in queue', 'en file')
+				+ ' · ' + toLanguage(
+					tier.min_players + ' needed to start',
+					tier.min_players + ' requis pour lancer'
+				);
 			card.appendChild(count);
 
 			var btn = document.createElement('button');
@@ -338,7 +344,50 @@
 			btns.appendChild(btn);
 		}
 		section.appendChild(btns);
+		section.appendChild(renderPowVote(queue));
 		return section;
+	}
+
+	// Rule 3h: the POW Block only goes in when the whole lineup agreed, so this is an
+	// opt-in that has to be set before the mode vote is accepted.
+	function renderPowVote(queue) {
+		var box = document.createElement('div');
+		box.className = 'lounge-pow-vote';
+
+		var label = document.createElement('label');
+		var checkbox = document.createElement('input');
+		checkbox.type = 'checkbox';
+		checkbox.className = 'lounge-pow-check';
+		if (powChoice === null && queue.my_pow_vote !== null && queue.my_pow_vote !== undefined)
+			powChoice = queue.my_pow_vote;
+		checkbox.checked = !!powChoice;
+		checkbox.addEventListener('change', onPowChange);
+		label.appendChild(checkbox);
+		var text = document.createElement('span');
+		text.textContent = toLanguage('Add the POW Block', 'Ajouter le POW Block');
+		label.appendChild(text);
+		box.appendChild(label);
+
+		var note = document.createElement('p');
+		note.className = 'lounge-pow-note';
+		var total = queue.members ? queue.members.length : 0;
+		note.textContent = toLanguage(
+			'Only added if everyone agrees (' + (queue.pow_votes || 0) + '/' + total + ').',
+			'Ajouté seulement si tout le monde est d\'accord (' + (queue.pow_votes || 0) + '/' + total + ').'
+		);
+		box.appendChild(note);
+		return box;
+	}
+
+	function currentPowChoice() {
+		return powChoice ? 1 : 0;
+	}
+
+	function onPowChange() {
+		powChoice = this.checked ? 1 : 0;
+		// only meaningful once a mode has been picked; otherwise it rides along with it
+		if (!currentQueue || !currentQueue.my_vote) return;
+		sendVote(currentQueue.my_vote);
 	}
 
 	function renderLaunching(container, queue) {
@@ -372,12 +421,16 @@
 	}
 
 	function onVoteClick() {
+		sendVote(this.getAttribute('data-mode'));
+	}
+
+	function sendVote(mode) {
 		if (actionInFlight) return;
-		var mode = this.getAttribute('data-mode');
 		actionInFlight = true;
 		var buttons = document.querySelectorAll('.lounge-vote-btn');
 		for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
-		postJSON('lounge/vote.php', 'mode=' + encodeURIComponent(mode), function(data) {
+		var body = 'mode=' + encodeURIComponent(mode) + '&pow=' + currentPowChoice();
+		postJSON('lounge/vote.php', body, function(data) {
 			actionInFlight = false;
 			if (data && data.queue) {
 				currentQueue = data.queue;
@@ -398,6 +451,7 @@
 				return;
 			}
 			currentQueue = null;
+			powChoice = null;
 			switchView('tiers');
 		});
 	}

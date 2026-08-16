@@ -13,6 +13,11 @@ if (!isset($_POST['mode'])) {
 	mysql_close();
 	exit;
 }
+if (!isset($_POST['pow'])) {
+	echo json_encode(array('error' => 'pow_required'));
+	mysql_close();
+	exit;
+}
 
 $queue = lounge_get_active_queue_for_player($id);
 if (!$queue) {
@@ -35,14 +40,16 @@ if (!in_array($mode, $allowedModes, true)) {
 	exit;
 }
 
+$pow = $_POST['pow'] ? 1 : 0;
 mysql_query(
-	'UPDATE `mklounge_queue_members` SET voted_mode="'. mysql_real_escape_string($mode) .'"
+	'UPDATE `mklounge_queue_members`
+	SET voted_mode="'. mysql_real_escape_string($mode) .'", voted_pow="'. $pow .'"
 	WHERE queue="'. intval($queue['id']) .'" AND player="'. intval($id) .'" AND dropped_at IS NULL'
 );
 
 $missing = mysql_fetch_array(mysql_query(
 	'SELECT COUNT(*) AS n FROM `mklounge_queue_members`
-	WHERE queue="'. intval($queue['id']) .'" AND dropped_at IS NULL AND voted_mode IS NULL'
+	WHERE queue="'. intval($queue['id']) .'" AND dropped_at IS NULL AND (voted_mode IS NULL OR voted_pow IS NULL)'
 ));
 if ($missing && intval($missing['n']) === 0) {
 	lounge_launch_match($queue['id']);
