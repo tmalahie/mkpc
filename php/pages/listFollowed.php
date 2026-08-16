@@ -15,7 +15,7 @@ include('../includes/avatars.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
-<link rel="stylesheet" type="text/css" href="styles/followers.css" />
+<link rel="stylesheet" type="text/css" href="styles/followers.css?reload=1" />
 
 <?php
 include('../includes/o_online.php');
@@ -37,8 +37,7 @@ include('../includes/menu.php');
 	}
 	$dateFormat = $language ? '%Y-%m-%d':'le %d/%m/%y';
 	$today = time();
-	require_once('../includes/banUtils.php');
-	$getUsers = mysql_query('SELECT followed,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkfollowusers` WHERE follower="'. $id .'" AND '. notPermanentlyBannedSql('followed') .' ORDER BY date DESC');
+	$getUsers = mysql_query('SELECT followed,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkfollowusers` WHERE follower="'. $id .'" ORDER BY date DESC');
 	$users = array();
 	while ($user = mysql_fetch_array($getUsers))
 		$users[] = $user;
@@ -52,19 +51,25 @@ include('../includes/menu.php');
 	<div class="following-users">
 	<?php
 	foreach ($users as $user) {
+		$pseudo = get_pseudo_text($user['followed']);
+		$displayName = ($pseudo === null) ? ($language ? 'this deleted account':'ce compte supprimé'):$pseudo;
+		$confirmMsg = $language ? 'Unfollow '. $displayName .'?':'Ne plus suivre '. $displayName .' ?';
 		?>
-		<a class="follower-item" href="profil.php?id=<?php echo $user['followed']; ?>" title="<?php echo get_pseudo_text($user['followed']); ?>">
-			<?php
-			echo '<div class="avatar-ctn">';
-			print_avatar($user['followed'],50);
-			echo '</div>';
-			echo '<div class="nick-ctn">';
-			echo get_pseudo_text($user['followed']);
-			echo '<br />';
-			echo '<span class="nick-info">'. ($language ? 'Followed since '.$user['infosDate']:'Suivi depuis '.$user['infosDate']) .'</span>';
-			echo '</div>';
-			?>
-		</a>
+		<div class="follower-item-ctn">
+			<a class="follower-item" href="profil.php?id=<?php echo $user['followed']; ?>" title="<?php echo htmlspecialchars($displayName); ?>">
+				<?php
+				echo '<div class="avatar-ctn">';
+				print_avatar($user['followed'],50);
+				echo '</div>';
+				echo '<div class="nick-ctn">';
+				echo $pseudo;
+				echo '<br />';
+				echo '<span class="nick-info">'. ($language ? 'Followed since '.$user['infosDate']:'Suivi depuis '.$user['infosDate']) .'</span>';
+				echo '</div>';
+				?>
+			</a>
+			<a class="unfollow-user" href="follow-user.php?user=<?php echo urlencode($user['followed']); ?>&amp;src=follows&amp;page=<?php echo $page; ?>" title="<?php echo $language ? 'Unfollow':'Ne plus suivre'; ?>" onclick="return confirm('<?php echo htmlspecialchars(addslashes($confirmMsg), ENT_QUOTES); ?>')">&times;</a>
+		</div>
 		<?php
 	}
 	?>

@@ -292,7 +292,7 @@ include('../includes/menu.php');
 				<div class="player-followers">
 				<?php
 				require_once('../includes/banUtils.php');
-				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $profileId .'" AND '. notPermanentlyBannedSql('follower')));
+				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(f.follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` f'. notPermanentlyBannedJoin('f.follower') .' WHERE f.followed="'. $profileId .'" AND '. notPermanentlyBannedWhere()));
 				$s = plural($followedUsers['nb']);
 				$view = $language ? 'View' : 'Voir';
 				echo '<img src="images/followers.png" alt="Followers" />';
@@ -310,7 +310,7 @@ include('../includes/menu.php');
 				</div>
 				<div class="player-followers">
 				<?php
-				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $profileId .'" AND '. notPermanentlyBannedSql('followed')));
+				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $profileId .'"'));
 				$s = plural($followingUsers['nb']);
 				echo '<img src="images/followed.png" alt="Following" />';
 				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following' : 'abonnement'.$s) .'</strong>';
