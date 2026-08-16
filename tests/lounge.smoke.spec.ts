@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
 
 // These tests share the same account and mutate queue state, so they cannot run concurrently.
 test.describe.configure({ mode: 'serial' });
@@ -23,6 +24,8 @@ async function resetLoungeState(request) {
 
 test('lounge page renders tiers for logged-in user', async ({ page }) => {
 	await login(page);
+	// a queued account lands on the waiting view instead of the tier list
+	await resetLoungeState(page.request);
 	await page.goto('http://127.0.0.1:8080/lounge.php');
 
 	await expect(page.locator('.lounge-header h1')).toHaveText('CT Lounge');
@@ -33,7 +36,13 @@ test('lounge page renders tiers for logged-in user', async ({ page }) => {
 
 	await expect(tiers.nth(0).locator('.lounge-tier-title')).toContainText('All');
 	await expect(tiers.nth(1).locator('.lounge-tier-title')).toContainText('C');
-	await expect(tiers.nth(2)).toHaveClass(/is-locked/);
+
+	// which tiers are locked depends on the account's current MMR, so derive it
+	// from the API rather than assuming the player is still at the default rating
+	const state = await (await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php')).json();
+	const lockedTiers = state.tiers.filter((t: any) => !t.eligible);
+	await expect(page.locator('.lounge-tier.is-locked')).toHaveCount(lockedTiers.length);
+	await expect(tiers.nth(0)).not.toHaveClass(/is-locked/);
 });
 
 test('lounge tab switching works', async ({ page }) => {
@@ -130,12 +139,24 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
 
-test('ranked entry picks a character on the CT multicup then opens the lounge', async ({ page }) => {
+test('ranked entry redirects to the season multicup', async ({ page }) => {
 	await login(page);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	// follow no redirect: the seeded season multicup does not exist on a fresh database
+	const res = await page.request.get('http://127.0.0.1:8080/ranked.php', { maxRedirects: 0 });
+	expect(res.status()).toBe(302);
+	expect(res.headers()['location']).toMatch(/^online\.php\?mid=\d+&ranked$/);
+});
 
-	await page.goto('http://127.0.0.1:8080/ranked.php');
-	await expect(page).toHaveURL(/online\.php\?mid=\d+&ranked/);
+test('ranked entry picks a character then opens the lounge with it', async ({ page }) => {
+	// build our own multicup: setup.sql seeds none, so the season's configured one
+	// (prod's CT Project) does not exist in CI
+	await uiLogin(page);
+	const circuitIds = await createCircuits(page.request, 2);
+	const cupId = await createCup(page.request, { name: 'e2e-ranked-cup', circuitIds });
+	const mid = await createMulticup(page.request, { name: 'e2e-ranked-mcup', cupIds: [cupId] });
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await page.goto('http://127.0.0.1:8080/online.php?mid=' + mid + '&ranked');
 
 	// the roster comes from the multicup, so selection happens inside the game
 	await page.locator('#perso-selector-mario').click();
@@ -149,4 +170,24 @@ test('ranked entry picks a character on the CT multicup then opens the lounge', 
 	expect(queue.queue.members[0].perso).toBe('mario');
 
 	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+});
+
+test('leaderboard tab lists ranked players', async ({ page }) => {
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	await page.locator('[data-tab="leaderboard"]').click();
+	await expect(page.locator('[data-panel="leaderboard"]')).toHaveClass(/is-active/);
+
+	// either a populated table or the "no mogi yet" notice, depending on season data
+	const rows = page.locator('.lounge-leaderboard-row');
+	const empty = page.locator('#lounge-leaderboard .lounge-empty');
+	await expect(rows.first().or(empty)).toBeVisible({ timeout: 5000 });
+
+	if (await rows.count()) {
+		const first = rows.first();
+		await expect(first.locator('.lounge-lb-place')).toHaveText('1');
+		await expect(first.locator('.lounge-lb-rank')).not.toBeEmpty();
+		await expect(first.locator('.lounge-lb-mmr')).not.toBeEmpty();
+	}
 });
