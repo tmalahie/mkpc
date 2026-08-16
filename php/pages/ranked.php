@@ -11,6 +11,8 @@ if (!$id) {
 }
 
 $multicup = lounge_get_season_multicup();
+if ($multicup && !mysql_fetch_array(mysql_query('SELECT id FROM `mkmcups` WHERE id="'. $multicup .'"')))
+	$multicup = 0;
 mysql_close();
 
 if (!$multicup) {
