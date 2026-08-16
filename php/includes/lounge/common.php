@@ -1,5 +1,6 @@
 <?php
-define('LOUNGE_DEFAULT_MMR', 500);
+define('LOUNGE_DEFAULT_MMR', 600);
+define('LOUNGE_MMR_MIN', 0);
 define('LOUNGE_CURRENT_SEASON', 1);
 define('LOUNGE_QUEUE_LOCK_THRESHOLD', 4);
 define('LOUNGE_QUEUE_READY_THRESHOLD', 8);
@@ -22,7 +23,7 @@ function lounge_get_season_multicup() {
 function lounge_rank_for_mmr($mmr) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT code, label_en, label_fr, color FROM `mklounge_ranks`
-		WHERE min_mmr <= "'. intval($mmr) .'"
+		WHERE min_mmr <= "'. lounge_mmr_sql($mmr) .'"
 		ORDER BY min_mmr DESC LIMIT 1'
 	));
 	if (!$row)
@@ -45,8 +46,8 @@ function lounge_get_player_state($playerId) {
 	if ($row) {
 		$games = intval($row['games']);
 		return array(
-			'mmr' => intval($row['mmr']),
-			'peak_mmr' => intval($row['peak_mmr']),
+			'mmr' => (int) round($row['mmr']),
+			'peak_mmr' => (int) round($row['peak_mmr']),
 			'games' => $games,
 			'wins' => intval($row['wins']),
 			'total_score' => intval($row['total_score']),
@@ -380,6 +381,16 @@ function lounge_finish_match($queueId) {
 		return false;
 	$matchId = intval($match['id']);
 
+	// Teams are picked in-game (manualTeams), so they only exist in the live game state:
+	// snapshot them while the players are still connected, before the MMR pass needs them.
+	mysql_query(
+		'UPDATE `mklounge_match_players` mp
+		INNER JOIN `mariokart` c ON c.link="'. intval($queue['privgame_key']) .'"
+		INNER JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course=c.id
+		SET mp.team=gp.team
+		WHERE mp.`match`="'. $matchId .'" AND gp.team >= 0'
+	);
+
 	$standings = array();
 	$getStandings = mysql_query(
 		'SELECT r.player, r.pts FROM `mkgamerank` r
@@ -453,9 +464,9 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 			'name' => $row['nom'],
 			'score' => is_null($row['final_score']) ? null : intval($row['final_score']),
 			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
-			'mmr_before' => is_null($row['mmr_before']) ? null : intval($row['mmr_before']),
-			'mmr_after' => is_null($row['mmr_after']) ? null : intval($row['mmr_after']),
-			'mmr_delta' => is_null($row['mmr_delta']) ? null : intval($row['mmr_delta'])
+			'mmr_before' => is_null($row['mmr_before']) ? null : (int) round($row['mmr_before']),
+			'mmr_after' => is_null($row['mmr_after']) ? null : (int) round($row['mmr_after']),
+			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta'])
 		);
 	}
 	return array(
@@ -515,14 +526,137 @@ function lounge_cancel_no_show_match($queueId) {
 	return true;
 }
 
+// Rating model of the production ladder, which runs on Lorenzi's Game Boards under its
+// "mk8dx_mmr" scheme. Constants and behaviour are documented, with the numbers this was
+// validated against, in .claude/docs/lounge-mmr-and-rules.md.
+function lounge_mmr_arity($mode) {
+	switch ($mode) {
+		case '2v2':     return 2;
+		case '3v3':     return 3;
+		case '4v4':     return 4;
+		case '2v2v2v2': return 2;
+		default:        return 1;
+	}
+}
+
+function lounge_mmr_params($arity) {
+	$baselines = array(40, 34, 29, 29, 29, 29);
+	$scalings = array(5.6, 5.8, 6.4, 6.4, 6.4, 6.4);
+	$index = min(max($arity, 1), count($baselines)) - 1;
+	return array($baselines[$index], $scalings[$index]);
+}
+
+// Rating change for `rating1` alone. $whoWon is 0 when the first side won, 1 when the
+// second did, and 0.5 on a tie.
+function lounge_mmr_pair_change($rating1, $rating2, $whoWon, $baseline, $scaling) {
+	$loser = ($whoWon > 0.5) ? $rating1 : $rating2;
+	$winner = ($whoWon <= 0.5) ? $rating1 : $rating2;
+	$gap = max(-9997, $loser - $winner);
+	if ($whoWon == 0.5) {
+		$amount = 1.5 * $scaling * ($baseline + 1) * pow(pow(pow($gap / 9998, 2), 1 / 3), 2);
+		return $amount * (($rating1 < $rating2) ? 1 : -1);
+	}
+	$amount = 1 + $baseline * pow(1 + $gap / 9998, $scaling);
+	return $amount * (($whoWon < 0.5) ? 1 : -1);
+}
+
+// $units is a list of array('members' => array(playerId => rating), 'score' => int); in FFA
+// every player is their own unit. Each member is compared against every player of every
+// opposing unit and averaged over them, then the unit's members are averaged together so
+// teammates all move by the same amount.
+function lounge_mmr_deltas($units, $arity) {
+	list($baseline, $scaling) = lounge_mmr_params($arity);
+	$deltas = array();
+	foreach ($units as $i => $unit) {
+		$memberChanges = array();
+		foreach ($unit['members'] as $playerId => $rating) {
+			$total = 0;
+			$opponents = 0;
+			foreach ($units as $j => $other) {
+				if ($i === $j)
+					continue;
+				if ($unit['score'] > $other['score'])
+					$whoWon = 0;
+				elseif ($unit['score'] < $other['score'])
+					$whoWon = 1;
+				else
+					$whoWon = 0.5;
+				foreach ($other['members'] as $otherRating) {
+					$total += lounge_mmr_pair_change($rating, $otherRating, $whoWon, $baseline, $scaling);
+					$opponents++;
+				}
+			}
+			$memberChanges[$playerId] = $opponents ? ($total / $opponents) : 0;
+		}
+		$unitDelta = count($memberChanges) ? array_sum($memberChanges) / count($memberChanges) : 0;
+		foreach ($unit['members'] as $playerId => $rating)
+			$deltas[$playerId] = $unitDelta;
+	}
+	return $deltas;
+}
+
+function lounge_mmr_sql($value) {
+	return number_format($value, 6, '.', '');
+}
+
 function lounge_apply_mmr($matchId) {
-	mysql_query(
-		'UPDATE `mklounge_match_players` mp
-		INNER JOIN `mklounge_players` p
+	$match = mysql_fetch_array(mysql_query(
+		'SELECT mode FROM `mklounge_matches` WHERE id="'. intval($matchId) .'"'
+	));
+	if (!$match)
+		return false;
+
+	$participants = array();
+	$res = mysql_query(
+		'SELECT mp.player, mp.team, mp.final_score, p.mmr
+		FROM `mklounge_match_players` mp
+		LEFT JOIN `mklounge_players` p
 			ON p.player=mp.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
-		SET mp.mmr_before=p.mmr
-		WHERE mp.`match`="'. intval($matchId) .'" AND mp.mmr_before IS NULL'
+		WHERE mp.`match`="'. intval($matchId) .'" AND mp.mmr_after IS NULL'
 	);
+	while ($row = mysql_fetch_array($res)) {
+		$team = (is_null($row['team']) || intval($row['team']) < 0) ? null : intval($row['team']);
+		$participants[] = array(
+			'player' => intval($row['player']),
+			'team' => $team,
+			'score' => intval($row['final_score']),
+			'mmr' => is_null($row['mmr']) ? floatval(LOUNGE_DEFAULT_MMR) : floatval($row['mmr'])
+		);
+	}
+	if (count($participants) < 2)
+		return false;
+
+	$units = array();
+	foreach ($participants as $participant) {
+		$key = is_null($participant['team']) ? 'p'. $participant['player'] : 't'. $participant['team'];
+		if (!isset($units[$key]))
+			$units[$key] = array('members' => array(), 'score' => 0);
+		$units[$key]['members'][$participant['player']] = $participant['mmr'];
+		$units[$key]['score'] += $participant['score'];
+	}
+	if (count($units) < 2)
+		return false;
+
+	$deltas = lounge_mmr_deltas(array_values($units), lounge_mmr_arity($match['mode']));
+
+	foreach ($participants as $participant) {
+		$playerId = $participant['player'];
+		$before = $participant['mmr'];
+		$after = max(LOUNGE_MMR_MIN, $before + $deltas[$playerId]);
+		mysql_query(
+			'UPDATE `mklounge_match_players`
+			SET mmr_before="'. lounge_mmr_sql($before) .'",
+				mmr_after="'. lounge_mmr_sql($after) .'",
+				mmr_delta="'. lounge_mmr_sql($after - $before) .'"
+			WHERE `match`="'. intval($matchId) .'" AND player="'. $playerId .'"'
+		);
+		mysql_query(
+			'UPDATE `mklounge_players`
+			SET mmr="'. lounge_mmr_sql($after) .'", peak_mmr=GREATEST(peak_mmr, "'. lounge_mmr_sql($after) .'")
+			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+	}
+	return true;
 }
 
 function lounge_cancel_voting($queueId, $reason) {
