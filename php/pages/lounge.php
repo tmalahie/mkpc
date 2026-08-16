@@ -12,6 +12,7 @@ include('../includes/language.php');
 <script type="text/javascript">
 var language = <?php echo $language ? 'true':'false'; ?>;
 var mId = <?php echo $id ? intval($id) : 'null'; ?>;
+var mResultKey = <?php echo isset($_GET['key']) ? intval($_GET['key']) : 'null'; ?>;
 </script>
 <script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript" src="scripts/lounge.js?reload=1" defer></script>
@@ -41,6 +42,7 @@ var mId = <?php echo $id ? intval($id) : 'null'; ?>;
 		</div>
 		<div class="lounge-tiers" id="lounge-tiers"></div>
 		<div class="lounge-waiting" id="lounge-queueup" style="display:none"></div>
+		<div class="lounge-results" id="lounge-results" style="display:none"></div>
 	</section>
 
 	<section class="lounge-tabpanel" data-panel="howitworks">
