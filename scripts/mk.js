@@ -31684,7 +31684,11 @@ function connexion() {
 	aInscription.style.left = (iScreenScale*20) +"px";
 	aInscription.style.top = (iScreenScale*35) +"px";
 	aInscription.innerHTML = toLanguage("Register", "Inscription");
-	aInscription.setAttribute("href", "inscription.php" + ((course=="BB")?"?battle":""));
+	// come back to this exact online page after registering, so a ranked or multicup
+	// entry point is not lost on the way through the signup form
+	var sPage = document.location.pathname.split("/").pop();
+	var sReturn = (sPage == "online.php") ? sPage + document.location.search : "";
+	aInscription.setAttribute("href", "inscription.php" + (sReturn ? "?" + sReturn : ((course=="BB")?"?battle":"")));
 	oScr.appendChild(aInscription);
 
 	var eClassement = document.createElement("a");
