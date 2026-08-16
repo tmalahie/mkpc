@@ -40,6 +40,8 @@
 				tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-tab') === target);
 			for (var j = 0; j < panels.length; j++)
 				panels[j].classList.toggle('is-active', panels[j].getAttribute('data-panel') === target);
+			if (target === 'leaderboard')
+				loadLeaderboard();
 		}
 	}
 
@@ -47,6 +49,16 @@
 		var strip = $('lounge-playerstrip');
 		if (!strip) return;
 		strip.innerHTML = '';
+
+		if (player.rank) {
+			var rankBadge = document.createElement('span');
+			rankBadge.className = 'lounge-stat';
+			rankBadge.innerHTML = '<span class="lounge-stat-label">'+ toLanguage('Rank','Rang') +'</span> <span class="lounge-stat-value"></span>';
+			var rankValue = rankBadge.querySelector('.lounge-stat-value');
+			rankValue.textContent = rankLabel(player.rank);
+			rankValue.style.color = player.rank.color;
+			strip.appendChild(rankBadge);
+		}
 
 		var mmrLabel = document.createElement('span');
 		mmrLabel.className = 'lounge-stat';
@@ -71,6 +83,62 @@
 			ban.textContent = toLanguage('Banned until ', 'Banni jusqu\'au ') + player.banned_until;
 			strip.appendChild(ban);
 		}
+	}
+
+	function rankLabel(rank) {
+		if (!rank) return '';
+		return language ? rank.label_en : rank.label_fr;
+	}
+
+	function loadLeaderboard() {
+		var container = $('lounge-leaderboard');
+		if (!container) return;
+		postJSON('lounge/leaderboard.php', '', function(data) {
+			if (!data || data.error || !data.players) return;
+			container.innerHTML = '';
+			if (!data.players.length) {
+				var empty = document.createElement('p');
+				empty.className = 'lounge-empty';
+				empty.textContent = toLanguage(
+					'No mogi has been played yet this season.',
+					'Aucun mogi n\'a encore été joué cette saison.'
+				);
+				container.appendChild(empty);
+				return;
+			}
+
+			var table = document.createElement('table');
+			table.className = 'lounge-leaderboard-table';
+			var head = document.createElement('tr');
+			head.innerHTML = '<th></th><th></th><th></th><th></th><th></th><th></th>';
+			var cells = head.querySelectorAll('th');
+			cells[0].textContent = toLanguage('Place', 'Place');
+			cells[1].textContent = toLanguage('Player', 'Joueur');
+			cells[2].textContent = toLanguage('Rank', 'Rang');
+			cells[3].textContent = 'MMR';
+			cells[4].textContent = toLanguage('Mogis', 'Mogis');
+			cells[5].textContent = toLanguage('Avg. score', 'Score moyen');
+			table.appendChild(head);
+
+			for (var i = 0; i < data.players.length; i++) {
+				var p = data.players[i];
+				var row = document.createElement('tr');
+				row.className = 'lounge-leaderboard-row' + (p.id === data.me ? ' is-self' : '');
+				row.innerHTML = '<td class="lounge-lb-place"></td><td class="lounge-lb-name"></td>'
+					+ '<td class="lounge-lb-rank"></td><td class="lounge-lb-mmr"></td>'
+					+ '<td class="lounge-lb-games"></td><td class="lounge-lb-avg"></td>';
+				row.querySelector('.lounge-lb-place').textContent = p.place;
+				row.querySelector('.lounge-lb-name').textContent = p.name;
+				var rankCell = row.querySelector('.lounge-lb-rank');
+				rankCell.textContent = rankLabel(p.rank);
+				if (p.rank) rankCell.style.color = p.rank.color;
+				row.querySelector('.lounge-lb-mmr').textContent = p.mmr;
+				row.querySelector('.lounge-lb-games').textContent = p.games + ' (' + p.wins + 'W)';
+				row.querySelector('.lounge-lb-avg').textContent = (p.avg_score === null) ? '–' : p.avg_score;
+				table.appendChild(row);
+			}
+			container.appendChild(table);
+		});
 	}
 
 	function tierLabel(tier) {

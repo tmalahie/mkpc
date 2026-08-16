@@ -370,6 +370,27 @@ include('../includes/menu.php');
 						echo ' - '. toPlace($place);
 					echo '</div>';
 				}
+				require_once('../includes/lounge/common.php');
+				$loungeState = lounge_get_player_state($profileId);
+				if ($loungeState['games']) {
+					$getLoungePlace = mysql_fetch_array(mysql_query(
+						'SELECT 1+COUNT(*) AS place FROM `mklounge_players` p
+						INNER JOIN `mkjoueurs` j ON j.id=p.player
+						WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0
+						AND (p.mmr>"'. $loungeState['mmr'] .'"
+							OR (p.mmr="'. $loungeState['mmr'] .'" AND p.player<"'. $profileId .'"))'
+					));
+					echo '<div class="player-league">';
+						echo '<img src="images/cups/cup2.png" alt="CT Lounge" title="CT Lounge" />';
+						echo '<strong>'. $loungeState['mmr'] .' MMR</strong> ';
+						if ($loungeState['rank'])
+							echo '- <strong style="color:'. $loungeState['rank']['color'] .'">'. ($language ? $loungeState['rank']['label_en'] : $loungeState['rank']['label_fr']) .'</strong> ';
+						echo '- <strong>'. $loungeState['games'] .' mogi'. plural($loungeState['games']) .'</strong>';
+						if (!is_null($loungeState['avg_score']))
+							echo ' - '. ($language ? 'avg. score' : 'score moyen') .' <strong>'. $loungeState['avg_score'] .'</strong>';
+						echo ' - '. toPlace($getLoungePlace['place']);
+					echo '</div>';
+				}
 				$getRecordsByCc = mysql_query('SELECT class,COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1 GROUP BY class ORDER BY class');
 				while ($recordByCc = mysql_fetch_array($getRecordsByCc)) {
 					$cc = $recordByCc['class'];
