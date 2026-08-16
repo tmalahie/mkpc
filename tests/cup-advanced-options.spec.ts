@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { login, createCircuits, useCreationCleanup } from './helpers/mkpc';
 
+// Serial, because the cleanup hooks below delete every creation owned by OWNER.
+// beforeAll/afterAll run once per *worker*, so under fullyParallel a worker that
+// finishes its share of this file would run the cleanup while another worker is
+// still using the circuits built by the `circuit runtime cupOpts` beforeAll.
+test.describe.configure({ mode: 'serial' });
+
 // Own owner tag so this file's cleanup cannot touch fixtures belonging to a
 // spec running concurrently in another worker.
 const OWNER = 'e2e-cup-bot';

@@ -18,46 +18,74 @@ const ADMIN_PASSWORD = 'aaaa';
 export const SIMPLE_CIRCUIT_PIECES =
   '11,5,4,5,9,4,11,8,8,8,5,7,11,8,8,8,6,4,11,8,6,7,11,2,5,7,11,11,11,8,6,9,9,9,9,7'.split(',');
 
-// Default owner tag. Each spec file passes its OWN tag: spec files run in
-// parallel workers, so a cleanup scoped to a tag shared between files would
-// delete another file's fixtures while it is still using them.
-export const TEST_AUTHOR = 'e2e-mc-bot';
+// The site the cleanup posts to. Taken from the Playwright config so it cannot
+// drift from the one the tests themselves use — setting `use.baseURL` in the
+// config instead of via BASE_URL is supported, and a cleanup pointed at another
+// host would silently delete nothing.
+function cleanupBaseURL(): string {
+  const configured = test.info().project.use.baseURL;
+  if (!configured) throw new Error('cleanup needs a baseURL: set use.baseURL or BASE_URL');
+  return configured;
+}
 
-// Removes every creation owned by the e2e bot, whether this run or an earlier one
+// Removes every creation owned by `author`, whether this run or an earlier one
 // made it, so a crashed run is healed instead of leaving fixtures behind forever.
+//
+// `author` is required rather than defaulted: spec files run in parallel workers,
+// so a cleanup scoped to a tag shared between files would delete another file's
+// fixtures while it is still using them. Requiring it surfaces a forgotten tag as
+// a type error rather than as a race that only shows up under load.
 //
 // Deletion goes through supprCreation.php rather than raw SQL on purpose: the
 // endpoint cascades to cups, orphaned multicups, records, ghosts and challenge
 // references, and unlinks the track thumbnail from disk (postCircuitDelete).
 // Reproducing that in SQL would leak rows and files on every schema change.
-export async function cleanupCreations(author: string = TEST_AUTHOR) {
+export async function cleanupCreations(author: string) {
   const circuits: any = await sql('SELECT id FROM mkcircuits WHERE auteur = ?', [author]);
   if (circuits.length) {
-    const ctx = await apiRequest.newContext({
-      baseURL: process.env.BASE_URL || 'http://127.0.0.1:8080',
-    });
-    // Wargor holds "admin", which getUserRights expands to "moderator", so the
-    // ownership check in supprCreation.php is satisfied regardless of which
-    // browser identity originally created the track.
-    await ctx.post('/api/testcode.php', { form: { pseudo: ADMIN_USER, code: ADMIN_PASSWORD } });
-    // Deleted in batches: a first run against a database with a large backlog
-    // would otherwise spend minutes on sequential round-trips.
-    const ids = circuits.map((c: any) => String(c.id));
-    const CONCURRENCY = 10;
-    for (let i = 0; i < ids.length; i += CONCURRENCY) {
-      await Promise.all(
-        ids.slice(i, i + CONCURRENCY).map((id: string) =>
-          ctx.post('/api/supprCreation.php', { form: { id, collab: '' } })
-        )
-      );
+    const ctx = await apiRequest.newContext({ baseURL: cleanupBaseURL() });
+    try {
+      // Wargor holds "admin", which getUserRights expands to "moderator", so the
+      // ownership check in supprCreation.php is satisfied regardless of which
+      // browser identity originally created the track.
+      //
+      // The response is checked because testcode.php answers "0" on a failed
+      // login while supprCreation.php echoes "1" even when it matched no row.
+      // Unverified, the whole cleanup would no-op silently and the suite would
+      // still pass while the leak this exists to stop carried on.
+      const auth = await ctx.post('/api/testcode.php', { form: { pseudo: ADMIN_USER, code: ADMIN_PASSWORD } });
+      const adminId = Number((await auth.text()).trim());
+      if (!(adminId > 0))
+        throw new Error(
+          'cleanup could not log in as ' + ADMIN_USER + ' (testcode.php returned "' + adminId + '"). ' +
+          'Check the seeded credentials and that baseURL points at the site under test.'
+        );
+      // Deleted in batches: a first run against a database with a large backlog
+      // would otherwise spend minutes on sequential round-trips (measured over 40
+      // deletes: 144ms one at a time, 32ms batched at 10).
+      const ids = circuits.map((c: any) => String(c.id));
+      const CONCURRENCY = 10;
+      for (let i = 0; i < ids.length; i += CONCURRENCY) {
+        await Promise.all(
+          ids.slice(i, i + CONCURRENCY).map((id: string) =>
+            ctx.post('/api/supprCreation.php', { form: { id, collab: '' } })
+          )
+        );
+      }
+    } finally {
+      await ctx.dispose();
     }
-    await ctx.dispose();
   }
   // Cups and multicups whose tracks were already gone are never reached by the
   // cascade above, so sweep them by the same author scope.
   await sql('DELETE t FROM mkmcups_tracks t JOIN mkmcups m ON m.id = t.mcup WHERE m.auteur = ?', [author]);
   await sql('DELETE FROM mkmcups WHERE auteur = ?', [author]);
   await sql('DELETE FROM mkcups WHERE auteur = ?', [author]);
+  // The endpoint reports success even when it deleted nothing, so confirm the
+  // scope is actually empty rather than trusting the responses above.
+  const left: any = await sql('SELECT COUNT(*) AS n FROM mkcircuits WHERE auteur = ?', [author]);
+  if (Number(left[0].n))
+    throw new Error('cleanup left ' + left[0].n + ' circuit(s) owned by ' + author);
 }
 
 // Installs the cleanup hooks for a spec that builds creations. Call it at the top
@@ -67,7 +95,7 @@ export async function cleanupCreations(author: string = TEST_AUTHOR) {
 // afterAll is the contract, beforeAll is what protects this run - a killed run
 // never reaches afterAll, and that is exactly when leftovers get created. The
 // raised timeout only matters the first time, when clearing an existing backlog.
-export function useCreationCleanup(author: string = TEST_AUTHOR) {
+export function useCreationCleanup(author: string) {
   const run = async () => {
     test.setTimeout(120_000);
     await cleanupCreations(author);
@@ -102,11 +130,11 @@ async function postInt(request: APIRequestContext, url: string, form: Record<str
 // have no such limit.
 export async function createCircuit(
   request: APIRequestContext,
-  opts: { name?: string; map?: string; laps?: string; author?: string } = {}
+  opts: { author: string; name?: string; map?: string; laps?: string }
 ): Promise<number> {
   const form: Record<string, string> = {
     nom: opts.name ?? 'e2e-circuit',
-    auteur: opts.author ?? TEST_AUTHOR,
+    auteur: opts.author,
     map: opts.map ?? '1',
     nl: opts.laps ?? '3',
   };
@@ -125,7 +153,7 @@ export async function createCircuit(
 // caller can always index [0..count). A multicup only needs cups, and a cup
 // accepts the same circuit in several slots, so one circuit is enough to build
 // an arbitrarily large multicup.
-export async function createCircuits(request: APIRequestContext, count: number, author: string = TEST_AUTHOR): Promise<number[]> {
+export async function createCircuits(request: APIRequestContext, count: number, author: string): Promise<number[]> {
   const ids: number[] = [];
   for (let i = 0; i < count; i++) {
     try {
@@ -143,9 +171,9 @@ export async function createCircuits(request: APIRequestContext, count: number, 
 // Creates a simple-mode cup (mode 0) referencing 4 circuit slots. Returns its id.
 export async function createCup(
   request: APIRequestContext,
-  opts: { name: string; circuitIds: number[]; options?: object; author?: string }
+  opts: { name: string; circuitIds: number[]; author: string; options?: object }
 ): Promise<number> {
-  const form: Record<string, string> = { nom: opts.name, auteur: opts.author ?? TEST_AUTHOR, mode: '0' };
+  const form: Record<string, string> = { nom: opts.name, auteur: opts.author, mode: '0' };
   for (let i = 0; i < 4; i++) form['cid' + i] = String(opts.circuitIds[i % opts.circuitIds.length]);
   if (opts.options) form.opt = JSON.stringify(opts.options);
   const id = await postInt(request, '/api/saveCup.php', form);
@@ -157,9 +185,9 @@ export async function createCup(
 // holds the multicup appearance config (icons / lines / pages / persos).
 export async function createMulticup(
   request: APIRequestContext,
-  opts: { name: string; cupIds: number[]; options?: object; author?: string }
+  opts: { name: string; cupIds: number[]; author: string; options?: object }
 ): Promise<number> {
-  const form: Record<string, string> = { nom: opts.name, auteur: opts.author ?? TEST_AUTHOR, mode: '0' };
+  const form: Record<string, string> = { nom: opts.name, auteur: opts.author, mode: '0' };
   opts.cupIds.forEach((id, i) => (form['cid' + i] = String(id)));
   if (opts.options) form.opt = JSON.stringify(opts.options);
   const id = await postInt(request, '/api/saveMCup.php', form);
