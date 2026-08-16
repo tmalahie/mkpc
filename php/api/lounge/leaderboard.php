@@ -24,7 +24,7 @@ $getPlayers = mysql_query(
 	LIMIT '. $limit
 );
 while ($row = mysql_fetch_array($getPlayers)) {
-	$mmr = intval($row['mmr']);
+	$mmr = floatval($row['mmr']);
 	if (is_null($previousMmr) || ($mmr < $previousMmr)) {
 		$place = count($players) + 1;
 		$previousMmr = $mmr;
@@ -34,8 +34,8 @@ while ($row = mysql_fetch_array($getPlayers)) {
 		'place' => $place,
 		'id' => intval($row['player']),
 		'name' => $row['nom'],
-		'mmr' => $mmr,
-		'peak_mmr' => intval($row['peak_mmr']),
+		'mmr' => (int) round($mmr),
+		'peak_mmr' => (int) round($row['peak_mmr']),
 		'games' => $games,
 		'wins' => intval($row['wins']),
 		'avg_score' => $games ? round(intval($row['total_score']) / $games, 1) : null,
