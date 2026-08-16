@@ -14,7 +14,7 @@ $state = lounge_get_player_state($id);
 
 $tiers = array();
 $getTiers = mysql_query(
-	'SELECT id, code, label_en, label_fr, min_mmr, max_mmr, multicup_id
+	'SELECT id, code, label_en, label_fr, min_mmr, max_mmr
 	FROM `mklounge_tiers` ORDER BY ordering'
 );
 while ($tier = mysql_fetch_array($getTiers)) {
@@ -36,7 +36,6 @@ while ($tier = mysql_fetch_array($getTiers)) {
 		'label_fr' => $tier['label_fr'],
 		'min_mmr' => intval($tier['min_mmr']),
 		'max_mmr' => is_null($tier['max_mmr']) ? null : intval($tier['max_mmr']),
-		'multicup_id' => intval($tier['multicup_id']),
 		'eligible' => lounge_tier_eligible($tier, $state['mmr']),
 		'queue_count' => $queueCount
 	);
