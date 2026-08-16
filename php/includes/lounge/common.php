@@ -10,6 +10,14 @@ define('LOUNGE_VOTE_WAIT_SECONDS', 60);
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
+define('LOUNGE_JOIN_TIMEOUT_SECONDS', 180);
+
+function lounge_get_season_multicup() {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT multicup_id FROM `mklounge_seasons` WHERE id="'. LOUNGE_CURRENT_SEASON .'"'
+	));
+	return $row ? intval($row['multicup_id']) : 0;
+}
 
 function lounge_get_player_state($playerId) {
 	$row = mysql_fetch_array(mysql_query(
@@ -52,7 +60,7 @@ function lounge_tier_eligible($tier, $mmr) {
 
 function lounge_get_tier($tierId) {
 	return mysql_fetch_array(mysql_query(
-		'SELECT id, code, label_en, label_fr, min_mmr, max_mmr, multicup_id
+		'SELECT id, code, label_en, label_fr, min_mmr, max_mmr
 		FROM `mklounge_tiers` WHERE id="'. intval($tierId) .'"'
 	));
 }
@@ -79,7 +87,7 @@ function lounge_active_member_count($queueId) {
 function lounge_queue_members($queueId) {
 	$members = array();
 	$res = mysql_query(
-		'SELECT m.player, m.joined_at, m.last_heartbeat, j.nom,
+		'SELECT m.player, m.joined_at, m.last_heartbeat, m.perso, j.nom,
 			COALESCE(p.mmr, '. LOUNGE_DEFAULT_MMR .') AS mmr
 		FROM `mklounge_queue_members` m
 		INNER JOIN `mkjoueurs` j ON j.id=m.player
@@ -92,6 +100,7 @@ function lounge_queue_members($queueId) {
 			'id' => intval($row['player']),
 			'name' => $row['nom'],
 			'mmr' => intval($row['mmr']),
+			'perso' => $row['perso'],
 			'joined_at' => $row['joined_at']
 		);
 	}
@@ -100,7 +109,7 @@ function lounge_queue_members($queueId) {
 
 function lounge_queue_state($queueId, $forPlayerId = null) {
 	$queue = mysql_fetch_array(mysql_query(
-		'SELECT q.*, t.code AS tier_code, t.label_en AS tier_label_en, t.label_fr AS tier_label_fr, t.multicup_id,
+		'SELECT q.*, t.code AS tier_code, t.label_en AS tier_label_en, t.label_fr AS tier_label_fr,
 			GREATEST(0, UNIX_TIMESTAMP(q.locked_at) + '. intval(LOUNGE_LOCK_WAIT_SECONDS) .' - UNIX_TIMESTAMP(NOW())) AS lock_seconds_left,
 			GREATEST(0, UNIX_TIMESTAMP(q.ready_at) + '. intval(LOUNGE_VOTE_WAIT_SECONDS) .' - UNIX_TIMESTAMP(NOW())) AS vote_seconds_left
 		FROM `mklounge_queues` q
@@ -129,7 +138,7 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'tier_code' => $queue['tier_code'],
 		'tier_label_en' => $queue['tier_label_en'],
 		'tier_label_fr' => $queue['tier_label_fr'],
-		'multicup_id' => intval($queue['multicup_id']),
+		'multicup_id' => lounge_get_season_multicup(),
 		'status' => $queue['status'],
 		'opened_at' => $queue['opened_at'],
 		'locked_at' => $queue['locked_at'],
@@ -244,10 +253,8 @@ function lounge_start_voting($queueId) {
 
 function lounge_launch_match($queueId) {
 	$queueRow = mysql_fetch_array(mysql_query(
-		'SELECT q.id, q.season, q.tier, t.multicup_id
-		FROM `mklounge_queues` q
-		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
-		WHERE q.id="'. intval($queueId) .'" AND q.status="voting"'
+		'SELECT id, season, tier FROM `mklounge_queues`
+		WHERE id="'. intval($queueId) .'" AND status="voting"'
 	));
 	if (!$queueRow) return null;
 
@@ -299,12 +306,13 @@ function lounge_launch_match($queueId) {
 	$matchId = mysql_insert_id();
 	foreach ($members as $m) {
 		mysql_query(
-			'INSERT INTO `mklounge_match_players` (`match`, player)
-			VALUES ("'. intval($matchId) .'", "'. intval($m['id']) .'")'
+			'INSERT INTO `mklounge_match_players` (`match`, player, perso)
+			VALUES ("'. intval($matchId) .'", "'. intval($m['id']) .'", '.
+			(is_null($m['perso']) ? 'NULL' : '"'. mysql_real_escape_string($m['perso']) .'"') .')'
 		);
 	}
 
-	return array('mode' => $mode, 'key' => $key, 'multicup_id' => intval($queueRow['multicup_id']));
+	return array('mode' => $mode, 'key' => $key, 'multicup_id' => lounge_get_season_multicup());
 }
 
 function lounge_add_strike($playerId, $reason) {
@@ -438,6 +446,52 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 	);
 }
 
+function lounge_match_joined_players($privgameKey) {
+	$joined = array();
+	$res = mysql_query(
+		'SELECT DISTINCT p.id AS player FROM `mkplayers` p
+		INNER JOIN `mariokart` m ON m.id=p.course
+		WHERE m.link="'. intval($privgameKey) .'"'
+	);
+	while ($row = mysql_fetch_array($res))
+		$joined[intval($row['player'])] = true;
+	return $joined;
+}
+
+function lounge_cancel_no_show_match($queueId) {
+	$queue = mysql_fetch_array(mysql_query(
+		'SELECT id, privgame_key FROM `mklounge_queues`
+		WHERE id="'. intval($queueId) .'" AND status="launched" AND privgame_key IS NOT NULL'
+	));
+	if (!$queue)
+		return false;
+
+	$joined = lounge_match_joined_players($queue['privgame_key']);
+	$members = lounge_queue_members($queueId);
+	foreach ($members as $member) {
+		if (isset($joined[$member['id']]))
+			continue;
+		lounge_add_strike($member['id'], 'no_show');
+		mysql_query(
+			'UPDATE `mklounge_match_players` mp
+			INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+			SET mp.strike_reason="no_show"
+			WHERE m.queue="'. intval($queueId) .'" AND mp.player="'. intval($member['id']) .'"'
+		);
+	}
+
+	mysql_query(
+		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="no_show"
+		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
+	);
+	mysql_query('UPDATE `mklounge_queues` SET status="cancelled" WHERE id="'. intval($queueId) .'"');
+	mysql_query(
+		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
+		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
+	);
+	return true;
+}
+
 function lounge_apply_mmr($matchId) {
 	mysql_query(
 		'UPDATE `mklounge_match_players` mp
@@ -518,14 +572,18 @@ function lounge_tick() {
 	}
 
 	$launched = mysql_query(
-		'SELECT q.id, IFNULL(d.raceCount, 0) AS races
+		'SELECT q.id, IFNULL(d.raceCount, 0) AS races,
+			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)) AS join_timed_out
 		FROM `mklounge_queues` q
 		LEFT JOIN `mkgamedata` d ON d.game=q.privgame_key
 		WHERE q.status="launched" AND q.privgame_key IS NOT NULL'
 	);
 	while ($row = mysql_fetch_array($launched)) {
-		if (intval($row['races']) >= LOUNGE_RACES_PER_MATCH)
+		$races = intval($row['races']);
+		if ($races >= LOUNGE_RACES_PER_MATCH)
 			lounge_finish_match(intval($row['id']));
+		elseif (!$races && $row['join_timed_out'])
+			lounge_cancel_no_show_match(intval($row['id']));
 	}
 
 	$lockTimedOut = mysql_query(
