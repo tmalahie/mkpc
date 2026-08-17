@@ -814,16 +814,11 @@ if (isset($_GET['i'])) {
 							<a href="javascript:showBoxDecorHelp('throw')">[?]</a>
 						</div>
 					</label>
-					<div class="form-row popup-buttons">
-						<div><?php echo $language ? "Apply these settings to every decor of this type" : "Appliquer ces paramètres à tous les décors de ce type"; ?>
-							<button name="applyAll"><?php echo $language ? "Apply" : "Appliquer" ?></button>
-							<a href="javascript:showBoxDecorHelp('applyAll')">[?]</a>
-						</div>
-					</div>
 					<div class="form-submit popup-buttons">
 						<a href="javascript:closeBoxDecorOptions()" class="close"><?php echo $language ? "Cancel" : "Annuler"; ?></a>
-						&nbsp;
 						<button type="submit"><?php echo $language ? "Submit" : "Valider"; ?></button>
+						<button name="applyAll"><?php echo $language ? "Apply to all" : "Appliquer à tous" ?></button>
+						<a href="javascript:showBoxDecorHelp('applyAll')">[?]</a>
 					</div>
 				</form>
 
