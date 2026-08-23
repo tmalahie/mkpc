@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { login, createCircuits } from './helpers/mkpc';
 
+// Tags this file's creations so tests/global-cleanup.ts sweeps them up afterwards.
+const OWNER = 'e2e-cup-bot';
+
 test('simple cup editor shows Advanced Options with per-CPU rows', async ({ page }) => {
   await login(page);
   await page.goto('/simplecup.php');
@@ -161,7 +164,7 @@ test.describe('circuit runtime cupOpts', () => {
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
     await login(page);
-    const ids = await createCircuits(page.request, 4);
+    const ids = await createCircuits(page.request, 4, OWNER);
     cupQuery = [0, 1, 2, 3].map((i) => 'cid' + i + '=' + ids[i % ids.length]).join('&');
     await page.close();
   });

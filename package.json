@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/tmalahie/mkpc#readme",
   "devDependencies": {
-    "@playwright/test": "^1.51.1"
+    "@playwright/test": "^1.51.1",
+    "mysql2": "^3.23.3"
   }
 }

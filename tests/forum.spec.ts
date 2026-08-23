@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { randomBytes } from 'crypto';
+import { newTopicName } from './helpers/forum';
 
 const ADMIN_USER = 'wargor';
 const ADMIN_PASSWORD = 'aaaa';
 const ADMIN_USERNAME_PRINTED = "Wargor";
 
-const RANDOM_ID = randomBytes(10).toString('hex');
-const TOPIC_NAME = "New topic " + RANDOM_ID;
-const TOPIC_CONTENT = "New topic content " + RANDOM_ID;
+// Named so tests/global-cleanup.ts recognises and removes it afterwards.
+const TOPIC_NAME = newTopicName();
+const TOPIC_CONTENT = "New topic content " + randomBytes(10).toString('hex');
 
 test('logging in and creating a new topic', async ({ page }) => {
   // Log in
