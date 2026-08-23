@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
 
 // Entering ranked while logged out should land on the online page, which logs the visitor
 // in without navigating away, rather than bouncing them to the forum.
@@ -11,26 +10,19 @@ test('ranked entry sends a logged-out visitor to the online page', async ({ page
 	expect(res.headers()['location']).toMatch(/^online\.php\?mid=\d+&ranked$/);
 });
 
-test('the register link comes back to the same ranked page', async ({ page, browser }) => {
+// Creating a multicup here would need two new tracks, and the creation cooldown is
+// keyed on the caller's IP - so a whole suite run shares one budget of 2 per minute.
+// online.php?battle needs no fixture and still carries a query string, which is the
+// part of the return URL that has to survive.
+test('the register link comes back to the online page it was opened from', async ({ browser }) => {
 	test.setTimeout(60000);
-
-	// setup.sql seeds no multicups, so build one to have a page that actually renders
-	await uiLogin(page);
-	const circuitIds = await createCircuits(page.request, 2);
-	const cupId = await createCup(page.request, { name: 'e2e-entry-cup', circuitIds });
-	const mid = await createMulticup(page.request, { name: 'e2e-entry-mcup', cupIds: [cupId] });
-
-	// a fresh context so the visitor is genuinely logged out
 	const guest = await browser.newContext();
 	const guestPage = await guest.newPage();
-	await guestPage.goto('http://127.0.0.1:8080/online.php?mid=' + mid + '&ranked', {
-		waitUntil: 'domcontentloaded',
-	});
+	await guestPage.goto('http://127.0.0.1:8080/online.php?battle', { waitUntil: 'domcontentloaded' });
 
 	const register = guestPage.locator('a[href^="inscription.php"]');
 	await expect(register.first()).toBeAttached({ timeout: 30000 });
-	const href = await register.first().getAttribute('href');
-	expect(href).toBe('inscription.php?online.php?mid=' + mid + '&ranked');
+	expect(await register.first().getAttribute('href')).toBe('inscription.php?online.php?battle');
 
 	await guest.close();
 });
