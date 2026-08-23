@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { sql } from './helpers/db';
+import { LOUNGE_KEY_MIN, createLoungeBots, loungeBotPattern } from './helpers/lounge';
 
 // lounge_tick() only runs for a logged-in caller, so the tick that finishes the match has
 // to come from a real session.
@@ -12,6 +13,13 @@ async function login(page, pseudo = 'wargor', code = 'aaaa') {
 	}
 }
 
+// A queue is staged as "launching" so lounge_tick(), which sweeps every launched queue
+// regardless of who is polling, cannot finish a half-built match. Publishing is the last
+// step, once the standings and race count are all in place.
+async function publish(key: number) {
+	await sql(`UPDATE mklounge_queues SET status = 'launched' WHERE privgame_key = ?`, [key]);
+}
+
 async function tick(page) {
 	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
 	const body = await res.json();
@@ -21,52 +29,25 @@ async function tick(page) {
 // Drives a lounge match to completion and checks the rating pass. The match is staged
 // directly in the database because playing 12 real races is not something an e2e test can
 // do; everything from lounge_tick() onwards is the real code path.
+//
+// Serial, and in one file: lounge_tick() processes every launched queue, not just the
+// caller's, so a tick fired by one of these tests finishes the others' matches too. Split
+// across files they run in parallel workers and finish each other's half-staged matches.
 test.describe.configure({ mode: 'serial' });
 
-const BOT_PREFIX = 'e2e-mmr-';
-const PRIVGAME_KEY = 990001;
-
-// Scoped by the bot-account name prefix rather than by run, so a crashed run is healed on
-// the next one instead of leaving rows behind. Runs before as well as after: afterAll is
-// skipped when a run is killed, which is exactly when leftovers appear.
-async function cleanup() {
-	const ids: any[] = await sql(`SELECT id FROM mkjoueurs WHERE nom LIKE ?`, [BOT_PREFIX + '%']);
-	const playerIds = ids.map((r: any) => r.id);
-	if (playerIds.length) {
-		await sql(`DELETE FROM mklounge_match_players WHERE player IN (?)`, [playerIds]);
-		await sql(`DELETE FROM mklounge_queue_members WHERE player IN (?)`, [playerIds]);
-		await sql(`DELETE FROM mklounge_players WHERE player IN (?)`, [playerIds]);
-		await sql(`DELETE FROM mkgamerank WHERE player IN (?)`, [playerIds]);
-		await sql(`DELETE FROM mkjoueurs WHERE id IN (?)`, [playerIds]);
-	}
-	await sql(`DELETE FROM mklounge_matches WHERE privgame_key = ?`, [PRIVGAME_KEY]);
-	await sql(`DELETE FROM mklounge_queues WHERE privgame_key = ?`, [PRIVGAME_KEY]);
-	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [PRIVGAME_KEY]);
-	await sql(`DELETE FROM mkgamerank WHERE game = ?`, [PRIVGAME_KEY]);
-}
-
-test.beforeAll(cleanup);
-test.afterAll(cleanup);
+const PRIVGAME_KEY = LOUNGE_KEY_MIN;
+const BOTS = loungeBotPattern('mmr');
 
 test('a finished FFA match rates every player', async ({ page }) => {
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	expect(tier).toBeTruthy();
 
 	// four fresh accounts, so everyone starts on the default rating
-	const players: number[] = [];
-	for (let i = 1; i <= 4; i++) {
-		const res: any = await sql(
-			`INSERT INTO mkjoueurs
-				(nom, course, code, joueur, choice_map, choice_rand, pts_vs, pts_battle, pts_challenge, online, deleted)
-			 VALUES (?, 0, '', 'mario', 0, 0, 0, 0, 0, 0, 0)`,
-			[BOT_PREFIX + i]
-		);
-		players.push(res.insertId);
-	}
+	const players = await createLoungeBots(4, 'mmr');
 
 	const queue: any = await sql(
 		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
-		 VALUES (1, ?, 'launched', ?, NOW())`,
+		 VALUES (1, ?, 'launching', ?, NOW())`,
 		[tier.id, PRIVGAME_KEY]
 	);
 	await sql(
@@ -84,6 +65,7 @@ test('a finished FFA match rates every player', async ({ page }) => {
 	}
 	// past any plausible LOUNGE_RACES_PER_MATCH, so the tick finishes the match
 	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [PRIVGAME_KEY]);
+	await publish(PRIVGAME_KEY);
 
 	// lounge_tick() runs on this endpoint; it is what finishes the match and rates it
 	await login(page);
@@ -112,7 +94,7 @@ test('a finished FFA match rates every player', async ({ page }) => {
 	const season: any[] = await sql(
 		`SELECT j.nom, p.mmr, p.peak_mmr, p.games, p.wins FROM mklounge_players p
 		 JOIN mkjoueurs j ON j.id = p.player WHERE j.nom LIKE ? ORDER BY p.mmr DESC`,
-		[BOT_PREFIX + '%']
+		[BOTS]
 	);
 	expect(season).toHaveLength(4);
 	expect(Math.round(season[0].mmr)).toBe(641);
@@ -128,7 +110,7 @@ test('rating is idempotent when the tick runs again', async ({ page }) => {
 	const before: any[] = await sql(
 		`SELECT p.player, p.mmr, p.games FROM mklounge_players p
 		 JOIN mkjoueurs j ON j.id = p.player WHERE j.nom LIKE ? ORDER BY p.player`,
-		[BOT_PREFIX + '%']
+		[BOTS]
 	);
 	expect(before.length).toBe(4);
 
@@ -138,7 +120,7 @@ test('rating is idempotent when the tick runs again', async ({ page }) => {
 	const after: any[] = await sql(
 		`SELECT p.player, p.mmr, p.games FROM mklounge_players p
 		 JOIN mkjoueurs j ON j.id = p.player WHERE j.nom LIKE ? ORDER BY p.player`,
-		[BOT_PREFIX + '%']
+		[BOTS]
 	);
 	expect(after).toEqual(before);
 });
@@ -146,19 +128,15 @@ test('rating is idempotent when the tick runs again', async ({ page }) => {
 test('the floor stops a rating going negative', async ({ page }) => {
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const key = PRIVGAME_KEY + 1;
-	await sql(`DELETE FROM mklounge_matches WHERE privgame_key = ?`, [key]);
-	await sql(`DELETE FROM mklounge_queues WHERE privgame_key = ?`, [key]);
-	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
-	await sql(`DELETE FROM mkgamerank WHERE game = ?`, [key]);
 
-	const ids: any[] = await sql(`SELECT id FROM mkjoueurs WHERE nom LIKE ? ORDER BY id`, [BOT_PREFIX + '%']);
+	const ids: any[] = await sql(`SELECT id FROM mkjoueurs WHERE nom LIKE ? ORDER BY id`, [BOTS]);
 	const players = ids.map(r => r.id);
 	// park the eventual last-placed player just above zero
 	await sql(`UPDATE mklounge_players SET mmr = 3 WHERE player = ?`, [players[3]]);
 
 	const queue: any = await sql(
 		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
-		 VALUES (1, ?, 'launched', ?, NOW())`,
+		 VALUES (1, ?, 'launching', ?, NOW())`,
 		[tier.id, key]
 	);
 	await sql(
@@ -172,6 +150,7 @@ test('the floor stops a rating going negative', async ({ page }) => {
 		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], scores[i]]);
 	}
 	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+	await publish(key);
 
 	await login(page);
 	await tick(page);
@@ -189,9 +168,43 @@ test('the floor stops a rating going negative', async ({ page }) => {
 	const [seasonRow]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [players[3]]);
 	expect(Number(seasonRow.mmr)).toBe(0);
 
-	await sql(`DELETE FROM mklounge_match_players WHERE \`match\` = ?`, [match.id]);
-	await sql(`DELETE FROM mklounge_matches WHERE privgame_key = ?`, [key]);
-	await sql(`DELETE FROM mklounge_queues WHERE privgame_key = ?`, [key]);
-	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
-	await sql(`DELETE FROM mkgamerank WHERE game = ?`, [key]);
+});
+
+// lounge_tick() runs on every poll from every player, so the code that finishes a match
+// is genuinely reentrant in production. Without an atomic claim, two ticks both tally the
+// standings and both apply the rating change, counting the match twice.
+
+test('concurrent ticks finish a match exactly once', async ({ page, browser }) => {
+	const KEY = LOUNGE_KEY_MIN + 10;
+
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code='all'`);
+	const players = await createLoungeBots(4, 'race');
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at) VALUES (1, ?, 'launching', ?, NOW())`,
+		[tier.id, KEY]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode) VALUES (?, 1, ?, ?, 'FFA')`,
+		[q.insertId, tier.id, KEY]);
+	const [m]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [KEY]);
+	const scores = [120, 90, 60, 30];
+	for (let i = 0; i < 4; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [m.id, players[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [KEY, players[i], scores[i]]);
+	}
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [KEY]);
+	await publish(KEY);
+
+	// PHP serialises requests sharing a session, so each tick needs its own session to
+	// actually race
+	const contexts = await Promise.all(Array.from({ length: 6 }, () => browser.newContext()));
+	await Promise.all(contexts.map(c =>
+		c.request.post('http://127.0.0.1:8080/api/testcode.php', { form: { pseudo: 'wargor', code: 'aaaa' } })));
+	await Promise.all(contexts.map(c =>
+		c.request.post('http://127.0.0.1:8080/api/lounge/tiers.php')));
+	await Promise.all(contexts.map(c => c.close()));
+
+	const rows: any[] = await sql(
+		`SELECT p.games, p.mmr FROM mklounge_players p JOIN mkjoueurs j ON j.id=p.player
+		 WHERE j.nom LIKE ? ORDER BY p.mmr DESC`, [loungeBotPattern('race')]);
+	expect(rows.map(r => r.games)).toEqual([1, 1, 1, 1]);
+	expect(rows.map(r => Math.round(r.mmr))).toEqual([641, 614, 586, 559]);
 });
