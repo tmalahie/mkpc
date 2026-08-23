@@ -25409,7 +25409,7 @@ function selectOnlineScreen(options) {
 	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (17*iScreenScale)+"px";
+	oPInput.style.top = (14*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
@@ -25424,7 +25424,7 @@ function selectOnlineScreen(options) {
 	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (25*iScreenScale)+"px";
+	oPInput.style.top = (21*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
@@ -25436,11 +25436,13 @@ function selectOnlineScreen(options) {
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Ranked (CT Lounge)", "Classé (CT Lounge)");
-	oPInput.style.fontSize = Math.round(2*iScreenScale)+"px";
+	oPInput.style.fontSize = Math.round(3*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (32*iScreenScale)+"px";
+	oPInput.style.top = (28*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
+	oPInput.style.height = (5*iScreenScale)+"px";
+	oPInput.style.color = "white";
 	oPInput.onclick = function() {
 		document.location.href = "ranked.php";
 	};
