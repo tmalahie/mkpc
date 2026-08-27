@@ -8353,7 +8353,7 @@ const SpinyShellBehavior = {
 
 	del(fSprite) {
 		// alarm fade out
-		if (fSprite.alarm.exists)
+		if (fSprite.alarm && fSprite.alarm.exists)
 			fSprite.alarm.remove();
 	}
 };
