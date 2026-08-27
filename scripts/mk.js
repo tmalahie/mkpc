@@ -1117,16 +1117,13 @@ function setPlanPos(frameState, lMap) {
 	}
 
 	function setKartsPos(iPlanCharacters, iCharWidth, iMapW) {
-		const battleLoseOpacity = 0.25;
 		for (var i=0;i<frameState.karts.length;i++) {
 			var oKart = frameState.karts[i];
 			var updatePos = true;
-			let isBattleLose = false;
+			let battleLost = false;
 			if (oKart.ref.loose) {
-				if ((isOnline && !finishing) || (oKart == oPlayer)) {
-					iPlanCharacters[i].style.opacity = battleLoseOpacity;
-					isBattleLose = true;
-				}
+				if ((isOnline && !finishing) || (oKart == oPlayer))
+					battleLost = true;
 				else {
 					iPlanCharacters[i].style.display = "none";
 					if (iTeamPlay && (iCharWidth==oCharWidth)) {
@@ -1137,19 +1134,26 @@ function setPlanPos(frameState, lMap) {
 				}
 			}
 			if (updatePos) {
+				let opacity = 1;
+				if (battleLost)
+					opacity = 0.25;
+				else if (timeTrialMode() && i > 0)
+					opacity = 0.5;
+				else if (oKart.ref.boo)
+					opacity = 0.5;
+
 				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				const booOpacity = isBattleLose ? battleLoseOpacity : (oKart.ref.boo ? 0.5 : 1);
-				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW).style.opacity = booOpacity;
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW).style.opacity = opacity;
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
 					var iTeamW2 = Math.round(oTeamWidth2*iCharR);
-					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2).style.opacity = booOpacity;
+					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2).style.opacity = opacity;
 					oPlanTeams[i].style.width = iTeamW +"px";
 					oPlanTeams[i].style.height = iTeamW +"px";
-					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2).style.opacity = booOpacity;
+					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2).style.opacity = opacity;
 					oPlanTeams2[i].style.width = iTeamW2 +"px";
 					oPlanTeams2[i].style.height = iTeamW2 +"px";
 				}
