@@ -8235,7 +8235,7 @@ const SpinyShellBehavior = {
 		var oKart = aKarts[getId];
 		if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
 			if (!friendlyHit(oKart.team, fSprite.team)) {
-				var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+				var pExplose = fSprite.cooldown < -5 ? 20 : 62;
 				handleExplosionHit(getId, pExplose);
 			}
 		}
