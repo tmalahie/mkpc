@@ -10911,8 +10911,8 @@ var decorBehaviors = {
 				const decorData = decorsData[i];
 				const distrib = decorData[2];
 				const throwDrop = decorData[3];
-
-				decorData[3] = 0; // related to height for certain decors
+				
+				decorData[3] = undefined;
 				decorData[4] = distrib ?? null;
 				decorData[5] = throwDrop ?? false;
 			}
