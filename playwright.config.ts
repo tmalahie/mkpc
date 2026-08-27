@@ -11,6 +11,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  /* Remove fixtures left by a previous run, and again once this one is done. */
+  globalSetup: './tests/global-cleanup.ts',
+  globalTeardown: './tests/global-cleanup.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

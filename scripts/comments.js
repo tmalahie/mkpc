@@ -61,7 +61,7 @@ var circuitNbComments = 0;
 		'<div id="comments-description-edit" class="comment-message">'+
 			'<textarea placeholder="'+ (language ? 'Description':'Description') +'..." class="comment-textarea comment-posting"></textarea>'+
 			'<div id="comments-description-edit-actions" class="comment-options">'+
-				'<input type="button" class="comment-send" value="'+ (language ? 'Validate':'Valider') +'" />'+
+				'<input type="button" class="comment-send" value="'+ (language ? 'Confirm':'Valider') +'" />'+
 				'<img src="images/forum/delete.png" class="comment-undo" alt="'+ (language ? 'Undo':'Annuler') +'" title="'+ (language ? 'Undo':'Annuler') +'" />'+
 			'</div>'+
 		'</div>'+
@@ -94,7 +94,7 @@ var circuitNbComments = 0;
 	var commentsLockButton = $('<span id="comments-lock-btn" class="comments-lock-button" title="'+ (language ? 'Lock comments':'Verrouiller les commentaires') +'">🔓</span>');
 	commentsHeader.append(commentsLockButton);
 	$commentsScroller.append(commentsHeader);
-	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
+	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion!':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !') +'</div>');
 	var comments = $('<div id="comments"></div>');
 	$commentsScroller.append(comments);
 	$("#comments-section").append($commentsScroller);
@@ -212,7 +212,7 @@ var circuitNbComments = 0;
 		});
 		var delButton = commentCtn.find(".comment-suppr");
 		delButton.click(function() {
-			if (confirm(language ? "Are you sure you want to delete this comment ?":"Voulez-vous vraiment supprimer ce commentaire ?")) {
+			if (confirm(language ? "Are you sure you want to delete this comment?":"Voulez-vous vraiment supprimer ce commentaire ?")) {
 				$.post("api/supprComment.php", {"id_msg":commentCtn.data("id")}).success(function() {
 					commentCtn.remove();
 					circuitNbComments--;

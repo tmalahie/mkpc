@@ -67,7 +67,7 @@ foreach ($get as $k => $getk)
 						$challengeDifficulties = getChallengeDifficulties();
 						$challengeRewards = getChallengeRewards();
 						foreach ($challengeDifficulties as $i=>$difficulty)
-							echo '<li>A challenge <strong>'. $difficulty .'</strong> gives you <strong>'. $challengeRewards[$i] .' pt'. ($challengeRewards[$i]>=2 ? 's':'') .'</strong>.</li>';
+							echo '<li>'. (preg_match('#^[AEIOU]#i', $difficulty) ? 'An':'A') .' <strong>'. $difficulty .'</strong> challenge gives you <strong>'. $challengeRewards[$i] .' pt'. ($challengeRewards[$i]>=2 ? 's':'') .'</strong>.</li>';
 						?>
 					</ul>
 				</div>

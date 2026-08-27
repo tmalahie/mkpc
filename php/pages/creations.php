@@ -484,7 +484,7 @@ include('../includes/menu.php');
 			?>
 			<div>
 				<label>
-					<?php echo $language ? '<em>OR</em> &nbsp;<strong>Track URL</strong>':'<em>OU</em> &nbsp;<strong>URL circuit</strong>'; ?> :
+					<?php echo $language ? '<em>OR</em> &nbsp;<strong>Track URL</strong>':'<em>OU</em> &nbsp;<strong>URL circuit</strong>'; ?><?php echo $language ? ':':' :'; ?>
 					<input type="url" name="url" placeholder="https://mkpc.malahieude.net/map.php?i=42" value="<?php echo htmlspecialchars($url); ?>" />
 				</label>
 				<input type="submit" value="Ok" class="action_button" />

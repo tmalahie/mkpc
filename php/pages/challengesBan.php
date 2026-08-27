@@ -168,7 +168,7 @@ if ($unban) {
 		<div id="ban_msg">
 			<?= _('Message:'); ?> <textarea name="msg" cols="30" rows="4"></textarea><br />
             <label><input type="checkbox" name="ban_until" onclick="hanleBanUntil(this.checked)" /> <?php echo $language ? "Ban until:":"Bannir jusqu'à :"; ?> <input type="date" name="ban_until_date" disabled /></label><br />
-            <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
+            <input type="submit" value="<?php echo $language ? 'Confirm' : 'Valider'; ?>" class="action_button" />
 		</div>
 	</p>
 	</blockquote>

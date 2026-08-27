@@ -544,7 +544,7 @@ updateCursors = function() {
 					<?php echo $language ? 'Select character stats':'Choisir les stats du perso'; ?>
 				</div>
 				<div id="statstemplate">
-					<?php echo $language ? 'Retreive stats from another character:':'Reprendre les stats de:'; ?> <select id="stats-template">
+					<?php echo $language ? 'Retrieve stats from another character:':'Reprendre les stats de:'; ?> <select id="stats-template">
 						<option><?php echo $language ? 'Character':'Perso'; ?>...</option>
 					</select>
 				</div>

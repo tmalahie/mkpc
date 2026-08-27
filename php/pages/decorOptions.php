@@ -157,7 +157,7 @@ include('../includes/o_online.php');
 						</div>
 					</div>
 					<div class="option-form-submit">
-						<button type="submit"><?php echo $language ? 'Validate':'Valider'; ?></button>
+						<button type="submit"><?php echo $language ? 'Confirm':'Valider'; ?></button>
 						<a class="option-form-reset-all" href="javascript:resetOptions()"><?php echo $language ? 'Reset all':'Réinitialiser'; ?></a>
 					</div>
 				</div>

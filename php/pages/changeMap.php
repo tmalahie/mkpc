@@ -350,7 +350,7 @@ else
 if ($lap)
 	echo '<input type="hidden" name="lap" value="'.$lap.'" />';
 ?>
-<input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" />
+<input type="submit" value="<?php echo $language ? 'Confirm':'Valider'; ?>" id="modifier" disabled="disabled" />
 <?php
 if ($lap && !$newImg)
 	echo '&nbsp;<a class="del-override" href="changeMap.php?'. http_build_query($_GET) .'&amp;delete" onclick="return confirmRemoveOverride()">'. ($language ? "Remove image override" : "Supprimer l'image") .'</a>';
@@ -372,8 +372,8 @@ function able() {
 <form method="post" action="redimensionne.php">
 <fieldset>
 <legend><?php echo $language ? 'Resize':'Redimensionner'; ?></legend>
-<p><?php echo $language ? 'Width':'Longueur'; ?> : <input type="text" name="x" value="<?php echo $circuitImg->w ?>" maxlength="4" size="3" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.y.value=Math.round(this.value*<?php echo $circuitImg->h ?>/<?php echo $circuitImg->w ?>);reForbid()" onblur="apercu()" />
-&nbsp; <?php echo $language ? 'Height':'Largeur'; ?> : <input type="text" name="y" value="<?php echo $circuitImg->h ?>" maxlength="4" size="3" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.x.value=Math.round(this.value*<?php echo $circuitImg->w ?>/<?php echo $circuitImg->h ?>);reForbid()" onblur="apercu()" /><br />
+<p><?php echo $language ? 'Width':'Longueur'; ?><?php echo $language ? ':':' :'; ?> <input type="text" name="x" value="<?php echo $circuitImg->w ?>" maxlength="4" size="3" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.y.value=Math.round(this.value*<?php echo $circuitImg->h ?>/<?php echo $circuitImg->w ?>);reForbid()" onblur="apercu()" />
+&nbsp; <?php echo $language ? 'Height':'Largeur'; ?><?php echo $language ? ':':' :'; ?> <input type="text" name="y" value="<?php echo $circuitImg->h ?>" maxlength="4" size="3" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.x.value=Math.round(this.value*<?php echo $circuitImg->w ?>/<?php echo $circuitImg->h ?>);reForbid()" onblur="apercu()" /><br />
 <label for="proportionnel"><input type="checkbox" id="proportionnel" checked="checked" /> <?php echo $language ? 'Keep proportions':'Conserver les proportions'; ?></label><br />
 <label for="apercuauto"><input type="checkbox" id="apercuauto" checked="checked" onchange="if(!this.checked)window.parent.resetImageOptions()" /> <?php echo $language ? 'Auto preview':'Aper&ccedil;u automatique'; ?></label><br />
 <input type="hidden" name="id" value="<?php echo $id ?>" />
@@ -382,7 +382,7 @@ if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" /
 if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
 if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
 ?>
-<input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" id="redimensionner" disabled="disabled" /></p>
+<input type="submit" value="<?php echo $language ? 'Confirm' : 'Valider'; ?>" id="redimensionner" disabled="disabled" /></p>
 </fieldset>
 </form>
 <form method="post" action="pivote.php">
@@ -401,7 +401,7 @@ if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" /
 if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
 if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
 ?>
-<input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" id="pivoter" disabled="disabled" />
+<input type="submit" value="<?php echo $language ? 'Confirm':'Valider'; ?>" id="pivoter" disabled="disabled" />
 </fieldset>
 </form>
 	<?php

@@ -16,7 +16,7 @@ include('../includes/avatars.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
-<link rel="stylesheet" type="text/css" href="styles/followers.css" />
+<link rel="stylesheet" type="text/css" href="styles/followers.css?reload=1" />
 
 <?php
 include('../includes/o_online.php');
@@ -38,7 +38,8 @@ include('../includes/menu.php');
 	}
 	$dateFormat = $language ? '%Y-%m-%d':'le %d/%m/%y';
 	$today = time();
-	$getUsers = mysql_query('SELECT follower,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkfollowusers` WHERE followed="'. $id .'" ORDER BY date DESC');
+	require_once('../includes/banUtils.php');
+	$getUsers = mysql_query('SELECT f.follower,DATE_FORMAT(f.date, "'. $dateFormat .'") AS infosDate FROM `mkfollowusers` f'. notPermanentlyBannedJoin('f.follower') .' WHERE f.followed="'. $id .'" AND '. notPermanentlyBannedCondition() .' ORDER BY f.date DESC');
 	$users = array();
 	while ($user = mysql_fetch_array($getUsers))
 		$users[] = $user;

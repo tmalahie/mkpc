@@ -155,7 +155,7 @@ if ($arePersos) {
 	</div>
 	<?php
 	$total_size = file_total_size();
-	echo '<div class="mypersos-size">'. ($language ? 'You use '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
+	echo '<div class="mypersos-size">'. ($language ? 'You have used '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
 	?>
 	</div>
 	<div id="perso-options">
@@ -197,7 +197,7 @@ if ($arePersos) {
 		<p class="description">
 			Characters from MKPC use the principle of
 			<a href="https://en.wikipedia.org/wiki/Sprite_(computer_graphics)" target="_blank">sprites</a>, which means that a
-			character is modeled by a set of images (names sprites), each image corresponding to an angle of view.<br />
+			character is modeled by a set of images (named sprites), each image corresponding to an angle of view.<br />
 		</p>
 		<p class="description">
 			For example, Mario is modeled by the following image:<br />

@@ -291,7 +291,8 @@ include('../includes/menu.php');
 				<h2><?php echo $language ? 'General stats':'Stats générales'; ?></h2>
 				<div class="player-followers">
 				<?php
-				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $profileId .'"'));
+				require_once('../includes/banUtils.php');
+				$followedUsers = mysql_fetch_array(mysql_query('SELECT COALESCE(SUM('. notPermanentlyBannedCondition() .'),0) AS nb, '.($id?'SUM(f.follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` f'. notPermanentlyBannedJoin('f.follower') .' WHERE f.followed="'. $profileId .'"'));
 				$s = plural($followedUsers['nb']);
 				$view = $language ? 'View' : 'Voir';
 				echo '<img src="images/followers.png" alt="Followers" />';
@@ -302,7 +303,8 @@ include('../includes/menu.php');
 				}
 				elseif ($id) {
 					$isFollower = $followedUsers['userisfollower'];
-					echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
+					if ($isFollower || !isPermanentlyBanned($profileId))
+						echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
 				}
 				?>
 				</div>
@@ -319,21 +321,27 @@ include('../includes/menu.php');
 				?>
 				</div>
 				<?php
+				function getPlayerRank($column, $pts, $profileId, $defaultPts) {
+					$sql = 'SELECT (SELECT COUNT(*) FROM `mkjoueurs` j WHERE j.'.$column.'>"'. $pts .'" AND j.deleted=0)';
+					if ($pts != $defaultPts)
+						$sql .= '+(SELECT COUNT(*) FROM `mkjoueurs` j WHERE j.'.$column.'="'. $pts .'" AND j.id<"'. $profileId .'" AND j.deleted=0)';
+					$sql .= ' AS cnt';
+					$res = mysql_fetch_array(mysql_query($sql));
+					return 1+$res['cnt'];
+				}
 				$pts = $getInfos['pts_vs'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs!=5000) AND (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
-				$place = 1+$place['cnt'];
+				$place = getPlayerRank('pts_vs', $pts, $profileId, 5000);
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
-					echo '<strong>'. $pts . ' pts</strong> ';
+					echo '<strong>'. $pts . ' pt'. plural($pts) .'</strong> ';
 					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_battle'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle!=5000) AND (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
-				$place = 1+$place['cnt'];
+				$place = getPlayerRank('pts_battle', $pts, $profileId, 5000);
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';
-					echo '<strong>'. $pts . ' pts</strong> ';
+					echo '<strong>'. $pts . ' pt'. plural($pts) .'</strong> ';
 					echo '- <strong style="color:'.get_league_color($pts).'">'.get_league_name($pts).'</strong><sup><a href="javascript:helpLeagues()">[?]</a></sup> ';
 					echo '- '. toPlace($place);
 				echo '</div>';
@@ -556,7 +564,7 @@ include('../includes/menu.php');
 					$oneData = true;
 					?>
 					<div>
-						<strong><?php echo ($language ? 'Validator':'Validateur'); ?></strong> <?php echo $language ? 'of challenges':'de défis'; ?>
+						<?php if ($language) { ?><strong>Challenge validator</strong><?php } else { ?><strong>Validateur</strong> de défis<?php } ?>
 					</div>
 					<?php
 				}
@@ -568,7 +576,7 @@ include('../includes/menu.php');
 						<strong><?php echo htmlspecialchars($award['name']); ?></strong><?php
 						if ($award['link'])
 							echo '<sup><a href="'. htmlspecialchars($award['link']) .'">[?]</a></sup>';
-						?> : <?php
+						?><?php echo $language ? ':':' :'; ?> <?php
 						echo htmlspecialchars($award['value']);
 						?>
 					</div>
@@ -631,7 +639,7 @@ include('../includes/menu.php');
 			}
 			if (!empty($lastMessages)) {
 				?>
-				<h2><?php echo $language ? 'Last messages on the forum:':'Derniers messages sur le forum&nbsp;:'; ?></h2>
+				<h2><?php echo $language ? 'Latest messages on the forum:':'Derniers messages sur le forum&nbsp;:'; ?></h2>
 				<?php
 				require_once('../includes/reactions.php');
 				printReactionUI();
@@ -643,7 +651,7 @@ include('../includes/menu.php');
 				<?php
 			}
 			else
-				echo '<h2><em>'. ($language ? 'No message on the forum':'Aucun message sur le forum') .'</em></h2>';
+				echo '<h2><em>'. ($language ? 'No messages on the forum':'Aucun message sur le forum') .'</em></h2>';
 			?>
 			<hr />
 			<?php
@@ -885,7 +893,7 @@ include('../includes/menu.php');
 					return "images/sprites/sprite_" . $playerName . ".png";
 				}
 				?>
-				<h2><?php echo $language ? 'Best scores in time trial:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
+				<h2><?php echo $language ? 'Best time trial records:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
 				<table class="clm-records">
 					<tr>
 						<td><?php echo $language ? 'Rank':'Place'; ?></td>

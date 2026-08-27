@@ -97,7 +97,7 @@ include('../includes/menu.php');
                 <option value="mute"><?php echo $language ? "Don't send message + Mute member" : "Ne pas envoyer le message + Muter le membre"; ?></option>
             </select>
         </label>
-        <input type="submit" class="action_button" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" />
+        <input type="submit" class="action_button" value="<?php echo $language ? 'Confirm' : 'Valider'; ?>" />
 	</form>
     <h2><?php echo ($language ? 'Current watched word list:' : 'Liste des mots surveillés :'); ?></h2>
     <table>

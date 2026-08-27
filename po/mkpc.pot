@@ -45,7 +45,7 @@ msgid "Draft saved"
 msgstr ""
 
 #: php/pages/addNews.php
-msgid "Add a news"
+msgid "Add news"
 msgstr ""
 
 #: php/pages/addNews.php
@@ -985,13 +985,13 @@ msgid ""
 msgstr ""
 
 #: php/pages/index.php
-msgid "Release your fighter talents!"
+msgid "Release your fighting talents!"
 msgstr ""
 
 #: php/pages/index.php
 msgid ""
-"<strong>Destroy your opponents</strong>' balloons with items, without "
-"getting hit by their items!"
+"<strong>Destroy your opponents</strong>' balloons with your items, without "
+"getting hit by theirs!"
 msgstr ""
 
 #: php/pages/index.php
@@ -1092,7 +1092,7 @@ msgstr ""
 #: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">Khinsider</a> for the <a href=\"{url_mario_kart}"
-"\">musics</a>"
+"\">music</a>"
 msgstr ""
 
 #: php/pages/index.php

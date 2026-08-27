@@ -582,7 +582,7 @@ if (isset($_GET['i'])) {
 						<ul id="lapoverride-reorder-list"></ul>
 						<div class="popup-buttons">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
-							<button class="options" onclick="applyLapOverrideReorder()"><?php echo $language ? 'Validate':'Valider'; ?></button>
+							<button class="options" onclick="applyLapOverrideReorder()"><?php echo $language ? 'Confirm':'Valider'; ?></button>
 						</div>
 					</div>
 				</div>
@@ -982,7 +982,7 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 							"Introduced in Mario Kart World, rails are areas where karts follow a predefined path while being able to trick to gain speed.<br />
 							You define them the same way you define <a href=\"javascript:selectHelpTab('aipoints')\">CPUs route</a>: with a path delimited by nodes.<br />
-							Once you finished drawing the path, click on any node to validate. Then you can define some additional properties by right clicking on it:
+							Once you have finished drawing the path, click on any node to confirm. Then you can define some additional properties by right clicking on it:
 							<ul>
 								<li>Rail height: minimum altitude required to start riding it (default = 0)</li>
 								<li>Target height: altitude of the kart once on the rail (default = rail height). Works like <a href=\"javascript:selectHelpTab('elevators')\">elevators</a>, specify this value if the rail goes over a wall for example.</li>
@@ -1060,9 +1060,9 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 							"If you want to edit, resize, or rotate the arena image, you can do it in this menu.
 							<ul>
-								<li>Change the arena image: select the new image from your hard drive, and click on &quot;Validate&quot;.</li>
-								<li>Resize the image: enter the new desired dimensions and click on &quot;Validate&quot;.</li>
-								<li>Rotate / flip the image: click on the desired option and click on &quot;Validate&quot;.</li>
+								<li>Change the arena image: select the new image from your hard drive, and click on &quot;Confirm&quot;.</li>
+								<li>Resize the image: enter the new desired dimensions and click on &quot;Confirm&quot;.</li>
+								<li>Rotate / flip the image: click on the desired option and click on &quot;Confirm&quot;.</li>
 							</ul>
 							In the second and third case, in addition to the image, the various parameters of the arena (starting position, walls, etc.) are also modified to adapt to the transformation."
 							:
@@ -1098,8 +1098,8 @@ if (isset($_GET['i'])) {
 				<div class="fs-popup" onclick="event.stopPropagation()" style="display:block">
 					<div>
 						<div><?php
-							echo $language ? 'The arena has been created successfully !<br />
-							Now you need to specify the arena settings : location of walls, objects, ...<br />
+							echo $language ? 'The arena has been created successfully!<br />
+							Now you need to specify the arena settings: location of walls, objects, ...<br />
 							If necessary, click on the &quot;Help&quot; link at the bottom in the right menu.<br />
 							When you have finished, don\'t forget to save the data by clicking on &quot;Save&quot;.<br />
 							Then you can access, edit or delete your arena from the creation mode home.' :
@@ -1263,7 +1263,7 @@ else {
 				?>
 				<h2><?php echo $language ? 'Your arenas':'Vos arènes'; ?> (<?php echo $nbTracks; ?>)</h2>
 				<?php
-				echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
+				echo '<div class="file-quotas">'. ($language ? 'You have used '.filesize_str($total_size).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($total_size) .')' : 'Vous utilisez '.filesize_str($total_size).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($total_size).')') .'</div>';
 				?>
 				<div id="editor-tracks-list">
 					<?php

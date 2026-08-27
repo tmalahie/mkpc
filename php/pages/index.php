@@ -146,9 +146,9 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Release your fighter talents!') ?></h3>
+								<h3><?= _('Release your fighting talents!') ?></h3>
 								<div>
-									<?= _("<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items!") ?>
+									<?= _("<strong>Destroy your opponents</strong>' balloons with your items, without getting hit by theirs!") ?>
 									<br />
 									<?= _("The last player standing wins!") ?>
 								</div>
@@ -251,7 +251,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						<?= F_('<a href="{url_main_site}">SNESMaps</a> for the <a href="{url_mario_kart}">track images</a>', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">Khinsider</a> for the <a href="{url_mario_kart}">musics</a>', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
+						<?= F_('<a href="{url_main_site}">Khinsider</a> for the <a href="{url_mario_kart}">music</a>', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
 					</li>
 					<li>
 						<?= F_('And <a href="{url}">many more</a>!', url: "credits.php") ?>
@@ -708,7 +708,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						if ($i)
 							$title .= ', ';
 						$pts = number_format($activePlayer['pts'],0,'.',($language ? ',':'&nbsp;'));
-						$title .= $activePlayer['nom'] .' ('. $pts .' pts)';
+						$title .= $activePlayer['nom'] .' ('. $pts .' pt'. (($pts != 1) ? 's':'') .')';
 						$i++;
 					}
 					echo '<span class="ranking_activeplayernb" title="'. $title .'">';
