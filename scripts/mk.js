@@ -17762,6 +17762,10 @@ function dropBoxDecorLoot(colAuthor, decor, landPos) {
 	let distrib = fixBoxDecorDistrib(decor[4]);
 	let throwDrop = decor[5];
 
+	// exit if item is spawned in hole
+	if (!throwDrop && tombe(landPos.x, landPos.y))
+		return;
+
 	// exit if distrib has no item
 	if (!distrib)
 		return;
@@ -17813,7 +17817,14 @@ function dropBoxDecorLoot(colAuthor, decor, landPos) {
 			if (itemType === "bobomb")
 				item.cooldown = 30;
 
-			dropNewItem(kartAuthor, item);
+			else if (itemType === "carapace-rouge") {
+				item.aipoint = -2;
+				item.aimap = -1;
+				item.ailap = 0;
+				item.target = -1;
+			}
+
+			addNewItem(kartAuthor, item);
 
 			if (throwDrop)
 				playDistSound(colAuthor, "musics/events/throw.mp3", 150);
