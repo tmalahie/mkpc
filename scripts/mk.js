@@ -14266,14 +14266,20 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (decorBehavior.shouldCollide && !decorBehavior.shouldCollide(oBox))
 						continue;
 
-					let fromSelf;
-					if (collisionTest === COL_KART && collisionPlayer === oPlayers[0]) {
+					let fromSelf = false;
+					if (collisionTest === COL_KART) {
 						if (collisionPlayer.boo)
 							continue;
-						fromSelf = true;
+
+						if (collisionPlayer === oPlayers[0] || collisionPlayer.controller === identifiant)
+							fromSelf = true;
 					}
-					else if (collisionTest === COL_OBJ && collisionItem && collisionItem.owner === oPlayers[0].id)
-						fromSelf = true;
+					else if (collisionTest === COL_OBJ && collisionItem) {
+						const kartOwner = aKarts.find(oKart => oKart.id === collisionItem.owner);
+
+						if (collisionItem.owner === oPlayers[0].id || kartOwner.controller === identifiant)
+							fromSelf = true;
+					}
 					
 					const collisionFrom = collisionTest === COL_KART ? collisionPlayer : collisionItem;
 					const clientSideDrop = !isOnline || (fromSelf && !onlineSpectatorId);
