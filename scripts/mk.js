@@ -8747,7 +8747,7 @@ var itemBehaviors = {
 						}
 
 						// if target doesn't have an item anymore, cancel Boo
-						else if (checkingTarget && fSprite.countdown === 1 && !stillHasItem && targetClientSide) {
+						else if (checkingTarget && fSprite.countdown === 1 && !isStillStealable && targetClientSide) {
 							fSprite.target = -1;
 							fSprite.cancel = true;
 							syncItems.push(fSprite);
