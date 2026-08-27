@@ -9672,7 +9672,7 @@ var itemBehaviors = {
 				if (fSprite.z < 12) {
 					while (touche_banane(fSprite.x, fSprite.y, owner.using, speedX, speedY));
 					while (touche_cverte(fSprite.x, fSprite.y, owner.using, fSprite.vx, fSprite.vy));
-					while (touche_crouge(fSprite.x, fSprite.y, owner.using, fSprite.vx, fSprite.vy));
+					while (touche_crouge(fSprite.x, fSprite.y, fSprite.z, owner.using, fSprite.vx, fSprite.vy));
 				}
 
 				// refresh SFX sound
