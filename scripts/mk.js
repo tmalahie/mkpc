@@ -17813,7 +17813,7 @@ function dropBoxDecorLoot(colAuthor, decor, landPos) {
 			if (itemType === "bobomb")
 				item.cooldown = 30;
 
-			addNewItem(kartAuthor, item);
+			dropNewItem(kartAuthor, item);
 
 			if (throwDrop)
 				playDistSound(colAuthor, "musics/events/throw.mp3", 150);
