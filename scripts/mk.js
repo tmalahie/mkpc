@@ -19588,7 +19588,7 @@ function move(getId, triggered) {
 							stopped = false;
 						break;
 					case "flippers":
-						if (hittable) {
+						if (hittable && !isBoo) {
 							loseBall(getId);
 							loseUsingItems(oKart);
 							oKart.spin(42);
@@ -19656,7 +19656,7 @@ function move(getId, triggered) {
 							}
 						}
 					}
-					if (hittable) {
+					if (hittable && !isBoo) {
 						decorHit = true;
 						loseUsingItem(oKart);
 					}
