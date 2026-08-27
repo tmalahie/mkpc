@@ -8032,7 +8032,7 @@ var itemBehaviors = {
 	},
 	"champi": {
 		size: 0.54,
-		sync: [floatType("x"),floatType("y"),floatType("z")],
+		sync: [floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
 		move: function(fSprite) {
 			if (fSprite.countdown)
@@ -8041,7 +8041,7 @@ var itemBehaviors = {
 	},
 	"etoile": {
 		size: 0.54,
-		sync: [floatType("x"),floatType("y"),floatType("z")],
+		sync: [floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
 		move: function(fSprite) {
 			if (fSprite.countdown)
@@ -8589,7 +8589,7 @@ var itemBehaviors = {
 	},
 	"carapace": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),floatType("theta"),intType("owner"),byteType("lives"),byteType("countdown")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
@@ -8802,7 +8802,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt"),intType("target")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),lapIdType("ailap"),byteType("ailapt"),intType("target"),byteType("countdown")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
