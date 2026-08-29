@@ -6305,9 +6305,28 @@ function reprendre(debug) {
 	}
 }
 
+function onlineExitLink() {
+	// ranked.php and the lounge both build their links as online.php?mid=...&ranked, so the
+	// way back is spelled the same rather than going through onlineModeLink(), whose param
+	// depends on the cup shape
+	if (isRanked)
+		return (shareLink && shareLink.key) ? ("online.php?mid=" + nid + "&ranked") : "mariokart.php";
+	if (!isCup)
+		return "index.php";
+	var exitPage = isBattle ? (complete ? "battle" : "arena") : (complete ? "map" : "circuit");
+	var idParam;
+	if (isMCups)
+		idParam = "mid";
+	else if (isSingle)
+		idParam = complete ? "i" : "id";
+	else
+		idParam = "cid";
+	return exitPage + ".php?" + idParam + "=" + nid;
+}
+
 function quitter() {
 	if (isOnline) {
-		document.location.href = isCup ? ((isBattle ? (complete ? 'battle':'arena') : (complete ? 'map':'circuit')) + '.php?' + (isMCups ? ('mid=' + nid) : ((isSingle ? (complete?'i':'id'):'cid')+'='+nid))) : 'index.php';
+		document.location.href = onlineExitLink();
 		return;
 	}
 	interruptGame();
@@ -29172,6 +29191,9 @@ function searchCourse(opts) {
 	var oAlert = document.createElement("input");
 	oAlert.type = "checkbox";
 	oAlert.id = "iAlert";
+	oAlert.onchange = function() {
+		if (this.checked) mkNotify.request();
+	};
 	oAlert.style.transform = oAlert.style.WebkitTransform = oAlert.style.MozTransform = "scale("+ (iScreenScale/6) +") translateY(8%)";
 	oAlert.style.transformOrigin = oAlert.style.WebkitTransformOrigin = oAlert.style.MozTransformOrigin = "bottom right";
 	oAlertCtn.appendChild(oAlert);
@@ -29283,18 +29305,20 @@ function searchCourse(opts) {
 						oScr.innerHTML = "";
 						oContainers[0].removeChild(oScr);
 						if (isAlert) {
-							var oMusicAlert = document.createElement("embed");
-							oMusicAlert.src = "musics/mkalert.wav";
-							oMusicAlert.setAttribute("loop", false);
-							oMusicAlert.setAttribute("autostart", true);
-							oMusicAlert.style.position = "absolute";
-							oMusicAlert.style.left = "-1000px";
-							oMusicAlert.style.top = "-1000px";
-							document.body.appendChild(oMusicAlert);
+							// alert() stays deferred while the tab is in the background, so the
+							// notification is what actually reaches a player who looked away.
+							mkNotify.fire({
+								title: toLanguage("Opponents have been found!", "Des adversaires ont \xE9t\xE9 trouv\xE9s !"),
+								body: toLanguage("Your online race is starting. Good luck!", "Votre course en ligne commence. Bonne chance !"),
+								flash: "\u25B6 " + toLanguage("Opponents found!", "Adversaires trouv\xE9s !"),
+								tag: "mkpc-online",
+								sound: "musics/mkalert.wav",
+								volume: vSfx
+							});
 							var sTime = new Date().getTime();
 							alert(toLanguage("Opponents have been found!\nGood luck!", "Des adversaires ont \xE9t\xE9 trouv\xE9s !\nBonne chance !"));
+							mkNotify.clear();
 							reponse.time -= Math.round((new Date().getTime()-sTime)/1000);
-							document.body.removeChild(oMusicAlert);
 						}
 						handleMatchmakingSuccess(reponse);
 					}

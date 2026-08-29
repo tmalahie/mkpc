@@ -50,6 +50,17 @@ export async function cleanupLoungeQueues(namePattern: string = SEEDED_ACCOUNT) 
      WHERE m.dropped_at IS NULL AND j.nom LIKE ?`,
     [namePattern]
   );
+  // Specs that stage a match never actually play it, so the join window expires and the
+  // lineup collects a no_show strike. Three of those ban the account for an hour, which
+  // wedges every later run - and unlike rating and mogis played, strikes and the ban are
+  // an artefact of the run rather than a record worth keeping.
+  await sql(
+    `UPDATE mklounge_players p
+     JOIN mkjoueurs j ON j.id = p.player
+     SET p.strikes = 0, p.banned_until = NULL
+     WHERE j.nom LIKE ?`,
+    [namePattern]
+  );
 }
 
 // Scoped by the bot prefix and the reserved key range rather than by what this run
@@ -73,6 +84,7 @@ export async function cleanupLoungeFixtures() {
   );
   await sql('DELETE FROM mklounge_matches WHERE privgame_key BETWEEN ? AND ?', range);
   await sql('DELETE FROM mklounge_queues WHERE privgame_key BETWEEN ? AND ?', range);
+  await sql('DELETE FROM mkprivgame WHERE id BETWEEN ? AND ?', range);
   await sql('DELETE FROM mkgamedata WHERE game BETWEEN ? AND ?', range);
   await sql('DELETE FROM mkgamerank WHERE game BETWEEN ? AND ?', range);
 }

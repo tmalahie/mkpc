@@ -283,6 +283,93 @@ a {
 	cursor: not-allowed;
 }
 
+.lounge-alerts {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: -8px 0 16px;
+}
+
+.lounge-alerts-toggle {
+	appearance: none;
+	background: #1f2128;
+	border: 1px solid #2a2c33;
+	border-radius: 999px;
+	color: #c9cbd3;
+	padding: 5px 8px 5px 11px;
+	font-size: 12px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: border-color 0.15s;
+}
+
+.lounge-alerts-toggle:hover {
+	border-color: #E65130;
+}
+
+.lounge-alerts-icon::before {
+	content: "\1F515";
+	font-size: 13px;
+}
+
+.lounge-alerts-toggle.is-on .lounge-alerts-icon::before {
+	content: "\1F514";
+}
+
+/* the label names the setting, the state word and the switch both report it */
+.lounge-alerts-state {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #8a8d96;
+}
+
+.lounge-alerts-toggle.is-on .lounge-alerts-state {
+	color: #f0c92e;
+}
+
+.lounge-alerts-switch {
+	flex: none;
+	width: 26px;
+	height: 14px;
+	border-radius: 7px;
+	background: #2a2c33;
+	border: 1px solid #3a3d45;
+	position: relative;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.lounge-alerts-switch::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #8a8d96;
+	transition: transform 0.15s, background 0.15s;
+}
+
+.lounge-alerts-toggle.is-on .lounge-alerts-switch {
+	background: #4a412a;
+	border-color: #6b5c33;
+}
+
+.lounge-alerts-toggle.is-on .lounge-alerts-switch::after {
+	background: #f0c92e;
+	transform: translateX(12px);
+}
+
+.lounge-alerts-hint {
+	color: #8a8d96;
+	font-size: 11px;
+	font-style: italic;
+}
+
 .lounge-waiting-note {
 	margin: 0;
 	color: #8a8d96;

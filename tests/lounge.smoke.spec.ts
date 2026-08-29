@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
 import { sql } from './helpers/db';
-import { cleanupLoungeQueues } from './helpers/lounge';
+import { cleanupLoungeQueues, LOUNGE_KEY_MIN } from './helpers/lounge';
 
 // One file on purpose. join.php puts a player into the tier's existing open queue, so
 // every test here shares that queue whichever account it uses - and Playwright can only
@@ -181,6 +181,33 @@ test('ranked entry picks a character then opens the lounge with it', async ({ pa
 	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
 });
 
+// quitter() sends the other online modes to the multicup page the game belongs to, which
+// is not where a ranked player came from: they came through the lounge.
+test('ranked exits step back to the lounge, then to the game menu', async ({ page }) => {
+	test.setTimeout(60000);
+	await uiLogin(page);
+	const circuitIds = await createCircuits(page.request, 2, OWNER);
+	const cupId = await createCup(page.request, { name: 'e2e-ranked-exit-cup', circuitIds, author: OWNER });
+	const mid = await createMulticup(page.request, { name: 'e2e-ranked-exit-mcup', cupIds: [cupId], author: OWNER });
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+
+	// the account is not in a match for this key, so the character screen is shown
+	// rather than skipped, which is where the Back button lives
+	const key = LOUNGE_KEY_MIN;
+	await sql('INSERT IGNORE INTO mkprivgame SET id = ?, player = 0', [key]);
+
+	await page.goto(`http://127.0.0.1:8080/online.php?mid=${mid}&ranked&key=${key}`);
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await page.locator('input[value="Back"]:visible').first().click();
+	await expect(page).toHaveURL(`http://127.0.0.1:8080/online.php?mid=${mid}&ranked`);
+
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await page.locator('input[value="Back"]:visible').first().click();
+	await expect(page).toHaveURL('http://127.0.0.1:8080/mariokart.php');
+
+	await sql('DELETE FROM mkprivgame WHERE id = ?', [key]);
+});
+
 test('leaderboard tab lists ranked players', async ({ page }) => {
 	await login(page);
 	await page.goto('http://127.0.0.1:8080/lounge.php');
@@ -211,6 +238,12 @@ async function joinAndStartVoting(page, tierCode: string) {
 	const queueId = (await joined.json()).queue.id;
 	await sql(`UPDATE mklounge_queues SET status = 'voting', ready_at = NOW() WHERE id = ?`, [queueId]);
 	return queueId;
+}
+
+// lounge_tick() piggybacks on any authenticated lounge endpoint.
+async function tick(page) {
+	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
+	expect((await res.json()).error).toBeUndefined();
 }
 
 async function rulesFor(queueId: number) {
@@ -271,6 +304,34 @@ test('the vote is incomplete until the POW choice is sent too', async ({ page })
 	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
 });
 
+// The official rules penalise drops and no-shows, never a missed vote, and a background
+// tab can throttle the poll past a 60s window - so the deadline falls back to whoever did
+// vote instead of cancelling the mogi and striking the rest of the lineup.
+test('a missed vote launches on the votes cast rather than striking', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [before]: any = await sql(
+		`SELECT strikes FROM mklounge_players WHERE player = ? AND season = 1`, [playerId]
+	);
+
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+	await tick(page);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const [match]: any = await sql(`SELECT mode, pow FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.mode).toBe('FFA');
+	// nobody agreed, so the POW Block stays out
+	expect(match.pow).toBe(0);
+
+	const [after]: any = await sql(
+		`SELECT strikes FROM mklounge_players WHERE player = ? AND season = 1`, [playerId]
+	);
+	expect(after?.strikes ?? 0).toBe(before?.strikes ?? 0);
+});
+
 test('the vote screen groups the mode and item choices', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
@@ -301,6 +362,112 @@ test('the vote screen groups the mode and item choices', async ({ page }) => {
 	expect(member.voted_pow).toBeNull();
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('the waiting screen offers an alert opt-in that survives a reload', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	const toggle = page.locator('.lounge-alerts-toggle');
+	await expect(toggle).toBeVisible();
+	// the label names the setting and the state word reports it, so neither reads as a
+	// call to action that could be mistaken for "alerts are off, click to enable"
+	await expect(toggle.locator('.lounge-alerts-label')).toHaveText('Match alerts');
+	// on by default: a queued player is expected to look away while waiting
+	await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+	await expect(toggle.locator('.lounge-alerts-state')).toHaveText('On');
+
+	// permission was never granted here, so the fallback hint stands while alerts are on
+	await expect(page.locator('.lounge-alerts-hint')).toBeVisible();
+
+	await page.locator('.lounge-alerts-toggle').click();
+	await expect(page.locator('.lounge-alerts-toggle')).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.locator('.lounge-alerts-state')).toHaveText('Off');
+	// and it goes away with them, rather than lingering from the previous state
+	await expect(page.locator('.lounge-alerts-hint')).toHaveCount(0);
+
+	await page.reload();
+	await expect(page.locator('.lounge-alerts-toggle')).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.locator('.lounge-alerts-state')).toHaveText('Off');
+
+	await page.evaluate(() => localStorage.removeItem('lounge.alerts'));
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+});
+
+// The whole point of the notification is to reach a player who is not looking at the tab,
+// which is exactly the case alert() cannot serve.
+test('a status change alerts a player whose tab is in the background', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await page.context().grantPermissions(['notifications'], { origin: 'http://127.0.0.1:8080' });
+	await page.addInitScript(() => {
+		(window as any).__notifications = [];
+		document.hasFocus = () => false;
+		(window as any).Notification = function(title: string, opts: any) {
+			(window as any).__notifications.push({ title, body: opts.body });
+		};
+		(window as any).Notification.permission = 'granted';
+	});
+
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	const queueId = (await joined.json()).queue.id;
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-alerts-toggle')).toBeVisible();
+	// the state the page opened on is not an update, so it must not alert
+	expect(await page.evaluate(() => (window as any).__notifications.length)).toBe(0);
+
+	// locked_at stays null so lounge_tick() leaves the queue sitting in this state
+	await sql(`UPDATE mklounge_queues SET status = 'locked' WHERE id = ?`, [queueId]);
+
+	await expect
+		.poll(() => page.evaluate(() => (window as any).__notifications), { timeout: 10000 })
+		.toHaveLength(1);
+	const [notification]: any = await page.evaluate(() => (window as any).__notifications);
+	expect(notification.title).toContain('Lineup complete');
+
+	// and the tab title carries the same alert for anyone who denied permission
+	await expect.poll(() => page.title(), { timeout: 5000 }).toContain('Lineup complete');
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+});
+
+test('leaving the page while queued is guarded, and released on drop', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-alerts-toggle')).toBeVisible();
+	// Chrome only raises the dialog for a frame the player has interacted with
+	await page.locator('.lounge-tab[data-tab="queueup"]').click();
+
+	const guardedWhileQueued = await page.evaluate(() => {
+		const event = new Event('beforeunload', { cancelable: true });
+		window.dispatchEvent(event);
+		return event.defaultPrevented;
+	});
+	expect(guardedWhileQueued).toBe(true);
+
+	// dropping releases it, so a player who left the queue is not nagged
+	await page.locator('.lounge-drop').click();
+	await expect(page.locator('.lounge-tier').first()).toBeVisible();
+	const guardedAfterDrop = await page.evaluate(() => {
+		const event = new Event('beforeunload', { cancelable: true });
+		window.dispatchEvent(event);
+		return event.defaultPrevented;
+	});
+	expect(guardedAfterDrop).toBe(false);
 });
 
 test('a unanimous yes puts the POW Block in the item distribution', async ({ page }) => {
