@@ -84,6 +84,14 @@ $logMapping = array(
         'render' => _('unbanned member ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
+    'Unwarn' => array(
+        'render' => _('removed the warning of member ') . $logTemplates['member']('$1'),
+        'role' => 'moderator'
+    ),
+    'SSanction' => array(
+        'render' => _('removed sanction #$1 from a member\'s infraction log'),
+        'role' => 'moderator'
+    ),
     'CBan' => array(
         'render' => _('banned member ') . '<a href="{{table.mkclbans(id=$1).link}}">{{table.mkclbans(id=$1).username|global.ifNull("<em>'._('Deleted ban').'</em>")}}</a> ' . _('from challenges'),
         'role' => 'clvalidator'
@@ -313,6 +321,14 @@ $logMapping = array(
     ),
     'Unblacklist' => array(
         'render' => _('removed word #$1 from list of forbidden words'),
+        'role' => 'moderator'
+    ),
+    'NBlacklist' => array(
+        'render' => _('added ') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the forbidden usernames list'),
+        'role' => 'moderator'
+    ),
+    'NUnblacklist' => array(
+        'render' => _('removed word #$1 from list of forbidden usernames'),
         'role' => 'moderator'
     ),
     'MCup' => array(

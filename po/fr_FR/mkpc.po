@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-11 00:34+0100\n"
+"POT-Creation-Date: 2026-08-28 23:55+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -17,6 +17,52 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
+
+#: php/includes/home-utils.php
+msgid "Latest message by <strong>{message}</strong>"
+msgstr "Dernier message par <strong>{message}</strong>"
+
+#: php/includes/home-utils.php
+#, php-format
+msgid "Latest message"
+msgstr "Dernier message"
+
+#: php/includes/home-utils.php php/pages/forum.php
+msgid "{count} message"
+msgid_plural "{count} messages"
+msgstr[0] "{count} message"
+msgstr[1] "{count} messages"
+
+#: php/includes/home-utils.php
+#, php-format
+msgctxt "Categories"
+msgid "In <strong>%s</strong> by <strong>%s</strong>"
+msgstr "Dans <strong>%s</strong> par <strong>%s</strong>"
+
+#: php/includes/home-utils.php
+#, php-format
+msgctxt "Categories"
+msgid "In <strong>%s</strong>"
+msgstr "Par <strong>%s</strong>"
+
+#: php/includes/home-utils.php
+msgid "{count} comment"
+msgid_plural "{count} comments"
+msgstr[0] "{count} message"
+msgstr[1] "{count} messages"
+
+#: php/includes/home-utils.php php/pages/admin-logs.php php/pages/index.php
+msgid "Untitled"
+msgstr "Sans titre"
+
+#: php/includes/home-utils.php
+msgid "By <strong>{author}</strong>"
+msgstr "Par <strong>{author}</strong>"
+
+#: php/includes/home-utils.php
+msgctxt "language for ordinals"
+msgid "en"
+msgstr "fr"
 
 #: php/includes/moderate-player.php php/pages/challengesBan.php
 #: php/pages/edit.php php/pages/edittopic.php php/pages/newtopic.php
@@ -156,10 +202,6 @@ msgstr "Retour à la liste des news"
 msgid "Deleted award"
 msgstr "Titre supprimé"
 
-#: php/pages/admin-logs.php php/pages/index.php
-msgid "Untitled"
-msgstr "Sans titre"
-
 #: php/pages/admin-logs.php
 msgid "Deleted account"
 msgstr "Compte supprimé"
@@ -219,6 +261,14 @@ msgstr "a averti le membre "
 #: php/pages/admin-logs.php
 msgid "unbanned member "
 msgstr "a débanni le membre "
+
+#: php/pages/admin-logs.php
+msgid "removed the warning of member "
+msgstr "a retiré l'avertissement du membre "
+
+#: php/pages/admin-logs.php
+msgid "removed sanction #$1 from a member's infraction log"
+msgstr "a retiré la sanction #$1 de l'historique des sanctions d'un membre"
 
 #: php/pages/admin-logs.php
 msgid "Deleted ban"
@@ -405,6 +455,14 @@ msgid "removed word #$1 from list of forbidden words"
 msgstr "a retiré le mot #$1 de la liste des mots interdits"
 
 #: php/pages/admin-logs.php
+msgid " to the forbidden usernames list"
+msgstr " à la liste des pseudos interdits"
+
+#: php/pages/admin-logs.php
+msgid "removed word #$1 from list of forbidden usernames"
+msgstr "a retiré le mot #$1 de la liste des pseudos interdits"
+
+#: php/pages/admin-logs.php
 msgid "deleted multicup #$1"
 msgstr "a supprimé la multicoupe #$1"
 
@@ -541,6 +599,18 @@ msgid "To monitor people who would abuse of this option."
 msgstr "Pour surveiller les membres qui abuseraient de cette option."
 
 #: php/pages/admin.php
+msgid "Manage <strong>forbidden words</strong> in usernames"
+msgstr "Gérer les <strong>mots interdits</strong> dans les pseudos"
+
+#: php/pages/admin.php
+msgid ""
+"Members can no longer register nor rename themselves with a username "
+"containing one of these words"
+msgstr ""
+"Les membres ne peuvent plus s'inscrire ni se renommer avec un pseudo "
+"contenant un de ces mots"
+
+#: php/pages/admin.php
 msgid "Give / Remove <strong>points</strong> in <strong>online mode</strong>"
 msgstr ""
 "Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</"
@@ -593,6 +663,18 @@ msgid ""
 msgstr ""
 "Avertir un membre d'un comportement inapproprié, ou le bannir en cas de "
 "récidive. Les membres bannis ne peuvent plus rien poster sur le site"
+
+#: php/pages/admin.php
+msgid "See a member's <strong>infraction log</strong>"
+msgstr "Voir l'<strong>historique des sanctions</strong> d'un membre"
+
+#: php/pages/admin.php
+msgid ""
+"Every warn and ban a member has received, including the ones already lifted "
+"or expired"
+msgstr ""
+"Tous les avertissements et bans reçus par un membre, y compris ceux déjà "
+"retirés ou expirés"
 
 #: php/pages/admin.php php/pages/index.php
 msgid "Online mode"
@@ -899,12 +981,6 @@ msgstr ""
 "Le forum comptabilise <strong>{nbMessages} messages</strong> répartis dans "
 "<strong>{nbTopics} topics</strong> et postés par <strong>{nbPosters} "
 "membres</strong>."
-
-#: php/pages/forum.php php/pages/index.php
-msgid "{count} message"
-msgid_plural "{count} messages"
-msgstr[0] "{count} message"
-msgstr[1] "{count} messages"
 
 #: php/pages/forum.php
 msgid ""
@@ -1290,39 +1366,12 @@ msgid "Latest topics"
 msgstr "Derniers topics"
 
 #: php/pages/index.php
-msgid "Latest message by <strong>{message}</strong>"
-msgstr "Dernier message par <strong>{message}</strong>"
-
-#: php/pages/index.php
-#, php-format
-msgid "Latest message"
-msgstr "Dernier message"
-
-#: php/pages/index.php
 msgid "Go to the forum"
 msgstr "Accéder au forum"
 
 #: php/pages/index.php
 msgid "Latest news"
 msgstr "Dernières news"
-
-#: php/pages/index.php
-#, php-format
-msgctxt "Categories"
-msgid "In <strong>%s</strong> by <strong>%s</strong>"
-msgstr "Dans <strong>%s</strong> par <strong>%s</strong>"
-
-#: php/pages/index.php
-#, php-format
-msgctxt "Categories"
-msgid "In <strong>%s</strong>"
-msgstr "Par <strong>%s</strong>"
-
-#: php/pages/index.php
-msgid "{count} comment"
-msgid_plural "{count} comments"
-msgstr[0] "{count} message"
-msgstr[1] "{count} messages"
 
 #: php/pages/index.php
 msgid "No news yet"
@@ -1345,10 +1394,6 @@ msgid "Latest creations"
 msgstr "Dernières créations"
 
 #: php/pages/index.php
-msgid "By <strong>{author}</strong>"
-msgstr "Par <strong>{author}</strong>"
-
-#: php/pages/index.php
 msgid "Display all"
 msgstr "Afficher tout"
 
@@ -1369,11 +1414,6 @@ msgstr "Classement des points défis"
 #: php/pages/index.php
 msgid "Recent activity"
 msgstr "Activité récente"
-
-#: php/pages/index.php
-msgctxt "language for ordinals"
-msgid "en"
-msgstr "fr"
 
 #: php/pages/index.php
 msgid "Mirror"

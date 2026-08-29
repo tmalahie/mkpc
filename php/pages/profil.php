@@ -292,7 +292,7 @@ include('../includes/menu.php');
 				<div class="player-followers">
 				<?php
 				require_once('../includes/banUtils.php');
-				$followedUsers = mysql_fetch_array(mysql_query('SELECT COALESCE(SUM('. notPermanentlyBannedCondition() .'),0) AS nb, '.($id?'SUM(f.follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` f'. notPermanentlyBannedJoin('f.follower') .' WHERE f.followed="'. $profileId .'"'));
+				$followedUsers = mysql_fetch_array(mysql_query('SELECT COALESCE(SUM('. visibleFollowerCondition() .'),0) AS nb, '.($id?'SUM(f.follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` f'. visibleFollowerJoin('f.follower') .' WHERE f.followed="'. $profileId .'"'));
 				$s = plural($followedUsers['nb']);
 				$view = $language ? 'View' : 'Voir';
 				echo '<img src="images/followers.png" alt="Followers" />';

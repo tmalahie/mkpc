@@ -338,7 +338,7 @@
 						break;
 					case 'new_followuser' :
 						require_once('banUtils.php');
-						if (($getFollower = mysql_fetch_array(mysql_query('SELECT * FROM `mkfollowusers` WHERE follower="'. $myNotif['link'] .'" AND followed="'. $id .'"'))) && !isPermanentlyBanned($getFollower['follower'])) {
+						if (($getFollower = mysql_fetch_array(mysql_query('SELECT * FROM `mkfollowusers` WHERE follower="'. $myNotif['link'] .'" AND followed="'. $id .'"'))) && isVisibleFollower($getFollower['follower'])) {
 							$notifData['link'] = 'listFollowers.php';
 							$notifData['sender'] = $getFollower['follower'];
 						}

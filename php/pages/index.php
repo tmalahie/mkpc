@@ -357,7 +357,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		<div class="subsection">
 		<?php
 		if ($id) {
-			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
+			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'" AND (end_date IS NULL OR end_date>=CURDATE())'))) && !$getWarn['seen']) {
 				?>
 				<div class="warning-top-message">
 					<?= F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>

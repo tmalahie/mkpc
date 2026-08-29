@@ -39,7 +39,7 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	$new = $_POST['newpseudo'];
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $old .'"'))) {
 		include('../includes/utils-nicks.php');
-		$success = editNick($getId['id'],$old,$new,$message);
+		$success = editNick($getId['id'],$old,$new,$message,true);
 		if ($success)
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "nick '. $getId['id'] .' '. $old .'")');
 	}
