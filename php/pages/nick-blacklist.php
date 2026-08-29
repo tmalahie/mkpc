@@ -189,7 +189,7 @@ if ($checkWord !== null) {
                     <td class="match-status<?php if ($inactive) echo ' match-inactive'; ?>"><?php
                     echo $status;
                     if ($match['last_connect'] && !$inactive)
-                        echo '<span class="match-seen">'. ($language ? ('Last activity: '.$match['last_connect']) : ('Dernière activité : ' . preg_replace('#^(\d{4})-(\d{2})-(\d{2})$#', '$3/$2/$1', $match['last_connect'])) .'</span>');
+                        echo '<span class="match-seen">'. ($language ? ('Last activity: '.$match['last_connect']) : ('Dernière activité : ' . preg_replace('#^(\d{4})-(\d{2})-(\d{2})$#', '$3/$2/$1', $match['last_connect']))) .'</span>';
                     ?></td>
                     <td class="options-cell"><?php
                     if (!$match['deleted']) {
