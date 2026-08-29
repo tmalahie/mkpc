@@ -212,6 +212,15 @@ CREATE TABLE `mkbadmsglog` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mkbadnicks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `word` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `word` (`word`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkbadwords` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `word` varchar(255) NOT NULL,
@@ -1520,6 +1529,20 @@ CREATE TABLE `mksaves` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mksanctions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `player` int(11) NOT NULL,
+  `moderator` int(11) DEFAULT NULL,
+  `type` enum('warn','tempban','ban') NOT NULL,
+  `reason` text DEFAULT NULL,
+  `sanction_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `end_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `player` (`player`,`sanction_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mksessionstorage` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
@@ -1668,6 +1691,7 @@ CREATE TABLE `mkwarns` (
   `player` int(11) NOT NULL AUTO_INCREMENT,
   `msg` text NOT NULL,
   `warn_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `end_date` date DEFAULT NULL,
   `seen` tinyint(1) NOT NULL,
   PRIMARY KEY (`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

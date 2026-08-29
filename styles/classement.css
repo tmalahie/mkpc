@@ -153,3 +153,9 @@ main a:hover {
 .action_button.action_delete:hover {
 	background-color: #820;
 }
+.action_button.action_warning {
+	background-color: #F90;
+}
+.action_button.action_warning:hover {
+	background-color: #F60;
+}

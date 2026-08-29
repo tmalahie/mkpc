@@ -1,4 +1,6 @@
 <?php
+require_once('banUtils.php');
+liftExpiredSanctions($id);
 $getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
 $isBanned = mysql_fetch_array($getBanned);
 if ($isBanned && $isBanned['banned']) {
@@ -55,7 +57,7 @@ if ($isBanned && $isBanned['banned']) {
 		<?php
 	}
 }
-elseif ($getWarnMsg = mysql_fetch_array(mysql_query('SELECT msg FROM mkwarns WHERE player='. $id .' AND msg!=""'))) {
+elseif ($getWarnMsg = mysql_fetch_array(mysql_query('SELECT msg FROM mkwarns WHERE player='. $id .' AND msg!="" AND (end_date IS NULL OR end_date>=CURDATE())'))) {
 	?>
 	<?php
 	if ($language) {

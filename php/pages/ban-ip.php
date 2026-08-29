@@ -72,6 +72,7 @@ if (isset($_GET['ip1'])) {
 		<a href="warn-player.php"><?php echo $language ? 'Warned members':'Membres avertis'; ?></a>
 		<a href="ban-player.php"><?php echo $language ? 'Banned members':'Membres bannis'; ?></a>
 		<span><?php echo $language ? 'Banned IPs':'IP bannies'; ?></span>
+		<a href="sanction-logs.php"><?php echo $language ? 'Infraction log':'Historique des sanctions'; ?></a>
 	</div>
 	<h2><?php echo $language ? 'Banned IPs':'Liste des IP bannies'; ?></h2>
 	<p>

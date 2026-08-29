@@ -13,6 +13,9 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+require_once('banUtils.php');
+liftExpiredSanctions();
+$defaultWarnEnd = date('Y-m-d', strtotime('+14 days'));
 $autocompleteNick = '';
 if (isset($_GET['member'])) {
 	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['member'] .'"')))
@@ -91,11 +94,13 @@ if ($ban) {
             $ban = $getId['nom'];
         switch ($action) {
         case 'ban':
+            $banEndDate = empty($_POST['ban_until_date']) ? null:$_POST['ban_until_date'];
             mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
             mysql_query('DELETE FROM `mkbans` WHERE player="'. $getId['id'] .'"');
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
-            mysql_query('INSERT INTO `mkbans` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'"'. (!empty($_POST['ban_until_date']) ? ',end_date="'. $_POST['ban_until_date'] .'"':''));
+            mysql_query('INSERT INTO `mkbans` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'"'. ($banEndDate ? ',end_date="'. $banEndDate .'"':''));
             mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
+            addSanction($getId['id'], $id, $banEndDate ? 'tempban':'ban', $_POST['msg'], $banEndDate);
             if (isset($_POST['ip'])) {
                 $getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
                 mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
@@ -115,9 +120,11 @@ if ($ban) {
             }
             break;
         case 'warn':
+            $warnEndDate = (isset($_POST['warn_until']) && !empty($_POST['warn_until_date'])) ? $_POST['warn_until_date']:null;
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
-            mysql_query('INSERT INTO `mkwarns` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'",seen=0');
+            mysql_query('INSERT INTO `mkwarns` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'",seen=0'. ($warnEndDate ? ',end_date="'. $warnEndDate .'"':''));
             mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Warn '. $getId['id'] .'")');
+            addSanction($getId['id'], $id, 'warn', $_POST['msg'], $warnEndDate);
             break;
         }
 	}
@@ -217,6 +224,7 @@ if ($unban) {
         }
         ?>
 		<a href="ban-ip.php"><?php echo $language ? 'Banned IPs':'IP bannies'; ?></a>
+		<a href="sanction-logs.php"><?php echo $language ? 'Infraction log':'Historique des sanctions'; ?></a>
 	</div>
 	<form method="post" action="<?php echo $action; ?>-player.php">
 	<blockquote>
@@ -239,6 +247,11 @@ if ($unban) {
                 <label><input type="checkbox" name="ban_until" onclick="hanleBanUntil(this.checked)" /> <?php echo $language ? "Ban until:":"Bannir jusqu'à :"; ?> <input type="date" name="ban_until_date" disabled /></label><br />
                 <label><input type="checkbox" name="ip" /> <?php echo $language ? 'Also ban IP address':'Bannir également l\'adresse IP'; ?></label><br />
                 <label><input type="checkbox" name="full_delete" /> <?php echo $language ? 'Delete all messages from member':'Supprimer les messages du membre'; ?></label><br />
+                <?php
+            }
+            else {
+                ?>
+                <label><input type="checkbox" name="warn_until" checked="checked" onclick="handleWarnUntil(this.checked)" /> <?php echo $language ? 'Warning expires on:':'Avertissement expire le :'; ?> <input type="date" name="warn_until_date" value="<?php echo $defaultWarnEnd; ?>" required="required" /></label><br />
                 <?php
             }
             ?>
@@ -266,10 +279,7 @@ if ($unban) {
 	<tr id="titres">
 	<td><?php echo $language ? 'Username':'Pseudo'; ?></td>
 	<td>Message</td>
-	<?php
-    if ($action === 'ban')
-        echo '<td>'. ($language ? 'End date':'Date de fin') .'</td>';
-    ?>
+	<td><?php echo $language ? 'End date':'Date de fin'; ?></td>
 	<td><?php
     switch ($action) {
     case 'ban':
@@ -286,7 +296,7 @@ if ($unban) {
         $bannished = mysql_query('SELECT j.id,j.nom,b.msg,b.end_date FROM `mkjoueurs` j LEFT JOIN `mkbans` b ON j.id=b.player WHERE j.banned ORDER BY b.ban_date DESC,j.id DESC');	
         break;
     case 'warn':
-        $bannished = mysql_query('SELECT j.id,j.nom,w.msg FROM `mkwarns` w INNER JOIN `mkjoueurs` j ON j.id=w.player ORDER BY w.warn_date DESC,j.id DESC');
+        $bannished = mysql_query('SELECT j.id,j.nom,w.msg,w.end_date FROM `mkwarns` w INNER JOIN `mkjoueurs` j ON j.id=w.player WHERE w.end_date IS NULL OR w.end_date>=CURDATE() ORDER BY w.warn_date DESC,j.id DESC');
         break;
     }
 	function controlLength($str,$maxLength) {
@@ -302,10 +312,7 @@ if ($unban) {
 		<td title="<?php if ($joueur['msg']) echo htmlspecialchars($joueur['msg']); ?>"><?php
 			if ($joueur['msg']) echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>
-		<?php
-        if ($action === 'ban')
-            echo '<td>'. $joueur['end_date'] .'</td>';
-        ?>
+		<td><?php echo $joueur['end_date'] ? $joueur['end_date']:($language ? 'Never':'Jamais'); ?></td>
 		<td><a href="?unban=<?php echo $joueur['id']; ?>" class="action_button"><?php
         switch ($action) {
         case 'ban':
@@ -338,6 +345,11 @@ autocompletePlayer('#joueur', {
 });
 function showBanFormDetails() {
     $("#ban_msg").show("fast");
+}
+function handleWarnUntil(checked) {
+	var $warnUntilDate = $('input[name="warn_until_date"]');
+	$warnUntilDate.prop("disabled", !checked);
+	$warnUntilDate.prop("required", checked);
 }
 function hanleBanUntil(checked) {
 	var $banUntilDate = $('input[name="ban_until_date"]');

@@ -106,6 +106,12 @@ include('../includes/menu.php');
 				<div class="action-desc"><?= _("To monitor people who would abuse of this option.") ?></div>
 			</a>
 		</li>
+		<li>
+			<a class="action-ctn" href="nick-blacklist.php">
+				<div class="action-title"><?= _("Manage <strong>forbidden words</strong> in usernames") ?></div>
+				<div class="action-desc"><?= _("Members can no longer register nor rename themselves with a username containing one of these words") ?></div>
+			</a>
+		</li>
 			<?php
 		}
 		if (hasRight('organizer')) {
@@ -148,6 +154,12 @@ include('../includes/menu.php');
 			<a class="action-ctn" href="ban-player.php">
 				<div class="action-title"><?= _("<strong>Ban</strong> or <strong>warn</strong> a member") ?></div>
 				<div class="action-desc"><?= _("Warn a user for innapropriate behavior, or ban them if he persists. Banned members are unable to post anything on the site") ?></div>
+			</a>
+		</li>
+		<li>
+			<a class="action-ctn" href="sanction-logs.php">
+				<div class="action-title"><?= _("See a member's <strong>infraction log</strong>") ?></div>
+				<div class="action-desc"><?= _("Every warn and ban a member has received, including the ones already lifted or expired") ?></div>
 			</a>
 		</li>
 			<?php
