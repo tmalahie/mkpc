@@ -704,24 +704,6 @@ function lounge_apply_mmr($matchId) {
 	return true;
 }
 
-function lounge_cancel_voting($queueId, $reason) {
-	$nonVoters = mysql_query(
-		'SELECT player FROM `mklounge_queue_members`
-		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL AND (voted_mode IS NULL OR voted_pow IS NULL)'
-	);
-	while ($r = mysql_fetch_array($nonVoters)) {
-		lounge_add_strike($r['player'], 'vote_timeout');
-	}
-	mysql_query(
-		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
-		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
-	);
-	mysql_query(
-		'UPDATE `mklounge_queues` SET status="cancelled"
-		WHERE id="'. intval($queueId) .'"'
-	);
-}
-
 function lounge_queue_min_players($queueId) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT t.min_players FROM `mklounge_queues` q
@@ -830,16 +812,9 @@ function lounge_tick() {
 		AND ready_at IS NOT NULL
 		AND ready_at < (NOW() - INTERVAL '. intval(LOUNGE_VOTE_WAIT_SECONDS) .' SECOND)'
 	);
+	// The official rules never penalise a missed vote, so the deadline just falls back to
+	// the majority of the players who did vote rather than cancelling on the whole lineup.
 	while ($row = mysql_fetch_array($voteDeadlines)) {
-		$queueId = intval($row['id']);
-		$missing = mysql_fetch_array(mysql_query(
-			'SELECT COUNT(*) AS n FROM `mklounge_queue_members`
-			WHERE queue="'. $queueId .'" AND dropped_at IS NULL AND (voted_mode IS NULL OR voted_pow IS NULL)'
-		));
-		if ($missing && intval($missing['n']) > 0) {
-			lounge_cancel_voting($queueId, 'vote_timeout');
-		} else {
-			lounge_launch_match($queueId);
-		}
+		lounge_launch_match(intval($row['id']));
 	}
 }
