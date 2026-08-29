@@ -16,6 +16,7 @@ var mResultKey = <?php echo isset($_GET['key']) ? intval($_GET['key']) : 'null';
 var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\-]#', '', $_GET['perso'])) : 'null'; ?>;
 </script>
 <script type="text/javascript" src="scripts/xhr.js"></script>
+<script type="text/javascript" src="scripts/notify.js"></script>
 <script type="text/javascript" src="scripts/lounge.js?reload=1" defer></script>
 </head>
 <body>
@@ -60,7 +61,7 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 		<ul>
 			<li><strong>Tiers</strong> are based on your MMR. The "All" tier is open to everyone.</li>
 			<li><strong>Mogis</strong> last 12 races and start once 4&ndash;8 players are queued.</li>
-			<li><strong>Strikes</strong> are given for AFK / not voting / leaving mid-game. Too many strikes lead to a temporary ban.</li>
+			<li><strong>Strikes</strong> are given for AFK or leaving mid-game. Too many strikes lead to a temporary ban.</li>
 			<li><strong>MMR</strong> is computed at the end of each mogi from your final standing.</li>
 		</ul>
 		<?php } else { ?>
@@ -68,7 +69,7 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 		<ul>
 			<li>Les <strong>tiers</strong> sont bas&eacute;s sur votre MMR. Le tier "All" est ouvert &agrave; tous.</li>
 			<li>Un <strong>mogi</strong> dure 12 courses et d&eacute;marre d&egrave;s que 4 &agrave; 8 joueurs sont en file.</li>
-			<li>Des <strong>strikes</strong> sont donn&eacute;s pour AFK, vote manqu&eacute; ou abandon en cours de partie. Trop de strikes entra&icirc;nent un bannissement temporaire.</li>
+			<li>Des <strong>strikes</strong> sont donn&eacute;s pour AFK ou abandon en cours de partie. Trop de strikes entra&icirc;nent un bannissement temporaire.</li>
 			<li>Le <strong>MMR</strong> est calcul&eacute; en fin de mogi selon votre classement final.</li>
 		</ul>
 		<?php } ?>
