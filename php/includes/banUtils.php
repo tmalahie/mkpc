@@ -18,6 +18,7 @@ function liftExpiredSanctions($player=null) {
 	mysql_query('DELETE FROM `mkwarns` WHERE end_date IS NOT NULL AND end_date<CURDATE()'. $playerFilter);
 	$banFilter = ($player === null) ? '':' AND b.player="'. $player .'"';
 	mysql_query('UPDATE `mkjoueurs` j INNER JOIN `mkbans` b ON j.id=b.player SET j.banned=0 WHERE b.end_date IS NOT NULL AND b.end_date<CURDATE()'. $banFilter);
+	mysql_query('DELETE i FROM `ip_bans` i INNER JOIN `mkbans` b ON b.player=i.player WHERE b.end_date IS NOT NULL AND b.end_date<CURDATE()'. $banFilter);
 	mysql_query('DELETE FROM `mkbans` WHERE end_date IS NOT NULL AND end_date<CURDATE()'. $playerFilter);
 }
 function addSanction($player, $moderator, $type, $reason, $endDate=null) {
