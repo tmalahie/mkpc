@@ -12,6 +12,11 @@
 	// Kept out of the DOM so a poll-driven re-render does not wipe a pending choice.
 	var powChoice = null;
 
+	var ALERT_SOUND = 'musics/events/ctalert.mp3';
+	var ALERT_STORAGE_KEY = 'lounge.alerts';
+	var announcedStatus = null;
+	var unloadGuarded = false;
+
 	function toLanguage(en, fr) {
 		return language ? en : fr;
 	}
@@ -207,6 +212,7 @@
 		var body = 'tier=' + encodeURIComponent(tierId);
 		if (mPerso)
 			body += '&perso=' + encodeURIComponent(mPerso);
+		requestAlertPermission();
 		postJSON('lounge/join.php', body, function(data) {
 			actionInFlight = false;
 			if (data.error) {
@@ -228,9 +234,153 @@
 		}
 	}
 
+	// Closing the tab mid-queue leaves a ghost in the lineup, so warn on the way out. The
+	// handler goes on the game page too: this runs in an overlay iframe, and Chrome only
+	// raises the dialog for a frame the player has actually interacted with.
+	function unloadGuardTargets() {
+		var targets = [window];
+		try {
+			if (window.top !== window && window.top.document) targets.push(window.top);
+		}
+		catch (e) {}
+		return targets;
+	}
+
+	function onBeforeUnload(e) {
+		var message = toLanguage(
+			'You are queued for a ranked mogi. Leaving now will drop you from the lineup.',
+			'Vous êtes en file pour un mogi classé. Partir maintenant vous retirera de la partie.'
+		);
+		e.preventDefault();
+		e.returnValue = message;
+		return message;
+	}
+
+	function setUnloadGuard(on) {
+		if (on === unloadGuarded) return;
+		unloadGuarded = on;
+		var targets = unloadGuardTargets();
+		for (var i = 0; i < targets.length; i++) {
+			if (on) targets[i].addEventListener('beforeunload', onBeforeUnload);
+			else targets[i].removeEventListener('beforeunload', onBeforeUnload);
+		}
+	}
+
+	// the overlay can be closed without unloading the game page, which would strand the
+	// handler we put on it
+	window.addEventListener('pagehide', function() { setUnloadGuard(false); });
+
+	function alertsEnabled() {
+		try { return localStorage.getItem(ALERT_STORAGE_KEY) !== '0'; }
+		catch (e) { return true; }
+	}
+
+	function setAlertsEnabled(on) {
+		try { localStorage.setItem(ALERT_STORAGE_KEY, on ? '1' : '0'); } catch (e) {}
+	}
+
+	function alertVolume() {
+		try {
+			var settings = JSON.parse(localStorage.getItem('settings.vol'));
+			if (settings && settings.sfx != null) return settings.sfx;
+		} catch (e) {}
+		return 1;
+	}
+
+	var STATUS_ALERTS = {
+		locked: {
+			title: ['Lineup complete', 'File complète'],
+			body: ['Everyone is here — the mode vote is about to open.', 'Tout le monde est là — le vote du mode va s\'ouvrir.']
+		},
+		voting: {
+			title: ['Time to vote!', 'À vous de voter !'],
+			body: ['Pick the game mode before the timer runs out.', 'Choisissez le mode de jeu avant la fin du chrono.']
+		},
+		launched: {
+			title: ['The race is starting!', 'La course commence !'],
+			body: ['Your mogi is launching — get back to the game.', 'Votre mogi se lance — revenez sur le jeu.']
+		}
+	};
+
+	function announceStatus(status) {
+		if (announcedStatus === status) return;
+		var wasKnown = (announcedStatus !== null);
+		announcedStatus = status;
+		if (!wasKnown || !STATUS_ALERTS[status] || !alertsEnabled()) return;
+		var alertData = STATUS_ALERTS[status];
+		mkNotify.fire({
+			title: 'CT Lounge — ' + toLanguage(alertData.title[0], alertData.title[1]),
+			body: toLanguage(alertData.body[0], alertData.body[1]),
+			flash: '\u25B6 ' + toLanguage(alertData.title[0], alertData.title[1]),
+			tag: 'lounge-queue',
+			sound: ALERT_SOUND,
+			volume: alertVolume()
+		});
+	}
+
+	function renderAlertToggle() {
+		var row = document.createElement('div');
+		row.className = 'lounge-alerts';
+		var toggle = document.createElement('button');
+		var on = alertsEnabled();
+		toggle.type = 'button';
+		toggle.className = 'lounge-alerts-toggle' + (on ? ' is-on' : '');
+		toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+		toggle.title = toLanguage(
+			'Plays a sound, shows a notification and flashes the tab title when the queue moves on.',
+			'Joue un son, affiche une notification et fait clignoter le titre de l\'onglet quand la file avance.'
+		);
+		toggle.innerHTML = '<span class="lounge-alerts-icon" aria-hidden="true"></span>'
+			+ '<span class="lounge-alerts-label"></span>'
+			+ '<span class="lounge-alerts-state"></span>'
+			+ '<span class="lounge-alerts-switch" aria-hidden="true"></span>';
+		toggle.querySelector('.lounge-alerts-label').textContent = toLanguage('Match alerts', 'Alertes de partie');
+		toggle.querySelector('.lounge-alerts-state').textContent = alertStateLabel(on);
+		toggle.addEventListener('click', onAlertToggle);
+		row.appendChild(toggle);
+
+		if (on && mkNotify.permission() === 'denied') {
+			var warn = document.createElement('span');
+			warn.className = 'lounge-alerts-hint';
+			warn.textContent = toLanguage(
+				'Notifications are blocked for this site — only the sound and the tab title will alert you.',
+				'Les notifications sont bloquées pour ce site — seuls le son et le titre de l\'onglet vous alerteront.'
+			);
+			row.appendChild(warn);
+		}
+		return row;
+	}
+
+	function alertStateLabel(on) {
+		if (on) return toLanguage('On', 'Activées');
+		return toLanguage('Off', 'Désactivées');
+	}
+
+	function onAlertToggle() {
+		var on = !alertsEnabled();
+		setAlertsEnabled(on);
+		// synchronously, while the click still counts as the user gesture a prompt needs
+		if (on) requestAlertPermission();
+		else mkNotify.clear();
+		// rebuilt rather than patched, so the "blocked" hint follows the new state too
+		var row = this.parentNode;
+		if (row && row.parentNode)
+			row.parentNode.replaceChild(renderAlertToggle(), row);
+	}
+
+	function requestAlertPermission() {
+		if (!alertsEnabled()) return;
+		mkNotify.request(function() {
+			if (currentQueue) renderWaiting(currentQueue);
+		});
+	}
+
 	function renderWaiting(queue) {
 		var container = $('lounge-queueup');
 		if (!container) return;
+
+		announceStatus(queue.status);
+		setUnloadGuard(queue.status !== 'launched');
 
 		if (queue.status === 'launched' && queue.privgame_key) {
 			renderLaunching(container, queue);
@@ -274,6 +424,7 @@
 			);
 		}
 		container.appendChild(status);
+		container.appendChild(renderAlertToggle());
 
 		var list = document.createElement('ol');
 		list.className = 'lounge-member-list';
@@ -322,8 +473,8 @@
 		var hint = document.createElement('p');
 		hint.className = 'lounge-vote-hint';
 		hint.textContent = toLanguage(
-			'Not voting on time counts as a strike and cancels the match.',
-			'Ne pas voter à temps compte comme un strike et annule la partie.'
+			'If the timer runs out, the majority of the votes cast decides.',
+			'Si le chrono expire, la majorité des votes exprimés décide.'
 		);
 		section.appendChild(hint);
 		section.appendChild(renderModeVote(queue));
@@ -478,10 +629,17 @@
 				renderWaiting(currentQueue);
 				return;
 			}
-			currentQueue = null;
-			powChoice = null;
+			leaveQueueState();
 			switchView('tiers');
 		});
+	}
+
+	function leaveQueueState() {
+		currentQueue = null;
+		powChoice = null;
+		announcedStatus = null;
+		setUnloadGuard(false);
+		mkNotify.clear();
 	}
 
 	function renderResults(match) {
@@ -592,7 +750,7 @@
 				}
 				if (data.player) renderPlayerStrip(data.player);
 				if (!data.queue) {
-					currentQueue = null;
+					leaveQueueState();
 					switchView('tiers');
 					return;
 				}
