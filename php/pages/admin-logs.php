@@ -583,7 +583,7 @@ function get_circuit_data($type, $id) {
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <?php
 include('../includes/o_online.php');
 ?>

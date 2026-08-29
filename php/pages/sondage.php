@@ -42,7 +42,7 @@ if (isset($_GET['id'])) {
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <style type="text/css">
 .reset_button {

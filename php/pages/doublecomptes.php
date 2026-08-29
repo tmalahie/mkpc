@@ -27,7 +27,7 @@ mysql_query('INSERT IGNORE INTO mkips (SELECT id AS player,identifiant AS ip1,id
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php

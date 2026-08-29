@@ -29,7 +29,7 @@ if (isset($_GET['map'])) {
     <head> 
         <title><?php echo $language ? 'World record history of '.htmlspecialchars($circuitName):'Historique record CLM de '.htmlspecialchars($circuitName); ?></title> 
         <meta charset="utf-8" /> 
-        <link rel="stylesheet" type="text/css" href="styles/classement.css" />
+        <link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
         <style type="text/css">
         body {
             background-color: #E8964C;

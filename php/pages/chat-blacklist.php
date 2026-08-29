@@ -35,7 +35,7 @@ elseif (isset($_GET['del'])) {
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <style type="text/css">
 main tr.clair a.action_button, main tr.fonce a.action_button {
     color: white;

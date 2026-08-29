@@ -26,7 +26,7 @@ if (!hasRight('organizer')) {
 include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <style type="text/css">
 #ban_msg {
 	display: none;

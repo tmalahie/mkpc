@@ -30,7 +30,7 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
     <head> 
         <title><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></title> 
         <meta charset="utf-8" /> 
-        <link rel="stylesheet" type="text/css" href="styles/classement.css" />
+        <link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
         <style type="text/css">
         body {
             background-color: #E8964C;

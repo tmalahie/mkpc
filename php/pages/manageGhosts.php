@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
-<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <style type="text/css">
 .clm-records td:first-child {
     width: 20px;

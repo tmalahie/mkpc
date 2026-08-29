@@ -20,7 +20,7 @@ $pageNum = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'
 include('../includes/heads.php');
 ?>
 <meta name="robots" content="noindex,follow" />
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 
 <?php
 include('../includes/o_online.php');

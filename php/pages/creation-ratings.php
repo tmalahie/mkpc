@@ -21,7 +21,7 @@ include('../includes/getId.php');
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 <style type="text/css">
 form {

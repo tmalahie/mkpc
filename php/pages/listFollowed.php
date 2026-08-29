@@ -15,7 +15,7 @@ include('../includes/avatars.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
-<link rel="stylesheet" type="text/css" href="styles/followers.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/followers.css?reload=2" />
 
 <?php
 include('../includes/o_online.php');
