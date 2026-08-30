@@ -67,6 +67,16 @@ a {
 	color: #fff;
 }
 
+.lounge-modlink {
+	text-decoration: none;
+	line-height: 1.4;
+}
+
+.lounge-modlink:hover {
+	background: #20232b;
+	color: #fff;
+}
+
 .lounge-tab.is-active {
 	background: #E65130;
 	border-color: #E65130;
