@@ -29483,6 +29483,10 @@ function handleMatchmakingSuccess(reponse) {
 		if (reponse.spectatorState)
 			onlineSpectatorState = reponse.spectatorState;
 	}
+	// seeded before the selection screen, so a player joining mid-game sees which courses
+	// are already used up on their very first pick
+	if (reponse.tracks)
+		aTracksHist = reponse.tracks.slice();
 	selectMapScreen({ racecountdown: reponse.time-5 });
 	dRest();
 	setTimeout(setChat, 1);
