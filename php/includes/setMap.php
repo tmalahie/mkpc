@@ -239,6 +239,7 @@ if ($course) {
 		require_once('onlineStateUtils.php');
 		$courseState = getCourseState($getMap['link']);
 		echo ',raceCount:' . $courseState['raceCount'];
+		echo ',tracks:' . json_encode(getCourseTracks($getMap['link']));
 	}
 	if (!empty($courseRules->friendlyFire))
 		echo ',friendlyFire:1';
