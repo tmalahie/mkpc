@@ -6,7 +6,7 @@ if ($id) {
 		if (isset($_POST['options'])) $options = $_POST['options'];
 		include('../includes/initdb.php');
 		if (isset($options)) $_POST['options'] = $options;
-		$key = intval($_POST['key']);
+		$key = $_POST['key'];
 		if ($privateLink = mysql_fetch_array(mysql_query('SELECT player FROM `mkprivgame` WHERE id="'. $key .'"'))) {
 			$canEdit = ($privateLink['player'] == $id);
 			if (!$canEdit) {
