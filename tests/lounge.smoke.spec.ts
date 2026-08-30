@@ -570,6 +570,18 @@ test('the played course is recorded server-side and handed back to the room', as
 	const [again]: any = await sql(`SELECT tracks FROM mkgamedata WHERE game = ?`, [key]);
 	expect(again.tracks).toBe('7');
 
+	// and matchmaking hands it over too: the selection screen comes before setMap.php, so a
+	// player joining mid-game must already know what is used up on their first pick
+	const [mate] = await createLoungeBots(1, 'joiner');
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, mate]);
+	await sql(`UPDATE mariokart SET map = -1, time = ? WHERE link = ?`,
+		[Math.floor(Date.now() / 1000) + 500, key]);
+	const joining = await page.request.post('http://127.0.0.1:8080/api/getCourse.php', {
+		form: { key: String(key) },
+	});
+	expect(await joining.text()).toContain('"tracks":[7]');
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id = ?`, [mate]);
+
 	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id = ?`, [playerId]);
 	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
 	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
