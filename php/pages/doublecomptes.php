@@ -12,6 +12,7 @@ if (!$id) {
 	exit;
 }
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('manager')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -43,14 +44,23 @@ $ban = isset($_POST['joueur']) ? $_POST['joueur']:null;
 if ($ban) {
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
 		mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
+		insertLog($id, 'Ban '. $getId['id'], array(
+			'type' => 'ban',
+			'member' => snapshotMember($getId['id']),
+			'reason' => 'alt account'
+		));
 	}
 }
 $unban = isset($_GET['unban']) ? $_GET['unban']:null;
 if ($unban) {
+	$liftedSnapshot = array(
+		'type' => 'unban',
+		'member' => snapshotMember($unban),
+		'lifted_ban' => snapshotQuery('SELECT msg,ban_date,end_date FROM `mkbans` WHERE player="'. $unban .'"')
+	);
 	mysql_query('UPDATE `mkjoueurs` SET banned=0 WHERE id="'. $unban .'"');
 	mysql_query('DELETE FROM `ip_bans` WHERE player="'. $unban .'"');
-	mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unban '. $unban .'")');
+	insertLog($id, 'Unban '. $unban, $liftedSnapshot);
 }
 ?>
 <main>

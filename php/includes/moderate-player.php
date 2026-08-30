@@ -14,6 +14,7 @@ if (!hasRight('moderator')) {
 	exit;
 }
 require_once('banUtils.php');
+require_once('utils-logs.php');
 liftExpiredSanctions();
 $defaultWarnEnd = date('Y-m-d', strtotime('+14 days'));
 $autocompleteNick = '';
@@ -99,7 +100,16 @@ if ($ban) {
             mysql_query('DELETE FROM `mkbans` WHERE player="'. $getId['id'] .'"');
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
             mysql_query('INSERT INTO `mkbans` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'"'. ($banEndDate ? ',end_date="'. $banEndDate .'"':''));
-            mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
+            $banSnapshot = array(
+                'type' => 'ban',
+                'member' => snapshotMember($getId['id']),
+                'ban' => snapshotQuery('SELECT msg,ban_date,end_date FROM `mkbans` WHERE player="'. $getId['id'] .'"'),
+                'ban_ip' => isset($_POST['ip']),
+                'delete_content' => isset($_POST['full_delete'])
+            );
+            if (isset($_POST['full_delete']))
+                $banSnapshot['deleted_content'] = countMemberContent($getId['id']);
+            insertLog($id, 'Ban '. $getId['id'], $banSnapshot);
             addSanction($getId['id'], $id, $banEndDate ? 'tempban':'ban', $_POST['msg'], $banEndDate);
             if (isset($_POST['ip'])) {
                 $getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
@@ -123,7 +133,11 @@ if ($ban) {
             $warnEndDate = (isset($_POST['warn_until']) && !empty($_POST['warn_until_date'])) ? $_POST['warn_until_date']:null;
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
             mysql_query('INSERT INTO `mkwarns` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'",seen=0'. ($warnEndDate ? ',end_date="'. $warnEndDate .'"':''));
-            mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Warn '. $getId['id'] .'")');
+            insertLog($id, 'Warn '. $getId['id'], array(
+                'type' => 'warn',
+                'member' => snapshotMember($getId['id']),
+                'warn' => snapshotQuery('SELECT msg,warn_date,end_date FROM `mkwarns` WHERE player="'. $getId['id'] .'"')
+            ));
             addSanction($getId['id'], $id, 'warn', $_POST['msg'], $warnEndDate);
             break;
         }
@@ -135,15 +149,25 @@ $unban = isset($_GET['unban']) ? $_GET['unban']:null;
 if ($unban) {
     switch ($action) {
     case 'ban':
+        $liftedSnapshot = array(
+            'type' => 'unban',
+            'member' => snapshotMember($unban),
+            'lifted_ban' => snapshotQuery('SELECT msg,ban_date,end_date FROM `mkbans` WHERE player="'. $unban .'"')
+        );
         mysql_query('UPDATE `mkjoueurs` SET banned=0 WHERE id="'. $unban .'"');
         mysql_query('DELETE FROM `ip_bans` WHERE player="'. $unban .'"');
         mysql_query('DELETE FROM `mkbans` WHERE player="'. $unban .'"');
         mysql_query('DELETE FROM `mkwarns` WHERE player="'. $unban .'"');
-        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unban '. $unban .'")');
+        insertLog($id, 'Unban '. $unban, $liftedSnapshot);
         break;
     case 'warn':
+        $liftedSnapshot = array(
+            'type' => 'unwarn',
+            'member' => snapshotMember($unban),
+            'lifted_warn' => snapshotQuery('SELECT msg,warn_date,end_date FROM `mkwarns` WHERE player="'. $unban .'"')
+        );
         mysql_query('DELETE FROM `mkwarns` WHERE player="'. $unban .'"');
-        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unwarn '. $unban .'")');
+        insertLog($id, 'Unwarn '. $unban, $liftedSnapshot);
         break;
     }
 }

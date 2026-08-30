@@ -7,6 +7,7 @@ if (!$id) {
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -39,9 +40,17 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	$new = $_POST['newpseudo'];
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $old .'"'))) {
 		include('../includes/utils-nicks.php');
+		$formerNick = snapshotMember($getId['id']);
 		$success = editNick($getId['id'],$old,$new,$message,true);
-		if ($success)
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "nick '. $getId['id'] .' '. $old .'")');
+		if ($success) {
+			$newNick = snapshotMember($getId['id']);
+			insertLog($id, 'nick '. $getId['id'] .' '. $old, array(
+				'type' => 'username',
+				'member' => $newNick,
+				'before' => $formerNick['name'],
+				'after' => $newNick['name']
+			));
+		}
 	}
 	else
 		$message = $language ? 'This player does not exist':'Ce membre n\'existe pas';

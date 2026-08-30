@@ -4,9 +4,10 @@ if (isset($_POST['challenge'])) {
 	include('../includes/initdb.php');
 	include('../includes/session.php');
 	require_once('../includes/getRights.php');
+	require_once('../includes/utils-logs.php');
 	if (hasRight('clvalidator')) {
 		$challengeId = $_POST['challenge'];
-		if ($challenge = mysql_fetch_array(mysql_query('SELECT status,difficulty,clist,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
+		if ($challenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
             $clRace = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM mkclrace WHERE id='. $challenge['clist']));
             $validStatus = false;
             $validation = '';
@@ -44,7 +45,13 @@ if (isset($_POST['challenge'])) {
             if ($validStatus) {
                 if ($clRace)
                     mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND link="'. $challengeId .'"');
-                mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
+                $editedChallenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'));
+                insertLog($id, $logKey .' '. $challengeId, array(
+                    'type' => 'challenge',
+                    'id' => intval($challengeId),
+                    'before' => snapshotChallenge($challenge),
+                    'after' => snapshotChallenge($editedChallenge)
+                ));
             }
         }
     }

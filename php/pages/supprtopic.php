@@ -35,6 +35,7 @@ if (isset($_GET['topic'])) {
 		include('../includes/ban_msg.php');
 	else {
 		require_once('../includes/getRights.php');
+		require_once('../includes/utils-logs.php');
 		if (!isset($_SESSION['csrf']) || !isset($_GET['token']) || ($_SESSION['csrf'] != $_GET['token'])) {
 			echo '<p style="text-align: center">'. ($language ? 'Invalid token, please try again' : 'Token invalide, veuillez réessayer') .'</p>';
 		}
@@ -42,8 +43,15 @@ if (isset($_GET['topic'])) {
 			$topicId = intval($_GET['topic']);
 			if ($firstMessage = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $topicId .'" ORDER BY id LIMIT 1'))) {
 				if (($firstMessage['auteur'] == $id) || hasRight('moderator')) {
-					if ($firstMessage['auteur'] != $id)
-						mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Suppr '. $topicId .'")');
+					if ($firstMessage['auteur'] != $id) {
+						$topic = snapshotQuery('SELECT titre,category,nbmsgs FROM `mktopics` WHERE id="'. $topicId .'"');
+						insertLog($id, 'Suppr '. $topicId, array_merge(array(
+							'type' => 'forum_topic',
+							'id' => $topicId,
+							'author' => snapshotMember($firstMessage['auteur']),
+							'first_message' => snapshotForumMessage($topicId, 1)
+						), $topic ? $topic : array()));
+					}
 					$allMsgs = mysql_query('SELECT auteur,COUNT(auteur) AS nb FROM `mkmessages` WHERE topic="'. $topicId .'" GROUP BY auteur');
 					while ($msg = mysql_fetch_array($allMsgs))
 						mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages-'.$msg['nb'].' WHERE id="'.$msg['auteur'].'"');

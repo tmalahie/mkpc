@@ -6,6 +6,7 @@ if ($id && isset($_POST['member']) && is_numeric($_POST['member']) && isset($_PO
     $member = intval($_POST['member']);
 	if (mysql_numrows(mysql_query("SELECT * FROM `mkjoueurs` WHERE id=$member"))) {
         require_once('../includes/getRights.php');
+        require_once('../includes/utils-logs.php');
         if (hasRight('moderator')) {
             if ($_POST['duration'] === 'inf')
                 $date = new \DateTime('@2147483647');
@@ -21,7 +22,13 @@ if ($id && isset($_POST['member']) && is_numeric($_POST['member']) && isset($_PO
             $dateStr = $date->format('Y-m-d H:i:s');
             mysql_query("INSERT INTO mkmuted SET player=$member$setIp,end_date='$dateStr' ON DUPLICATE KEY UPDATE end_date=VALUES(end_date)");
             mysql_query('DELETE v,p FROM `mkchatvoc` v LEFT JOIN `mkchatvocpeer` p ON v.id=p.sender OR v.id=p.receiver WHERE v.player='.$member);
-            mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Mute '. $member .' '. $_POST['duration'] .'")');
+            insertLog($id, 'Mute '. $member .' '. $_POST['duration'], array(
+                'type' => 'mute',
+                'member' => snapshotMember($member),
+                'duration' => $_POST['duration'],
+                'end_date' => $dateStr,
+                'mute_ip' => isset($_POST['ip'])
+            ));
         }
 	}
 	echo 1;

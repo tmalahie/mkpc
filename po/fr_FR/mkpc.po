@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-28 23:55+0200\n"
+"POT-Creation-Date: 2026-08-30 21:17+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -501,6 +501,10 @@ msgstr "a locké les commentaires sur la news "
 #: php/pages/admin-logs.php
 msgid "unlocked comments on news "
 msgstr "a unlocké les commentaires sur la news "
+
+#: php/pages/admin-logs.php
+msgid "View details"
+msgstr "Voir les détails"
 
 #: php/pages/admin-logs.php php/pages/index.php
 msgid "the arena"

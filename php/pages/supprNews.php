@@ -3,6 +3,7 @@ include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (hasRight('publisher')||($news['author']==$id))) {
 	?>
 <!DOCTYPE html>
@@ -34,9 +35,10 @@ require_once('../includes/utils-ads.php');
 showRegularAdSection();
 ?>
 <?php
+	$newsSnapshot = snapshotNews($news);
 	mysql_query('DELETE FROM `mknews` WHERE id="'. $_GET['id'] .'"');
 	if ($news['author'] != $id)
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SNews '. $_GET['id'] .'")');
+		insertLog($id, 'SNews '. $_GET['id'], $newsSnapshot);
 	echo $language ? '<p id="successSent">News deleted successfully<br />
 	<a href="listNews.php">Click here</a> to return to the news list.</p>' :
 	'<p id="successSent">News supprimée avec succès<br />

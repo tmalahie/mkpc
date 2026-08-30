@@ -7,6 +7,7 @@ if (!$id) {
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -61,13 +62,20 @@ include('../includes/header.php');
 $page = 'game';
 include('../includes/menu.php');
 if (isset($_GET['del'])) {
-    if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
+    if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant,player,rating,date FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
         if ($circuit = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
             if ($circuit['identifiant'] != $identifiants[0]) {
                 mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
                 require_once('../includes/utils-ratings.php');
                 recomputeRating($rating['type'], $rating['circuit']);
-                mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
+                insertLog($id, 'DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'], array(
+                    'type' => 'track_rating',
+                    'id' => intval($_GET['del']),
+                    'track' => snapshotTrack($rating['type'], $rating['circuit']),
+                    'author' => snapshotMember($rating['player']),
+                    'date' => $rating['date'],
+                    'rating' => intval($rating['rating'])
+                ));
             }
         }
     }

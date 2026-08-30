@@ -16,10 +16,15 @@ if (isset($_POST['type']) && isset($_POST['circuit'])) {
             else {
                 include('../includes/session.php');
                 require_once('../includes/getRights.php');
+                require_once('../includes/utils-logs.php');
                 if (hasRight('moderator')) {
                     $canLock = true;
                     $action = $unlocking ? 'ULComments' : 'LComments';
-                    mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $action .' '. $type .' '. $circuit .'")');
+                    $formerSettings = mysql_fetch_array(mysql_query('SELECT lock_comments FROM mktracksettings WHERE circuit="'. $circuit .'" AND type="'. $type .'"'));
+                    insertLog($id, $action .' '. $type .' '. $circuit, array_merge(snapshotTrack($type, $circuit), array(
+                        'before' => array('lock_comments' => $formerSettings ? intval($formerSettings['lock_comments']) : 0),
+                        'after' => array('lock_comments' => $unlocking ? 0 : 1)
+                    )));
                 }
             }
             if ($canLock) {

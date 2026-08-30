@@ -6,13 +6,20 @@ if ($id && isset($_POST['member']) && is_numeric($_POST['member'])) {
     $member = intval($_POST['member']);
 	if (mysql_numrows(mysql_query("SELECT * FROM `mkjoueurs` WHERE id=$member"))) {
         require_once('../includes/getRights.php');
+        require_once('../includes/utils-logs.php');
         if (hasRight('moderator')) {
+            $liftedSnapshot = array(
+                'type' => 'unmute',
+                'member' => snapshotMember($member),
+                'lifted_mute' => snapshotQuery("SELECT player,end_date FROM mkmuted WHERE player=$member"),
+                'unmute_ip' => isset($_POST['ip'])
+            );
             mysql_query("DELETE FROM mkmuted WHERE player=$member");
             if (isset($_POST['ip'])) {
                 if ($getIp = mysql_fetch_array(mysql_query('SELECT identifiant FROM `mkprofiles` WHERE id='. $member)))
                     mysql_query('DELETE FROM `mkmuted` WHERE identifiant='. $getIp['identifiant']);
             }
-            mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unmute '. $member .'")');
+            insertLog($id, 'Unmute '. $member, $liftedSnapshot);
         }
 	}
 	echo 1;

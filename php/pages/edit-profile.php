@@ -6,6 +6,7 @@ include('../includes/initdb.php');
 $userId = $id;
 if (isset($_GET['member'])) {
 	require_once('../includes/getRights.php');
+	require_once('../includes/utils-logs.php');
 	if (!hasRight('moderator')) {
 		echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 		mysql_close();
@@ -90,9 +91,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				$countryId = $getCountryId['id'];
 			else
 				$countryId = 0;
+			$profileFields = 'country,birthdate,description';
+			$formerProfile = isset($_GET['member']) ? snapshotQuery('SELECT '. $profileFields .' FROM `mkprofiles` WHERE id="'. $userId .'"') : null;
 			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$userId.'"');
 			if (isset($_GET['member']))
-				mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Profile '. $_GET['member'] .'")');
+				insertLog($id, 'Profile '. $_GET['member'], array(
+					'type' => 'profile',
+					'member' => snapshotMember($userId),
+					'before' => $formerProfile,
+					'after' => snapshotQuery('SELECT '. $profileFields .' FROM `mkprofiles` WHERE id="'. $userId .'"')
+				));
 			$success = $language ? 'Profile updated successfully':'Profil mis à jour avec succès';
 		}
 	}

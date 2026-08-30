@@ -12,6 +12,7 @@ if (!$id) {
 	exit;
 }
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -21,11 +22,18 @@ if (!empty($_POST['word']) && isset($_POST['action'])) {
     mysql_query('INSERT INTO mkbadwords SET word="'. strtolower($_POST['word']) .'",action="'.$_POST['action'].'" ON DUPLICATE KEY UPDATE action=VALUES(action)');
     $wordId = mysql_insert_id();
     if ($wordId)
-        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Blacklist '. $wordId .'")');
+        insertLog($id, 'Blacklist '. $wordId, array_merge(
+            array('type' => 'chat_word', 'id' => intval($wordId)),
+            snapshotWord('mkbadwords', $wordId, 'word,action')
+        ));
 }
 elseif (isset($_GET['del'])) {
+    $wordSnapshot = snapshotWord('mkbadwords', $_GET['del'], 'word,action');
     mysql_query('DELETE FROM mkbadwords WHERE id="'. $_GET['del'] .'"');
-    mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unblacklist '. $_GET['del'] .'")');
+    insertLog($id, 'Unblacklist '. $_GET['del'], array_merge(
+        array('type' => 'chat_word', 'id' => intval($_GET['del'])),
+        $wordSnapshot
+    ));
 }
 ?>
 <!DOCTYPE html>
