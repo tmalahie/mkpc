@@ -218,8 +218,11 @@ test('a partial lineup still plays, and only the absentee is struck', async ({ p
 
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
-	// the room now only needs the three who are in it
-	expect((await rulesOf(key)).minPlayers).toBe(3);
+	// the room now only needs the three who are in it, and a bot stands in for the fourth
+	// so the field - and the point distribution built for it - keeps its size
+	const rules = await rulesOf(key);
+	expect(rules.minPlayers).toBe(3);
+	expect(rules.cpu).toBe(1);
 
 	const absentee = players[3];
 	const [struck]: any = await sql(`SELECT strikes FROM mklounge_players WHERE player = ?`, [absentee]);
@@ -227,6 +230,38 @@ test('a partial lineup still plays, and only the absentee is struck', async ({ p
 	const active: any = await sql(
 		`SELECT player FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`, [queueId]);
 	expect(active.map((r: any) => r.player).sort()).toEqual(players.slice(0, 3).sort());
+});
+
+// "si un joueur est déconnecté durant la partie [...] il est remplacé par un bot et le
+// joueur reçoit un strike" - the mogi carries on without the player who walked out.
+test('a player who walks out mid-mogi is struck and replaced', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 23;
+	const { queueId, players } = await stageLaunchedMatch('walkout', key, 4, 4, 3);
+
+	// one of them leaves the room three races in
+	await sql(`DELETE FROM mkplayers WHERE id = ?`, [players[3]]);
+	await tick(page);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const rules = await rulesOf(key);
+	expect(rules.minPlayers).toBe(3);
+	expect(rules.cpu).toBe(1);
+
+	const [struck]: any = await sql(`SELECT strikes FROM mklounge_players WHERE player = ?`, [players[3]]);
+	expect(struck.strikes).toBe(1);
+	const [row]: any = await sql(
+		`SELECT strike_reason FROM mklounge_match_players mp
+		 JOIN mklounge_matches m ON m.id = mp.\`match\`
+		 WHERE m.privgame_key = ? AND mp.player = ?`, [key, players[3]]);
+	expect(row.strike_reason).toBe('disconnect');
+
+	// and running again does not strike them twice
+	await tick(page);
+	const [again]: any = await sql(`SELECT strikes FROM mklounge_players WHERE player = ?`, [players[3]]);
+	expect(again.strikes).toBe(1);
 });
 
 test('a lineup too small to race is voided instead', async ({ page }) => {
