@@ -602,7 +602,8 @@ test('the lounge moderation page acts on a member and logs it', async ({ page, b
 
 	const page1 = await (await post({ player: nom })).text();
 	expect(page1).toContain(nom);
-	expect(page1).toContain('600 MMR');
+	// stripped of tags, so the assertion survives the stats line being restyled
+	expect(page1.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).toContain('600 MMR');
 
 	await post({ player: nom, action: 'mmr', mmr_delta: '50' });
 	const [rated]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [bot]);
