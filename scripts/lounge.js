@@ -16,6 +16,7 @@
 	var ALERT_STORAGE_KEY = 'lounge.alerts';
 	var announcedStatus = null;
 	var unloadGuarded = false;
+	var announcedConfirm = false;
 
 	function toLanguage(en, fr) {
 		return language ? en : fr;
@@ -230,6 +231,8 @@
 			case 'already_queued': return toLanguage('You are already in a queue.', 'Vous êtes déjà dans une file.');
 			case 'banned': return toLanguage('You are banned from ranked until ', 'Vous êtes banni du classé jusqu\'au ') + (data.banned_until || '');
 			case 'tier_not_found': return toLanguage('That tier no longer exists.', 'Ce tier n\'existe plus.');
+			case 'site_banned': return toLanguage('Your account is banned.', 'Votre compte est banni.');
+			case 'account_too_new': return toLanguage('Your account is too new for ranked.', 'Votre compte est trop récent pour le classé.');
 			default: return toLanguage('Could not join queue.', 'Impossible de rejoindre la file.');
 		}
 	}
@@ -296,6 +299,10 @@
 			title: ['Time to vote!', 'À vous de voter !'],
 			body: ['Pick the game mode before the timer runs out.', 'Choisissez le mode de jeu avant la fin du chrono.']
 		},
+		confirm: {
+			title: ['Still there?', 'Toujours là ?'],
+			body: ['Confirm you are still queuing, or you will be taken out of the list.', 'Confirmez que vous êtes toujours en file, sinon vous en serez retiré.']
+		},
 		launched: {
 			title: ['The race is starting!', 'La course commence !'],
 			body: ['Your mogi is launching — get back to the game.', 'Votre mogi se lance — revenez sur le jeu.']
@@ -307,7 +314,12 @@
 		var wasKnown = (announcedStatus !== null);
 		announcedStatus = status;
 		if (!wasKnown || !STATUS_ALERTS[status] || !alertsEnabled()) return;
-		var alertData = STATUS_ALERTS[status];
+		fireAlert(status);
+	}
+
+	function fireAlert(key) {
+		var alertData = STATUS_ALERTS[key];
+		if (!alertData) return;
 		mkNotify.fire({
 			title: 'CT Lounge — ' + toLanguage(alertData.title[0], alertData.title[1]),
 			body: toLanguage(alertData.body[0], alertData.body[1]),
@@ -316,6 +328,54 @@
 			sound: ALERT_SOUND,
 			volume: alertVolume()
 		});
+	}
+
+	// "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
+	// queue": polling alone cannot tell a player apart from a tab they walked away from.
+	function renderConfirmPrompt(queue) {
+		var box = document.createElement('div');
+		box.className = 'lounge-confirm';
+		var text = document.createElement('p');
+		text.className = 'lounge-confirm-text';
+		var left = queue.confirm_seconds_left;
+		text.textContent = toLanguage(
+			'Are you still in the queue? You will be removed in ' + formatCountdown(left) + '.',
+			'Êtes-vous toujours en file ? Vous en serez retiré dans ' + formatCountdown(left) + '.'
+		);
+		box.appendChild(text);
+
+		var btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'lounge-confirm-btn';
+		btn.textContent = toLanguage('I am still here', 'Je suis toujours là');
+		btn.addEventListener('click', onConfirmClick);
+		box.appendChild(btn);
+		return box;
+	}
+
+	function onConfirmClick() {
+		if (actionInFlight) return;
+		actionInFlight = true;
+		this.disabled = true;
+		postJSON('lounge/confirm.php', '', function(data) {
+			actionInFlight = false;
+			announcedConfirm = false;
+			mkNotify.clear();
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+			}
+		});
+	}
+
+	function announceConfirm(queue) {
+		if (!queue.confirm_due) {
+			announcedConfirm = false;
+			return;
+		}
+		if (announcedConfirm || !alertsEnabled()) return;
+		announcedConfirm = true;
+		fireAlert('confirm');
 	}
 
 	function renderAlertToggle() {
@@ -424,6 +484,9 @@
 			);
 		}
 		container.appendChild(status);
+		announceConfirm(queue);
+		if (queue.confirm_due)
+			container.appendChild(renderConfirmPrompt(queue));
 		container.appendChild(renderAlertToggle());
 
 		var list = document.createElement('ol');
@@ -638,6 +701,7 @@
 		currentQueue = null;
 		powChoice = null;
 		announcedStatus = null;
+		announcedConfirm = false;
 		setUnloadGuard(false);
 		mkNotify.clear();
 	}
