@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
   `player` int(11) NOT NULL,
   `joined_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_heartbeat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `confirmed_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `perso` varchar(250) DEFAULT NULL,
   `voted_mode` varchar(8) DEFAULT NULL,
   `voted_pow` tinyint(1) DEFAULT NULL,
