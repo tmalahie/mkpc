@@ -1736,14 +1736,7 @@ function loadMap() {
 	formulaire.dataset.disabled = 1;
 
 	iTeamPlay = isTeamPlay();
-	var loadedTrack = 1 + aAvailableMaps.indexOf("map"+oMap.ref);
-	aTracksHist.push(loadedTrack);
-	// the server only knows whose choice won, not the track, so the history it hands to a
-	// player joining mid-mogi is the one the clients report
-	if (noRepeatTracks() && shareLink.key)
-		xhr("lounge/track.php", "key="+ encodeURIComponent(shareLink.key) +"&track="+ loadedTrack, function() {
-			return true;
-		});
+	aTracksHist.push(1 + aAvailableMaps.indexOf("map"+oMap.ref));
 	iRaceCount++;
 
 	setSRest();
