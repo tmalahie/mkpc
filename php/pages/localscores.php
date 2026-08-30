@@ -4,7 +4,7 @@ include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
 include('../includes/onlineRulesUtils.php');
-$courseOptions = mysql_fetch_array(mysql_query('SELECT rules FROM `mkgameoptions` g WHERE id="'. $_GET['key'] .'"'));
+$courseOptions = mysql_fetch_array(mysql_query('SELECT rules FROM `mkgameoptions` g WHERE id="'. intval($_GET['key']) .'"'));
 if (!$courseOptions) exit;
 $courseRules = json_decode($courseOptions['rules']);
 ?>

@@ -6,9 +6,17 @@ if ($id) {
 		if (isset($_POST['options'])) $options = $_POST['options'];
 		include('../includes/initdb.php');
 		if (isset($options)) $_POST['options'] = $options;
-		$key = $_POST['key'];
+		$key = intval($_POST['key']);
 		if ($privateLink = mysql_fetch_array(mysql_query('SELECT player FROM `mkprivgame` WHERE id="'. $key .'"'))) {
-			if ($privateLink['player'] == $id)
+			$canEdit = ($privateLink['player'] == $id);
+			if (!$canEdit) {
+				require_once('../includes/getRights.php');
+				require_once('../includes/lounge/common.php');
+				// A lounge link belongs to nobody, so moderators are the only people who can
+				// repair a mogi whose room needs its rules changed mid-match.
+				$canEdit = hasRight('lounge') && lounge_is_lounge_link($key);
+			}
+			if ($canEdit)
 				include('../includes/updateGameOptions.php');
 		}
 		mysql_close();
