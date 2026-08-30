@@ -540,8 +540,11 @@ function format_log_snapshot($snapshot) {
     if (empty($snapshot)) return '';
     $data = json_decode($snapshot, true);
     if ($data === null) return '';
-    return '<details class="log-snapshot"><summary>'. _('Moderated content') .'</summary><pre>'
-        . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES))
+    $logFormatted = json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    $logFormatted = preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $logFormatted);
+    $logFormatted = substr($logFormatted, 1, -1);
+    return '<details class="log-snapshot"><summary>'. _('View details') .'</summary><pre>'
+        . htmlspecialchars($logFormatted)
         .'</pre></details>';
 }
 function get_circuit_data($type, $id) {
@@ -631,16 +634,16 @@ table a.profile:hover {
     cursor: pointer;
     font-size: 0.85em;
     font-weight: bold;
-    color: #f60;
+    color: #060;
+    margin-top: 6px;
 }
 .log-snapshot pre {
     font-weight: normal;
     text-align: left;
-    white-space: pre-wrap;
-    word-break: break-word;
     max-height: 400px;
+    max-width: 392px;
     overflow: auto;
-    margin: 4px 0 0;
+    margin: 4px 0;
 }
 </style>
 </head>
