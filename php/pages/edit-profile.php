@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				$countryId = $getCountryId['id'];
 			else
 				$countryId = 0;
-			$profileFields = 'email,country,birthdate,description';
+			$profileFields = 'country,birthdate,description';
 			$formerProfile = isset($_GET['member']) ? snapshotQuery('SELECT '. $profileFields .' FROM `mkprofiles` WHERE id="'. $userId .'"') : null;
 			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$userId.'"');
 			if (isset($_GET['member']))

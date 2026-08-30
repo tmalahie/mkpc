@@ -11,7 +11,7 @@ if ($id && isset($_POST['member']) && is_numeric($_POST['member'])) {
             $liftedSnapshot = array(
                 'type' => 'unmute',
                 'member' => snapshotMember($member),
-                'lifted_mute' => snapshotQuery("SELECT identifiant,end_date FROM mkmuted WHERE player=$member"),
+                'lifted_mute' => snapshotQuery("SELECT player,end_date FROM mkmuted WHERE player=$member"),
                 'unmute_ip' => isset($_POST['ip'])
             );
             mysql_query("DELETE FROM mkmuted WHERE player=$member");

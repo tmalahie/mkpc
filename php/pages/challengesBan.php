@@ -121,7 +121,7 @@ if ($ban) {
         $insertId = mysql_insert_id();
         insertLog($id, 'CBan '. $insertId, array_merge(
             array('type' => 'challenge_ban', 'id' => intval($insertId), 'member' => snapshotMember($banId)),
-            snapshotWord('mkclbans', $insertId, 'identifiant,link,username,msg,ban_until_date')
+            snapshotWord('mkclbans', $insertId, 'link,username,msg,ban_until_date')
         ));
 	}
 }
@@ -129,7 +129,7 @@ $unban = isset($_GET['unban']) ? $_GET['unban']:null;
 if ($unban) {
     if ($getUsername = mysql_fetch_array(mysql_query('SELECT username FROM `mkclbans` WHERE id="'. $unban .'"'))) {
         $banUsername = $getUsername['username'];
-        $liftedSnapshot = snapshotWord('mkclbans', $unban, 'identifiant,link,username,msg,ban_until_date');
+        $liftedSnapshot = snapshotWord('mkclbans', $unban, 'link,username,msg,ban_until_date');
         mysql_query('DELETE FROM `mkclbans` WHERE id="'. $unban .'"');
         insertLog($id, 'CUnban '. $unban, array_merge(
             array('type' => 'challenge_unban', 'id' => intval($unban)),
