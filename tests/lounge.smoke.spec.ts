@@ -588,6 +588,54 @@ test('the played course is recorded server-side and handed back to the room', as
 	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
 });
 
+// Adjusting a rating, lifting a ban or freeing a wedged queue all needed direct SQL before
+// this page existed.
+test('the lounge moderation page acts on a member and logs it', async ({ page, browser }) => {
+	await login(page);
+	const [bot] = await createLoungeBots(1, 'admin');
+	const [{ nom }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [bot]);
+	const mine = `log REGEXP CONCAT('^Lounge[A-Za-z]+ ', ?, '( |$)')`;
+	await sql(`DELETE FROM mklogs WHERE ${mine}`, [bot]);
+
+	const post = (form: Record<string, string>) =>
+		page.request.post('http://127.0.0.1:8080/admin-lounge.php', { form });
+
+	const page1 = await (await post({ player: nom })).text();
+	expect(page1).toContain(nom);
+	expect(page1).toContain('600 MMR');
+
+	await post({ player: nom, action: 'mmr', mmr_delta: '50' });
+	const [rated]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(Math.round(rated.mmr)).toBe(650);
+
+	await post({ player: nom, action: 'ban', ban_minutes: '30' });
+	const [banned]: any = await sql(
+		`SELECT banned_until FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(banned.banned_until).not.toBeNull();
+
+	await post({ player: nom, action: 'strikes', strikes: '2' });
+	await post({ player: nom, action: 'unban' });
+	const [lifted]: any = await sql(
+		`SELECT banned_until, strikes FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(lifted.banned_until).toBeNull();
+	expect(lifted.strikes).toBe(0);
+
+	// every action is retraceable in the staff log
+	const logs: any = await sql(`SELECT log FROM mklogs WHERE ${mine} ORDER BY id`, [bot]);
+	expect(logs.map((r: any) => r.log.split(' ')[0]))
+		.toEqual(['LoungeMmr', 'LoungeBan', 'LoungeStrikes', 'LoungeUnban']);
+
+	// and someone without the right cannot reach it at all
+	const guest = await browser.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, nom, LOUNGE_BOT_PASSWORD);
+	const refused = await guestPage.request.get('http://127.0.0.1:8080/admin-lounge.php');
+	expect(await refused.text()).toContain("aren't a lounge moderator");
+	await guest.close();
+
+	await sql(`DELETE FROM mklogs WHERE ${mine}`, [bot]);
+});
+
 test('only a lounge moderator can edit a lounge link', async ({ page, browser }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
