@@ -416,6 +416,10 @@ function lounge_relax_room($privgameKey, $playersInRoom) {
 	if (intval($rules['minPlayers']) <= $playersInRoom)
 		return false;
 	$rules['minPlayers'] = $playersInRoom;
+	// "il est remplacé par un bot": keeping the field at its original size is what makes the
+	// point distribution, which was built for the full lineup, still add up. CPUs are left
+	// out of mkgamerank by reload.php, so they never reach the rating pass.
+	$rules['cpu'] = 1;
 	mysql_query(
 		'UPDATE `mkgameoptions` SET rules="'. mysql_real_escape_string(json_encode($rules)) .'"
 		WHERE id="'. intval($privgameKey) .'"'
@@ -423,12 +427,65 @@ function lounge_relax_room($privgameKey, $playersInRoom) {
 	return true;
 }
 
-// Called from reload.php at the end of every race of a lounge mogi. The lounge tick only
-// runs from its own endpoints, and nobody is sitting on the lounge page while a mogi is
-// being played, so this is the only heartbeat a match in trouble gets.
-function lounge_race_finished($privgameKey, $course, $playersInRoom) {
+function lounge_room_player_count($privgameKey) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT COUNT(DISTINCT p.id) AS n FROM `mkplayers` p
+		INNER JOIN `mariokart` m ON m.id=p.course
+		WHERE m.link="'. intval($privgameKey) .'"'
+	));
+	return $row ? intval($row['n']) : 0;
+}
+
+// "si un joueur est déconnecté durant la partie [...] le joueur reçoit un strike". Only
+// counted once the join window has closed, so a player who is merely slow to load is not
+// struck, and strike_reason doubles as the claim so a walkout is never struck twice.
+function lounge_strike_dropouts($privgameKey, $course = 0) {
+	$inRoom = $course
+		? 'LEFT JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course="'. intval($course) .'"'
+		: 'LEFT JOIN (`mkplayers` gp INNER JOIN `mariokart` c ON c.id=gp.course
+		   AND c.link="'. intval($privgameKey) .'") ON gp.id=mp.player';
+	$missing = mysql_query(
+		'SELECT mp.player FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.privgame_key="'. intval($privgameKey) .'"
+		INNER JOIN `mklounge_queues` q ON q.id=m.queue AND q.status="launched"
+			AND q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)
+		'. $inRoom .'
+		WHERE mp.strike_reason IS NULL AND gp.id IS NULL'
+	);
+	$players = array();
+	while ($row = mysql_fetch_array($missing))
+		$players[] = intval($row['player']);
+
+	global $q;
+	foreach ($players as $playerId) {
+		$q = mysql_query(
+			'UPDATE `mklounge_match_players` mp
+			INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+				AND m.privgame_key="'. intval($privgameKey) .'"
+			SET mp.strike_reason="disconnect"
+			WHERE mp.player="'. $playerId .'" AND mp.strike_reason IS NULL'
+		);
+		if (mysql_affected_rows())
+			lounge_add_strike($playerId, 'disconnect');
+	}
+}
+
+// Keeps a running mogi playable: teams are captured while the room still exists, anyone who
+// walked out is struck, and the room is shrunk and topped up with bots so the remaining
+// players are never left waiting on someone who is not coming back.
+function lounge_maintain_match($privgameKey, $course = 0, $playersInRoom = null) {
 	lounge_snapshot_teams($privgameKey, $course);
+	lounge_strike_dropouts($privgameKey, $course);
+	if (is_null($playersInRoom))
+		$playersInRoom = lounge_room_player_count($privgameKey);
 	lounge_relax_room($privgameKey, $playersInRoom);
+}
+
+// Called from reload.php at the end of every race. The lounge tick only runs from its own
+// endpoints, and nobody is sitting on the lounge page while a mogi is being played, so this
+// is the heartbeat a match in trouble depends on.
+function lounge_race_finished($privgameKey, $course, $playersInRoom) {
+	lounge_maintain_match($privgameKey, $course, $playersInRoom);
 }
 
 // A launched queue that stops being played has no other way out: it is not finished (fewer
@@ -881,7 +938,7 @@ function lounge_tick() {
 	}
 
 	$launched = mysql_query(
-		'SELECT q.id, IFNULL(d.raceCount, 0) AS races,
+		'SELECT q.id, q.privgame_key, IFNULL(d.raceCount, 0) AS races,
 			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)) AS join_timed_out,
 			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_MATCH_MAX_MINUTES) .' MINUTE)) AS match_timed_out,
 			EXISTS(SELECT 1 FROM `mariokart` c WHERE c.link=q.privgame_key) AS room_alive
@@ -900,6 +957,8 @@ function lounge_tick() {
 		// that this mogi is not being played any more.
 		elseif ($row['match_timed_out'] || ($races && !$row['room_alive']))
 			lounge_abandon_match(intval($row['id']));
+		elseif ($races)
+			lounge_maintain_match(intval($row['privgame_key']));
 	}
 
 	$lockTimedOut = mysql_query(
