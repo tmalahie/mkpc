@@ -541,34 +541,39 @@ test('the launched link carries the lounge lightning settings', async ({ page })
 // all could edit a mogi's rules - unlike the Discord mogis, where whoever made the link can.
 // Rule 4c. The client kept this history in memory only, so a player joining mid-mogi had no
 // idea which courses were already used up - and Random could hand them a repeat.
-test('the track history is kept server-side so a late joiner gets it', async ({ page, browser }) => {
+test('the played course is recorded server-side and handed back to the room', async ({ page }) => {
 	await login(page);
-	const queueId = await joinAndStartVoting(page, 'all');
-	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
-	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
-	const key = queue.privgame_key;
-	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 0, 0)
-	           ON DUPLICATE KEY UPDATE raceCount = 0`, [key]);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 40;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
 
-	const report = (track: number, request = page.request) =>
-		request.post('http://127.0.0.1:8080/api/lounge/track.php', {
-			form: { key: String(key), track: String(track) },
-		});
+	// a room whose players have all picked, which is the moment setMap.php resolves the course
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 1, lounge: 1 })]);
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7, choice_rand = 0 WHERE id = ?`,
+		[room.insertId, playerId]);
 
-	expect((await (await report(7)).json()).tracks).toEqual([7]);
-	expect((await (await report(3)).json()).tracks).toEqual([7, 3]);
-	// the same race reported by every player in the room must not pile up
-	expect((await (await report(3)).json()).tracks).toEqual([7, 3]);
+	const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const body = await res.text();
+	// the same expression the client uses to pick the course: choixJoueurs[rCode[1]][2]
+	expect(body).toContain('tracks:[7]');
+	const [state]: any = await sql(`SELECT tracks FROM mkgamedata WHERE game = ?`, [key]);
+	expect(state.tracks).toBe('7');
 
-	// somebody who is not in this mogi cannot write to its history
-	await createLoungeBots(1, 'trackhist');
-	const guest = await browser.newContext();
-	const guestPage = await guest.newPage();
-	await login(guestPage, loungeBotName('trackhist', 1), LOUNGE_BOT_PASSWORD);
-	expect((await (await report(9, guestPage.request)).json()).tracks).toEqual([7, 3]);
-	await guest.close();
+	// polling it again must not record the same course twice
+	await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const [again]: any = await sql(`SELECT tracks FROM mkgamedata WHERE game = ?`, [key]);
+	expect(again.tracks).toBe('7');
 
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id = ?`, [playerId]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
 	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
 });
 
 test('only a lounge moderator can edit a lounge link', async ({ page, browser }) => {
