@@ -283,6 +283,46 @@ a {
 	cursor: not-allowed;
 }
 
+.lounge-confirm {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	background: #2b2118;
+	border: 1px solid #6b5c33;
+	border-radius: 8px;
+	padding: 12px 14px;
+	margin: 0 0 16px;
+}
+
+.lounge-confirm-text {
+	margin: 0;
+	flex: 1 1 240px;
+	color: #f0c92e;
+	font-size: 13px;
+}
+
+.lounge-confirm-btn {
+	appearance: none;
+	background: #E65130;
+	border: 1px solid #E65130;
+	border-radius: 6px;
+	color: #fff;
+	font-size: 13px;
+	font-weight: 700;
+	padding: 8px 16px;
+	cursor: pointer;
+}
+
+.lounge-confirm-btn:hover:not(:disabled) {
+	background: #ff6244;
+}
+
+.lounge-confirm-btn:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
 .lounge-alerts {
 	display: flex;
 	align-items: center;
