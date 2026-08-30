@@ -3,6 +3,7 @@ include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (hasRight('publisher')||($news['author']==$id))) {
 	$getAuthor = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $news['author'] .'"'));
 	?>
@@ -48,8 +49,16 @@ showRegularAdSection();
 			content="'. $_POST['message'] .'"
 			WHERE id="'. $_GET['id'] .'"
 		');
-		if ($news['author'] != $id)
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "ENews '. $_GET['id'] .'")');
+		if ($news['author'] != $id) {
+			$editedNews = mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'));
+			insertLog($id, 'ENews '. $_GET['id'], array(
+				'type' => 'news',
+				'id' => intval($news['id']),
+				'author' => snapshotMember($news['author']),
+				'before' => snapshotNews($news),
+				'after' => snapshotNews($editedNews)
+			));
+		}
 		$iGenerated = intval($_GET['id']);
 		echo $language ? '<p id="successSent">News edited successfully<br />
 		<a href="news.php?id='. $iGenerated .'">Click here</a> to see the news.<br />

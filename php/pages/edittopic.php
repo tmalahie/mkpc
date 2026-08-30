@@ -43,7 +43,9 @@ showRegularAdSection();
 			include('../includes/ban_msg.php');
 		elseif (isset($_POST['titre']) && isset($_POST['message']) && trim($_POST['titre']) && trim($_POST['message'])) {
 			require_once('../includes/forum-checks.php');
+			require_once('../includes/utils-logs.php');
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
+			$formerTopic = ($lastMessage['auteur'] == $id) ? null : snapshotQuery('SELECT titre,category,private FROM `mktopics` WHERE id="'. $_GET['topic'] .'"');
 			if (($checks=checkMessageContent($_POST['message'])) && !$checks['success'])
 				printCheckFailDetails($checks);
 			elseif (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
@@ -53,8 +55,19 @@ showRegularAdSection();
 					$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
 					mysql_query('UPDATE `mktopics` SET titre="'. $_POST['titre'] .'",private='.$private.',category="'. $categoryID .'" WHERE id="'. $_GET['topic'] .'"');
 					mysql_query('UPDATE `mkmessages` SET message="'. $_POST['message'] .'" WHERE id=1 AND topic="'. $_GET['topic'] .'"');
-					if ($lastMessage['auteur'] != $id)
-						mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Edit '. $_GET['topic'] .'")');
+					if ($lastMessage['auteur'] != $id) {
+						$formerTopic['content'] = $lastMessage['message'];
+						$newTopic = snapshotQuery('SELECT titre,category,private FROM `mktopics` WHERE id="'. $_GET['topic'] .'"');
+						$newMessage = snapshotForumMessage($_GET['topic'], 1);
+						$newTopic['content'] = $newMessage['content'];
+						insertLog($id, 'Edit '. $_GET['topic'], array(
+							'type' => 'forum_topic',
+							'id' => intval($_GET['topic']),
+							'author' => snapshotMember($lastMessage['auteur']),
+							'before' => $formerTopic,
+							'after' => $newTopic
+						));
+					}
 					preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
 					preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', $lastMessage['message'], $mentions0);
 					function array_rmvalue(&$arr,&$val) {

@@ -536,6 +536,14 @@ function evaluate_group(&$group) {
     if ($group === null) return $group;
     return htmlspecialchars($group);
 }
+function format_log_snapshot($snapshot) {
+    if (empty($snapshot)) return '';
+    $data = json_decode($snapshot, true);
+    if ($data === null) return '';
+    return '<details class="log-snapshot"><summary>'. _('Moderated content') .'</summary><pre>'
+        . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES))
+        .'</pre></details>';
+}
 function get_circuit_data($type, $id) {
     global $language;
     $res = array(
@@ -619,6 +627,21 @@ table a.profile:hover {
 #log-type {
     width: 250px;
 }
+.log-snapshot summary {
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #f60;
+}
+.log-snapshot pre {
+    font-weight: normal;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 400px;
+    overflow: auto;
+    margin: 4px 0 0;
+}
 </style>
 </head>
 <body>
@@ -684,7 +707,7 @@ include('../includes/menu.php');
     if (isset($_GET['id']))
         $wheres[] = ' l.id="'. $_GET['id'] .'"';
     $where = implode(' AND ', $wheres);
-    $getLogs = mysql_query('SELECT l.id,l.auteur,l.date,l.log,j.nom FROM mklogs l LEFT JOIN mkjoueurs j ON l.auteur=j.id WHERE '. $where .' ORDER BY l.id DESC LIMIT '. (($page-1)*$RES_PER_PAGE) .','.$RES_PER_PAGE);
+    $getLogs = mysql_query('SELECT l.id,l.auteur,l.date,l.log,j.nom,s.data AS snapshot FROM mklogs l LEFT JOIN mkjoueurs j ON l.auteur=j.id LEFT JOIN mklogsnapshots s ON s.log=l.id WHERE '. $where .' ORDER BY l.id DESC LIMIT '. (($page-1)*$RES_PER_PAGE) .','.$RES_PER_PAGE);
     $logCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mklogs l WHERE '. $where));
     while ($log = mysql_fetch_array($getLogs)) {
         ?>
@@ -698,7 +721,8 @@ include('../includes/menu.php');
             else
                 echo '<em>'. _('Deleted account') . '</em>';
             echo ' ';
-            echo format_log($log['log']); ?></td>
+            echo format_log($log['log']);
+            echo format_log_snapshot($log['snapshot']); ?></td>
         </tr>
         <?php
     }

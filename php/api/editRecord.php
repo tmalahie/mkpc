@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 if (isset($_POST["id"]) && isset($_POST["name"])) {
     include('../includes/initdb.php');
-    if ($record = mysql_fetch_array(mysql_query('SELECT id,identifiant,identifiant2,identifiant3,identifiant4,class,circuit,type FROM mkrecords WHERE id="'. $_POST['id'] .'"'))) {
+    if ($record = mysql_fetch_array(mysql_query('SELECT id,identifiant,identifiant2,identifiant3,identifiant4,class,circuit,type,name,player,perso,time FROM mkrecords WHERE id="'. $_POST['id'] .'"'))) {
         include('../includes/getId.php');
         include('../includes/session.php');
         $moderate = false;
@@ -24,8 +24,14 @@ if (isset($_POST["id"]) && isset($_POST["name"])) {
             exit;
         }
         mysql_query('UPDATE mkrecords SET name="'. $name .'" WHERE id="'. $_POST["id"] .'"');
-        if ($moderate)
-            mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "ERecord '. $_POST['id'] .'")');
+        if ($moderate) {
+            require_once('../includes/utils-logs.php');
+            $editedRecord = mysql_fetch_array(mysql_query('SELECT name FROM mkrecords WHERE id="'. $_POST['id'] .'"'));
+            $recordSnapshot = snapshotRecord($record);
+            $recordSnapshot['before'] = $record['name'];
+            $recordSnapshot['after'] = $editedRecord['name'];
+            insertLog($id, 'ERecord '. $_POST['id'], $recordSnapshot);
+        }
     }
     echo 1;
 	mysql_close();

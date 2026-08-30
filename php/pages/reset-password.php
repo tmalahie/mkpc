@@ -7,6 +7,7 @@ if (!$id) {
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -40,7 +41,10 @@ if (isset($_POST['joueur'])) {
         include('../includes/getId.php');
         require_once('../includes/reset-password.php');
         $link = generatePasswordLink($getId['id']);
-        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "RPwd '. $getId['id'] .'")');
+        insertLog($id, 'RPwd '. $getId['id'], array(
+            'type' => 'password_reset',
+            'member' => snapshotMember($getId['id'])
+        ));
         $success = ($language ? "The following password link has been generated:":"Le lien de réinitialisation de mot de passe a été généré :") . '<br /><a href="'. $link .'" target="_blank">'. $link .'</a><br />' . ($language ? "You can forward it to the member.":"Vous pouvez le transmettre au membre ayant fait la demande.");
 	}
 }

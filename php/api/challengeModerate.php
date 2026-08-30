@@ -4,9 +4,10 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 	include('../includes/initdb.php');
 	include('../includes/session.php');
 	require_once('../includes/getRights.php');
+	require_once('../includes/utils-logs.php');
 	if (hasRight('clvalidator')) {
 		$challengeId = $_POST['challenge'];
-		if ($challenge = mysql_fetch_array(mysql_query('SELECT status,difficulty,clist,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
+		if ($challenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
 			if ('pending_moderation' === $challenge['status']) {
 				$validationData = array();
 				if (isset($challenge['validation'])) {
@@ -36,7 +37,14 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 				$validation = mysql_real_escape_string(json_encode($validationData));
 				mysql_query('UPDATE `mkchallenges` SET status="'. $newStatus .'", difficulty="'. $newDifficulty .'",validation="'.$validation.'" WHERE id="'. $challengeId .'"');
 				mysql_query('INSERT INTO `mkclvalidations` SET challenge="'. $challengeId .'", validator="'. $id .'", accepted="'. intval($accept) .'", validation="'.$validation.'"');
-				mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
+				$editedChallenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'));
+				insertLog($id, $logKey .' '. $challengeId, array(
+					'type' => 'challenge',
+					'id' => intval($challengeId),
+					'accepted' => (bool) $accept,
+					'before' => snapshotChallenge($challenge),
+					'after' => snapshotChallenge($editedChallenge)
+				));
 
 				$getWins = mysql_query('SELECT player FROM `mkclwin` WHERE challenge="'. $challengeId .'"');
 				require_once('../includes/challenge-consts.php');

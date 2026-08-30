@@ -12,6 +12,7 @@ if (!$id) {
 	exit;
 }
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('organizer')) {
 	echo "Vous n'&ecirc;tes pas animateur";
 	mysql_close();
@@ -30,15 +31,25 @@ else
 	$award = array();
 if (isset($_POST['name']) && isset($_POST['link']) && isset($_POST['notif_msg_en']) && isset($_POST['notif_msg_fr'])) {
 	if ($editting) {
+		$formerAward = snapshotQuery('SELECT name,link,notif_msg_en,notif_msg_fr FROM mkawards WHERE id="'. $_GET['id'] .'"');
 		mysql_query('UPDATE mkawards SET link="'. $_POST['link'] .'",name="'. $_POST['name'] .'",notif_msg_en="'. $_POST['notif_msg_en'] .'",notif_msg_fr="'. $_POST['notif_msg_fr'] .'" WHERE id="'. $_GET['id'] .'"');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EAward '. $_GET['id'] .'")');
+		insertLog($id, 'EAward '. $_GET['id'], array(
+			'type' => 'award',
+			'id' => intval($_GET['id']),
+			'before' => $formerAward,
+			'after' => snapshotQuery('SELECT name,link,notif_msg_en,notif_msg_fr FROM mkawards WHERE id="'. $_GET['id'] .'"')
+		));
 		header('location: awards.php?award-edited');
 	}
 	else {
 		$newOrdering = mysql_fetch_array(mysql_query('SELECT 1+MAX(ordering) AS ordering FROM mkawards'));
 		if (!$newOrdering['ordering']) $newOrdering['ordering'] = 0;
 		mysql_query('INSERT INTO mkawards SET ordering="'. $newOrdering['ordering'] .'",link="'. $_POST['link'] .'",name="'. $_POST['name'] .'",notif_msg_en="'. $_POST['notif_msg_en'] .'",notif_msg_fr="'. $_POST['notif_msg_fr'] .'"');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CAward '. mysql_insert_id() .'")');
+		$awardId = mysql_insert_id();
+		insertLog($id, 'CAward '. $awardId, array_merge(
+			array('type' => 'award', 'id' => intval($awardId)),
+			snapshotWord('mkawards', $awardId, 'name,link,notif_msg_en,notif_msg_fr')
+		));
 		header('location: awards.php?award-created');
 	}
 }

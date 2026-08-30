@@ -45,14 +45,20 @@ showRegularAdSection();
 		elseif (isset($_POST['message']) && (trim($_POST['message'])!=='')) {
 			require_once('../includes/getRights.php');
 			require_once('../includes/forum-checks.php');
+			require_once('../includes/utils-logs.php');
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'));
 			if (($checks=checkMessageContent($_POST['message'])) && !$checks['success'])
 				printCheckFailDetails($checks);
 			elseif (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
 				$showForm = false;
 				mysql_query('UPDATE `mkmessages` SET message="'. $_POST['message'] .'" WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"');
-				if ($lastMessage['auteur'] != $id)
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Edit '. $_GET['topic'] .' '. $_GET['id'] .'")');
+				if ($lastMessage['auteur'] != $id) {
+					$msgSnapshot = snapshotForumMessage($_GET['topic'], $_GET['id']);
+					$msgSnapshot['before'] = $lastMessage['message'];
+					$msgSnapshot['after'] = $msgSnapshot['content'];
+					unset($msgSnapshot['content']);
+					insertLog($id, 'Edit '. $_GET['topic'] .' '. $_GET['id'], $msgSnapshot);
+				}
 				preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
 				preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', $lastMessage['message'], $mentions0);
 				function array_rmvalue(&$arr,&$val) {

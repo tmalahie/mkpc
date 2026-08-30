@@ -39,13 +39,15 @@ if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 		}
 		else {
 			require_once('../includes/getRights.php');
+			require_once('../includes/utils-logs.php');
 			$topicId = intval($_GET['topic']);
 			$msgId = intval($_GET['id']);
 			$msg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'));
+			$msgSnapshot = hasRight('moderator') ? snapshotForumMessage($topicId, $msgId) : null;
 			$q = mysql_query('DELETE FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'. (hasRight('moderator') ? '':' AND auteur="'. $id .'"'));
 			if (mysql_affected_rows()) {
 				if (hasRight('moderator'))
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Suppr '. $topicId .' '. $msgId .'")');
+					insertLog($id, 'Suppr '. $topicId .' '. $msgId, $msgSnapshot);
 				$getLastMessage = mysql_fetch_array(mysql_query('SELECT date FROM `mkmessages` WHERE topic="'. $topicId .'" ORDER BY id DESC limit 1'));
 				mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs-1 WHERE id="'. $topicId .'"');
 				$getCat = mysql_fetch_array(mysql_query('SELECT category FROM `mktopics` WHERE id="'. $topicId .'"'));

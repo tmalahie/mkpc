@@ -982,6 +982,14 @@ CREATE TABLE `mklogs` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklogsnapshots` (
+  `log` int(11) NOT NULL,
+  `data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`data`)),
+  PRIMARY KEY (`log`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmatches` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,

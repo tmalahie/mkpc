@@ -9,13 +9,21 @@ if (isset($_GET['id'])) {
 			exit;
 		}
 		require_once('../includes/getRights.php');
-		$getCom = mysql_query('SELECT author,news FROM `mknewscoms` WHERE id="'. $_GET['id'] .'"');
+		require_once('../includes/utils-logs.php');
+		$getCom = mysql_query('SELECT author,news,message,date FROM `mknewscoms` WHERE id="'. $_GET['id'] .'"');
 		if ($comment = mysql_fetch_array($getCom)) {
 			if (($comment['author']==$id) || hasRight('moderator')) {
 				mysql_query('DELETE FROM `mknewscoms` WHERE id="'. $_GET['id'] .'"');
 				mysql_query('UPDATE `mknews` SET nbcomments=nbcomments-1 WHERE id="'. $comment['news'] .'"');
 				if ($comment['author']!=$id)
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DNewscom '. $_GET['id'] .'")');
+					insertLog($id, 'DNewscom '. $_GET['id'], array(
+						'type' => 'news_comment',
+						'id' => intval($_GET['id']),
+						'news' => snapshotQuery('SELECT id,title FROM `mknews` WHERE id="'. $comment['news'] .'"'),
+						'author' => snapshotMember($comment['author']),
+						'date' => $comment['date'],
+						'content' => $comment['message']
+					));
 				mysql_close();
 				header('location: news.php?id='.$comment['news'].'#news-comment-ctn-0');
 			}

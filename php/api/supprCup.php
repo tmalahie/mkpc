@@ -7,8 +7,10 @@ if (isset($_POST['id'])) {
 	include('../includes/session.php');
 	require_once('../includes/getRights.php');
 	require_once('../includes/collabUtils.php');
+	require_once('../includes/utils-logs.php');
 	$skipOwnerCheck = hasRight('moderator') || hasCollabGrants('mkcups', $cID, $_POST['collab'], 'edit');
 	if (mysql_numrows(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'. ($skipOwnerCheck ? '':' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"')))) {
+		$cupSnapshot = hasRight('moderator') ? snapshotTrack('mkcups', $cID) : null;
 		mysql_query('DELETE FROM `mkmcups_tracks` WHERE cup="'.$cID.'"');
 		mysql_query('DELETE c FROM `mkmcups` c LEFT JOIN `mkmcups_tracks` t ON c.id=t.mcup WHERE t.mcup IS NULL');
 		mysql_query('DELETE FROM `mkcups` WHERE id="'.$cID.'"');
@@ -17,7 +19,7 @@ if (isset($_POST['id'])) {
 		include('../includes/postCircuitUpdate.php');
 		postCircuitDelete('mkcups', $cID);
 		if (hasRight('moderator'))
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Cup '. $cID .'")');
+			insertLog($id, 'Cup '. $cID, $cupSnapshot);
 	}
 	echo 1;
 	mysql_close();

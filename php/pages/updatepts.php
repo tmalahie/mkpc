@@ -12,6 +12,7 @@ if (!$id) {
 	exit;
 }
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('manager')) {
 	echo "Vous n'&ecirc;tes pas administrateur";
 	mysql_close();
@@ -52,7 +53,13 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 	if ($getId = mysql_fetch_array(mysql_query('SELECT j.id,j.'.$pts_.' AS pts FROM `mkjoueurs` j WHERE j.nom="'. $ban .'"'))) {
 		$newScore = max($getId['pts']+$_POST['pts'],1);
 		mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='. $newScore .' WHERE id='. $getId['id']);
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'.($isBattle ? 'B':'').'pts '. ($newScore-$getId['pts']) .' '. $getId['id'] .'")');
+		insertLog($id, ($isBattle ? 'B':'').'pts '. ($newScore-$getId['pts']) .' '. $getId['id'], array(
+			'type' => 'points',
+			'member' => snapshotMember($getId['id']),
+			'mode' => $isBattle ? 'battle':'vs',
+			'before' => intval($getId['pts']),
+			'after' => intval($newScore)
+		));
 		$ptsPlus = true;
 	}
 }

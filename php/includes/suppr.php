@@ -9,7 +9,9 @@ if (!isset($_SESSION['csrf']) || !isset($_GET['token']) || ($_SESSION['csrf'] !=
 	exit;
 }
 require_once('getRights.php');
+require_once('utils-logs.php');
 if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `circuits` WHERE id="'.$cID.'"'. (hasRight('moderator') ? '':' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))) {
+	$trackSnapshot = hasRight('moderator') ? snapshotTrack('circuits', $cID) : null;
 	mysql_query('DELETE FROM `mkmcups_tracks` WHERE cup IN (SELECT id FROM `mkcups` WHERE (circuit0="'.$cID.'" OR circuit1="'.$cID.'" OR circuit2="'.$cID.'" OR circuit3="'.$cID.'") AND mode=1)');
 	mysql_query('DELETE c FROM `mkmcups` c LEFT JOIN `mkmcups_tracks` t ON c.id=t.mcup WHERE t.mcup IS NULL');
 	mysql_query('DELETE FROM `mkcups` WHERE (circuit0="'.$cID.'" OR circuit1="'.$cID.'" OR circuit2="'.$cID.'" OR circuit3="'.$cID.'") AND mode=1');
@@ -28,6 +30,6 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `circuits`
 	include('postCircuitUpdate.php');
 	postCircuitDelete('circuits', $cID);
 	if (hasRight('moderator'))
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CCircuit '. $cID .'")');
+		insertLog($id, 'CCircuit '. $cID, $trackSnapshot);
 }
 mysql_close();

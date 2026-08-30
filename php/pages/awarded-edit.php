@@ -12,6 +12,7 @@ if (!$id) {
 	exit;
 }
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('organizer')) {
 	echo "Vous n'&ecirc;tes pas animateur";
 	mysql_close();
@@ -32,14 +33,27 @@ if (isset($_POST['nom']) && isset($_POST['award']) && isset($_POST['value'])) {
 	$getAward = mysql_fetch_array(mysql_query('SELECT id FROM `mkawards` WHERE id="'. $_POST['award'] .'"'));
 	if ($getMember && $getAward) {
 		if ($editting) {
+			$formerAwarded = snapshotQuery('SELECT user,award,value FROM mkawarded WHERE user="'. $_GET['user'] .'" AND award="'. $_GET['award'] .'"');
 			mysql_query('UPDATE mkawarded SET user="'. $getMember['id'] .'",award="'. $getAward['id'] .'",value="'. $_POST['value'] .'" WHERE user="'. $_GET['user'] .'" AND award="'. $_GET['award'] .'"');
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
+			insertLog($id, 'EAwarded '. $getMember['id'] .' '. $getAward['id'], array(
+				'type' => 'awarded',
+				'member' => snapshotMember($getMember['id']),
+				'award' => snapshotQuery('SELECT id,name FROM mkawards WHERE id="'. $getAward['id'] .'"'),
+				'before' => $formerAwarded,
+				'after' => snapshotQuery('SELECT user,award,value FROM mkawarded WHERE user="'. $getMember['id'] .'" AND award="'. $getAward['id'] .'"')
+			));
 			header('location: awards.php?awarded-edited');
 		}
 		else {
 			mysql_query('INSERT INTO mkawarded VALUES('.$getMember['id'].',"'. $getAward['id'] .'","'. $_POST['value'] .'")');
 			mysql_query('INSERT INTO `mknotifs` SET type="award", user="'. $getMember['id'] .'", link="'. $getAward['id'] .'"');
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
+			$grantedAward = snapshotQuery('SELECT value FROM mkawarded WHERE user="'. $getMember['id'] .'" AND award="'. $getAward['id'] .'"');
+			insertLog($id, 'CAwarded '. $getMember['id'] .' '. $getAward['id'], array(
+				'type' => 'awarded',
+				'member' => snapshotMember($getMember['id']),
+				'award' => snapshotQuery('SELECT id,name FROM mkawards WHERE id="'. $getAward['id'] .'"'),
+				'value' => $grantedAward ? $grantedAward['value'] : null
+			));
 			header('location: awards.php?awarded-created');
 		}
 	}

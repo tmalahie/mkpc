@@ -7,6 +7,7 @@ if (!$id) {
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -20,7 +21,10 @@ if (!empty($_POST['word'])) {
         mysql_query('INSERT INTO mkbadnicks SET word="'. $checkWord .'"');
         $wordId = mysql_insert_id();
         if ($wordId) {
-            mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "NBlacklist '. $wordId .'")');
+            insertLog($id, 'NBlacklist '. $wordId, array_merge(
+                array('type' => 'nick_word', 'id' => intval($wordId)),
+                snapshotWord('mkbadnicks', $wordId, 'word')
+            ));
             $justAdded = true;
         }
     }
@@ -28,8 +32,12 @@ if (!empty($_POST['word'])) {
 elseif (!empty($_GET['word']))
     $checkWord = strtolower($_GET['word']);
 elseif (isset($_GET['del'])) {
+    $wordSnapshot = snapshotWord('mkbadnicks', $_GET['del'], 'word');
     mysql_query('DELETE FROM mkbadnicks WHERE id="'. $_GET['del'] .'"');
-    mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "NUnblacklist '. $_GET['del'] .'")');
+    insertLog($id, 'NUnblacklist '. $_GET['del'], array_merge(
+        array('type' => 'nick_word', 'id' => intval($_GET['del'])),
+        $wordSnapshot
+    ));
 }
 $isListed = ($checkWord !== null) && mysql_fetch_array(mysql_query('SELECT id FROM mkbadnicks WHERE word="'. $checkWord .'"'));
 $maxMatches = 200;

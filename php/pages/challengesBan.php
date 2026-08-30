@@ -7,6 +7,7 @@ if (!$id) {
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('clvalidator')) {
 	echo "Vous n'&ecirc;tes pas validateur";
 	mysql_close();
@@ -118,15 +119,22 @@ if ($ban) {
         mysql_query('DELETE FROM `mkclbans` WHERE identifiant='. $banIp);
         mysql_query('INSERT INTO `mkclbans` SET identifiant='. $banIp .',link="'. $banLink .'",username="'.mysql_real_escape_string($banUsername).'",msg="'. $_POST['msg'] .'",ban_until_date='. (!empty($_POST['ban_until_date']) ? '"'. $_POST['ban_until_date'] .'"':'NULL'));
         $insertId = mysql_insert_id();
-        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CBan '. $insertId .'")');
+        insertLog($id, 'CBan '. $insertId, array_merge(
+            array('type' => 'challenge_ban', 'id' => intval($insertId), 'member' => snapshotMember($banId)),
+            snapshotWord('mkclbans', $insertId, 'identifiant,link,username,msg,ban_until_date')
+        ));
 	}
 }
 $unban = isset($_GET['unban']) ? $_GET['unban']:null;
 if ($unban) {
     if ($getUsername = mysql_fetch_array(mysql_query('SELECT username FROM `mkclbans` WHERE id="'. $unban .'"'))) {
         $banUsername = $getUsername['username'];
+        $liftedSnapshot = snapshotWord('mkclbans', $unban, 'identifiant,link,username,msg,ban_until_date');
         mysql_query('DELETE FROM `mkclbans` WHERE id="'. $unban .'"');
-        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CUnban '. $unban .'")');
+        insertLog($id, 'CUnban '. $unban, array_merge(
+            array('type' => 'challenge_unban', 'id' => intval($unban)),
+            $liftedSnapshot
+        ));
     }
     else
         $unban = null;

@@ -8,6 +8,7 @@ if (isBanned()) {
 	exit;
 }
 require_once('../includes/utils-challenges.php');
+require_once('../includes/utils-logs.php');
 if (isset($_GET['moderate'])) {
 	include('../includes/session.php');
 	require_once('../includes/getRights.php');
@@ -51,9 +52,17 @@ if (isset($_POST['name'])) {
 					);
 					$validation = mysql_real_escape_string(json_encode($validationData));
 				}
+				$formerChallenge = empty($moderate) ? null : snapshotChallenge($challenge);
 				mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'",difficulty="'. $_POST['difficulty'] .'",data="'. mysql_real_escape_string($dataJson) .'",validation="'. $validation .'" WHERE id="'. $challenge['id'] .'"');
-				if (!empty($moderate))
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EChallenge '. $challenge['id'] .'")');
+				if (!empty($moderate)) {
+					$editedChallenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challenge['id'] .'"'));
+					insertLog($id, 'EChallenge '. $challenge['id'], array(
+						'type' => 'challenge',
+						'id' => intval($challenge['id']),
+						'before' => $formerChallenge,
+						'after' => snapshotChallenge($editedChallenge)
+					));
+				}
 				$clMsg = 'challenge_edited';
 			}
 			else {

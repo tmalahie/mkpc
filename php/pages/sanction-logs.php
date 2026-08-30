@@ -7,6 +7,7 @@ if (!$id) {
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
+require_once('../includes/utils-logs.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -19,9 +20,13 @@ if ($member !== '') {
 		$memberId = $getMember['id'];
 }
 if ($memberId && isset($_GET['del'])) {
+	$sanctionSnapshot = snapshotQuery('SELECT id,player,moderator,type AS sanction_type,reason,sanction_date,end_date FROM `mksanctions` WHERE id="'. $_GET['del'] .'" AND player="'. $memberId .'"');
 	$q = mysql_query('DELETE FROM `mksanctions` WHERE id="'. $_GET['del'] .'" AND player="'. $memberId .'"');
 	if (mysql_affected_rows())
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SSanction '. $_GET['del'] .'")');
+		insertLog($id, 'SSanction '. $_GET['del'], array_merge(
+			array('type' => 'sanction', 'member' => snapshotMember($memberId)),
+			$sanctionSnapshot ? $sanctionSnapshot : array()
+		));
 }
 $sanctionNames = array(
 	'warn' => $language ? 'Warning':'Avertissement',

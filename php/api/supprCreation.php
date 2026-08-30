@@ -7,7 +7,9 @@ if (isset($_POST['id'])) {
 	include('../includes/session.php');
 	require_once('../includes/getRights.php');
 	require_once('../includes/collabUtils.php');
+	require_once('../includes/utils-logs.php');
 	$skipOwnerCheck = hasRight('moderator') || hasCollabGrants('mkcircuits', $cID, $_POST['collab'], 'edit');
+	$trackSnapshot = hasRight('moderator') ? snapshotTrack('mkcircuits', $cID) : null;
 	if ($getCreation = mysql_fetch_array(mysql_query('SELECT type FROM `mkcircuits` WHERE id="'. $cID .'"'. ($skipOwnerCheck ? '':' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))) {
 		mysql_query('DELETE FROM `mkmcups_tracks` WHERE cup IN (SELECT id FROM `mkcups` WHERE (circuit0="'.$cID.'" OR circuit1="'.$cID.'" OR circuit2="'.$cID.'" OR circuit3="'.$cID.'") AND mode IN (0,2))');
 		mysql_query('DELETE c FROM `mkmcups` c LEFT JOIN `mkmcups_tracks` t ON c.id=t.mcup WHERE t.mcup IS NULL');
@@ -22,7 +24,7 @@ if (isset($_POST['id'])) {
 			mysql_query('DELETE FROM `mk'.$lettres[$i].'` WHERE circuit="'.$cID.'"');
 		if (hasRight('moderator')) {
 			$logType = $getCreation['type'] ? 'SArene' : 'SCircuit';
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logType .' '. $cID .'")');
+			insertLog($id, $logType .' '. $cID, $trackSnapshot);
 		}
 		include('../includes/postCircuitUpdate.php');
 		postCircuitDelete('mkcircuits', $cID);
