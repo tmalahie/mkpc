@@ -12,6 +12,29 @@ function resetCourseState($key) {
 function incCourseState($key) {
 	mysql_query('UPDATE `mkgamedata` SET raceCount=aRaceCount+1 WHERE game="'. $key .'"');
 }
+// The server only records which player's choice won, not the track itself, so the history
+// is what the clients report having loaded. It exists so that a player joining mid-game
+// still knows which tracks are already used up.
+function pushCourseTrack($key, $track) {
+	$track = intval($track);
+	if ($track <= 0)
+		return false;
+	$tracks = getCourseTracks($key);
+	if (in_array($track, $tracks, true))
+		return false;
+	$tracks[] = $track;
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mkgamedata` SET tracks="'. implode(',', $tracks) .'" WHERE game="'. intval($key) .'"'
+	);
+	return (bool) mysql_affected_rows();
+}
+function getCourseTracks($key) {
+	$row = mysql_fetch_array(mysql_query('SELECT tracks FROM `mkgamedata` WHERE game="'. intval($key) .'"'));
+	if (!$row || !strlen($row['tracks']))
+		return array();
+	return array_map('intval', explode(',', $row['tracks']));
+}
 function getCourseState($key) {
 	if ($getState = mysql_fetch_array(mysql_query('SELECT raceCount FROM `mkgamedata` WHERE game="'. $key .'"')))
 		return $getState;
