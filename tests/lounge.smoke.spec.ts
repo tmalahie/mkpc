@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
 import { sql } from './helpers/db';
-import { cleanupLoungeQueues, LOUNGE_KEY_MIN } from './helpers/lounge';
+import { cleanupLoungeQueues, createLoungeBots, loungeBotName, LOUNGE_BOT_PASSWORD, LOUNGE_KEY_MIN } from './helpers/lounge';
 
 // One file on purpose. join.php puts a player into the tier's existing open queue, so
 // every test here shares that queue whichever account it uses - and Playwright can only
@@ -482,6 +482,51 @@ test('a unanimous yes puts the POW Block in the item distribution', async ({ pag
 
 	const [match]: any = await sql(`SELECT pow FROM mklounge_matches WHERE queue = ?`, [queueId]);
 	expect(match.pow).toBe(1);
+});
+
+// #link-guidelines pins these two: a lightning may be held by two players at once, and it
+// is not reserved for last place. Everything else keeps MKPC's defaults, which already match
+// the guidelines' "leave all other categories ticked".
+test('the launched link carries the lounge lightning settings', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
+
+	const distrib = (await rulesFor(queueId)).itemDistrib;
+	expect(distrib.lightningx2).toBe(1);
+	expect(distrib.lightninglast).toBe(0);
+});
+
+// A lounge link has no owner (mkprivgame.player = 0), so without the lounge right nobody at
+// all could edit a mogi's rules - unlike the Discord mogis, where whoever made the link can.
+test('only a lounge moderator can edit a lounge link', async ({ page, browser }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
+	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
+	const key = queue.privgame_key;
+
+	const minPlayers = async () => {
+		const [row]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+		return JSON.parse(row.rules).minPlayers;
+	};
+	const edit = (request: any) => request.post('http://127.0.0.1:8080/api/privateGameOptions.php', {
+		form: { key: String(key), options: JSON.stringify({ minPlayers: 3 }) },
+	});
+
+	// an ordinary player is not the owner and holds no right, so the link is closed to them
+	await createLoungeBots(1, 'linkedit');
+	const guest = await browser.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, loungeBotName('linkedit', 1), LOUNGE_BOT_PASSWORD);
+	const before = await minPlayers();
+	await edit(guestPage.request);
+	expect(await minPlayers()).toBe(before);
+	await guest.close();
+
+	// the seeded account is an admin, which carries the lounge right
+	await edit(page.request);
+	expect(await minPlayers()).toBe(3);
 });
 
 test('anything short of unanimous strips the POW Block out', async ({ page }) => {

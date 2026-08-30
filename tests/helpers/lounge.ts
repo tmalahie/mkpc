@@ -75,7 +75,14 @@ export async function cleanupLoungeFixtures() {
     await sql('DELETE FROM mkgamerank WHERE player IN (?)', [ids]);
     await sql('DELETE FROM mkjoueurs WHERE id IN (?)', [ids]);
   }
+  if (ids.length) await sql('DELETE FROM mkplayers WHERE id IN (?)', [ids]);
   const range = [LOUNGE_KEY_MIN, LOUNGE_KEY_MAX];
+  // the staged rooms and their rules, which the specs create to stand in for a live mogi
+  await sql(
+    `DELETE p FROM mkplayers p JOIN mariokart m ON m.id = p.course
+     WHERE m.link BETWEEN ? AND ?`, range);
+  await sql('DELETE FROM mariokart WHERE link BETWEEN ? AND ?', range);
+  await sql('DELETE FROM mkgameoptions WHERE id BETWEEN ? AND ?', range);
   await sql(
     `DELETE mp FROM mklounge_match_players mp
      JOIN mklounge_matches m ON m.id = mp.\`match\`
