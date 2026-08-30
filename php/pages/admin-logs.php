@@ -30,6 +30,26 @@ $logMapping = array(
         'render' => _('accepted challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
+    'LoungeMmr' => array(
+        'render' => F_('set the CT Lounge rating of {user} from $2 to $3', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeStrikes' => array(
+        'render' => F_('set the CT Lounge strikes of {user} to $2', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeBan' => array(
+        'render' => F_('banned {user} from the CT Lounge for $2 minutes', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeUnban' => array(
+        'render' => F_('lifted the CT Lounge ban of {user}', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeRelease' => array(
+        'render' => _('released CT Lounge queue #$1'),
+        'role' => 'lounge'
+    ),
     'CCircuit' => array(
         'render' => _('deleted complete track #$1'),
         'role' => 'moderator'
