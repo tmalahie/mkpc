@@ -1,6 +1,13 @@
 <?php
 include('../includes/session.php');
 include('../includes/language.php');
+$isLoungeMod = false;
+if ($id) {
+	include('../includes/initdb.php');
+	require_once('../includes/getRights.php');
+	$isLoungeMod = hasRight('lounge');
+	mysql_close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -36,6 +43,10 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 			<button type="button" class="lounge-tab is-active" data-tab="queueup"><?php echo $language ? 'Queue Up':'File d\'attente'; ?></button>
 			<button type="button" class="lounge-tab" data-tab="leaderboard"><?php echo $language ? 'Leaderboard':'Classement'; ?></button>
 			<button type="button" class="lounge-tab" data-tab="howitworks">?</button>
+<?php if ($isLoungeMod) { ?>
+			<a class="lounge-tab lounge-modlink" href="admin-lounge.php" target="_top"><?php
+				echo $language ? 'Moderation':'Mod&eacute;ration'; ?></a>
+<?php } ?>
 		</nav>
 	</header>
 
