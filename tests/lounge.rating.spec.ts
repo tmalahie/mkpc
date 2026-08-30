@@ -170,6 +170,104 @@ test('the floor stops a rating going negative', async ({ page }) => {
 
 });
 
+// Stages a launched mogi that is past its join window, with `joined` of its bots actually
+// in the room. Returns the queue id, the match id and the full bot list.
+async function stageLaunchedMatch(tag: string, key: number, bots: number, joined: number, races: number) {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code='all'`);
+	const players = await createLoungeBots(bots, tag);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launching', ?, NOW() - INTERVAL 10 MINUTE)`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode) VALUES (?, 1, ?, ?, 'FFA')`,
+		[q.insertId, tier.id, key]);
+	for (const player of players)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, player]);
+	const [m]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (const player of players)
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [m.id, player]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)`,
+		[key, JSON.stringify({ minPlayers: bots, maxPlayers: bots, raceLimit: 12, lounge: 1 })]);
+	if (races)
+		await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, ?, ?)`, [key, races, races]);
+	// the room only exists while the mogi is alive; `mariokart` is a MEMORY table
+	if (joined) {
+		const room: any = await sql(`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+			[Math.floor(Date.now() / 1000), key]);
+		for (const player of players.slice(0, joined))
+			await sql(`INSERT INTO mkplayers (id, course, team, finaltime, finalts) VALUES (?, ?, -1, 0, 0)`,
+				[player, room.insertId]);
+	}
+	await publish(key);
+	return { queueId: q.insertId, matchId: m.id, players };
+}
+
+async function rulesOf(key: number) {
+	const [row]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	return JSON.parse(row.rules);
+}
+
+// Rule 4da penalises the player who did not turn up, not the rest of the lineup. Before this,
+// minPlayers was pinned to the lineup size, so one absentee left everyone else stuck on
+// "waiting for players" and the whole mogi was voided.
+test('a partial lineup still plays, and only the absentee is struck', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 20;
+	const { queueId, players } = await stageLaunchedMatch('noshow', key, 4, 3, 0);
+
+	await tick(page);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+	// the room now only needs the three who are in it
+	expect((await rulesOf(key)).minPlayers).toBe(3);
+
+	const absentee = players[3];
+	const [struck]: any = await sql(`SELECT strikes FROM mklounge_players WHERE player = ?`, [absentee]);
+	expect(struck.strikes).toBe(1);
+	const active: any = await sql(
+		`SELECT player FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`, [queueId]);
+	expect(active.map((r: any) => r.player).sort()).toEqual(players.slice(0, 3).sort());
+});
+
+test('a lineup too small to race is voided instead', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 21;
+	const { queueId } = await stageLaunchedMatch('small', key, 4, 1, 0);
+
+	await tick(page);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('cancelled');
+	const [match]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.cancelled_reason).toBe('no_show');
+});
+
+// Without this a mogi that dies part-way stays "launched" for ever, and every member of the
+// lineup is permanently "already queued" with no way out - leave.php refuses anything that
+// is not an open queue.
+test('an abandoned mogi releases its lineup instead of stranding it', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 22;
+	// five races in, and the room is gone: nobody is playing this any more
+	const { queueId, players } = await stageLaunchedMatch('aband', key, 4, 0, 5);
+
+	await tick(page);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('cancelled');
+	const [match]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.cancelled_reason).toBe('abandoned');
+
+	const stranded: any = await sql(
+		`SELECT player FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`, [queueId]);
+	expect(stranded).toHaveLength(0);
+
+	// a voided mogi rates nobody
+	const rated: any = await sql(
+		`SELECT games FROM mklounge_players WHERE player IN (?) AND games > 0`, [players]);
+	expect(rated).toHaveLength(0);
+});
+
 // lounge_tick() runs on every poll from every player, so the code that finishes a match
 // is genuinely reentrant in production. Without an atomic claim, two ticks both tally the
 // standings and both apply the rating change, counting the match twice.

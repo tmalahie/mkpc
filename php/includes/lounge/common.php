@@ -13,6 +13,12 @@ define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
 define('LOUNGE_JOIN_TIMEOUT_SECONDS', 180);
+// A mogi is 12 races of ~3 minutes. Past this it is not being played any more, whatever
+// the race counter says.
+define('LOUNGE_MATCH_MAX_MINUTES', 120);
+// How far the room's required player count may be lowered when players fail to join or
+// walk out mid-mogi. Below this there is no race worth playing.
+define('LOUNGE_MIN_RACE_PLAYERS', 2);
 
 function lounge_get_season_multicup() {
 	$row = mysql_fetch_array(mysql_query(
@@ -256,7 +262,12 @@ function lounge_build_game_rules($mode, $playerCount, $withPow = true) {
 		'maxPlayers' => $playerCount,
 		'itemDistrib' => array(
 			'value' => lounge_item_distribution($withPow),
-			'name' => 'CTP Distrib'
+			'name' => 'CTP Distrib',
+			// Both required by #link-guidelines: two players may hold a lightning at once,
+			// and it is not reserved for last place. Everything else keeps MKPC's defaults,
+			// which already match the guidelines' "leave all other categories ticked".
+			'lightningx2' => 1,
+			'lightninglast' => 0
 		),
 		'ptDistrib' => array(
 			'value' => lounge_point_distribution($playerCount),
@@ -365,6 +376,93 @@ function lounge_launch_match($queueId) {
 	return array('mode' => $mode, 'pow' => $withPow, 'key' => $key, 'multicup_id' => lounge_get_season_multicup());
 }
 
+// Teams are picked in-game (manualTeams) and live only in `mkplayers`, a MEMORY table that
+// a MySQL restart empties and that the online cleanup drops a few minutes after the room
+// goes idle. So they are snapshotted at the end of every race, while the room is certainly
+// still there, instead of once at the end of the mogi.
+function lounge_snapshot_teams($privgameKey, $course = 0) {
+	$room = $course
+		? 'INNER JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course="'. intval($course) .'"'
+		: 'INNER JOIN `mariokart` c ON c.link="'. intval($privgameKey) .'"
+		   INNER JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course=c.id';
+	mysql_query(
+		'UPDATE `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.privgame_key="'. intval($privgameKey) .'"
+		'. $room .'
+		SET mp.team=gp.team
+		WHERE gp.team >= 0'
+	);
+}
+
+// The lounge link pins minPlayers to the lineup size, so one no-show or one player walking
+// out leaves everyone else stuck on "waiting for players" for good. Staff fix that by hand
+// today - #link-guidelines tells the host to lower "Minimum number of players" by one - and
+// this does the same automatically. It only applies once the join window has closed, so
+// nobody is left behind while they are still loading in.
+function lounge_relax_room($privgameKey, $playersInRoom) {
+	if ($playersInRoom < LOUNGE_MIN_RACE_PLAYERS)
+		return false;
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT o.rules FROM `mkgameoptions` o
+		INNER JOIN `mklounge_queues` q ON q.privgame_key=o.id
+		WHERE o.id="'. intval($privgameKey) .'" AND q.status="launched"
+		AND q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)'
+	));
+	if (!$row)
+		return false;
+	$rules = json_decode($row['rules'], true);
+	if (!is_array($rules) || !isset($rules['minPlayers']))
+		return false;
+	if (intval($rules['minPlayers']) <= $playersInRoom)
+		return false;
+	$rules['minPlayers'] = $playersInRoom;
+	mysql_query(
+		'UPDATE `mkgameoptions` SET rules="'. mysql_real_escape_string(json_encode($rules)) .'"
+		WHERE id="'. intval($privgameKey) .'"'
+	);
+	return true;
+}
+
+// Called from reload.php at the end of every race of a lounge mogi. The lounge tick only
+// runs from its own endpoints, and nobody is sitting on the lounge page while a mogi is
+// being played, so this is the only heartbeat a match in trouble gets.
+function lounge_race_finished($privgameKey, $course, $playersInRoom) {
+	lounge_snapshot_teams($privgameKey, $course);
+	lounge_relax_room($privgameKey, $playersInRoom);
+}
+
+// A launched queue that stops being played has no other way out: it is not finished (fewer
+// than 12 races) and not a no-show (some races were played), so without this every member
+// stays "already queued" for ever and can never enter ranked again.
+//
+// The match is voided rather than rated on its partial standings: the points distribution
+// assumes a full mogi, and rating half of one is a decision for staff, not a default.
+function lounge_abandon_match($queueId) {
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues` SET status="cancelled"
+		WHERE id="'. intval($queueId) .'" AND status="launched"'
+	);
+	if (!mysql_affected_rows())
+		return false;
+	mysql_query(
+		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="abandoned"
+		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
+	);
+	mysql_query(
+		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
+		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
+	);
+	return true;
+}
+
+function lounge_is_lounge_link($privgameKey) {
+	return (bool) mysql_fetch_array(mysql_query(
+		'SELECT 1 AS ok FROM `mklounge_matches`
+		WHERE privgame_key="'. intval($privgameKey) .'" LIMIT 1'
+	));
+}
+
 function lounge_add_strike($playerId, $reason) {
 	mysql_query(
 		'INSERT INTO `mklounge_players` (player, season, strikes)
@@ -418,15 +516,9 @@ function lounge_finish_match($queueId) {
 		return false;
 	$matchId = intval($match['id']);
 
-	// Teams are picked in-game (manualTeams), so they only exist in the live game state:
-	// snapshot them while the players are still connected, before the MMR pass needs them.
-	mysql_query(
-		'UPDATE `mklounge_match_players` mp
-		INNER JOIN `mariokart` c ON c.link="'. intval($queue['privgame_key']) .'"
-		INNER JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course=c.id
-		SET mp.team=gp.team
-		WHERE mp.`match`="'. $matchId .'" AND gp.team >= 0'
-	);
+	// Last chance to catch teams if no race-end snapshot got through; by now the room may
+	// already be gone, which is exactly why lounge_race_finished() does it every race.
+	lounge_snapshot_teams($queue['privgame_key']);
 
 	$standings = array();
 	$getStandings = mysql_query(
@@ -528,27 +620,19 @@ function lounge_match_joined_players($privgameKey) {
 	return $joined;
 }
 
-function lounge_cancel_no_show_match($queueId) {
-	$queue = mysql_fetch_array(mysql_query(
-		'SELECT id, privgame_key FROM `mklounge_queues`
-		WHERE id="'. intval($queueId) .'" AND status="launched" AND privgame_key IS NOT NULL'
-	));
-	if (!$queue)
-		return false;
-
-	// same claim as lounge_finish_match: only one caller may strike the no-shows
+// Dropping the member is the claim: lounge_tick() is reentrant, and only the caller that
+// actually flips dropped_at gets to hand out the strike.
+function lounge_strike_no_shows($queueId, $joined) {
 	global $q;
-	$q = mysql_query(
-		'UPDATE `mklounge_queues` SET status="cancelled"
-		WHERE id="'. intval($queueId) .'" AND status="launched"'
-	);
-	if (!mysql_affected_rows())
-		return false;
-
-	$joined = lounge_match_joined_players($queue['privgame_key']);
-	$members = lounge_queue_members($queueId);
-	foreach ($members as $member) {
+	foreach (lounge_queue_members($queueId) as $member) {
 		if (isset($joined[$member['id']]))
+			continue;
+		$q = mysql_query(
+			'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
+			WHERE queue="'. intval($queueId) .'" AND player="'. intval($member['id']) .'"
+			AND dropped_at IS NULL'
+		);
+		if (!mysql_affected_rows())
 			continue;
 		lounge_add_strike($member['id'], 'no_show');
 		mysql_query(
@@ -558,7 +642,36 @@ function lounge_cancel_no_show_match($queueId) {
 			WHERE m.queue="'. intval($queueId) .'" AND mp.player="'. intval($member['id']) .'"'
 		);
 	}
+}
 
+// Rule 4da penalises the player who did not turn up, not the seven who did - so as long as
+// enough of the lineup is in the room, the absentees are struck, the room is shrunk to the
+// players actually in it, and the mogi goes ahead. Only a lineup too small to race is voided.
+function lounge_handle_join_timeout($queueId) {
+	$queue = mysql_fetch_array(mysql_query(
+		'SELECT id, privgame_key FROM `mklounge_queues`
+		WHERE id="'. intval($queueId) .'" AND status="launched" AND privgame_key IS NOT NULL'
+	));
+	if (!$queue)
+		return false;
+
+	$joined = lounge_match_joined_players($queue['privgame_key']);
+	if (count($joined) >= LOUNGE_MIN_RACE_PLAYERS) {
+		lounge_strike_no_shows($queueId, $joined);
+		lounge_relax_room($queue['privgame_key'], count($joined));
+		return true;
+	}
+
+	// same claim as lounge_finish_match: only one caller may void the match
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues` SET status="cancelled"
+		WHERE id="'. intval($queueId) .'" AND status="launched"'
+	);
+	if (!mysql_affected_rows())
+		return false;
+
+	lounge_strike_no_shows($queueId, $joined);
 	mysql_query(
 		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="no_show"
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
@@ -769,7 +882,9 @@ function lounge_tick() {
 
 	$launched = mysql_query(
 		'SELECT q.id, IFNULL(d.raceCount, 0) AS races,
-			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)) AS join_timed_out
+			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)) AS join_timed_out,
+			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_MATCH_MAX_MINUTES) .' MINUTE)) AS match_timed_out,
+			EXISTS(SELECT 1 FROM `mariokart` c WHERE c.link=q.privgame_key) AS room_alive
 		FROM `mklounge_queues` q
 		LEFT JOIN `mkgamedata` d ON d.game=q.privgame_key
 		WHERE q.status="launched" AND q.privgame_key IS NOT NULL'
@@ -778,8 +893,13 @@ function lounge_tick() {
 		$races = intval($row['races']);
 		if ($races >= LOUNGE_RACES_PER_MATCH)
 			lounge_finish_match(intval($row['id']));
-		elseif (!$races && $row['join_timed_out'])
-			lounge_cancel_no_show_match(intval($row['id']));
+		elseif (!$races && $row['join_timed_out'] && !$row['match_timed_out'])
+			lounge_handle_join_timeout(intval($row['id']));
+		// `mariokart` is a MEMORY table, so the room disappearing - swept by the online
+		// cleanup once it goes idle, or emptied by a MySQL restart - is the clearest signal
+		// that this mogi is not being played any more.
+		elseif ($row['match_timed_out'] || ($races && !$row['room_alive']))
+			lounge_abandon_match(intval($row['id']));
 	}
 
 	$lockTimedOut = mysql_query(

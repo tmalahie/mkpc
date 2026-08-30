@@ -26261,7 +26261,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oScr.appendChild(eClassement);
 
 			if (shareLink.key) {
-				if (shareLink.player == identifiant) {
+				if (shareLink.player == identifiant || shareLink.canEdit) {
 					var oPInput = document.createElement("input");
 					oPInput.type = "button";
 					oPInput.value = toLanguage("Private game options...", "Options partie privée...");
