@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 if (isset($_POST['key'])) {
     include('../includes/initdb.php');
-    $key = $_POST['key'];
+    $key = intval($_POST['key']);
     if ($linkCreator = mysql_fetch_array(mysql_query('SELECT player FROM `mkprivgame` WHERE id="'. $key .'"'))) {
         include('../includes/session.php');
         if ($linkCreator['player'] == $id) {

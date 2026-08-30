@@ -261,6 +261,12 @@ if ($id) {
 					if ($isLocal) {
 						require_once('../includes/onlineStateUtils.php');
 						incCourseState($courseOptions['id']);
+						// nobody sits on the lounge page during a mogi, so the lounge tick
+						// never runs while one is being played: this is its only heartbeat
+						if (!empty($courseRules->lounge)) {
+							require_once('../includes/lounge/common.php');
+							lounge_race_finished($courseOptions['id'], $course, $nbScores);
+						}
 					}
 				}
 				if ($spectatorId)

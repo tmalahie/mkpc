@@ -63,6 +63,18 @@ if (isset($_GET['key'])) {
 	}
 }
 $isRanked = isset($_GET['ranked']);
+// A lounge link has no owner, so without this nobody could ever edit a mogi's rules; a
+// lounge moderator stands in for the human host the Discord mogis rely on.
+$canEditLink = false;
+if ($id && isset($privateLink)) {
+	if (isset($privateLinkData) && $privateLinkData['player'] == $id)
+		$canEditLink = true;
+	else {
+		require_once('../includes/getRights.php');
+		require_once('../includes/lounge/common.php');
+		$canEditLink = hasRight('lounge') && lounge_is_lounge_link($privateLink);
+	}
+}
 if ($isRanked && $id && isset($privateLink)) {
 	if ($getRankedPerso = mysql_fetch_array(mysql_query(
 		'SELECT mp.perso FROM `mklounge_match_players` mp
@@ -235,6 +247,7 @@ var shareLink = {
 	options: <?php echo isset($linkOptions) ? json_encode($linkOptions):'null'; ?>,
 	url:"<?php echo (isset($_SERVER['HTTPS'])?'https':'http') . '://' . $_SERVER['HTTP_HOST'] . parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH); ?>",
 	accepted: <?php echo isset($linkAccepted) ? 'true':'false'; ?>,
+	canEdit: <?php echo $canEditLink ? 'true':'false'; ?>,
 	params: [<?php
 	$params = array();
 	if ($isMCup)
