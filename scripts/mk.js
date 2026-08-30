@@ -1736,7 +1736,14 @@ function loadMap() {
 	formulaire.dataset.disabled = 1;
 
 	iTeamPlay = isTeamPlay();
-	aTracksHist.push(1 + aAvailableMaps.indexOf("map"+oMap.ref));
+	var loadedTrack = 1 + aAvailableMaps.indexOf("map"+oMap.ref);
+	aTracksHist.push(loadedTrack);
+	// the server only knows whose choice won, not the track, so the history it hands to a
+	// player joining mid-mogi is the one the clients report
+	if (noRepeatTracks() && shareLink.key)
+		xhr("lounge/track.php", "key="+ encodeURIComponent(shareLink.key) +"&track="+ loadedTrack, function() {
+			return true;
+		});
 	iRaceCount++;
 
 	setSRest();
@@ -29551,6 +29558,10 @@ function chooseRandMap() {
 	else
 		chooseWithin(0, NBCIRCUITS);
 }
+// Rule 4c: a course may only be played once per mogi. Ranked only for now.
+function noRepeatTracks() {
+	return isOnline && (typeof shareLink !== "undefined") && shareLink.options && !!shareLink.options.lounge;
+}
 function chooseWithin(min,range) {
 	var max = min+range;
 	var availableTracks = {};
@@ -29559,7 +29570,7 @@ function chooseWithin(min,range) {
 	for (var i=0;i<aTracksHist.length;i++)
 		delete availableTracks[aTracksHist[i]];
 	availableTracks = Object.keys(availableTracks);
-	if (!availableTracks.length && aTracksHist.length) {
+	if (!availableTracks.length && aTracksHist.length && !noRepeatTracks()) {
 		aTracksHist = aTracksHist.slice(aTracksHist.length-Math.floor(range/2));
 		return chooseWithin(min,range);
 	}
@@ -30210,6 +30221,12 @@ function selectRaceScreen(cup) {
 			}
 			mDiv.map = aAvailableMaps[i];
 			mDiv.ref = i+1;
+			var alreadyPlayed = noRepeatTracks() && (aTracksHist.indexOf(mDiv.ref) >= 0);
+			if (alreadyPlayed) {
+				mDiv.style.cursor = "default";
+				mDiv.style.opacity = 0.35;
+				mDiv.title = toLanguage("Already played in this mogi", "Déjà jouée dans ce mogi");
+			}
 
 			var oPImg = new Image();
 			setMapSrc(oPImg, cup,i, getMapSelectorSrc(i));
@@ -30251,6 +30268,8 @@ function selectRaceScreen(cup) {
 			}
 
 			mDiv.onclick = function() {
+				if (noRepeatTracks() && (aTracksHist.indexOf(this.ref) >= 0))
+					return;
 				forceClic4 = false;
 				hadInputDuringRace = true;
 				oScr.innerHTML = "";
@@ -30487,6 +30506,8 @@ function choose(map,rand) {
 							bSelectedMirror = false;
 						if (gameRules.raceCount >= 0)
 							iRaceCount = gameRules.raceCount;
+						if (gameRules.tracks && gameRules.tracks.length)
+							aTracksHist = gameRules.tracks.slice();
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];

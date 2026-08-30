@@ -13,6 +13,14 @@ define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
 define('LOUNGE_JOIN_TIMEOUT_SECONDS', 180);
+// "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
+// queue": a tab left open keeps polling for ever, so waiting on the heartbeat alone would
+// let a mogi gather around somebody who walked away.
+define('LOUNGE_CONFIRM_SECONDS', 600);
+define('LOUNGE_CONFIRM_GRACE_SECONDS', 120);
+// Access to ranked. 0 disables the check - the original spec asks for "un certain nombre de
+// critères" without ever saying which, so only the site-wide ban is enforced for now.
+define('LOUNGE_MIN_ACCOUNT_AGE_DAYS', 0);
 // A mogi is 12 races of ~3 minutes. Past this it is not being played any more, whatever
 // the race counter says.
 define('LOUNGE_MATCH_MAX_MINUTES', 120);
@@ -77,6 +85,24 @@ function lounge_get_player_state($playerId) {
 		'placed' => 0,
 		'rank' => lounge_rank_for_mmr(LOUNGE_DEFAULT_MMR)
 	);
+}
+
+function lounge_access_error($playerId) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT j.banned, j.deleted,
+			DATEDIFF(NOW(), p.sub_date) AS account_age
+		FROM `mkjoueurs` j
+		LEFT JOIN `mkprofiles` p ON p.id=j.id
+		WHERE j.id="'. intval($playerId) .'"'
+	));
+	if (!$row || $row['deleted'])
+		return 'no_account';
+	if ($row['banned'])
+		return 'site_banned';
+	if (LOUNGE_MIN_ACCOUNT_AGE_DAYS && !is_null($row['account_age'])
+		&& intval($row['account_age']) < LOUNGE_MIN_ACCOUNT_AGE_DAYS)
+		return 'account_too_new';
+	return null;
 }
 
 function lounge_tier_eligible($tier, $mmr) {
@@ -150,6 +176,21 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 	));
 	if (!$queue) return null;
 	$members = lounge_queue_members($queueId);
+	$confirmDue = false;
+	$confirmSecondsLeft = null;
+	if ($forPlayerId) {
+		$me = mysql_fetch_array(mysql_query(
+			'SELECT (confirmed_at < (NOW() - INTERVAL '. intval(LOUNGE_CONFIRM_SECONDS) .' SECOND)) AS due,
+				GREATEST(0, UNIX_TIMESTAMP(confirmed_at) + '. intval(LOUNGE_CONFIRM_SECONDS + LOUNGE_CONFIRM_GRACE_SECONDS) .'
+					- UNIX_TIMESTAMP(NOW())) AS seconds_left
+			FROM `mklounge_queue_members`
+			WHERE queue="'. intval($queueId) .'" AND player="'. intval($forPlayerId) .'" AND dropped_at IS NULL'
+		));
+		if ($me) {
+			$confirmDue = (bool) intval($me['due']);
+			$confirmSecondsLeft = intval($me['seconds_left']);
+		}
+	}
 	$myVote = null;
 	$myPowVote = null;
 	$votes = array();
@@ -193,6 +234,8 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'pow_votes' => $powVotes,
 		'lock_threshold' => intval($queue['min_players']) ? intval($queue['min_players']) : LOUNGE_DEFAULT_MIN_PLAYERS,
 		'ready_threshold' => LOUNGE_QUEUE_READY_THRESHOLD,
+		'confirm_due' => $confirmDue,
+		'confirm_seconds_left' => $confirmSecondsLeft,
 		'lock_wait_seconds' => LOUNGE_LOCK_WAIT_SECONDS,
 		'vote_wait_seconds' => LOUNGE_VOTE_WAIT_SECONDS
 	);
@@ -923,6 +966,26 @@ function lounge_tick() {
 		AND m.last_heartbeat < (NOW() - INTERVAL '. $cutoff .' SECOND)
 		AND q.status IN ("open","locked")'
 	);
+	$unconfirmed = mysql_query(
+		'SELECT m.queue, m.player FROM `mklounge_queue_members` m
+		INNER JOIN `mklounge_queues` q ON q.id=m.queue
+		WHERE m.dropped_at IS NULL
+		AND m.confirmed_at < (NOW() - INTERVAL '. intval(LOUNGE_CONFIRM_SECONDS + LOUNGE_CONFIRM_GRACE_SECONDS) .' SECOND)
+		AND q.status IN ("open","locked")'
+	);
+	$stale = array();
+	while ($row = mysql_fetch_array($unconfirmed)) {
+		$stale[intval($row['queue'])] = true;
+		// left the queue rather than misbehaved, so no strike - the spec only removes them
+		mysql_query(
+			'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
+			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
+			AND dropped_at IS NULL'
+		);
+	}
+	foreach ($stale as $queueId => $_)
+		lounge_update_queue_status($queueId);
+
 	$affected = array();
 	while ($row = mysql_fetch_array($afkRes)) {
 		$affected[intval($row['queue'])] = true;

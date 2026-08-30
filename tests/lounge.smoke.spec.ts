@@ -487,6 +487,46 @@ test('a unanimous yes puts the POW Block in the item distribution', async ({ pag
 // #link-guidelines pins these two: a lightning may be held by two players at once, and it
 // is not reserved for last place. Everything else keeps MKPC's defaults, which already match
 // the guidelines' "leave all other categories ticked".
+// "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
+// queue, et on est retiré de la queue si aucune réponse n'est fournie". Polling alone keeps
+// a walked-away tab in the lineup for ever.
+test('a queued player is asked to confirm, and dropped if they never answer', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	const queueId = (await joined.json()).queue.id;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	const age = (seconds: number) => sql(
+		`UPDATE mklounge_queue_members SET confirmed_at = NOW() - INTERVAL ? SECOND
+		 WHERE queue = ? AND player = ?`, [seconds, queueId, playerId]);
+
+	// past the prompt window but still inside the grace period: asked, not dropped
+	await age(700);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	const prompt = page.locator('.lounge-confirm');
+	await expect(prompt).toBeVisible();
+	await expect(prompt.locator('.lounge-confirm-text')).toContainText('still in the queue');
+
+	// answering resets the clock and clears the prompt
+	await prompt.locator('.lounge-confirm-btn').click();
+	await expect(page.locator('.lounge-confirm')).toHaveCount(0);
+
+	// no answer at all, past the grace period: taken out of the list
+	await age(60 * 60);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
+	const [member]: any = await sql(
+		`SELECT dropped_at FROM mklounge_queue_members WHERE queue = ? AND player = ?`,
+		[queueId, playerId]);
+	expect(member.dropped_at).not.toBeNull();
+	// dropping out of a queue is not an offence, so no strike
+	const [state]: any = await sql(`SELECT strikes FROM mklounge_players WHERE player = ?`, [playerId]);
+	expect(state?.strikes ?? 0).toBe(0);
+});
+
 test('the launched link carries the lounge lightning settings', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
@@ -499,6 +539,38 @@ test('the launched link carries the lounge lightning settings', async ({ page })
 
 // A lounge link has no owner (mkprivgame.player = 0), so without the lounge right nobody at
 // all could edit a mogi's rules - unlike the Discord mogis, where whoever made the link can.
+// Rule 4c. The client kept this history in memory only, so a player joining mid-mogi had no
+// idea which courses were already used up - and Random could hand them a repeat.
+test('the track history is kept server-side so a late joiner gets it', async ({ page, browser }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
+	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
+	const key = queue.privgame_key;
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 0, 0)
+	           ON DUPLICATE KEY UPDATE raceCount = 0`, [key]);
+
+	const report = (track: number, request = page.request) =>
+		request.post('http://127.0.0.1:8080/api/lounge/track.php', {
+			form: { key: String(key), track: String(track) },
+		});
+
+	expect((await (await report(7)).json()).tracks).toEqual([7]);
+	expect((await (await report(3)).json()).tracks).toEqual([7, 3]);
+	// the same race reported by every player in the room must not pile up
+	expect((await (await report(3)).json()).tracks).toEqual([7, 3]);
+
+	// somebody who is not in this mogi cannot write to its history
+	await createLoungeBots(1, 'trackhist');
+	const guest = await browser.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, loungeBotName('trackhist', 1), LOUNGE_BOT_PASSWORD);
+	expect((await (await report(9, guestPage.request)).json()).tracks).toEqual([7, 3]);
+	await guest.close();
+
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+});
+
 test('only a lounge moderator can edit a lounge link', async ({ page, browser }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
