@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
   `confirmed_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `perso` varchar(250) DEFAULT NULL,
   `voted_mode` varchar(8) DEFAULT NULL,
-  `voted_pow` tinyint(1) DEFAULT NULL,
   `dropped_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`queue`,`player`),
   KEY `player_active` (`player`,`dropped_at`)
@@ -86,7 +85,6 @@ CREATE TABLE IF NOT EXISTS `mklounge_matches` (
   `tier` int(10) unsigned NOT NULL,
   `privgame_key` int(10) unsigned NOT NULL,
   `mode` varchar(8) NOT NULL,
-  `pow` tinyint(1) NOT NULL DEFAULT 0,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `ended_at` timestamp NULL DEFAULT NULL,
   `cancelled_reason` varchar(64) DEFAULT NULL,

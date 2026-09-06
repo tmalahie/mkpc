@@ -192,23 +192,17 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		}
 	}
 	$myVote = null;
-	$myPowVote = null;
 	$votes = array();
-	$powVotes = 0;
 	if ($queue['status'] === 'voting') {
 		$voteRes = mysql_query(
-			'SELECT player, voted_mode, voted_pow FROM `mklounge_queue_members`
+			'SELECT player, voted_mode FROM `mklounge_queue_members`
 			WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
 		);
 		while ($v = mysql_fetch_array($voteRes)) {
 			if ($v['voted_mode'])
 				$votes[$v['voted_mode']] = (isset($votes[$v['voted_mode']]) ? $votes[$v['voted_mode']] : 0) + 1;
-			if (intval($v['voted_pow']) === 1)
-				$powVotes++;
-			if ($forPlayerId && intval($v['player']) === intval($forPlayerId)) {
+			if ($forPlayerId && intval($v['player']) === intval($forPlayerId))
 				$myVote = $v['voted_mode'];
-				$myPowVote = is_null($v['voted_pow']) ? null : intval($v['voted_pow']);
-			}
 		}
 	}
 	return array(
@@ -230,8 +224,6 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'allowed_modes' => lounge_allowed_modes(count($members)),
 		'my_vote' => $myVote,
 		'votes' => $votes,
-		'my_pow_vote' => $myPowVote,
-		'pow_votes' => $powVotes,
 		'lock_threshold' => intval($queue['min_players']) ? intval($queue['min_players']) : LOUNGE_DEFAULT_MIN_PLAYERS,
 		'ready_threshold' => LOUNGE_QUEUE_READY_THRESHOLD,
 		'confirm_due' => $confirmDue,
@@ -259,9 +251,8 @@ function lounge_mode_team_count($mode) {
 	}
 }
 
-// Rule 3h: the POW Block is only in the composition when the whole lineup agreed to it,
 // so it is stripped out unless the vote was unanimous.
-function lounge_item_distribution($withPow = true) {
+function lounge_item_distribution() {
 	$distribution = array(
 		array('fauxobjet'=>3, 'banane'=>4, 'bananeX3'=>2, 'carapace'=>5, 'bobomb'=>1),
 		array('banane'=>2, 'bananeX3'=>3, 'carapace'=>5, 'carapacerouge'=>4, 'champi'=>2, 'poison'=>2, 'bobomb'=>1),
@@ -272,12 +263,6 @@ function lounge_item_distribution($withPow = true) {
 		array('carapacebleue'=>1, 'champiX3'=>4, 'megachampi'=>2, 'etoile'=>3, 'champior'=>2, 'billball'=>2),
 		array('carapacebleue'=>2, 'champiX3'=>4, 'etoile'=>3, 'champior'=>3, 'billball'=>3, 'eclair'=>2)
 	);
-	if (!$withPow) {
-		foreach ($distribution as $i => $tier) {
-			if (isset($tier['pow']))
-				unset($distribution[$i]['pow']);
-		}
-	}
 	return $distribution;
 }
 
@@ -297,20 +282,18 @@ function lounge_point_distribution($playerCount) {
 	return $fallback;
 }
 
-function lounge_build_game_rules($mode, $playerCount, $withPow = true) {
+function lounge_build_game_rules($mode, $playerCount) {
 	$rules = array(
 		'friendly' => 1,
 		'localScore' => 1,
 		'minPlayers' => $playerCount,
 		'maxPlayers' => $playerCount,
 		'itemDistrib' => array(
-			'value' => lounge_item_distribution($withPow),
+			'value' => lounge_item_distribution(),
 			'name' => 'CTP Distrib',
-			// Both required by #link-guidelines: two players may hold a lightning at once,
-			// and it is not reserved for last place. Everything else keeps MKPC's defaults,
-			// which already match the guidelines' "leave all other categories ticked".
-			'lightningx2' => 1,
-			'lightninglast' => 0
+			// #link-guidelines: untick "Prevent 2 players from having a lightning item" and
+			// nothing else, so every other flag keeps MKPC's default.
+			'lightningx2' => 1
 		),
 		'ptDistrib' => array(
 			'value' => lounge_point_distribution($playerCount),
@@ -357,23 +340,16 @@ function lounge_launch_match($queueId) {
 
 	$members = lounge_queue_members($queueId);
 	$voteRes = mysql_query(
-		'SELECT voted_mode, voted_pow FROM `mklounge_queue_members`
+		'SELECT voted_mode FROM `mklounge_queue_members`
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
 	);
 	$votes = array();
-	$powYes = 0;
-	$powVoters = 0;
 	while ($v = mysql_fetch_array($voteRes)) {
 		if ($v['voted_mode'])
 			$votes[$v['voted_mode']] = (isset($votes[$v['voted_mode']]) ? $votes[$v['voted_mode']] : 0) + 1;
-		$powVoters++;
-		if (intval($v['voted_pow']) === 1)
-			$powYes++;
 	}
 	$allowedModes = lounge_allowed_modes(count($members));
 	$mode = lounge_tally_vote($votes, $allowedModes);
-	// Rule 3h: unanimous agreement only. A player who never voted has not agreed.
-	$withPow = ($powVoters > 0 && $powYes === $powVoters);
 
 	global $q;
 	$q = mysql_query(
@@ -389,7 +365,7 @@ function lounge_launch_match($queueId) {
 		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'. $key .'",player=0');
 	} while (!mysql_affected_rows());
 
-	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members), $withPow)));
+	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members))));
 	mysql_query(
 		'INSERT INTO `mkgameoptions` SET id="'. $key .'", rules="'. $rulesJson .'", public=0'
 	);
@@ -401,10 +377,10 @@ function lounge_launch_match($queueId) {
 	);
 	mysql_query(
 		'INSERT INTO `mklounge_matches`
-		(queue, season, tier, privgame_key, mode, pow, started_at)
+		(queue, season, tier, privgame_key, mode, started_at)
 		VALUES ("'. intval($queueId) .'", "'. intval($queueRow['season']) .'",
 				"'. intval($queueRow['tier']) .'", "'. $key .'",
-				"'. mysql_real_escape_string($mode) .'", "'. ($withPow ? 1 : 0) .'", NOW())'
+				"'. mysql_real_escape_string($mode) .'", NOW())'
 	);
 
 	$matchId = mysql_insert_id();
@@ -416,7 +392,7 @@ function lounge_launch_match($queueId) {
 		);
 	}
 
-	return array('mode' => $mode, 'pow' => $withPow, 'key' => $key, 'multicup_id' => lounge_get_season_multicup());
+	return array('mode' => $mode, 'key' => $key, 'multicup_id' => lounge_get_season_multicup());
 }
 
 // Teams are picked in-game (manualTeams) and live only in `mkplayers`, a MEMORY table that
