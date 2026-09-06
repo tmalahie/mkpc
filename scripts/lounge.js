@@ -514,7 +514,12 @@
 			var dropBtn = document.createElement('button');
 			dropBtn.type = 'button';
 			dropBtn.className = 'lounge-drop';
-			dropBtn.textContent = toLanguage('Drop', 'Quitter');
+			// rule 3a: no flickering in and out of a gathering list
+			var dropWait = queue.drop_seconds_left || 0;
+			dropBtn.disabled = dropWait > 0;
+			dropBtn.textContent = dropWait
+				? toLanguage('Drop (' + dropWait + 's)', 'Quitter (' + dropWait + 's)')
+				: toLanguage('Drop', 'Quitter');
 			dropBtn.addEventListener('click', onDropClick);
 			actions.appendChild(dropBtn);
 		} else {
@@ -633,6 +638,11 @@
 		postJSON('lounge/leave.php', '', function(data) {
 			actionInFlight = false;
 			if (data.error === 'queue_locked') {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+				return;
+			}
+			if (data.error === 'drop_too_soon') {
 				currentQueue = data.queue;
 				renderWaiting(currentQueue);
 				return;
