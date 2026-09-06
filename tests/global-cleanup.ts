@@ -1,7 +1,7 @@
 import { FullConfig } from '@playwright/test';
 import { cleanupCreations } from './helpers/mkpc';
 import { cleanupTopics } from './helpers/forum';
-import { cleanupLoungeQueues, cleanupLoungeFixtures } from './helpers/lounge';
+import { cleanupLoungeQueues, cleanupLoungeFixtures, acceptLoungeRules } from './helpers/lounge';
 
 // Runs once before the suite and once after it, outside every worker.
 //
@@ -23,4 +23,7 @@ export default async function globalCleanup(config: FullConfig) {
   await cleanupTopics();
   await cleanupLoungeQueues();
   await cleanupLoungeFixtures();
+  // not cleanup: the lounge specs all queue as the seeded account, and ranked now asks for
+  // the rules to be accepted once before a first queue
+  await acceptLoungeRules();
 }
