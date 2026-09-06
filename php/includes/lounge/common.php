@@ -28,6 +28,173 @@ define('LOUNGE_MATCH_MAX_MINUTES', 120);
 // walk out mid-mogi. Below this there is no race worth playing.
 define('LOUNGE_MIN_RACE_PLAYERS', 2);
 
+// Everything below is staff-tunable from admin-lounge.php: the ladder is still finding its
+// settings, and a deploy per timer is not a workable way to run it. The constants above stay
+// the defaults, so an empty `mklounge_settings` behaves exactly as before.
+function lounge_settings_schema() {
+	return array(
+		'default_min_players' => array(
+			'default' => LOUNGE_DEFAULT_MIN_PLAYERS, 'min' => 2, 'max' => 12,
+			'group' => 'queue', 'unit_en' => 'players', 'unit_fr' => 'joueurs',
+			'label_en' => 'Players needed to lock a queue',
+			'label_fr' => 'Joueurs requis pour verrouiller une file',
+			'help_en' => 'Used when the tier carries no minimum of its own.',
+			'help_fr' => 'Utilisé quand le tier n\'a pas son propre minimum.'
+		),
+		'ready_threshold' => array(
+			'default' => LOUNGE_QUEUE_READY_THRESHOLD, 'min' => 2, 'max' => 12,
+			'group' => 'queue', 'unit_en' => 'players', 'unit_fr' => 'joueurs',
+			'label_en' => 'Lineup size that starts the vote at once',
+			'label_fr' => 'Effectif qui lance le vote immédiatement',
+			'help_en' => 'A full lineup does not wait out the timer below.',
+			'help_fr' => 'Un effectif complet n\'attend pas le chrono ci-dessous.'
+		),
+		'lock_wait_seconds' => array(
+			'default' => LOUNGE_LOCK_WAIT_SECONDS, 'min' => 0, 'max' => 3600,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Wait after a queue locks, for latecomers',
+			'label_fr' => 'Attente après verrouillage, pour les retardataires',
+			'help_en' => 'Rule 3aa says 5 minutes (300).',
+			'help_fr' => 'La règle 3aa dit 5 minutes (300).'
+		),
+		'vote_wait_seconds' => array(
+			'default' => LOUNGE_VOTE_WAIT_SECONDS, 'min' => 10, 'max' => 3600,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Time to vote for the game mode',
+			'label_fr' => 'Temps pour voter le mode de jeu',
+			'help_en' => 'When it runs out the majority of the votes cast decides.',
+			'help_fr' => 'À l\'expiration, la majorité des votes exprimés décide.'
+		),
+		'afk_seconds' => array(
+			'default' => LOUNGE_AFK_SECONDS, 'min' => 30, 'max' => 3600,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Silence before a queued player is dropped',
+			'label_fr' => 'Silence avant qu\'un joueur en file soit retiré',
+			'help_en' => 'No heartbeat for this long costs a strike.',
+			'help_fr' => 'Aucun signal pendant ce délai coûte un strike.'
+		),
+		'confirm_seconds' => array(
+			'default' => LOUNGE_CONFIRM_SECONDS, 'min' => 60, 'max' => 7200,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Time in a queue before "are you still there?"',
+			'label_fr' => 'Temps en file avant « toujours là ? »',
+			'help_en' => 'The spec asks for every 10-15 minutes.',
+			'help_fr' => 'La spec demande toutes les 10-15 minutes.'
+		),
+		'confirm_grace_seconds' => array(
+			'default' => LOUNGE_CONFIRM_GRACE_SECONDS, 'min' => 30, 'max' => 3600,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Grace period to answer it',
+			'label_fr' => 'Délai pour y répondre',
+			'help_en' => 'No answer removes the player, without a strike.',
+			'help_fr' => 'Sans réponse le joueur est retiré, sans strike.'
+		),
+		'races_per_match' => array(
+			'default' => LOUNGE_RACES_PER_MATCH, 'min' => 1, 'max' => 32,
+			'group' => 'match', 'unit_en' => 'races', 'unit_fr' => 'courses',
+			'label_en' => 'Races per mogi',
+			'label_fr' => 'Courses par mogi',
+			'help_en' => 'Rule 3a says 12. Changing this only affects new matches.',
+			'help_fr' => 'La règle 3a dit 12. Ne change que les parties à venir.'
+		),
+		'join_timeout_seconds' => array(
+			'default' => LOUNGE_JOIN_TIMEOUT_SECONDS, 'min' => 30, 'max' => 3600,
+			'group' => 'match', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Time to join the room before being marked absent',
+			'label_fr' => 'Temps pour rejoindre le salon avant absence',
+			'help_en' => 'Rule 4da says 5 minutes (300).',
+			'help_fr' => 'La règle 4da dit 5 minutes (300).'
+		),
+		'match_max_minutes' => array(
+			'default' => LOUNGE_MATCH_MAX_MINUTES, 'min' => 10, 'max' => 600,
+			'group' => 'match', 'unit_en' => 'minutes', 'unit_fr' => 'minutes',
+			'label_en' => 'Give up on a mogi after',
+			'label_fr' => 'Abandonner un mogi au bout de',
+			'help_en' => 'Past this it is voided and the lineup released.',
+			'help_fr' => 'Au-delà il est annulé et l\'effectif libéré.'
+		),
+		'min_race_players' => array(
+			'default' => LOUNGE_MIN_RACE_PLAYERS, 'min' => 2, 'max' => 8,
+			'group' => 'match', 'unit_en' => 'players', 'unit_fr' => 'joueurs',
+			'label_en' => 'Smallest lineup still worth racing',
+			'label_fr' => 'Effectif minimum pour jouer quand même',
+			'help_en' => 'Below this a mogi is voided rather than played with bots.',
+			'help_fr' => 'En dessous, le mogi est annulé plutôt que joué avec des bots.'
+		),
+		'strikes_before_ban' => array(
+			'default' => LOUNGE_STRIKES_BEFORE_BAN, 'min' => 0, 'max' => 10,
+			'group' => 'sanctions', 'unit_en' => 'strikes', 'unit_fr' => 'strikes',
+			'label_en' => 'Strikes before a ranked ban',
+			'label_fr' => 'Strikes avant un bannissement du classé',
+			'help_en' => 'Rule 2b says 3. Set to 0 to never ban automatically.',
+			'help_fr' => 'La règle 2b dit 3. Mettre 0 pour ne jamais bannir automatiquement.'
+		),
+		'ban_minutes' => array(
+			'default' => LOUNGE_BAN_MINUTES, 'min' => 1, 'max' => 525600,
+			'group' => 'sanctions', 'unit_en' => 'minutes', 'unit_fr' => 'minutes',
+			'label_en' => 'How long that ban lasts',
+			'label_fr' => 'Durée de ce bannissement',
+			'help_en' => 'Rule 2b says 7 days (10080) for a first offence.',
+			'help_fr' => 'La règle 2b dit 7 jours (10080) à la première infraction.'
+		),
+		'min_account_age_days' => array(
+			'default' => LOUNGE_MIN_ACCOUNT_AGE_DAYS, 'min' => 0, 'max' => 365,
+			'group' => 'sanctions', 'unit_en' => 'days', 'unit_fr' => 'jours',
+			'label_en' => 'Account age required to enter ranked',
+			'label_fr' => 'Ancienneté du compte requise pour le classé',
+			'help_en' => '0 disables the check.',
+			'help_fr' => '0 désactive la vérification.'
+		),
+		'default_mmr' => array(
+			'default' => LOUNGE_DEFAULT_MMR, 'min' => 0, 'max' => 10000,
+			'group' => 'rating', 'unit_en' => 'MMR', 'unit_fr' => 'MMR',
+			'label_en' => 'Starting rating for a new player',
+			'label_fr' => 'Classement de départ d\'un nouveau joueur',
+			'help_en' => 'Only applies to players who have not played yet.',
+			'help_fr' => 'Ne concerne que les joueurs n\'ayant pas encore joué.'
+		),
+		'mmr_min' => array(
+			'default' => LOUNGE_MMR_MIN, 'min' => 0, 'max' => 10000,
+			'group' => 'rating', 'unit_en' => 'MMR', 'unit_fr' => 'MMR',
+			'label_en' => 'Rating floor',
+			'label_fr' => 'Plancher du classement',
+			'help_en' => 'A player can never drop below this.',
+			'help_fr' => 'Un joueur ne peut jamais descendre en dessous.'
+		)
+	);
+}
+
+function lounge_setting($name) {
+	global $loungeSettingsCache;
+	$schema = lounge_settings_schema();
+	if (!isset($schema[$name]))
+		return null;
+	if (!isset($loungeSettingsCache)) {
+		$loungeSettingsCache = array();
+		$res = mysql_query('SELECT name, value FROM `mklounge_settings`');
+		while ($row = mysql_fetch_array($res))
+			$loungeSettingsCache[$row['name']] = $row['value'];
+	}
+	if (!isset($loungeSettingsCache[$name]))
+		return intval($schema[$name]['default']);
+	// A row left over from a renamed or retuned setting must never widen a bound.
+	return max($schema[$name]['min'], min($schema[$name]['max'], intval($loungeSettingsCache[$name])));
+}
+
+function lounge_set_setting($name, $value) {
+	$schema = lounge_settings_schema();
+	if (!isset($schema[$name]))
+		return false;
+	$value = max($schema[$name]['min'], min($schema[$name]['max'], intval($value)));
+	mysql_query(
+		'INSERT INTO `mklounge_settings` (name, value) VALUES ("'. mysql_real_escape_string($name) .'", "'. $value .'")
+		ON DUPLICATE KEY UPDATE value="'. $value .'"'
+	);
+	global $loungeSettingsCache;
+	$loungeSettingsCache[$name] = $value;
+	return true;
+}
+
 function lounge_get_season_multicup() {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT multicup_id FROM `mklounge_seasons` WHERE id="'. LOUNGE_CURRENT_SEASON .'"'
@@ -74,8 +241,8 @@ function lounge_get_player_state($playerId) {
 		);
 	}
 	return array(
-		'mmr' => LOUNGE_DEFAULT_MMR,
-		'peak_mmr' => LOUNGE_DEFAULT_MMR,
+		'mmr' => lounge_setting('default_mmr'),
+		'peak_mmr' => lounge_setting('default_mmr'),
 		'games' => 0,
 		'wins' => 0,
 		'total_score' => 0,
@@ -83,7 +250,7 @@ function lounge_get_player_state($playerId) {
 		'strikes' => 0,
 		'banned_until' => null,
 		'placed' => 0,
-		'rank' => lounge_rank_for_mmr(LOUNGE_DEFAULT_MMR)
+		'rank' => lounge_rank_for_mmr(lounge_setting('default_mmr'))
 	);
 }
 
@@ -99,8 +266,8 @@ function lounge_access_error($playerId) {
 		return 'no_account';
 	if ($row['banned'])
 		return 'site_banned';
-	if (LOUNGE_MIN_ACCOUNT_AGE_DAYS && !is_null($row['account_age'])
-		&& intval($row['account_age']) < LOUNGE_MIN_ACCOUNT_AGE_DAYS)
+	if (lounge_setting('min_account_age_days') && !is_null($row['account_age'])
+		&& intval($row['account_age']) < lounge_setting('min_account_age_days'))
 		return 'account_too_new';
 	return null;
 }
@@ -145,7 +312,7 @@ function lounge_queue_members($queueId) {
 	$members = array();
 	$res = mysql_query(
 		'SELECT m.player, m.joined_at, m.last_heartbeat, m.perso, j.nom,
-			COALESCE(p.mmr, '. LOUNGE_DEFAULT_MMR .') AS mmr
+			COALESCE(p.mmr, '. lounge_setting('default_mmr') .') AS mmr
 		FROM `mklounge_queue_members` m
 		INNER JOIN `mkjoueurs` j ON j.id=m.player
 		LEFT JOIN `mklounge_players` p ON p.player=m.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
@@ -168,8 +335,8 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 	$queue = mysql_fetch_array(mysql_query(
 		'SELECT q.*, t.code AS tier_code, t.label_en AS tier_label_en, t.label_fr AS tier_label_fr,
 			t.min_players,
-			GREATEST(0, UNIX_TIMESTAMP(q.locked_at) + '. intval(LOUNGE_LOCK_WAIT_SECONDS) .' - UNIX_TIMESTAMP(NOW())) AS lock_seconds_left,
-			GREATEST(0, UNIX_TIMESTAMP(q.ready_at) + '. intval(LOUNGE_VOTE_WAIT_SECONDS) .' - UNIX_TIMESTAMP(NOW())) AS vote_seconds_left
+			GREATEST(0, UNIX_TIMESTAMP(q.locked_at) + '. intval(lounge_setting('lock_wait_seconds')) .' - UNIX_TIMESTAMP(NOW())) AS lock_seconds_left,
+			GREATEST(0, UNIX_TIMESTAMP(q.ready_at) + '. intval(lounge_setting('vote_wait_seconds')) .' - UNIX_TIMESTAMP(NOW())) AS vote_seconds_left
 		FROM `mklounge_queues` q
 		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
 		WHERE q.id="'. intval($queueId) .'"'
@@ -180,8 +347,8 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 	$confirmSecondsLeft = null;
 	if ($forPlayerId) {
 		$me = mysql_fetch_array(mysql_query(
-			'SELECT (confirmed_at < (NOW() - INTERVAL '. intval(LOUNGE_CONFIRM_SECONDS) .' SECOND)) AS due,
-				GREATEST(0, UNIX_TIMESTAMP(confirmed_at) + '. intval(LOUNGE_CONFIRM_SECONDS + LOUNGE_CONFIRM_GRACE_SECONDS) .'
+			'SELECT (confirmed_at < (NOW() - INTERVAL '. intval(lounge_setting('confirm_seconds')) .' SECOND)) AS due,
+				GREATEST(0, UNIX_TIMESTAMP(confirmed_at) + '. intval(lounge_setting('confirm_seconds') + lounge_setting('confirm_grace_seconds')) .'
 					- UNIX_TIMESTAMP(NOW())) AS seconds_left
 			FROM `mklounge_queue_members`
 			WHERE queue="'. intval($queueId) .'" AND player="'. intval($forPlayerId) .'" AND dropped_at IS NULL'
@@ -224,12 +391,12 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'allowed_modes' => lounge_allowed_modes(count($members)),
 		'my_vote' => $myVote,
 		'votes' => $votes,
-		'lock_threshold' => intval($queue['min_players']) ? intval($queue['min_players']) : LOUNGE_DEFAULT_MIN_PLAYERS,
-		'ready_threshold' => LOUNGE_QUEUE_READY_THRESHOLD,
+		'lock_threshold' => intval($queue['min_players']) ? intval($queue['min_players']) : lounge_setting('default_min_players'),
+		'ready_threshold' => lounge_setting('ready_threshold'),
 		'confirm_due' => $confirmDue,
 		'confirm_seconds_left' => $confirmSecondsLeft,
-		'lock_wait_seconds' => LOUNGE_LOCK_WAIT_SECONDS,
-		'vote_wait_seconds' => LOUNGE_VOTE_WAIT_SECONDS
+		'lock_wait_seconds' => lounge_setting('lock_wait_seconds'),
+		'vote_wait_seconds' => lounge_setting('vote_wait_seconds')
 	);
 }
 
@@ -300,7 +467,7 @@ function lounge_build_game_rules($mode, $playerCount) {
 			'name' => $playerCount .'p'
 		),
 		'noBumps' => 1,
-		'raceLimit' => LOUNGE_RACES_PER_MATCH,
+		'raceLimit' => lounge_setting('races_per_match'),
 		'lounge' => 1
 	);
 	$nbTeams = lounge_mode_team_count($mode);
@@ -419,13 +586,13 @@ function lounge_snapshot_teams($privgameKey, $course = 0) {
 // this does the same automatically. It only applies once the join window has closed, so
 // nobody is left behind while they are still loading in.
 function lounge_relax_room($privgameKey, $playersInRoom) {
-	if ($playersInRoom < LOUNGE_MIN_RACE_PLAYERS)
+	if ($playersInRoom < lounge_setting('min_race_players'))
 		return false;
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT o.rules FROM `mkgameoptions` o
 		INNER JOIN `mklounge_queues` q ON q.privgame_key=o.id
 		WHERE o.id="'. intval($privgameKey) .'" AND q.status="launched"
-		AND q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)'
+		AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)'
 	));
 	if (!$row)
 		return false;
@@ -467,7 +634,7 @@ function lounge_strike_dropouts($privgameKey, $course = 0) {
 		'SELECT mp.player FROM `mklounge_match_players` mp
 		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.privgame_key="'. intval($privgameKey) .'"
 		INNER JOIN `mklounge_queues` q ON q.id=m.queue AND q.status="launched"
-			AND q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)
+			AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)
 		'. $inRoom .'
 		WHERE mp.strike_reason IS NULL AND gp.id IS NULL'
 	);
@@ -545,15 +712,15 @@ function lounge_add_strike($playerId, $reason) {
 		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
 		ON DUPLICATE KEY UPDATE strikes=strikes+1'
 	);
-	if (!LOUNGE_STRIKES_BEFORE_BAN)
+	if (!lounge_setting('strikes_before_ban'))
 		return false;
 
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_players`
-		SET strikes=0, banned_until=(NOW() + INTERVAL '. intval(LOUNGE_BAN_MINUTES) .' MINUTE)
+		SET strikes=0, banned_until=(NOW() + INTERVAL '. intval(lounge_setting('ban_minutes')) .' MINUTE)
 		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"
-		AND strikes >= '. intval(LOUNGE_STRIKES_BEFORE_BAN)
+		AND strikes >= '. intval(lounge_setting('strikes_before_ban'))
 	);
 	return (bool) mysql_affected_rows();
 }
@@ -679,7 +846,7 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 		'tier_label_en' => $match['tier_label_en'],
 		'tier_label_fr' => $match['tier_label_fr'],
 		'ended_at' => $match['ended_at'],
-		'races' => LOUNGE_RACES_PER_MATCH,
+		'races' => lounge_setting('races_per_match'),
 		'players' => $players
 	);
 }
@@ -732,7 +899,7 @@ function lounge_handle_join_timeout($queueId) {
 		return false;
 
 	$joined = lounge_match_joined_players($queue['privgame_key']);
-	if (count($joined) >= LOUNGE_MIN_RACE_PLAYERS) {
+	if (count($joined) >= lounge_setting('min_race_players')) {
 		lounge_strike_no_shows($queueId, $joined);
 		lounge_relax_room($queue['privgame_key'], count($joined));
 		return true;
@@ -854,7 +1021,7 @@ function lounge_apply_mmr($matchId) {
 			'player' => intval($row['player']),
 			'team' => $team,
 			'score' => intval($row['final_score']),
-			'mmr' => is_null($row['mmr']) ? floatval(LOUNGE_DEFAULT_MMR) : floatval($row['mmr'])
+			'mmr' => is_null($row['mmr']) ? floatval(lounge_setting('default_mmr')) : floatval($row['mmr'])
 		);
 	}
 	if (count($participants) < 2)
@@ -876,7 +1043,7 @@ function lounge_apply_mmr($matchId) {
 	foreach ($participants as $participant) {
 		$playerId = $participant['player'];
 		$before = $participant['mmr'];
-		$after = max(LOUNGE_MMR_MIN, $before + $deltas[$playerId]);
+		$after = max(lounge_setting('mmr_min'), $before + $deltas[$playerId]);
 		mysql_query(
 			'UPDATE `mklounge_match_players`
 			SET mmr_before="'. lounge_mmr_sql($before) .'",
@@ -900,7 +1067,7 @@ function lounge_queue_min_players($queueId) {
 		WHERE q.id="'. intval($queueId) .'"'
 	));
 	if (!$row || !intval($row['min_players']))
-		return LOUNGE_DEFAULT_MIN_PLAYERS;
+		return lounge_setting('default_min_players');
 	return intval($row['min_players']);
 }
 
@@ -934,7 +1101,7 @@ function lounge_update_queue_status($queueId) {
 }
 
 function lounge_tick() {
-	$cutoff = intval(LOUNGE_AFK_SECONDS);
+	$cutoff = intval(lounge_setting('afk_seconds'));
 	$afkRes = mysql_query(
 		'SELECT m.queue, m.player FROM `mklounge_queue_members` m
 		INNER JOIN `mklounge_queues` q ON q.id=m.queue
@@ -946,7 +1113,7 @@ function lounge_tick() {
 		'SELECT m.queue, m.player FROM `mklounge_queue_members` m
 		INNER JOIN `mklounge_queues` q ON q.id=m.queue
 		WHERE m.dropped_at IS NULL
-		AND m.confirmed_at < (NOW() - INTERVAL '. intval(LOUNGE_CONFIRM_SECONDS + LOUNGE_CONFIRM_GRACE_SECONDS) .' SECOND)
+		AND m.confirmed_at < (NOW() - INTERVAL '. intval(lounge_setting('confirm_seconds') + lounge_setting('confirm_grace_seconds')) .' SECOND)
 		AND q.status IN ("open","locked")'
 	);
 	$stale = array();
@@ -978,8 +1145,8 @@ function lounge_tick() {
 
 	$launched = mysql_query(
 		'SELECT q.id, q.privgame_key, IFNULL(d.raceCount, 0) AS races,
-			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_JOIN_TIMEOUT_SECONDS) .' SECOND)) AS join_timed_out,
-			(q.launched_at < (NOW() - INTERVAL '. intval(LOUNGE_MATCH_MAX_MINUTES) .' MINUTE)) AS match_timed_out,
+			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)) AS join_timed_out,
+			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('match_max_minutes')) .' MINUTE)) AS match_timed_out,
 			EXISTS(SELECT 1 FROM `mariokart` c WHERE c.link=q.privgame_key) AS room_alive
 		FROM `mklounge_queues` q
 		LEFT JOIN `mkgamedata` d ON d.game=q.privgame_key
@@ -987,7 +1154,7 @@ function lounge_tick() {
 	);
 	while ($row = mysql_fetch_array($launched)) {
 		$races = intval($row['races']);
-		if ($races >= LOUNGE_RACES_PER_MATCH)
+		if ($races >= lounge_setting('races_per_match'))
 			lounge_finish_match(intval($row['id']));
 		elseif (!$races && $row['join_timed_out'] && !$row['match_timed_out'])
 			lounge_handle_join_timeout(intval($row['id']));
@@ -1004,7 +1171,7 @@ function lounge_tick() {
 		'SELECT id FROM `mklounge_queues`
 		WHERE status="locked"
 		AND locked_at IS NOT NULL
-		AND locked_at < (NOW() - INTERVAL '. intval(LOUNGE_LOCK_WAIT_SECONDS) .' SECOND)'
+		AND locked_at < (NOW() - INTERVAL '. intval(lounge_setting('lock_wait_seconds')) .' SECOND)'
 	);
 	while ($row = mysql_fetch_array($lockTimedOut)) {
 		lounge_start_voting(intval($row['id']));
@@ -1017,7 +1184,7 @@ function lounge_tick() {
 			SELECT queue FROM `mklounge_queue_members`
 			WHERE dropped_at IS NULL
 			GROUP BY queue
-			HAVING COUNT(*) >= '. intval(LOUNGE_QUEUE_READY_THRESHOLD) .'
+			HAVING COUNT(*) >= '. intval(lounge_setting('ready_threshold')) .'
 		)'
 	);
 	while ($row = mysql_fetch_array($readyToLaunch)) {
@@ -1028,7 +1195,7 @@ function lounge_tick() {
 		'SELECT id FROM `mklounge_queues`
 		WHERE status="voting"
 		AND ready_at IS NOT NULL
-		AND ready_at < (NOW() - INTERVAL '. intval(LOUNGE_VOTE_WAIT_SECONDS) .' SECOND)'
+		AND ready_at < (NOW() - INTERVAL '. intval(lounge_setting('vote_wait_seconds')) .' SECOND)'
 	);
 	// The official rules never penalise a missed vote, so the deadline just falls back to
 	// the majority of the players who did vote rather than cancelling on the whole lineup.
