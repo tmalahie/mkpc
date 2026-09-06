@@ -46,6 +46,26 @@ async function resetLoungeState(request) {
 	await dropOut(request);
 }
 
+// The dev container carries real bot credentials, so a suite that only flipped discord_enabled
+// would ping a staff channel on every run. Dry run still records every message - which is what
+// these cases assert on - it just never sends one.
+async function enableDiscord() {
+	await sql(
+		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1), ('discord_dry_run', 1)
+		 ON DUPLICATE KEY UPDATE value = 1`
+	);
+}
+
+// cleanupLoungeQueues sweeps by account name; this closes every lineup whoever is standing
+// in it, for the cases that assert on what a single tick does.
+async function quietLadder() {
+	await sql(
+		`UPDATE mklounge_queues SET status = 'cancelled'
+		 WHERE status NOT IN ('cancelled', 'finished')`
+	);
+	await sql(`UPDATE mklounge_queue_members SET dropped_at = NOW() WHERE dropped_at IS NULL`);
+}
+
 test('lounge page renders tiers for logged-in user', async ({ page }) => {
 	await login(page);
 	// a queued account lands on the waiting view instead of the tier list
@@ -891,16 +911,16 @@ test('Random is on the ballot and never decides a mode on its own', async ({ pag
 });
 
 // The ladder still lives on Discord, so a mogi gathering on the site has to show up there.
-// discord_enabled stays off in CI - nothing leaves the machine - but every message the system
-// would send is recorded, which is what these assert on.
+// Nothing leaves the machine: the cases run in dry run, and every message the system would
+// send is recorded, which is what they assert on.
 test('a gathering lineup is narrated to the tier channel', async ({ page }) => {
 	await login(page);
 	await cleanupLoungeQueues();
+	// This asserts on the exact traffic one join produces, so the ladder has to be quiet
+	// first: any lineup an earlier case left behind is narrated by the same tick.
+	await quietLadder();
 	await sql(`DELETE FROM mklounge_discord_log`);
-	await sql(
-		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1)
-		 ON DUPLICATE KEY UPDATE value = 1`
-	);
+	await enableDiscord();
 
 	const sent = async () =>
 		(await sql(`SELECT channel, content, action FROM mklounge_discord_log ORDER BY id`)) as any[];
@@ -910,7 +930,10 @@ test('a gathering lineup is narrated to the tier channel', async ({ page }) => {
 	// the tier message, then the #mllu summary it triggers
 	expect(log[0].content).toContain('Wargor has joined the mogi -- 1 player');
 	expect(log[0].content).toContain('`Mogi List`');
-	expect(log[0].content).toMatch(/`1\.` Wargor \(MMR: \d+\)/);
+	// the name links to the player's profile, so a Discord reader is one click from the site
+	expect(log[0].content).toMatch(
+		/`1\.` \[Wargor\]\(https:\/\/mkpc\.malahieude\.net\/profil\.php\?id=\d+\) \(MMR: \d+\)/
+	);
 	// first player in an empty lineup always pings, asking for the three still needed
 	expect(log[0].content).toContain('@here +3');
 	expect(log[1].channel).not.toBe(log[0].channel);
@@ -934,7 +957,7 @@ test('a gathering lineup is narrated to the tier channel', async ({ page }) => {
 
 	await login(page);
 	await dropOut(page.request);
-	await sql(`DELETE FROM mklounge_settings WHERE name = 'discord_enabled'`);
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
 	await cleanupLoungeQueues(loungeBotPattern('discord'));
 });
 
@@ -942,12 +965,10 @@ test('a gathering lineup is narrated to the tier channel', async ({ page }) => {
 test('the #mllu summary is edited rather than reposted', async ({ page }) => {
 	await login(page);
 	await cleanupLoungeQueues();
+	await quietLadder();
 	await sql(`DELETE FROM mklounge_discord_log`);
 	await sql(`DELETE FROM mklounge_state`);
-	await sql(
-		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1)
-		 ON DUPLICATE KEY UPDATE value = 1`
-	);
+	await enableDiscord();
 	// pretend the summary was posted once already, so the next sync has something to edit
 	await sql(`INSERT INTO mklounge_state (name, value) VALUES ('mllu_message', '123')`);
 
@@ -959,9 +980,51 @@ test('the #mllu summary is edited rather than reposted', async ({ page }) => {
 	expect(mllu).toHaveLength(1);
 	expect(mllu[0].action).toBe('edit');
 	expect(mllu[0].content).toContain('Wargor');
-	expect(mllu[0].content).toContain('Last updated:');
+	expect(mllu[0].content).toContain('Last updated <t:');
 
 	await dropOut(page.request);
-	await sql(`DELETE FROM mklounge_settings WHERE name = 'discord_enabled'`);
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
 	await sql(`DELETE FROM mklounge_state`);
 });
+
+// Losing the id of the message being edited is what leaves a second dashboard in the channel.
+// The recovery posts one replacement and then goes back to editing it, rather than posting
+// again on every update.
+test('a lost #mllu message is replaced exactly once', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await sql(`DELETE FROM mklounge_state`);
+	await enableDiscord();
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	const mlluLog = async () =>
+		(await sql(
+			`SELECT l.action FROM mklounge_discord_log l ORDER BY l.id`
+		)) as any[];
+	const posts = (log: any[]) => log.filter(r => r.action === 'post').length;
+
+	// the tier announcement and the summary it triggers
+	expect(posts(await mlluLog())).toBe(2);
+	const [remembered]: any = await sql(`SELECT value FROM mklounge_state WHERE name = 'mllu_message'`);
+	expect(remembered.value).toBeTruthy();
+
+	await sql(`DELETE FROM mklounge_discord_log`);
+	// the summary is rewritten at most twice a minute unless a queue changed, so the throttle
+	// has to be aged for a bare tick to reach it
+	const ageSync = () =>
+		sql(`UPDATE mklounge_state SET value = value - 3600 WHERE name = 'mllu_synced_at'`);
+	await ageSync();
+	await tick(page);
+	await ageSync();
+	await tick(page);
+	const after = await mlluLog();
+	expect(posts(after)).toBe(0);
+	expect(after.filter(r => r.action === 'edit').length).toBeGreaterThan(0);
+
+	await dropOut(page.request);
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+	await sql(`DELETE FROM mklounge_state`);
+});
+
