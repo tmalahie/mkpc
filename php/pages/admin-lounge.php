@@ -124,7 +124,8 @@ $settingGroups = array(
 	'queue' => array($language ? 'Queue' : 'File d\'attente'),
 	'match' => array($language ? 'Match' : 'Partie'),
 	'sanctions' => array($language ? 'Sanctions' : 'Sanctions'),
-	'rating' => array($language ? 'Rating' : 'Classement')
+	'rating' => array($language ? 'Rating' : 'Classement'),
+	'discord' => array($language ? 'Discord' : 'Discord')
 );
 ?>
 <!DOCTYPE html>
