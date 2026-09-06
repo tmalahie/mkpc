@@ -53,6 +53,14 @@ function lounge_discord_call($method, $path, $payload = null) {
 	$config = lounge_discord_config();
 	if (empty($config['token']) || !lounge_setting('discord_enabled'))
 		return null;
+	// Dry run still builds and records every message, it just never sends one. The tests run
+	// with it on - a suite that pinged @here in a staff channel on every run would be worse
+	// than no coverage - and staff can use it to rehearse without waking the server.
+	if (lounge_setting('discord_dry_run')) {
+		return (($method === 'POST') || ($method === 'PATCH'))
+			? array('id' => (string) mt_rand(100000000, 999999999))
+			: null;
+	}
 	$ch = curl_init('https://discord.com/api/v10'. $path);
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -79,6 +87,9 @@ function lounge_discord_post($channel, $content, $ping = false) {
 		return null;
 	$payload = array(
 		'content' => $content,
+		// SUPPRESS_EMBEDS: the lineup links one profile per player, and Discord would
+		// unfurl every one of them into a card below the message.
+		'flags' => 4,
 		'allowed_mentions' => array('parse' => $ping ? array('everyone') : array())
 	);
 	$res = lounge_discord_call('POST', '/channels/'. $channel .'/messages', $payload);
@@ -92,7 +103,7 @@ function lounge_discord_edit($channel, $messageId, $content) {
 		return false;
 	$res = lounge_discord_call(
 		'PATCH', '/channels/'. $channel .'/messages/'. $messageId,
-		array('content' => $content)
+		array('content' => $content, 'flags' => 4)
 	);
 	lounge_discord_record($channel, $content, $messageId, 'edit');
 	return (bool) $res;
@@ -125,9 +136,17 @@ function lounge_discord_ping_line($playerCount, $minPlayers, $maxPlayers) {
 	return '@here +'. $needed;
 }
 
+// A relative Discord timestamp rather than a rendered clock, so the countdown keeps ticking
+// in everyone's client instead of freezing until the next edit.
 function lounge_discord_countdown($seconds) {
-	$seconds = max(0, intval($seconds));
-	return floor($seconds / 60) .':'. str_pad($seconds % 60, 2, '0', STR_PAD_LEFT);
+	return '<t:'. (time() + max(0, intval($seconds))) .':R>';
+}
+
+// Discord readers are one click from the site this way. Hardcoded rather than derived from
+// the request, the way the rest of the codebase writes its absolute URLs: a link posted to
+// Discord has to point at production wherever it was rendered.
+function lounge_discord_player_link($member) {
+	return '['. $member['name'] .'](https://mkpc.malahieude.net/profil.php?id='. intval($member['id']) .')';
 }
 
 // The list Fways specified: a header, the lineup with everyone's rating, then whichever of the
@@ -138,7 +157,7 @@ function lounge_discord_mogi_list($queue, $event = '', $ping = '') {
 		$lines[] = $event;
 	$lines[] = '`Mogi List`';
 	foreach ($queue['members'] as $i => $member)
-		$lines[] = '`'. ($i + 1) .'.` '. $member['name'] .' (MMR: '. $member['mmr'] .')';
+		$lines[] = '`'. ($i + 1) .'.` '. lounge_discord_player_link($member) .' (MMR: '. $member['mmr'] .')';
 
 	$count = count($queue['members']);
 	if ($count >= $queue['ready_threshold'])
@@ -146,7 +165,10 @@ function lounge_discord_mogi_list($queue, $event = '', $ping = '') {
 	if ($ping)
 		$lines[] = $ping;
 	if (!is_null($queue['lock_seconds_left']) && ($queue['status'] === 'locked'))
-		$lines[] = '**Décompte automatique: '. lounge_discord_countdown($queue['lock_seconds_left']) .'**';
+		$lines[] = '**Auto start '. lounge_discord_countdown($queue['lock_seconds_left']) .'**';
+	if (!is_null($queue['vote_seconds_left']) && ($queue['status'] === 'voting'))
+		$lines[] = '**Voting ends '. lounge_discord_countdown($queue['vote_seconds_left']) .'**';
+	$lines[] = '-# Last updated <t:'. time() .':R>';
 	return implode("\n", $lines);
 }
 
@@ -193,7 +215,7 @@ function lounge_discord_mllu_text() {
 	$res = mysql_query(
 		'SELECT q.id, t.code AS tier_code FROM `mklounge_queues` q
 		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
-		WHERE q.status IN ("open","locked","voting")
+		WHERE q.status IN ("open","locked","voting","drafting")
 		ORDER BY q.id'
 	);
 	while ($row = mysql_fetch_array($res)) {
@@ -212,16 +234,46 @@ function lounge_discord_mllu_text() {
 		$header = '⁠CT Lounge⁠'. $queue['tier_code'] .' ('. $queue['tier_code'] .') - '
 			. count($queue['members']) .'/'. $queue['ready_threshold'];
 		if (!is_null($queue['lock_seconds_left']) && ($queue['status'] === 'locked'))
-			$header .= ' - '. lounge_discord_countdown($queue['lock_seconds_left']);
+			$header .= ' - starts '. lounge_discord_countdown($queue['lock_seconds_left']);
 		$lines[] = $header;
 		$names = array();
 		foreach ($queue['members'] as $member)
-			$names[] = $member['name'];
+			$names[] = lounge_discord_player_link($member);
 		$lines[] = implode(', ', $names);
 	}
 	$lines[] = '';
-	$lines[] = 'Last updated: <t:'. time() .':R>.';
+	$lines[] = '-# Last updated <t:'. time() .':R>';
 	return implode("\n", $lines);
+}
+
+function lounge_discord_self_id() {
+	$cached = lounge_state_get('bot_user_id');
+	if ($cached)
+		return $cached;
+	$me = lounge_discord_call('GET', '/users/@me');
+	if (!$me || empty($me['id']))
+		return null;
+	lounge_state_set('bot_user_id', $me['id']);
+	return $me['id'];
+}
+
+// Only ever the bot's own messages, and only in the configured #mllu channel: anything a
+// person wrote there is left alone.
+function lounge_discord_clear_mllu($channel) {
+	$self = lounge_discord_self_id();
+	if (!$self)
+		return;
+	$messages = lounge_discord_call('GET', '/channels/'. $channel .'/messages?limit=50');
+	if (!is_array($messages))
+		return;
+	foreach ($messages as $message) {
+		if (empty($message['id']) || empty($message['author']['id']))
+			continue;
+		if ((string) $message['author']['id'] !== (string) $self)
+			continue;
+		lounge_discord_call('DELETE', '/channels/'. $channel .'/messages/'. $message['id']);
+		lounge_discord_record($channel, '', $message['id'], 'delete');
+	}
 }
 
 // Rewritten on every queue change, and otherwise at most twice a minute - a gathering lineup
@@ -243,6 +295,10 @@ function lounge_discord_sync_mllu($force = true) {
 	$messageId = lounge_state_get('mllu_message');
 	if ($messageId && lounge_discord_edit($channel, $messageId, $content))
 		return;
+	// Falling back to a fresh post is what leaves a second dashboard behind - the message we
+	// were editing was deleted, or its id was lost. #mllu carries one message and only one,
+	// so the channel's own history is what that invariant gets restored from.
+	lounge_discord_clear_mllu($channel);
 	$messageId = lounge_discord_post($channel, $content);
 	if ($messageId)
 		lounge_state_set('mllu_message', $messageId);
