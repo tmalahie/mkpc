@@ -35,6 +35,10 @@ const LOUNGE_BOT_HASH = '$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/t
 // manual testing. The throwaway players have no such history, so they go entirely.
 // namePattern is a LIKE pattern, so a bare name matches only itself.
 export async function cleanupLoungeQueues(namePattern: string = SEEDED_ACCOUNT) {
+  // Staff overrides are global, so one spec retuning a timer would silently change what
+  // every other spec is testing. Nothing seeds this table, so clearing it is a no-op
+  // outside the run that wrote to it.
+  await sql(`DELETE FROM mklounge_settings`);
   await sql(
     `UPDATE mklounge_queues q
      JOIN mklounge_queue_members m ON m.queue = q.id

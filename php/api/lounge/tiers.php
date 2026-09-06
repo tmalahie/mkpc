@@ -36,7 +36,7 @@ while ($tier = mysql_fetch_array($getTiers)) {
 		'label_fr' => $tier['label_fr'],
 		'min_mmr' => intval($tier['min_mmr']),
 		'max_mmr' => is_null($tier['max_mmr']) ? null : intval($tier['max_mmr']),
-		'min_players' => intval($tier['min_players']) ? intval($tier['min_players']) : LOUNGE_DEFAULT_MIN_PLAYERS,
+		'min_players' => intval($tier['min_players']) ? intval($tier['min_players']) : lounge_setting('default_min_players'),
 		'eligible' => lounge_tier_eligible($tier, $state['mmr']),
 		'queue_count' => $queueCount
 	);
