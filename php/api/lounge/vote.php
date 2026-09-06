@@ -28,6 +28,7 @@ if ($queue['status'] !== 'voting') {
 
 $count = lounge_active_member_count($queue['id']);
 $allowedModes = lounge_allowed_modes($count);
+$allowedModes[] = LOUNGE_RANDOM_VOTE;
 $mode = $_POST['mode'];
 if (!in_array($mode, $allowedModes, true)) {
 	echo json_encode(array('error' => 'mode_not_allowed', 'queue' => lounge_queue_state($queue['id'], $id)));
