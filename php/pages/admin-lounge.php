@@ -36,12 +36,12 @@ if ($target && isset($_POST['action'])) {
 	mysql_query(
 		'INSERT IGNORE INTO `mklounge_players` (player, season, mmr, peak_mmr)
 		VALUES ("'. $playerId .'", "'. LOUNGE_CURRENT_SEASON .'",
-			"'. lounge_mmr_sql(LOUNGE_DEFAULT_MMR) .'", "'. lounge_mmr_sql(LOUNGE_DEFAULT_MMR) .'")'
+			"'. lounge_mmr_sql(lounge_setting('default_mmr')) .'", "'. lounge_mmr_sql(lounge_setting('default_mmr')) .'")'
 	);
 	switch ($_POST['action']) {
 	case 'mmr':
 		$delta = floatval($_POST['mmr_delta']);
-		$after = max(LOUNGE_MMR_MIN, $state['mmr'] + $delta);
+		$after = max(lounge_setting('mmr_min'), $state['mmr'] + $delta);
 		mysql_query(
 			'UPDATE `mklounge_players`
 			SET mmr="'. lounge_mmr_sql($after) .'", peak_mmr=GREATEST(peak_mmr, "'. lounge_mmr_sql($after) .'")
@@ -97,8 +97,32 @@ if (isset($_POST['release'])) {
 	}
 }
 
+if (isset($_POST['settings'])) {
+	$changed = 0;
+	foreach (lounge_settings_schema() as $name => $meta) {
+		if (!isset($_POST['set_'. $name]))
+			continue;
+		$before = lounge_setting($name);
+		$after = max($meta['min'], min($meta['max'], intval($_POST['set_'. $name])));
+		if ($after === $before)
+			continue;
+		lounge_set_setting($name, $after);
+		loungeLog('LoungeSetting '. $name .' '. $before .' '. $after);
+		$changed++;
+	}
+	$notice = $changed
+		? ($language ? $changed .' setting(s) saved.' : $changed .' r&eacute;glage(s) enregistr&eacute;(s).')
+		: ($language ? 'Nothing changed.' : 'Aucun changement.');
+}
+
 $state = $target ? lounge_get_player_state(intval($target['id'])) : null;
 
+$settingGroups = array(
+	'queue' => array($language ? 'Queue' : 'File d\'attente'),
+	'match' => array($language ? 'Match' : 'Partie'),
+	'sanctions' => array($language ? 'Sanctions' : 'Sanctions'),
+	'rating' => array($language ? 'Rating' : 'Classement')
+);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -144,6 +168,39 @@ h2 {
 }
 main table form {
 	margin: 0;
+}
+.lounge-settings-table {
+	text-align: left;
+	background-color: #FFC028;
+	margin-bottom: 12px;
+}
+.lounge-settings-table td {
+	width: auto;
+	text-align: left;
+	color: black;
+}
+.lounge-settings-table .setting-label {
+	max-width: 420px;
+}
+.lounge-settings-table .setting-label label {
+	font-weight: bold;
+	display: block;
+}
+.setting-help {
+	font-size: 0.85em;
+	color: #820;
+}
+.setting-input input[type="number"] {
+	width: 90px;
+}
+.setting-default {
+	font-size: 0.85em;
+	color: #820;
+	white-space: nowrap;
+}
+.lounge-settings-table tr.is-changed .setting-default {
+	color: #A0300A;
+	font-weight: bold;
 }
 </style>
 <?php
@@ -205,7 +262,7 @@ include('../includes/menu.php');
 			<input type="hidden" name="player" value="<?php echo htmlspecialchars($target['nom']); ?>" />
 			<input type="hidden" name="action" value="ban" />
 			<label for="ban_minutes"><?php echo $language ? 'Ban from ranked for':'Bannir du class&eacute; pendant'; ?></label>
-			<input type="number" name="ban_minutes" id="ban_minutes" min="1" value="<?php echo LOUNGE_BAN_MINUTES; ?>" />
+			<input type="number" name="ban_minutes" id="ban_minutes" min="1" value="<?php echo lounge_setting('ban_minutes'); ?>" />
 			min
 			<input type="submit" class="action_button" value="<?php echo $language ? 'Ban':'Bannir'; ?>" />
 		</form>
@@ -263,6 +320,49 @@ include('../includes/menu.php');
 	<?php } ?>
 	</table>
 	<?php } ?>
+
+	<h2><?php echo $language ? 'Settings':'R&eacute;glages'; ?></h2>
+	<p><?php echo $language
+		? 'These take effect immediately. A mogi already under way keeps the values it started with.'
+		: 'Effet imm&eacute;diat. Un mogi d&eacute;j&agrave; lanc&eacute; garde les valeurs avec lesquelles il a d&eacute;marr&eacute;.'; ?></p>
+	<form method="post" action="admin-lounge.php" class="lounge-settings">
+		<input type="hidden" name="settings" value="1" />
+		<?php
+		$schema = lounge_settings_schema();
+		foreach ($settingGroups as $groupKey => $groupLabel) {
+		?>
+		<h3><?php echo $groupLabel[0]; ?></h3>
+		<table class="lounge-settings-table">
+			<?php
+			foreach ($schema as $name => $meta) {
+				if ($meta['group'] !== $groupKey)
+					continue;
+				$value = lounge_setting($name);
+			?>
+			<tr class="<?php echo ($value === intval($meta['default'])) ? 'is-default':'is-changed'; ?>">
+				<td class="setting-label">
+					<label for="set_<?php echo $name; ?>"><?php
+						echo htmlspecialchars($language ? $meta['label_en'] : $meta['label_fr']); ?></label>
+					<span class="setting-help"><?php
+						echo htmlspecialchars($language ? $meta['help_en'] : $meta['help_fr']); ?></span>
+				</td>
+				<td class="setting-input">
+					<input type="number" id="set_<?php echo $name; ?>" name="set_<?php echo $name; ?>"
+						value="<?php echo $value; ?>"
+						min="<?php echo intval($meta['min']); ?>" max="<?php echo intval($meta['max']); ?>" />
+					<?php echo htmlspecialchars($language ? $meta['unit_en'] : $meta['unit_fr']); ?>
+				</td>
+				<td class="setting-default"><?php
+					echo ($value === intval($meta['default']))
+						? ($language ? 'default' : 'par d&eacute;faut')
+						: (($language ? 'default: ' : 'd&eacute;faut&nbsp;: ') . intval($meta['default'])); ?></td>
+			</tr>
+			<?php } ?>
+		</table>
+		<?php } ?>
+		<p><input type="submit" class="action_button" value="<?php
+			echo $language ? 'Save settings':'Enregistrer les r&eacute;glages'; ?>" /></p>
+	</form>
 
 	<p><a href="mariokart.php"><?php echo $language ? 'Back to online mode':'Retour au mode en ligne'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
