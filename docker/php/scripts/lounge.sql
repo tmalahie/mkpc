@@ -1,5 +1,22 @@
 USE mkpc;
 
+CREATE TABLE IF NOT EXISTS `mklounge_state` (
+  `name` varchar(48) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mklounge_discord_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `channel` varchar(32) NOT NULL,
+  `content` text NOT NULL,
+  `message_id` varchar(32) NOT NULL DEFAULT '',
+  `action` varchar(8) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `mklounge_settings` (
   `name` varchar(48) NOT NULL,
   `value` int(11) NOT NULL,
@@ -67,6 +84,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queues` (
   `locked_at` timestamp NULL DEFAULT NULL,
   `ready_at` timestamp NULL DEFAULT NULL,
   `launched_at` timestamp NULL DEFAULT NULL,
+  `discord_here_at` timestamp NULL DEFAULT NULL,
   `privgame_key` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `season_tier_status` (`season`,`tier`,`status`)

@@ -79,7 +79,17 @@ mysql_query(
 
 mysql_query('COMMIT');
 
+$wasBelowMin = (lounge_active_member_count($queueId) - 1) < lounge_queue_min_players($queueId);
 lounge_update_queue_status($queueId);
+
+require_once('../../includes/lounge/discord.php');
+$count = lounge_active_member_count($queueId);
+$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. intval($id) .'"'));
+lounge_discord_announce(
+	$queueId,
+	$name['nom'] .' has joined the mogi -- '. $count .' player'. (($count === 1) ? '' : 's'),
+	lounge_discord_should_ping($queueId, $count, lounge_queue_min_players($queueId), $wasBelowMin)
+);
 
 echo json_encode(array('queue' => lounge_queue_state($queueId, $id)));
 mysql_close();
