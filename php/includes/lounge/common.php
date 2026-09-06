@@ -7,12 +7,16 @@ define('LOUNGE_DEFAULT_MIN_PLAYERS', 4);
 define('LOUNGE_QUEUE_READY_THRESHOLD', 8);
 define('LOUNGE_AFK_SECONDS', 300);
 define('LOUNGE_HEARTBEAT_POLL_SECONDS', 5);
-define('LOUNGE_LOCK_WAIT_SECONDS', 30);
+// Rule 3aa: wait 5 minutes after a lineup gathers, to let a 5th-8th player join.
+define('LOUNGE_LOCK_WAIT_SECONDS', 300);
 define('LOUNGE_VOTE_WAIT_SECONDS', 60);
+// Rule 3a: 15 seconds in a list before you may drop out of it.
+define('LOUNGE_DROP_DELAY_SECONDS', 15);
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
-define('LOUNGE_JOIN_TIMEOUT_SECONDS', 180);
+// Rule 4da: 5 minutes to join the room past the designated join time.
+define('LOUNGE_JOIN_TIMEOUT_SECONDS', 300);
 // "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
 // queue": a tab left open keeps polling for ever, so waiting on the heartbeat alone would
 // let a mogi gather around somebody who walked away.
@@ -54,8 +58,8 @@ function lounge_settings_schema() {
 			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
 			'label_en' => 'Wait after a queue locks, for latecomers',
 			'label_fr' => 'Attente après verrouillage, pour les retardataires',
-			'help_en' => 'Rule 3aa says 5 minutes (300).',
-			'help_fr' => 'La règle 3aa dit 5 minutes (300).'
+			'help_en' => 'Rule 3aa. A lineup that just hit 4 can still grow to 8.',
+			'help_fr' => 'Règle 3aa. Un effectif qui vient d\'atteindre 4 peut encore monter à 8.'
 		),
 		'vote_wait_seconds' => array(
 			'default' => LOUNGE_VOTE_WAIT_SECONDS, 'min' => 10, 'max' => 3600,
@@ -64,6 +68,14 @@ function lounge_settings_schema() {
 			'label_fr' => 'Temps pour voter le mode de jeu',
 			'help_en' => 'When it runs out the majority of the votes cast decides.',
 			'help_fr' => 'À l\'expiration, la majorité des votes exprimés décide.'
+		),
+		'drop_delay_seconds' => array(
+			'default' => LOUNGE_DROP_DELAY_SECONDS, 'min' => 0, 'max' => 120,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Time in a list before you may drop out of it',
+			'label_fr' => 'Temps dans une file avant de pouvoir la quitter',
+			'help_en' => 'Rule 3a says 15. Stops players flickering in and out of a gathering list.',
+			'help_fr' => 'La règle 3a dit 15. Évite les allers-retours dans une file en formation.'
 		),
 		'afk_seconds' => array(
 			'default' => LOUNGE_AFK_SECONDS, 'min' => 30, 'max' => 3600,
@@ -102,8 +114,8 @@ function lounge_settings_schema() {
 			'group' => 'match', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
 			'label_en' => 'Time to join the room before being marked absent',
 			'label_fr' => 'Temps pour rejoindre le salon avant absence',
-			'help_en' => 'Rule 4da says 5 minutes (300).',
-			'help_fr' => 'La règle 4da dit 5 minutes (300).'
+			'help_en' => 'Rule 4da. Past it the absentee is struck and the room shrinks.',
+			'help_fr' => 'Règle 4da. Au-delà, l\'absent prend un strike et le salon rétrécit.'
 		),
 		'match_max_minutes' => array(
 			'default' => LOUNGE_MATCH_MAX_MINUTES, 'min' => 10, 'max' => 600,
@@ -345,17 +357,21 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 	$members = lounge_queue_members($queueId);
 	$confirmDue = false;
 	$confirmSecondsLeft = null;
+	$dropSecondsLeft = 0;
 	if ($forPlayerId) {
 		$me = mysql_fetch_array(mysql_query(
 			'SELECT (confirmed_at < (NOW() - INTERVAL '. intval(lounge_setting('confirm_seconds')) .' SECOND)) AS due,
 				GREATEST(0, UNIX_TIMESTAMP(confirmed_at) + '. intval(lounge_setting('confirm_seconds') + lounge_setting('confirm_grace_seconds')) .'
-					- UNIX_TIMESTAMP(NOW())) AS seconds_left
+					- UNIX_TIMESTAMP(NOW())) AS seconds_left,
+				GREATEST(0, UNIX_TIMESTAMP(joined_at) + '. intval(lounge_setting('drop_delay_seconds')) .'
+					- UNIX_TIMESTAMP(NOW())) AS drop_wait
 			FROM `mklounge_queue_members`
 			WHERE queue="'. intval($queueId) .'" AND player="'. intval($forPlayerId) .'" AND dropped_at IS NULL'
 		));
 		if ($me) {
 			$confirmDue = (bool) intval($me['due']);
 			$confirmSecondsLeft = intval($me['seconds_left']);
+			$dropSecondsLeft = intval($me['drop_wait']);
 		}
 	}
 	$myVote = null;
@@ -393,6 +409,7 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'votes' => $votes,
 		'lock_threshold' => intval($queue['min_players']) ? intval($queue['min_players']) : lounge_setting('default_min_players'),
 		'ready_threshold' => lounge_setting('ready_threshold'),
+		'drop_seconds_left' => $dropSecondsLeft,
 		'confirm_due' => $confirmDue,
 		'confirm_seconds_left' => $confirmSecondsLeft,
 		'lock_wait_seconds' => lounge_setting('lock_wait_seconds'),
@@ -400,22 +417,33 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 	);
 }
 
+// The ladder's mode names are team *sizes*, not team counts: "2v2" is a lineup split into
+// pairs, which is 2 teams at 4 players and 4 teams at 8 - MogiBot offers it at every even
+// lineup and names it 2v2 throughout.
+function lounge_mode_team_size($mode) {
+	switch ($mode) {
+		case '2v2': return 2;
+		case '3v3': return 3;
+		case '4v4': return 4;
+		default:    return 0;
+	}
+}
+
+// Rule 3a: vote 1 FFA, 2 2v2, 3 3v3, 4 4v4. A mode is on the ballot when the lineup divides
+// into at least two teams of that size, so 6 players get FFA/2v2/3v3 and 8 get FFA/2v2/4v4.
 function lounge_allowed_modes($playerCount) {
 	$modes = array('FFA');
-	if ($playerCount === 4) $modes[] = '2v2';
-	elseif ($playerCount === 6) $modes[] = '3v3';
-	elseif ($playerCount === 8) { $modes[] = '4v4'; $modes[] = '2v2v2v2'; }
+	foreach (array('2v2', '3v3', '4v4') as $mode) {
+		$size = lounge_mode_team_size($mode);
+		if (($playerCount >= $size * 2) && (($playerCount % $size) === 0))
+			$modes[] = $mode;
+	}
 	return $modes;
 }
 
-function lounge_mode_team_count($mode) {
-	switch ($mode) {
-		case '2v2':     return 2;
-		case '3v3':     return 2;
-		case '4v4':     return 2;
-		case '2v2v2v2': return 4;
-		default:        return 0;
-	}
+function lounge_mode_team_count($mode, $playerCount) {
+	$size = lounge_mode_team_size($mode);
+	return $size ? (int) ($playerCount / $size) : 0;
 }
 
 // so it is stripped out unless the vote was unanimous.
@@ -470,7 +498,7 @@ function lounge_build_game_rules($mode, $playerCount) {
 		'raceLimit' => lounge_setting('races_per_match'),
 		'lounge' => 1
 	);
-	$nbTeams = lounge_mode_team_count($mode);
+	$nbTeams = lounge_mode_team_count($mode, $playerCount);
 	if ($nbTeams) {
 		$rules['team'] = 1;
 		$rules['manualTeams'] = 1;
@@ -930,13 +958,8 @@ function lounge_handle_join_timeout($queueId) {
 // "mk8dx_mmr" scheme. Constants and behaviour are documented, with the numbers this was
 // validated against, in .claude/docs/lounge-mmr-and-rules.md.
 function lounge_mmr_arity($mode) {
-	switch ($mode) {
-		case '2v2':     return 2;
-		case '3v3':     return 3;
-		case '4v4':     return 4;
-		case '2v2v2v2': return 2;
-		default:        return 1;
-	}
+	$size = lounge_mode_team_size($mode);
+	return $size ? $size : 1;
 }
 
 function lounge_mmr_params($arity) {
