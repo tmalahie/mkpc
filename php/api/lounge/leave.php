@@ -47,5 +47,13 @@ mysql_query(
 
 lounge_update_queue_status($queue['id']);
 
+require_once('../../includes/lounge/discord.php');
+$count = lounge_active_member_count($queue['id']);
+$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. intval($id) .'"'));
+lounge_discord_announce(
+	$queue['id'],
+	$name['nom'] .' has dropped from the mogi -- '. $count .' player'. (($count === 1) ? '' : 's')
+);
+
 echo json_encode(array('ok' => true, 'queue' => null));
 mysql_close();
