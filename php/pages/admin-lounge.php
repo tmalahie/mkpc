@@ -117,6 +117,9 @@ if (isset($_POST['settings'])) {
 
 $state = $target ? lounge_get_player_state(intval($target['id'])) : null;
 
+$tab = (isset($_POST['settings']) || (isset($_GET['tab']) && $_GET['tab'] === 'settings'))
+	? 'settings' : 'activity';
+
 $settingGroups = array(
 	'queue' => array($language ? 'Queue' : 'File d\'attente'),
 	'match' => array($language ? 'Match' : 'Partie'),
@@ -140,6 +143,43 @@ h2 {
 .lounge-notice {
 	font-weight: bold;
 	color: #0A0;
+}
+#lounge-admin-tabs {
+	display: table;
+	margin: 0 auto 12px;
+	text-align: center;
+	font-size: 0.9em;
+}
+#lounge-admin-tabs > * {
+	display: table-cell;
+	vertical-align: middle;
+	border-top: solid 1px #820;
+	border-bottom: solid 1px #820;
+	padding: 6px 14px;
+}
+#lounge-admin-tabs > a {
+	background-color: #FFE30C;
+	color: #F60;
+	text-decoration: none;
+}
+#lounge-admin-tabs > a:hover {
+	background-color: #FFD816;
+	color: #C30;
+}
+#lounge-admin-tabs > span {
+	background-color: #FFC02C;
+	color: #820;
+	font-weight: bold;
+}
+#lounge-admin-tabs > *:first-child {
+	border-left: solid 1px #820;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+#lounge-admin-tabs > *:last-child {
+	border-right: solid 1px #820;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
 }
 .lounge-stats {
 	margin: 5px 0 15px;
@@ -218,6 +258,21 @@ include('../includes/menu.php');
 	<?php if ($notice) { ?>
 	<p class="lounge-notice"><?php echo $notice; ?></p>
 	<?php } ?>
+	<div id="lounge-admin-tabs">
+		<?php
+		$tabs = array(
+			'activity' => $language ? 'Activity':'Activit&eacute;',
+			'settings' => $language ? 'Settings':'R&eacute;glages'
+		);
+		foreach ($tabs as $tabKey => $tabLabel) {
+			if ($tabKey === $tab)
+				echo '<span>'. $tabLabel .'</span>';
+			else
+				echo '<a href="admin-lounge.php?tab='. $tabKey .'">'. $tabLabel .'</a>';
+		}
+		?>
+	</div>
+	<?php if ($tab === 'activity') { ?>
 	<p><?php echo $language
 		? 'Adjust a rating, hand out or lift a ranked ban, or release a queue that got stuck. Every action is recorded in the <a href="admin-logs.php?role=lounge">admin logs</a>.'
 		: 'Ajustez un classement, donnez ou levez un bannissement du mode class&eacute;, ou lib&eacute;rez une file bloqu&eacute;e. Chaque action est enregistr&eacute;e dans les <a href="admin-logs.php?role=lounge">logs d\'administration</a>.'; ?></p>
@@ -320,8 +375,7 @@ include('../includes/menu.php');
 	<?php } ?>
 	</table>
 	<?php } ?>
-
-	<h2><?php echo $language ? 'Settings':'R&eacute;glages'; ?></h2>
+	<?php } else { ?>
 	<p><?php echo $language
 		? 'These take effect immediately. A mogi already under way keeps the values it started with.'
 		: 'Effet imm&eacute;diat. Un mogi d&eacute;j&agrave; lanc&eacute; garde les valeurs avec lesquelles il a d&eacute;marr&eacute;.'; ?></p>
@@ -331,7 +385,7 @@ include('../includes/menu.php');
 		$schema = lounge_settings_schema();
 		foreach ($settingGroups as $groupKey => $groupLabel) {
 		?>
-		<h3><?php echo $groupLabel[0]; ?></h3>
+		<h2><?php echo $groupLabel[0]; ?></h2>
 		<table class="lounge-settings-table">
 			<?php
 			foreach ($schema as $name => $meta) {
@@ -363,6 +417,7 @@ include('../includes/menu.php');
 		<p><input type="submit" class="action_button" value="<?php
 			echo $language ? 'Save settings':'Enregistrer les r&eacute;glages'; ?>" /></p>
 	</form>
+	<?php } ?>
 
 	<p><a href="mariokart.php"><?php echo $language ? 'Back to online mode':'Retour au mode en ligne'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
@@ -370,6 +425,7 @@ include('../includes/menu.php');
 <?php
 include('../includes/footer.php');
 ?>
+<?php if ($tab === 'activity') { ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>
 <script type="text/javascript">
@@ -379,6 +435,7 @@ autocompletePlayer('#player', {
 	}
 });
 </script>
+<?php } ?>
 <?php
 mysql_close();
 ?>
