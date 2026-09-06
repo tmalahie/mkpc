@@ -168,6 +168,118 @@
 		return 'MMR ' + tier.min_mmr + '–' + tier.max_mmr;
 	}
 
+	// Staff want everyone to have seen the rules once before their first queue, and a player
+	// who cannot enter at all should learn why here rather than after clicking Join. Both
+	// take over the tier screen, so neither can be clicked past.
+	function renderTierScreen(data) {
+		var container = $('lounge-tiers');
+		if (!container) return;
+		if (!data.rules_accepted) {
+			renderRulesGate(container);
+			return;
+		}
+		if (data.access_error && data.access_error !== 'rules_not_accepted') {
+			renderAccessBlock(container, data);
+			return;
+		}
+		renderTiers(data.tiers);
+	}
+
+	function renderRulesGate(container) {
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-rules-gate';
+
+		// cloned from the "?" panel so the gate can never drift from the published rules
+		var body = document.createElement('div');
+		body.className = 'lounge-rules-body';
+		var panel = document.querySelector('.lounge-rules');
+		body.innerHTML = panel ? panel.innerHTML : '';
+		box.appendChild(body);
+
+		var label = document.createElement('label');
+		label.className = 'lounge-rules-check';
+		var check = document.createElement('input');
+		check.type = 'checkbox';
+		var text = document.createElement('span');
+		text.textContent = toLanguage(
+			'I have read and accept the lounge rules.',
+			'J\'ai lu et j\'accepte les règles du lounge.'
+		);
+		label.appendChild(check);
+		label.appendChild(text);
+		box.appendChild(label);
+
+		var btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'lounge-rules-accept';
+		btn.disabled = true;
+		btn.textContent = toLanguage('Continue', 'Continuer');
+		check.addEventListener('change', function() {
+			btn.disabled = !check.checked;
+		});
+		btn.addEventListener('click', function() {
+			if (actionInFlight || !check.checked) return;
+			actionInFlight = true;
+			btn.disabled = true;
+			postJSON('lounge/accept-rules.php', '', function() {
+				actionInFlight = false;
+				pollOnce();
+			});
+		});
+		box.appendChild(btn);
+		container.appendChild(box);
+	}
+
+	function renderAccessBlock(container, data) {
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-access-block';
+		var title = document.createElement('h2');
+		title.textContent = toLanguage('Not open to you yet', 'Pas encore accessible');
+		box.appendChild(title);
+
+		var list = document.createElement('ul');
+		var req = data.requirements || {};
+		if (req.min_vs_points) {
+			list.appendChild(requirementRow(
+				toLanguage(
+					req.min_vs_points + ' points in online VS mode',
+					req.min_vs_points + ' points en mode en ligne VS'
+				),
+				toLanguage('you have ' + data.vs_points, 'vous en avez ' + data.vs_points),
+				data.vs_points >= req.min_vs_points
+			));
+		}
+		if (req.min_account_age_days) {
+			var age = data.account_age_days;
+			list.appendChild(requirementRow(
+				toLanguage(
+					'an account at least ' + req.min_account_age_days + ' days old',
+					'un compte d\'au moins ' + req.min_account_age_days + ' jours'
+				),
+				age === null ? '' : toLanguage(age + ' days', age + ' jours'),
+				(age === null) || (age >= req.min_account_age_days)
+			));
+		}
+		box.appendChild(list);
+
+		if (data.access_error === 'site_banned') {
+			var banned = document.createElement('p');
+			banned.className = 'lounge-access-note';
+			banned.textContent = toLanguage('Your account is banned.', 'Votre compte est banni.');
+			box.appendChild(banned);
+		}
+		container.appendChild(box);
+	}
+
+	function requirementRow(what, have, met) {
+		var li = document.createElement('li');
+		li.className = met ? 'is-met' : 'is-unmet';
+		li.textContent = what + (have ? ' — ' + have : '');
+		return li;
+	}
+
 	function renderTiers(tiers) {
 		var container = $('lounge-tiers');
 		if (!container) return;
@@ -242,6 +354,8 @@
 			case 'tier_not_found': return toLanguage('That tier no longer exists.', 'Ce tier n\'existe plus.');
 			case 'site_banned': return toLanguage('Your account is banned.', 'Votre compte est banni.');
 			case 'account_too_new': return toLanguage('Your account is too new for ranked.', 'Votre compte est trop récent pour le classé.');
+			case 'not_enough_points': return toLanguage('You do not have enough online VS points for ranked.', 'Vous n\'avez pas assez de points en ligne VS pour le classé.');
+			case 'rules_not_accepted': return toLanguage('You must accept the lounge rules first.', 'Vous devez d\'abord accepter les règles du lounge.');
 			default: return toLanguage('Could not join queue.', 'Impossible de rejoindre la file.');
 		}
 	}
@@ -550,8 +664,10 @@
 		var hint = document.createElement('p');
 		hint.className = 'lounge-vote-hint';
 		hint.textContent = toLanguage(
-			'If the timer runs out, the majority of the votes cast decides.',
-			'Si le chrono expire, la majorité des votes exprimés décide.'
+			'If the timer runs out, the mode with the most votes wins. A tie is drawn at random,'
+				+ ' and so is Random.',
+			'À l\'expiration du chrono, le mode le plus voté l\'emporte. Une égalité est tirée au sort,'
+				+ ' comme le vote Random.'
 		);
 		section.appendChild(hint);
 		section.appendChild(renderModeVote(queue));
@@ -572,8 +688,9 @@
 		var group = voteGroup('Game mode', 'Mode de jeu');
 		var btns = document.createElement('div');
 		btns.className = 'lounge-vote-buttons';
-		for (var i = 0; i < queue.allowed_modes.length; i++) {
-			var mode = queue.allowed_modes[i];
+		var modes = queue.allowed_modes.concat(['Random']);
+		for (var i = 0; i < modes.length; i++) {
+			var mode = modes[i];
 			var voteCount = queue.votes && queue.votes[mode] ? queue.votes[mode] : 0;
 			var btn = document.createElement('button');
 			btn.type = 'button';
@@ -767,7 +884,7 @@
 				}
 				lastPlayerState = data.player;
 				renderPlayerStrip(data.player);
-				renderTiers(data.tiers);
+				renderTierScreen(data);
 				pollTimer = setTimeout(pollOnce, POLL_INTERVAL_TIERS);
 			});
 		} else {
