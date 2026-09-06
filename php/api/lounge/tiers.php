@@ -23,7 +23,7 @@ while ($tier = mysql_fetch_array($getTiers)) {
 		'SELECT COUNT(*) AS n FROM `mklounge_queue_members` m
 		INNER JOIN `mklounge_queues` q ON m.queue=q.id
 		WHERE q.tier="'. intval($tier['id']) .'"
-		AND q.status IN ("open","locked","voting")
+		AND q.status IN ("open","locked","voting","drafting")
 		AND m.dropped_at IS NULL'
 	));
 	if ($getCount)
