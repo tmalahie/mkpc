@@ -50,6 +50,16 @@
 			if (target === 'leaderboard')
 				loadLeaderboard();
 		}
+
+		var requested = (location.search.match(/[?&]tab=([a-z]+)/) || [])[1];
+		if (requested) {
+			for (var k = 0; k < tabs.length; k++) {
+				if (tabs[k].getAttribute('data-tab') === requested) {
+					onTabClick.call(tabs[k]);
+					break;
+				}
+			}
+		}
 	}
 
 	function renderPlayerStrip(player) {

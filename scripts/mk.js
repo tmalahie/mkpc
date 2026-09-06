@@ -25428,7 +25428,7 @@ function selectOnlineScreen(options) {
 	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (14*iScreenScale)+"px";
+	oPInput.style.top = (17*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
@@ -25443,27 +25443,12 @@ function selectOnlineScreen(options) {
 	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (21*iScreenScale)+"px";
+	oPInput.style.top = (25*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		openOnlineMode(true, options);
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Ranked (CT Lounge)", "Classé (CT Lounge)");
-	oPInput.style.fontSize = Math.round(3*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (28*iScreenScale)+"px";
-	oPInput.style.width = (36*iScreenScale)+"px";
-	oPInput.style.height = (5*iScreenScale)+"px";
-	oPInput.style.color = "white";
-	oPInput.onclick = function() {
-		document.location.href = "ranked.php";
 	};
 	oScr.appendChild(oPInput);
 
@@ -25491,7 +25476,12 @@ function openLoungeOverlay(opts) {
 	oOverlay.style.justifyContent = "center";
 
 	var oFrame = document.createElement("iframe");
-	oFrame.src = opts.perso ? ("lounge.php?perso=" + encodeURIComponent(opts.perso)) : "lounge.php";
+	var aFrameParams = [];
+	if (opts.perso)
+		aFrameParams.push("perso=" + encodeURIComponent(opts.perso));
+	if (opts.tab)
+		aFrameParams.push("tab=" + encodeURIComponent(opts.tab));
+	oFrame.src = "lounge.php" + (aFrameParams.length ? ("?" + aFrameParams.join("&")) : "");
 	oFrame.style.width = "min(960px, 95vw)";
 	oFrame.style.height = "min(720px, 92vh)";
 	oFrame.style.border = "1px solid #2a2c33";
@@ -26248,7 +26238,17 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			eClassement.style.left = (iScreenScale*41) +"px";
 			eClassement.style.top = (iScreenScale*34) +"px";
 			eClassement.innerHTML = toLanguage("Rankings", "Classement");
-			if (shareLink.options && shareLink.options.localScore) {
+			eClassement.onclick = function() {};
+			if (isRanked) {
+				eClassement.title = toLanguage("CT Lounge leaderboard","Classement du CT Lounge");
+				eClassement.style.color = "white";
+				eClassement.setAttribute("href", "#null");
+				eClassement.onclick = function() {
+					openLoungeOverlay({ tab: "leaderboard" });
+					return false;
+				};
+			}
+			else if (shareLink.options && shareLink.options.localScore) {
 				eClassement.title = toLanguage("Private game ranking","Classement partie privée");
 				eClassement.style.color = "#CF8";
 				eClassement.setAttribute("href", "localscores.php"+window.location.search);
@@ -26257,7 +26257,6 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				eClassement.style.color = "white";
 				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
 			}
-			eClassement.onclick = function() {};
 			oScr.appendChild(eClassement);
 
 			if (shareLink.key) {
@@ -26312,7 +26311,26 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					oScr.appendChild(oPInput);
 				}
 			}
-			else {
+			else if (!isRanked) {
+				if (document.location.pathname.split("/").pop() == "online.php" && !document.location.search) {
+					var oPInput = document.createElement("input");
+					oPInput.type = "button";
+					oPInput.value = toLanguage("Ranked game...", "Partie classée...");
+					oPInput.title = toLanguage(
+						"Play ranked mogis: you are matched with players of your level, and every race moves your MMR on the CT Lounge ladder.",
+						"Jouez des mogis classés : vous êtes placé face à des joueurs de votre niveau, et chaque course fait bouger votre MMR au classement du CT Lounge."
+					);
+					oPInput.style.fontSize = (2*iScreenScale)+"px";
+					oPInput.style.position = "absolute";
+					oPInput.style.left = (62*iScreenScale)+"px";
+					oPInput.style.top = (30*iScreenScale)+"px";
+					oPInput.style.color = "white";
+					oPInput.onclick = function() {
+						document.location.href = "ranked.php";
+					}
+					oScr.appendChild(oPInput);
+				}
+
 				var oPInput = document.createElement("input");
 				oPInput.type = "button";
 				oPInput.value = toLanguage("Private game...", "Partie privée...");
@@ -26336,59 +26354,63 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		if (additionalOptions && additionalOptions.enableSpectatorMode)
 			enableSpectatorMode = true;
 
-		var $spectatorModeCtn = document.createElement("div");
-		$spectatorModeCtn.style.position = "absolute";
-		$spectatorModeCtn.style.left = (toLanguage(24,21)*iScreenScale)+"px";
-		$spectatorModeCtn.style.top = (29*iScreenScale)+"px";
-		$spectatorModeCtn.style.fontSize = Math.round(2*iScreenScale)+"px";
-		$spectatorModeCtn.style.display = "flex";
-		$spectatorModeCtn.style.alignItems = "center";
+		// watching without playing only makes sense on a private game: the public lobby and a
+		// ranked room both put you in the race
+		if (shareLink.key && !isRanked) {
+			var $spectatorModeCtn = document.createElement("div");
+			$spectatorModeCtn.style.position = "absolute";
+			$spectatorModeCtn.style.left = (toLanguage(24,21)*iScreenScale)+"px";
+			$spectatorModeCtn.style.top = (29*iScreenScale)+"px";
+			$spectatorModeCtn.style.fontSize = Math.round(2*iScreenScale)+"px";
+			$spectatorModeCtn.style.display = "flex";
+			$spectatorModeCtn.style.alignItems = "center";
 
-		var $spectatorModeLabel = document.createElement("label");
-		$spectatorModeLabel.style.display = "inline-flex";
-		$spectatorModeLabel.style.alignItems = "center";
-		$spectatorModeLabel.style.cursor = "pointer";
-		$spectatorModeLabel.style.gap = Math.round(iScreenScale*0.5) +"px";
-		$spectatorModeLabel.style.marginRight = iScreenScale +"px";
-		var $spectatorModeCheckbox = document.createElement("input");
-		$spectatorModeCheckbox.type = "checkbox";
-		$spectatorModeCheckbox.checked = enableSpectatorMode;
-		$spectatorModeCheckbox.style.transform = "scale("+ (iScreenScale/8) +")";
-		$spectatorModeCheckbox.style.transformOrigin = "center";
-		$spectatorModeCheckbox.style.marginRight = (iScreenScale-5) +"px";
-		$spectatorModeCheckbox.onclick = function() {
-			enableSpectatorMode = this.checked;
-		}
-		$spectatorModeLabel.appendChild($spectatorModeCheckbox);
-		var $spectatorModeCheckboxText = document.createElement("span");
-		$spectatorModeCheckboxText.innerHTML = toLanguage("Join in spectator mode", "Rejoindre en mode spectateur");
-		$spectatorModeLabel.appendChild($spectatorModeCheckboxText);
-		$spectatorModeCtn.appendChild($spectatorModeLabel);
-
-		var $spectatorModeHelp = document.createElement("a");
-		$spectatorModeHelp.href = "#null";
-		$spectatorModeHelp.style.color = "#CCF";
-		$spectatorModeHelp.innerHTML = "[?]";
-		$spectatorModeHelp.style.cursor = "help";
-		$spectatorModeHelp.onclick = function() {
-			return false;
-		}
-		$spectatorModeHelp.dataset.noselect = "1";
-		$spectatorModeCtn.appendChild($spectatorModeHelp);
-
-		addFancyTitle({
-			elt: $spectatorModeHelp,
-			title: toLanguage("Check this to see races<br />without playing on them", "Cochez cette case pour voir<br />les courses sans y participer"),
-			style: function(rect) {
-				return {
-					left: (rect.left - iScreenScale*10)+"px",
-					top: (rect.top + iScreenScale*4)+"px",
-					backgroundColor: "rgba(51,51,160, 0.95)"
-				};
+			var $spectatorModeLabel = document.createElement("label");
+			$spectatorModeLabel.style.display = "inline-flex";
+			$spectatorModeLabel.style.alignItems = "center";
+			$spectatorModeLabel.style.cursor = "pointer";
+			$spectatorModeLabel.style.gap = Math.round(iScreenScale*0.5) +"px";
+			$spectatorModeLabel.style.marginRight = iScreenScale +"px";
+			var $spectatorModeCheckbox = document.createElement("input");
+			$spectatorModeCheckbox.type = "checkbox";
+			$spectatorModeCheckbox.checked = enableSpectatorMode;
+			$spectatorModeCheckbox.style.transform = "scale("+ (iScreenScale/8) +")";
+			$spectatorModeCheckbox.style.transformOrigin = "center";
+			$spectatorModeCheckbox.style.marginRight = (iScreenScale-5) +"px";
+			$spectatorModeCheckbox.onclick = function() {
+				enableSpectatorMode = this.checked;
 			}
-		});
+			$spectatorModeLabel.appendChild($spectatorModeCheckbox);
+			var $spectatorModeCheckboxText = document.createElement("span");
+			$spectatorModeCheckboxText.innerHTML = toLanguage("Join in spectator mode", "Rejoindre en mode spectateur");
+			$spectatorModeLabel.appendChild($spectatorModeCheckboxText);
+			$spectatorModeCtn.appendChild($spectatorModeLabel);
 
-		oScr.appendChild($spectatorModeCtn);
+			var $spectatorModeHelp = document.createElement("a");
+			$spectatorModeHelp.href = "#null";
+			$spectatorModeHelp.style.color = "#CCF";
+			$spectatorModeHelp.innerHTML = "[?]";
+			$spectatorModeHelp.style.cursor = "help";
+			$spectatorModeHelp.onclick = function() {
+				return false;
+			}
+			$spectatorModeHelp.dataset.noselect = "1";
+			$spectatorModeCtn.appendChild($spectatorModeHelp);
+
+			addFancyTitle({
+				elt: $spectatorModeHelp,
+				title: toLanguage("Check this to see races<br />without playing on them", "Cochez cette case pour voir<br />les courses sans y participer"),
+				style: function(rect) {
+					return {
+						left: (rect.left - iScreenScale*10)+"px",
+						top: (rect.top + iScreenScale*4)+"px",
+						backgroundColor: "rgba(51,51,160, 0.95)"
+					};
+				}
+			});
+
+			oScr.appendChild($spectatorModeCtn);
+		}
 	}
 	else if (course == "VS" || course == "BB") {
 		var oForm = document.createElement("form");
