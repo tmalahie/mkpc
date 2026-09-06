@@ -12,11 +12,33 @@ function resetCourseState($key) {
 function incCourseState($key) {
 	mysql_query('UPDATE `mkgamedata` SET raceCount=aRaceCount+1 WHERE game="'. $key .'"');
 }
+// Which courses have been played, so that a player joining mid-game knows what is already
+// used up rather than carrying a history only their own client remembers.
+function pushCourseTrack($key, $track) {
+	$track = intval($track);
+	if ($track <= 0)
+		return false;
+	$tracks = getCourseTracks(getCourseState($key));
+	if (in_array($track, $tracks, true))
+		return false;
+	$tracks[] = $track;
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mkgamedata` SET tracks="'. implode(',', $tracks) .'" WHERE game="'. intval($key) .'"'
+	);
+	return (bool) mysql_affected_rows();
+}
+function getCourseTracks($state) {
+	if (empty($state['tracks']))
+		return array();
+	return array_map('intval', explode(',', $state['tracks']));
+}
 function getCourseState($key) {
-	if ($getState = mysql_fetch_array(mysql_query('SELECT raceCount FROM `mkgamedata` WHERE game="'. $key .'"')))
+	if ($getState = mysql_fetch_array(mysql_query('SELECT raceCount,tracks FROM `mkgamedata` WHERE game="'. $key .'"')))
 		return $getState;
 	return array(
-		'raceCount' => 0
+		'raceCount' => 0,
+		'tracks' => ''
 	);
 }
 function getCourseExtra($course) {

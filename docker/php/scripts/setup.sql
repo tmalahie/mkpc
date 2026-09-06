@@ -777,6 +777,7 @@ CREATE TABLE `mkgamedata` (
   `game` int(11) NOT NULL,
   `aRaceCount` int(11) NOT NULL,
   `raceCount` int(11) NOT NULL,
+  `tracks` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`game`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -8,6 +8,7 @@ function getUserRights($playerId) {
 		if (isset($res['admin'])) {
 			$res['moderator'] = true;
 			$res['organizer'] = true;
+			$res['lounge'] = true;
 		}
 		if (isset($res['moderator']) || isset($res['organizer']))
 			$res['manager'] = true;

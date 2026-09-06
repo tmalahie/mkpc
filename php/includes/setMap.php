@@ -237,8 +237,13 @@ if ($course) {
 	}
 	if (!empty($courseRules->localScore)) {
 		require_once('onlineStateUtils.php');
+		// The winning choice is what the client resolves the course from
+		// (choixJoueurs[rCode[1]][2]), so the same expression records it here.
+		if ($allChosen && $enoughPlayers && ($map >= 0) && isset($joueursData[$map]))
+			pushCourseTrack($getMap['link'], $joueursData[$map]['choice_map']);
 		$courseState = getCourseState($getMap['link']);
 		echo ',raceCount:' . $courseState['raceCount'];
+		echo ',tracks:' . json_encode(getCourseTracks($courseState));
 	}
 	if (!empty($courseRules->friendlyFire))
 		echo ',friendlyFire:1';

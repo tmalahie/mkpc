@@ -7,6 +7,8 @@ var customDecorData = {};
 var customBgData = {};
 var customOffroadData = {};
 var nBasePersos, customPersos;
+// set by online.php only; declared here so the other pages loading mk.js keep them undefined
+var isRanked, rankedPerso;
 var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
@@ -6303,9 +6305,28 @@ function reprendre(debug) {
 	}
 }
 
+function onlineExitLink() {
+	// ranked.php and the lounge both build their links as online.php?mid=...&ranked, so the
+	// way back is spelled the same rather than going through onlineModeLink(), whose param
+	// depends on the cup shape
+	if (isRanked)
+		return (shareLink && shareLink.key) ? ("online.php?mid=" + nid + "&ranked") : "mariokart.php";
+	if (!isCup)
+		return "index.php";
+	var exitPage = isBattle ? (complete ? "battle" : "arena") : (complete ? "map" : "circuit");
+	var idParam;
+	if (isMCups)
+		idParam = "mid";
+	else if (isSingle)
+		idParam = complete ? "i" : "id";
+	else
+		idParam = "cid";
+	return exitPage + ".php?" + idParam + "=" + nid;
+}
+
 function quitter() {
 	if (isOnline) {
-		document.location.href = isCup ? ((isBattle ? (complete ? 'battle':'arena') : (complete ? 'map':'circuit')) + '.php?' + (isMCups ? ('mid=' + nid) : ((isSingle ? (complete?'i':'id'):'cid')+'='+nid))) : 'index.php';
+		document.location.href = onlineExitLink();
 		return;
 	}
 	interruptGame();
@@ -25436,6 +25457,73 @@ function selectOnlineScreen(options) {
 	updateMenuMusic(0);
 }
 
+window.openLoungeOverlay = openLoungeOverlay;
+function openLoungeOverlay(opts) {
+	if (document.getElementById("lounge-overlay"))
+		return;
+	if (!opts) opts = {};
+	var oOverlay = document.createElement("div");
+	oOverlay.id = "lounge-overlay";
+	oOverlay.style.position = "fixed";
+	oOverlay.style.left = "0";
+	oOverlay.style.top = "0";
+	oOverlay.style.width = "100%";
+	oOverlay.style.height = "100%";
+	oOverlay.style.backgroundColor = "rgba(0,0,0,0.85)";
+	oOverlay.style.zIndex = "20100";
+	oOverlay.style.display = "flex";
+	oOverlay.style.alignItems = "center";
+	oOverlay.style.justifyContent = "center";
+
+	var oFrame = document.createElement("iframe");
+	var aFrameParams = [];
+	if (opts.perso)
+		aFrameParams.push("perso=" + encodeURIComponent(opts.perso));
+	if (opts.tab)
+		aFrameParams.push("tab=" + encodeURIComponent(opts.tab));
+	oFrame.src = "lounge.php" + (aFrameParams.length ? ("?" + aFrameParams.join("&")) : "");
+	oFrame.style.width = "min(960px, 95vw)";
+	oFrame.style.height = "min(720px, 92vh)";
+	oFrame.style.border = "1px solid #2a2c33";
+	oFrame.style.borderRadius = "8px";
+	oFrame.style.background = "#15161a";
+	oFrame.style.boxShadow = "0 8px 32px rgba(0,0,0,0.6)";
+	oOverlay.appendChild(oFrame);
+
+	var oClose = document.createElement("button");
+	oClose.type = "button";
+	oClose.textContent = "✕";
+	oClose.title = toLanguage("Close", "Fermer");
+	oClose.style.position = "absolute";
+	oClose.style.top = "16px";
+	oClose.style.right = "16px";
+	oClose.style.width = "36px";
+	oClose.style.height = "36px";
+	oClose.style.fontSize = "18px";
+	oClose.style.background = "#1f2128";
+	oClose.style.color = "#fff";
+	oClose.style.border = "1px solid #2a2c33";
+	oClose.style.borderRadius = "999px";
+	oClose.style.cursor = "pointer";
+	oClose.onclick = closeLoungeOverlay;
+	oOverlay.appendChild(oClose);
+
+	function onKey(e) {
+		if (e.key === "Escape") closeLoungeOverlay();
+	}
+	function closeLoungeOverlay() {
+		document.removeEventListener("keydown", onKey);
+		if (oOverlay.parentNode)
+			oOverlay.parentNode.removeChild(oOverlay);
+		// the ranked flow replaces the game screen, so there is nothing to go back to
+		if (opts.perso)
+			document.location.href = "index.php";
+	}
+	document.addEventListener("keydown", onKey);
+
+	document.body.appendChild(oOverlay);
+}
+
 function onlineModeLink() {
 	return "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid)+(isBattle?"&battle":"");
 }
@@ -25980,7 +26068,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							});
 						}
 					}
-					if (isOnline) {
+					if (isOnline && isRanked && !shareLink.key)
+						openLoungeOverlay({ perso: strPlayer[0] });
+					else if (isOnline) {
 						var shownOptions = {};
 						var autoAcceptedRules = {
 							nbTeams:1,
@@ -25999,7 +26089,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							if (!autoAcceptedRules[key])
 								shownOptions[key] = shareLink.options[key];
 						}
-						if (!enableSpectatorMode && isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
+						// ranked players accepted the lounge rules by queueing up
+						if (!isRanked && !enableSpectatorMode && isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
 							acceptRulesScreen();
 						else {
 							searchCourse({
@@ -26147,7 +26238,17 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			eClassement.style.left = (iScreenScale*41) +"px";
 			eClassement.style.top = (iScreenScale*34) +"px";
 			eClassement.innerHTML = toLanguage("Rankings", "Classement");
-			if (shareLink.options && shareLink.options.localScore) {
+			eClassement.onclick = function() {};
+			if (isRanked) {
+				eClassement.title = toLanguage("CT Lounge leaderboard","Classement du CT Lounge");
+				eClassement.style.color = "white";
+				eClassement.setAttribute("href", "#null");
+				eClassement.onclick = function() {
+					openLoungeOverlay({ tab: "leaderboard" });
+					return false;
+				};
+			}
+			else if (shareLink.options && shareLink.options.localScore) {
 				eClassement.title = toLanguage("Private game ranking","Classement partie privée");
 				eClassement.style.color = "#CF8";
 				eClassement.setAttribute("href", "localscores.php"+window.location.search);
@@ -26156,11 +26257,10 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				eClassement.style.color = "white";
 				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
 			}
-			eClassement.onclick = function() {};
 			oScr.appendChild(eClassement);
 
 			if (shareLink.key) {
-				if (shareLink.player == identifiant) {
+				if (shareLink.player == identifiant || shareLink.canEdit) {
 					var oPInput = document.createElement("input");
 					oPInput.type = "button";
 					oPInput.value = toLanguage("Private game options...", "Options partie privée...");
@@ -26211,7 +26311,26 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					oScr.appendChild(oPInput);
 				}
 			}
-			else {
+			else if (!isRanked) {
+				if (document.location.pathname.split("/").pop() == "online.php" && !document.location.search) {
+					var oPInput = document.createElement("input");
+					oPInput.type = "button";
+					oPInput.value = toLanguage("Ranked game...", "Partie classée...");
+					oPInput.title = toLanguage(
+						"Play ranked mogis: you are matched with players of your level, and every race moves your MMR on the CT Lounge ladder.",
+						"Jouez des mogis classés : vous êtes placé face à des joueurs de votre niveau, et chaque course fait bouger votre MMR au classement du CT Lounge."
+					);
+					oPInput.style.fontSize = (2*iScreenScale)+"px";
+					oPInput.style.position = "absolute";
+					oPInput.style.left = (62*iScreenScale)+"px";
+					oPInput.style.top = (30*iScreenScale)+"px";
+					oPInput.style.color = "white";
+					oPInput.onclick = function() {
+						document.location.href = "ranked.php";
+					}
+					oScr.appendChild(oPInput);
+				}
+
 				var oPInput = document.createElement("input");
 				oPInput.type = "button";
 				oPInput.value = toLanguage("Private game...", "Partie privée...");
@@ -26235,59 +26354,63 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		if (additionalOptions && additionalOptions.enableSpectatorMode)
 			enableSpectatorMode = true;
 
-		var $spectatorModeCtn = document.createElement("div");
-		$spectatorModeCtn.style.position = "absolute";
-		$spectatorModeCtn.style.left = (toLanguage(24,21)*iScreenScale)+"px";
-		$spectatorModeCtn.style.top = (29*iScreenScale)+"px";
-		$spectatorModeCtn.style.fontSize = Math.round(2*iScreenScale)+"px";
-		$spectatorModeCtn.style.display = "flex";
-		$spectatorModeCtn.style.alignItems = "center";
+		// watching without playing only makes sense on a private game: the public lobby and a
+		// ranked room both put you in the race
+		if (shareLink.key && !isRanked) {
+			var $spectatorModeCtn = document.createElement("div");
+			$spectatorModeCtn.style.position = "absolute";
+			$spectatorModeCtn.style.left = (toLanguage(24,21)*iScreenScale)+"px";
+			$spectatorModeCtn.style.top = (29*iScreenScale)+"px";
+			$spectatorModeCtn.style.fontSize = Math.round(2*iScreenScale)+"px";
+			$spectatorModeCtn.style.display = "flex";
+			$spectatorModeCtn.style.alignItems = "center";
 
-		var $spectatorModeLabel = document.createElement("label");
-		$spectatorModeLabel.style.display = "inline-flex";
-		$spectatorModeLabel.style.alignItems = "center";
-		$spectatorModeLabel.style.cursor = "pointer";
-		$spectatorModeLabel.style.gap = Math.round(iScreenScale*0.5) +"px";
-		$spectatorModeLabel.style.marginRight = iScreenScale +"px";
-		var $spectatorModeCheckbox = document.createElement("input");
-		$spectatorModeCheckbox.type = "checkbox";
-		$spectatorModeCheckbox.checked = enableSpectatorMode;
-		$spectatorModeCheckbox.style.transform = "scale("+ (iScreenScale/8) +")";
-		$spectatorModeCheckbox.style.transformOrigin = "center";
-		$spectatorModeCheckbox.style.marginRight = (iScreenScale-5) +"px";
-		$spectatorModeCheckbox.onclick = function() {
-			enableSpectatorMode = this.checked;
-		}
-		$spectatorModeLabel.appendChild($spectatorModeCheckbox);
-		var $spectatorModeCheckboxText = document.createElement("span");
-		$spectatorModeCheckboxText.innerHTML = toLanguage("Join in spectator mode", "Rejoindre en mode spectateur");
-		$spectatorModeLabel.appendChild($spectatorModeCheckboxText);
-		$spectatorModeCtn.appendChild($spectatorModeLabel);
-
-		var $spectatorModeHelp = document.createElement("a");
-		$spectatorModeHelp.href = "#null";
-		$spectatorModeHelp.style.color = "#CCF";
-		$spectatorModeHelp.innerHTML = "[?]";
-		$spectatorModeHelp.style.cursor = "help";
-		$spectatorModeHelp.onclick = function() {
-			return false;
-		}
-		$spectatorModeHelp.dataset.noselect = "1";
-		$spectatorModeCtn.appendChild($spectatorModeHelp);
-
-		addFancyTitle({
-			elt: $spectatorModeHelp,
-			title: toLanguage("Check this to see races<br />without playing on them", "Cochez cette case pour voir<br />les courses sans y participer"),
-			style: function(rect) {
-				return {
-					left: (rect.left - iScreenScale*10)+"px",
-					top: (rect.top + iScreenScale*4)+"px",
-					backgroundColor: "rgba(51,51,160, 0.95)"
-				};
+			var $spectatorModeLabel = document.createElement("label");
+			$spectatorModeLabel.style.display = "inline-flex";
+			$spectatorModeLabel.style.alignItems = "center";
+			$spectatorModeLabel.style.cursor = "pointer";
+			$spectatorModeLabel.style.gap = Math.round(iScreenScale*0.5) +"px";
+			$spectatorModeLabel.style.marginRight = iScreenScale +"px";
+			var $spectatorModeCheckbox = document.createElement("input");
+			$spectatorModeCheckbox.type = "checkbox";
+			$spectatorModeCheckbox.checked = enableSpectatorMode;
+			$spectatorModeCheckbox.style.transform = "scale("+ (iScreenScale/8) +")";
+			$spectatorModeCheckbox.style.transformOrigin = "center";
+			$spectatorModeCheckbox.style.marginRight = (iScreenScale-5) +"px";
+			$spectatorModeCheckbox.onclick = function() {
+				enableSpectatorMode = this.checked;
 			}
-		});
+			$spectatorModeLabel.appendChild($spectatorModeCheckbox);
+			var $spectatorModeCheckboxText = document.createElement("span");
+			$spectatorModeCheckboxText.innerHTML = toLanguage("Join in spectator mode", "Rejoindre en mode spectateur");
+			$spectatorModeLabel.appendChild($spectatorModeCheckboxText);
+			$spectatorModeCtn.appendChild($spectatorModeLabel);
 
-		oScr.appendChild($spectatorModeCtn);
+			var $spectatorModeHelp = document.createElement("a");
+			$spectatorModeHelp.href = "#null";
+			$spectatorModeHelp.style.color = "#CCF";
+			$spectatorModeHelp.innerHTML = "[?]";
+			$spectatorModeHelp.style.cursor = "help";
+			$spectatorModeHelp.onclick = function() {
+				return false;
+			}
+			$spectatorModeHelp.dataset.noselect = "1";
+			$spectatorModeCtn.appendChild($spectatorModeHelp);
+
+			addFancyTitle({
+				elt: $spectatorModeHelp,
+				title: toLanguage("Check this to see races<br />without playing on them", "Cochez cette case pour voir<br />les courses sans y participer"),
+				style: function(rect) {
+					return {
+						left: (rect.left - iScreenScale*10)+"px",
+						top: (rect.top + iScreenScale*4)+"px",
+						backgroundColor: "rgba(51,51,160, 0.95)"
+					};
+				}
+			});
+
+			oScr.appendChild($spectatorModeCtn);
+		}
 	}
 	else if (course == "VS" || course == "BB") {
 		var oForm = document.createElement("form");
@@ -27022,6 +27145,30 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				persoSelector.onclick();
 				return;
 			}
+		}
+	}
+
+	if (rankedPerso && !force && !isCustomSel) {
+		var rankedPersoKey = rankedPerso;
+		rankedPerso = null;
+		var rankedCharCb;
+		if (isCustomPerso(rankedPersoKey, {
+			forceReload: true,
+			callback: function() { rankedCharCb() }
+		})) {
+			rankedCharCb = function() {
+				pUnlockMap[rankedPersoKey] = 1;
+				var oDiv = createPersoSelector(rankedPersoKey);
+				oDiv.dataset.autoset = 1;
+				oDiv.onclick();
+			}
+			oScr.style.visibility = "hidden";
+			return;
+		}
+		var rankedSelector = document.getElementById("perso-selector-"+rankedPersoKey);
+		if (rankedSelector && rankedSelector.onclick) {
+			rankedSelector.onclick();
+			return;
 		}
 	}
 
@@ -29066,6 +29213,9 @@ function searchCourse(opts) {
 	var oAlert = document.createElement("input");
 	oAlert.type = "checkbox";
 	oAlert.id = "iAlert";
+	oAlert.onchange = function() {
+		if (this.checked) mkNotify.request();
+	};
 	oAlert.style.transform = oAlert.style.WebkitTransform = oAlert.style.MozTransform = "scale("+ (iScreenScale/6) +") translateY(8%)";
 	oAlert.style.transformOrigin = oAlert.style.WebkitTransformOrigin = oAlert.style.MozTransformOrigin = "bottom right";
 	oAlertCtn.appendChild(oAlert);
@@ -29177,18 +29327,20 @@ function searchCourse(opts) {
 						oScr.innerHTML = "";
 						oContainers[0].removeChild(oScr);
 						if (isAlert) {
-							var oMusicAlert = document.createElement("embed");
-							oMusicAlert.src = "musics/mkalert.wav";
-							oMusicAlert.setAttribute("loop", false);
-							oMusicAlert.setAttribute("autostart", true);
-							oMusicAlert.style.position = "absolute";
-							oMusicAlert.style.left = "-1000px";
-							oMusicAlert.style.top = "-1000px";
-							document.body.appendChild(oMusicAlert);
+							// alert() stays deferred while the tab is in the background, so the
+							// notification is what actually reaches a player who looked away.
+							mkNotify.fire({
+								title: toLanguage("Opponents have been found!", "Des adversaires ont \xE9t\xE9 trouv\xE9s !"),
+								body: toLanguage("Your online race is starting. Good luck!", "Votre course en ligne commence. Bonne chance !"),
+								flash: "\u25B6 " + toLanguage("Opponents found!", "Adversaires trouv\xE9s !"),
+								tag: "mkpc-online",
+								sound: "musics/mkalert.wav",
+								volume: vSfx
+							});
 							var sTime = new Date().getTime();
 							alert(toLanguage("Opponents have been found!\nGood luck!", "Des adversaires ont \xE9t\xE9 trouv\xE9s !\nBonne chance !"));
+							mkNotify.clear();
 							reponse.time -= Math.round((new Date().getTime()-sTime)/1000);
-							document.body.removeChild(oMusicAlert);
 						}
 						handleMatchmakingSuccess(reponse);
 					}
@@ -29353,6 +29505,10 @@ function handleMatchmakingSuccess(reponse) {
 		if (reponse.spectatorState)
 			onlineSpectatorState = reponse.spectatorState;
 	}
+	// seeded before the selection screen, so a player joining mid-game sees which courses
+	// are already used up on their very first pick
+	if (reponse.tracks)
+		aTracksHist = reponse.tracks.slice();
 	selectMapScreen({ racecountdown: reponse.time-5 });
 	dRest();
 	setTimeout(setChat, 1);
@@ -29421,6 +29577,10 @@ function chooseRandMap() {
 	else
 		chooseWithin(0, NBCIRCUITS);
 }
+// Rule 4c: a course may only be played once per mogi. Ranked only for now.
+function noRepeatTracks() {
+	return isOnline && (typeof shareLink !== "undefined") && shareLink.options && !!shareLink.options.lounge;
+}
 function chooseWithin(min,range) {
 	var max = min+range;
 	var availableTracks = {};
@@ -29429,7 +29589,7 @@ function chooseWithin(min,range) {
 	for (var i=0;i<aTracksHist.length;i++)
 		delete availableTracks[aTracksHist[i]];
 	availableTracks = Object.keys(availableTracks);
-	if (!availableTracks.length && aTracksHist.length) {
+	if (!availableTracks.length && aTracksHist.length && !noRepeatTracks()) {
 		aTracksHist = aTracksHist.slice(aTracksHist.length-Math.floor(range/2));
 		return chooseWithin(min,range);
 	}
@@ -29437,6 +29597,8 @@ function chooseWithin(min,range) {
 }
 
 function selectMapScreen(opts) {
+	if (exitIfRaceLimitReached())
+		return;
 	if (!opts) opts = {};
 	if (typeof shareLink !== "undefined")
 		bSelectedMirror = (shareLink.options && shareLink.options.mirror);
@@ -29955,6 +30117,23 @@ function exitCircuit() {
 		document.location.href = "index.php";
 }
 
+function getRaceLimit() {
+	if (isOnline && shareLink.options && shareLink.options.raceLimit)
+		return +shareLink.options.raceLimit;
+	return 0;
+}
+
+function exitIfRaceLimitReached() {
+	var iLimit = getRaceLimit();
+	if (!iLimit || (iRaceCount < iLimit))
+		return false;
+	if (shareLink.options.lounge)
+		document.location.href = "lounge.php?key=" + encodeURIComponent(shareLink.key);
+	else
+		document.location.href = "localscores.php?key=" + encodeURIComponent(shareLink.key);
+	return true;
+}
+
 // race counter in track selection
 function showRaceCountIfRelevant(oScr, opts) {
 	if ((course != "CM") && isLocalScore() && iRaceCount > 0) {
@@ -29977,6 +30156,8 @@ function appendContainers() {
 }
 
 function selectRaceScreen(cup) {
+	if (exitIfRaceLimitReached())
+		return;
 	if (isOnline || (!isSingle && course != "GP")) {
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
@@ -30059,6 +30240,12 @@ function selectRaceScreen(cup) {
 			}
 			mDiv.map = aAvailableMaps[i];
 			mDiv.ref = i+1;
+			var alreadyPlayed = noRepeatTracks() && (aTracksHist.indexOf(mDiv.ref) >= 0);
+			if (alreadyPlayed) {
+				mDiv.style.cursor = "default";
+				mDiv.style.opacity = 0.35;
+				mDiv.title = toLanguage("Already played in this mogi", "Déjà jouée dans ce mogi");
+			}
 
 			var oPImg = new Image();
 			setMapSrc(oPImg, cup,i, getMapSelectorSrc(i));
@@ -30100,6 +30287,8 @@ function selectRaceScreen(cup) {
 			}
 
 			mDiv.onclick = function() {
+				if (noRepeatTracks() && (aTracksHist.indexOf(this.ref) >= 0))
+					return;
 				forceClic4 = false;
 				hadInputDuringRace = true;
 				oScr.innerHTML = "";
@@ -30336,6 +30525,8 @@ function choose(map,rand) {
 							bSelectedMirror = false;
 						if (gameRules.raceCount >= 0)
 							iRaceCount = gameRules.raceCount;
+						if (gameRules.tracks && gameRules.tracks.length)
+							aTracksHist = gameRules.tracks.slice();
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];
@@ -31559,7 +31750,11 @@ function connexion() {
 	aInscription.style.left = (iScreenScale*20) +"px";
 	aInscription.style.top = (iScreenScale*35) +"px";
 	aInscription.innerHTML = toLanguage("Register", "Inscription");
-	aInscription.setAttribute("href", "inscription.php" + ((course=="BB")?"?battle":""));
+	// come back to this exact online page after registering, so a ranked or multicup
+	// entry point is not lost on the way through the signup form
+	var sPage = document.location.pathname.split("/").pop();
+	var sReturn = (sPage == "online.php") ? sPage + document.location.search : "";
+	aInscription.setAttribute("href", "inscription.php" + (sReturn ? "?" + sReturn : ((course=="BB")?"?battle":"")));
 	oScr.appendChild(aInscription);
 
 	var eClassement = document.createElement("a");
