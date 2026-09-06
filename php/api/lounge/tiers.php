@@ -42,8 +42,21 @@ while ($tier = mysql_fetch_array($getTiers)) {
 	);
 }
 
+// The rules gate and the entry criteria are part of the tier screen: a player who cannot
+// queue should be told why there rather than after clicking Join.
+$access = mysql_fetch_array(mysql_query(
+	'SELECT j.pts_vs, DATEDIFF(NOW(), p.sub_date) AS account_age
+	FROM `mkjoueurs` j LEFT JOIN `mkprofiles` p ON p.id=j.id
+	WHERE j.id="'. intval($id) .'"'
+));
+
 echo json_encode(array(
 	'player' => $state,
-	'tiers' => $tiers
+	'tiers' => $tiers,
+	'rules_accepted' => lounge_has_accepted_rules($id),
+	'requirements' => lounge_access_requirements(),
+	'vs_points' => $access ? intval($access['pts_vs']) : 0,
+	'account_age_days' => ($access && !is_null($access['account_age'])) ? intval($access['account_age']) : null,
+	'access_error' => lounge_access_error($id)
 ));
 mysql_close();
