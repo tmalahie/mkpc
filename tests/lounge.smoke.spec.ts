@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
 import { sql } from './helpers/db';
-import { cleanupLoungeQueues, createLoungeBots, loungeBotName, LOUNGE_BOT_PASSWORD, LOUNGE_KEY_MIN } from './helpers/lounge';
+import { cleanupLoungeQueues, createLoungeBots, loungeBotName, loungeBotPattern, LOUNGE_BOT_PASSWORD, LOUNGE_KEY_MIN } from './helpers/lounge';
 
 // One file on purpose. join.php puts a player into the tier's existing open queue, so
 // every test here shares that queue whichever account it uses - and Playwright can only
@@ -27,8 +27,23 @@ async function login(page, pseudo = 'wargor', code = 'aaaa') {
 	}
 }
 
-async function resetLoungeState(request) {
+// leave.php enforces rule 3a's 15-second delay, so a spec that joins and then tidies up has
+// to age its own row first - a real player would simply have waited it out. Scoped to rows
+// still in a queue, and only ever moves joined_at backwards, so it cannot change a status.
+async function ageJoins() {
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = joined_at - INTERVAL 1 MINUTE
+		 WHERE dropped_at IS NULL`
+	);
+}
+
+async function dropOut(request) {
+	await ageJoins();
 	await request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+}
+
+async function resetLoungeState(request) {
+	await dropOut(request);
 }
 
 test('lounge page renders tiers for logged-in user', async ({ page }) => {
@@ -132,6 +147,7 @@ test('voting flow: join → lock → vote → launch creates a private game', as
 	// returns the expected shape.
 	expect(joinRes.queue.allowed_modes).toContain('FFA');
 
+	await ageJoins();
 	await apiCall(cookies1, 'lounge/leave.php');
 });
 
@@ -164,7 +180,7 @@ test('ranked entry picks a character then opens the lounge with it', async ({ pa
 	const cupId = await createCup(page.request, { name: 'e2e-ranked-cup', circuitIds, author: OWNER });
 	const mid = await createMulticup(page.request, { name: 'e2e-ranked-mcup', cupIds: [cupId], author: OWNER });
 
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 	await page.goto('http://127.0.0.1:8080/online.php?mid=' + mid + '&ranked');
 
 	// the roster comes from the multicup, so selection happens inside the game
@@ -178,7 +194,7 @@ test('ranked entry picks a character then opens the lounge with it', async ({ pa
 	const queue = await (await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php')).json();
 	expect(queue.queue.members[0].perso).toBe('mario');
 
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 });
 
 // quitter() sends the other online modes to the multicup page the game belongs to, which
@@ -189,7 +205,7 @@ test('ranked exits step back to the lounge, then to the game menu', async ({ pag
 	const circuitIds = await createCircuits(page.request, 2, OWNER);
 	const cupId = await createCup(page.request, { name: 'e2e-ranked-exit-cup', circuitIds, author: OWNER });
 	const mid = await createMulticup(page.request, { name: 'e2e-ranked-exit-mcup', cupIds: [cupId], author: OWNER });
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 
 	// the account is not in a match for this key, so the character screen is shown
 	// rather than skipped, which is where the Back button lives
@@ -267,24 +283,24 @@ test('tier minimums follow the tier, not a global constant', async ({ page }) =>
 
 test('a queue reports its own tier minimum', async ({ page }) => {
 	await login(page);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
 		form: { tier: String(tierAll.id) },
 	});
 	expect((await joined.json()).queue.lock_threshold).toBe(6);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 });
 
 test('a single member does not lock Tier All', async ({ page }) => {
 	await login(page);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
 		form: { tier: String(tierAll.id) },
 	});
 	expect((await joined.json()).queue.status).toBe('open');
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 });
 
 // The official rules penalise drops and no-shows, never a missed vote, and a background
@@ -360,7 +376,7 @@ test('the waiting screen offers an alert opt-in that survives a reload', async (
 	await expect(page.locator('.lounge-alerts-state')).toHaveText('Off');
 
 	await page.evaluate(() => localStorage.removeItem('lounge.alerts'));
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 });
 
 // The whole point of the notification is to reach a player who is not looking at the tab,
@@ -401,7 +417,7 @@ test('a status change alerts a player whose tab is in the background', async ({ 
 	await expect.poll(() => page.title(), { timeout: 5000 }).toContain('Lineup complete');
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 });
 
 test('leaving the page while queued is guarded, and released on drop', async ({ page }) => {
@@ -664,7 +680,7 @@ test('the settings page retunes the lounge and logs the change', async ({ page }
 		form: { tier: '1' },
 	})).json();
 	expect(joined.queue.vote_wait_seconds).toBe(300);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await dropOut(page.request);
 	await login(page);
 
 	// out-of-range input is clamped to the schema rather than stored
@@ -684,4 +700,106 @@ test('the settings page retunes the lounge and logs the change', async ({ page }
 
 	await sql(`DELETE FROM mklounge_settings`);
 	await sql(`DELETE FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %'`, [adminId]);
+});
+
+// The ladder's mode names are team sizes, not team counts: MogiBot offers "2v2" at every even
+// lineup, splitting 8 players into four teams of two. We offered 2v2 only at 4, skipped it at
+// 6 entirely, and called the 8-player case "2v2v2v2" - a label players would have seen on the
+// vote button.
+test('team modes follow the lineup size, the way the ladder names them', async ({ page }) => {
+	await login(page);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	// a tag per lineup, so the throwaway names stay unique across the five stagings
+	const modesFor = async (lineup: number) => {
+		const tag = 'modes' + lineup;
+		const bots = await createLoungeBots(lineup, tag);
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'voting')`, [tier.id]);
+		for (const bot of bots)
+			await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, bot]);
+		await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
+		const state = await (await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php')).json();
+		await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+		await sql(`UPDATE mklounge_queue_members SET dropped_at = NOW() WHERE queue = ?`, [q.insertId]);
+		return state.queue.allowed_modes;
+	};
+
+	expect(await modesFor(4)).toEqual(['FFA', '2v2']);
+	// 5 and 7 divide into nothing, so they are FFA whatever the lineup wants
+	expect(await modesFor(5)).toEqual(['FFA']);
+	expect(await modesFor(6)).toEqual(['FFA', '2v2', '3v3']);
+	expect(await modesFor(7)).toEqual(['FFA']);
+	expect(await modesFor(8)).toEqual(['FFA', '2v2', '4v4']);
+
+	await login(page);
+});
+
+// 2v2 at six players is three teams, not two - nbTeams has to come from the lineup.
+test('a 2v2 lineup of six launches as three teams', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	const bots = await createLoungeBots(5, 'teams');
+	for (const bot of bots)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [queueId, bot]);
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: '2v2' } });
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+	await tick(page);
+
+	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.mode).toBe('2v2');
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(3);
+	expect(rules.team).toBe(1);
+
+	await cleanupLoungeQueues();
+	await cleanupLoungeQueues(loungeBotPattern('teams'));
+});
+
+// Rule 3a, and MogiBot says it out loud: "You can /d in 15 seconds". Without it a player can
+// flicker in and out of a gathering list.
+test('a player cannot drop out of a list they just joined', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(joined.queue.drop_seconds_left).toBeGreaterThan(0);
+
+	const refused = await (await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php')).json();
+	expect(refused.error).toBe('drop_too_soon');
+	const [still]: any = await sql(
+		`SELECT dropped_at FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`,
+		[joined.queue.id]
+	);
+	expect(still).toBeTruthy();
+
+	// past the delay it goes through, and the countdown is gone from the queue state
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = NOW() - INTERVAL 1 MINUTE WHERE queue = ?`,
+		[joined.queue.id]
+	);
+	const left = await (await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php')).json();
+	expect(left.ok).toBe(true);
+});
+
+// Both of these were set low for the test suite and never raised, so they contradicted the
+// rules their own help text quotes.
+test('the queue timers default to what the rules say', async ({ page }) => {
+	await login(page);
+	await sql(`DELETE FROM mklounge_settings`);
+	await dropOut(page.request);
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+
+	// rule 3aa: 5 minutes for a lineup that just gathered to grow
+	expect(joined.queue.lock_wait_seconds).toBe(300);
+
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = NOW() - INTERVAL 1 MINUTE WHERE queue = ?`,
+		[joined.queue.id]
+	);
+	await dropOut(page.request);
 });
