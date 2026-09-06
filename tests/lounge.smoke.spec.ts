@@ -287,23 +287,6 @@ test('a single member does not lock Tier All', async ({ page }) => {
 	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
 });
 
-test('the vote is incomplete until the POW choice is sent too', async ({ page }) => {
-	await login(page);
-	const queueId = await joinAndStartVoting(page, 'all');
-
-	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', {
-		form: { mode: 'FFA' },
-	});
-	expect((await res.json()).error).toBe('pow_required');
-
-	// no POW choice means no vote was recorded, so nothing launched
-	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
-	expect(queue.status).toBe('voting');
-
-	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
-	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
-});
-
 // The official rules penalise drops and no-shows, never a missed vote, and a background
 // tab can throttle the poll past a 60s window - so the deadline falls back to whoever did
 // vote instead of cancelling the mogi and striking the rest of the lineup.
@@ -321,10 +304,8 @@ test('a missed vote launches on the votes cast rather than striking', async ({ p
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
 
-	const [match]: any = await sql(`SELECT mode, pow FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
 	expect(match.mode).toBe('FFA');
-	// nobody agreed, so the POW Block stays out
-	expect(match.pow).toBe(0);
 
 	const [after]: any = await sql(
 		`SELECT strikes FROM mklounge_players WHERE player = ? AND season = 1`, [playerId]
@@ -332,34 +313,17 @@ test('a missed vote launches on the votes cast rather than striking', async ({ p
 	expect(after?.strikes ?? 0).toBe(before?.strikes ?? 0);
 });
 
-test('the vote screen groups the mode and item choices', async ({ page }) => {
+test('the vote screen offers the mode choice on its own', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
 	await page.goto('http://127.0.0.1:8080/lounge.php');
 
+	// rule 3h (the POW opt-in) is dead: the item composition is fixed, so the mode is the
+	// only thing left to vote on and no Items group is rendered at all
 	const groups = page.locator('.lounge-vote-group');
-	await expect(groups).toHaveCount(2);
+	await expect(groups).toHaveCount(1);
 	await expect(groups.nth(0).locator('.lounge-vote-group-title')).toHaveText('Game mode');
-	await expect(groups.nth(1).locator('.lounge-vote-group-title')).toHaveText('Items');
-
-	// the POW toggle and its explanation live together, under the Items heading
-	const items = groups.nth(1);
-	const toggle = items.locator('.lounge-pow-toggle');
-	await expect(toggle).toBeVisible();
-	await expect(toggle.locator('.lounge-pow-name')).toHaveText('POW Block');
-	await expect(toggle.locator('.lounge-pow-tally')).toHaveText('0 / 1 agreed');
-	await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-	await expect(items.locator('.lounge-pow-note')).toContainText('only added if every player agrees');
-
-	// toggling before a mode is picked stays local; nothing is submitted yet
-	await toggle.click();
-	await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-	await expect(toggle).toHaveClass(/is-selected/);
-	const [member]: any = await sql(
-		`SELECT voted_pow FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`,
-		[queueId]
-	);
-	expect(member.voted_pow).toBeNull();
+	await expect(page.locator('.lounge-pow-toggle')).toHaveCount(0);
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
@@ -470,26 +434,16 @@ test('leaving the page while queued is guarded, and released on drop', async ({ 
 	expect(guardedAfterDrop).toBe(false);
 });
 
-test('a unanimous yes puts the POW Block in the item distribution', async ({ page }) => {
+test('the POW Block is always in the item distribution', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
 
-	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '1' } });
-
-	const rules = await rulesFor(queueId);
-	const distrib = rules.itemDistrib.value;
+	// #link-guidelines pins one mandatory composition and it contains the POW unconditionally
+	const distrib = (await rulesFor(queueId)).itemDistrib.value;
 	expect(distrib.some((tier: any) => 'pow' in tier)).toBe(true);
-
-	const [match]: any = await sql(`SELECT pow FROM mklounge_matches WHERE queue = ?`, [queueId]);
-	expect(match.pow).toBe(1);
 });
 
-// #link-guidelines pins these two: a lightning may be held by two players at once, and it
-// is not reserved for last place. Everything else keeps MKPC's defaults, which already match
-// the guidelines' "leave all other categories ticked".
-// "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
-// queue, et on est retiré de la queue si aucune réponse n'est fournie". Polling alone keeps
-// a walked-away tab in the lineup for ever.
 test('a queued player is asked to confirm, and dropped if they never answer', async ({ page }) => {
 	await login(page);
 	await cleanupLoungeQueues();
@@ -530,11 +484,20 @@ test('a queued player is asked to confirm, and dropped if they never answer', as
 test('the launched link carries the lounge lightning settings', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
-	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
 
 	const distrib = (await rulesFor(queueId)).itemDistrib;
 	expect(distrib.lightningx2).toBe(1);
-	expect(distrib.lightninglast).toBe(0);
+	// "leave all other categories ticked": every other flag must stay at its default,
+	// which the options screen expresses by leaving the key out entirely.
+	expect(distrib.lightninglast).toBeUndefined();
+	expect(distrib.powx2).toBeUndefined();
+	expect(distrib.blueshellx2).toBeUndefined();
+	expect(distrib.powdelay).toBeUndefined();
+	expect(distrib.blueshelldelay).toBeUndefined();
+	expect(distrib.lightningdelay).toBeUndefined();
+	expect(distrib.powstart).toBeUndefined();
+	expect(distrib.algorithm).toBeUndefined();
 });
 
 // A lounge link has no owner (mkprivgame.player = 0), so without the lounge right nobody at
@@ -640,7 +603,7 @@ test('the lounge moderation page acts on a member and logs it', async ({ page, b
 test('only a lounge moderator can edit a lounge link', async ({ page, browser }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
-	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
 	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
 	const key = queue.privgame_key;
 
@@ -665,23 +628,4 @@ test('only a lounge moderator can edit a lounge link', async ({ page, browser })
 	// the seeded account is an admin, which carries the lounge right
 	await edit(page.request);
 	expect(await minPlayers()).toBe(3);
-});
-
-test('anything short of unanimous strips the POW Block out', async ({ page }) => {
-	await login(page);
-	const queueId = await joinAndStartVoting(page, 'all');
-
-	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA', pow: '0' } });
-
-	const rules = await rulesFor(queueId);
-	const distrib = rules.itemDistrib.value;
-	expect(distrib.some((tier: any) => 'pow' in tier)).toBe(false);
-
-	// everything else about the distribution is untouched
-	expect(distrib).toHaveLength(8);
-	expect(distrib[4].champi).toBe(4);
-	expect(distrib[0].carapace).toBe(5);
-
-	const [match]: any = await sql(`SELECT pow FROM mklounge_matches WHERE queue = ?`, [queueId]);
-	expect(match.pow).toBe(0);
 });
