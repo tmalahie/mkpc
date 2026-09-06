@@ -14,6 +14,13 @@ define('LOUNGE_VOTE_WAIT_SECONDS', 120);
 define('LOUNGE_DROP_DELAY_SECONDS', 15);
 // What an indecisive player votes for: counted as no preference, never as a mode.
 define('LOUNGE_RANDOM_VOTE', 'Random');
+// Discord notifications: the reminder cadence and how often #mllu is rewritten when nothing
+// is happening. Off by default so a fresh install and CI never talk to Discord.
+define('LOUNGE_DISCORD_ENABLED', 0);
+define('LOUNGE_DISCORD_HERE_MINUTES', 30);
+define('LOUNGE_DISCORD_MLLU_SECONDS', 30);
+// Rule 4i: how long a captain has to make each pick before it is made for them.
+define('LOUNGE_DRAFT_PICK_SECONDS', 45);
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
@@ -167,6 +174,38 @@ function lounge_settings_schema() {
 			'label_fr' => 'Ancienneté du compte requise pour le classé',
 			'help_en' => '0 disables the check.',
 			'help_fr' => '0 désactive la vérification.'
+		),
+		'discord_enabled' => array(
+			'default' => LOUNGE_DISCORD_ENABLED, 'min' => 0, 'max' => 1,
+			'group' => 'discord', 'unit_en' => '1 = on', 'unit_fr' => '1 = activé',
+			'label_en' => 'Post lounge notifications to Discord',
+			'label_fr' => 'Publier les notifications du lounge sur Discord',
+			'help_en' => 'Needs the bot credentials in php/includes/config/discord.php.',
+			'help_fr' => 'Nécessite les identifiants du bot dans php/includes/config/discord.php.'
+		),
+		'discord_here_minutes' => array(
+			'default' => LOUNGE_DISCORD_HERE_MINUTES, 'min' => 1, 'max' => 1440,
+			'group' => 'discord', 'unit_en' => 'minutes', 'unit_fr' => 'minutes',
+			'label_en' => 'Repeat the @here reminder every',
+			'label_fr' => 'Répéter le rappel @here toutes les',
+			'help_en' => 'Only while at least one player is waiting in that tier.',
+			'help_fr' => 'Uniquement tant qu\'au moins un joueur attend dans ce tier.'
+		),
+		'discord_mllu_seconds' => array(
+			'default' => LOUNGE_DISCORD_MLLU_SECONDS, 'min' => 5, 'max' => 600,
+			'group' => 'discord', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Refresh the #mllu summary at most every',
+			'label_fr' => 'Rafraîchir le récapitulatif #mllu au plus toutes les',
+			'help_en' => 'A queue change rewrites it immediately whatever this says.',
+			'help_fr' => 'Un changement dans une file le réécrit immédiatement quoi qu\'il arrive.'
+		),
+		'draft_pick_seconds' => array(
+			'default' => LOUNGE_DRAFT_PICK_SECONDS, 'min' => 10, 'max' => 300,
+			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Time a captain has for each pick',
+			'label_fr' => 'Temps dont dispose un capitaine pour chaque choix',
+			'help_en' => 'On a timeout the highest-rated players left are picked for them.',
+			'help_fr' => 'En cas d\'expiration, les joueurs les mieux classés restants sont choisis à sa place.'
 		),
 		'default_mmr' => array(
 			'default' => LOUNGE_DEFAULT_MMR, 'min' => 0, 'max' => 10000,
@@ -1270,6 +1309,9 @@ function lounge_tick() {
 	while ($row = mysql_fetch_array($readyToLaunch)) {
 		lounge_start_voting(intval($row['id']));
 	}
+
+	require_once(__DIR__ .'/discord.php');
+	lounge_discord_tick();
 
 	$voteDeadlines = mysql_query(
 		'SELECT id FROM `mklounge_queues`
