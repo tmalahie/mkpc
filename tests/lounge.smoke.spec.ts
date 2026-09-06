@@ -629,3 +629,59 @@ test('only a lounge moderator can edit a lounge link', async ({ page, browser })
 	await edit(page.request);
 	expect(await minPlayers()).toBe(3);
 });
+
+// Most of the ladder's numbers are still guesses - the tier bands, the vote timer, how long
+// a ban lasts - so they are staff-tunable rather than a deploy away. The constants in
+// common.php stay the defaults; a row in mklounge_settings overrides one.
+test('the settings page retunes the lounge and logs the change', async ({ page }) => {
+	await login(page);
+	const [{ id: adminId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const settings = async (form: Record<string, string>) =>
+		page.request.post('http://127.0.0.1:8080/admin-lounge.php', {
+			form: { settings: '1', ...form },
+		});
+
+	// the defaults come from the constants, so an untouched table reads as before
+	const seen = async () =>
+		(await (await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php')).json());
+	await sql(`DELETE FROM mklounge_settings`);
+	await sql(`DELETE FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %'`, [adminId]);
+	expect((await seen()).tiers[0].min_players).toBeGreaterThan(0);
+
+	await settings({ set_vote_wait_seconds: '300', set_ban_minutes: '10080' });
+
+	const rows: any = await sql(`SELECT name, value FROM mklounge_settings ORDER BY name`);
+	expect(rows).toEqual([
+		{ name: 'ban_minutes', value: 10080 },
+		{ name: 'vote_wait_seconds', value: 300 },
+	]);
+
+	// the queue state is what the client counts down from, so it has to read the override
+	// rather than the constant. A throwaway account keeps this off the shared seeded queue.
+	await createLoungeBots(1, 'settings');
+	await login(page, loungeBotName('settings', 1), LOUNGE_BOT_PASSWORD);
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(joined.queue.vote_wait_seconds).toBe(300);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await login(page);
+
+	// out-of-range input is clamped to the schema rather than stored
+	await settings({ set_races_per_match: '9999' });
+	const [races]: any = await sql(`SELECT value FROM mklounge_settings WHERE name = 'races_per_match'`);
+	expect(races.value).toBe(32);
+
+	const logs: any = await sql(
+		`SELECT log FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %' ORDER BY id`,
+		[adminId]
+	);
+	expect(logs.map((r: any) => r.log)).toEqual([
+		'LoungeSetting vote_wait_seconds 60 300',
+		'LoungeSetting ban_minutes 60 10080',
+		'LoungeSetting races_per_match 12 32',
+	]);
+
+	await sql(`DELETE FROM mklounge_settings`);
+	await sql(`DELETE FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %'`, [adminId]);
+});

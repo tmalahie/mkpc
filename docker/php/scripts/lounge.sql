@@ -1,5 +1,11 @@
 USE mkpc;
 
+CREATE TABLE IF NOT EXISTS `mklounge_settings` (
+  `name` varchar(48) NOT NULL,
+  `value` int(11) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `mklounge_seasons` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
