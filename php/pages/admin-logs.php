@@ -50,6 +50,10 @@ $logMapping = array(
         'render' => _('released CT Lounge queue #$1'),
         'role' => 'lounge'
     ),
+    'LoungeSetting' => array(
+        'render' => _('changed the CT Lounge setting <strong>$1</strong> from $2 to $3'),
+        'role' => 'lounge'
+    ),
     'CCircuit' => array(
         'render' => _('deleted complete track #$1'),
         'role' => 'moderator'
