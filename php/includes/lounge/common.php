@@ -17,6 +17,7 @@ define('LOUNGE_RANDOM_VOTE', 'Random');
 // Discord notifications: the reminder cadence and how often #mllu is rewritten when nothing
 // is happening. Off by default so a fresh install and CI never talk to Discord.
 define('LOUNGE_DISCORD_ENABLED', 0);
+define('LOUNGE_DISCORD_DRY_RUN', 0);
 define('LOUNGE_DISCORD_HERE_MINUTES', 30);
 define('LOUNGE_DISCORD_MLLU_SECONDS', 30);
 // Rule 4i: how long a captain has to make each pick before it is made for them.
@@ -182,6 +183,14 @@ function lounge_settings_schema() {
 			'label_fr' => 'Publier les notifications du lounge sur Discord',
 			'help_en' => 'Needs the bot credentials in php/includes/config/discord.php.',
 			'help_fr' => 'Nécessite les identifiants du bot dans php/includes/config/discord.php.'
+		),
+		'discord_dry_run' => array(
+			'default' => LOUNGE_DISCORD_DRY_RUN, 'min' => 0, 'max' => 1,
+			'group' => 'discord', 'unit_en' => '1 = on', 'unit_fr' => '1 = activé',
+			'label_en' => 'Build the messages but never send them',
+			'label_fr' => 'Composer les messages sans jamais les envoyer',
+			'help_en' => 'Everything is still written to the notification log, so you can see what would be posted.',
+			'help_fr' => 'Tout est quand même écrit dans le journal des notifications, pour voir ce qui serait publié.'
 		),
 		'discord_here_minutes' => array(
 			'default' => LOUNGE_DISCORD_HERE_MINUTES, 'min' => 1, 'max' => 1440,
