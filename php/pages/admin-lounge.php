@@ -98,6 +98,7 @@ if (isset($_POST['release'])) {
 }
 
 $state = $target ? lounge_get_player_state(intval($target['id'])) : null;
+
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
