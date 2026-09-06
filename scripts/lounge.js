@@ -10,7 +10,6 @@
 	var pollTimer = null;
 	var actionInFlight = false;
 	// Kept out of the DOM so a poll-driven re-render does not wipe a pending choice.
-	var powChoice = null;
 
 	var ALERT_SOUND = 'musics/events/ctalert.mp3';
 	var ALERT_STORAGE_KEY = 'lounge.alerts';
@@ -541,7 +540,6 @@
 		);
 		section.appendChild(hint);
 		section.appendChild(renderModeVote(queue));
-		section.appendChild(renderPowVote(queue));
 		return section;
 	}
 
@@ -577,59 +575,6 @@
 		}
 		group.appendChild(btns);
 		return group;
-	}
-
-	// Rule 3h: the POW Block only goes in when the whole lineup agreed, so this is an
-	// opt-in that has to be set before the mode vote is accepted.
-	function renderPowVote(queue) {
-		var group = voteGroup('Items', 'Objets');
-		if (powChoice === null && queue.my_pow_vote !== null && queue.my_pow_vote !== undefined)
-			powChoice = queue.my_pow_vote;
-
-		var total = queue.members ? queue.members.length : 0;
-		var agreed = queue.pow_votes || 0;
-		var unanimous = (total > 0 && agreed === total);
-
-		var toggle = document.createElement('button');
-		toggle.type = 'button';
-		toggle.className = 'lounge-pow-toggle' + (powChoice ? ' is-selected' : '');
-		toggle.setAttribute('aria-pressed', powChoice ? 'true' : 'false');
-		toggle.innerHTML = '<span class="lounge-pow-name"></span>'
-			+ '<span class="lounge-pow-tally"></span>'
-			+ '<span class="lounge-pow-switch" aria-hidden="true"></span>';
-		toggle.querySelector('.lounge-pow-name').textContent = toLanguage('POW Block', 'POW Block');
-		toggle.querySelector('.lounge-pow-tally').textContent = agreed + ' / ' + total + ' '
-			+ toLanguage('agreed', 'd\'accord');
-		toggle.addEventListener('click', onPowToggle);
-		group.appendChild(toggle);
-
-		var note = document.createElement('p');
-		note.className = 'lounge-pow-note' + (unanimous ? ' is-unanimous' : '');
-		note.textContent = unanimous
-			? toLanguage(
-				'Everyone agreed — the POW Block will be in the item distribution.',
-				'Tout le monde est d\'accord — le POW Block sera dans la distribution d\'objets.'
-			)
-			: toLanguage(
-				'The POW Block is only added if every player agrees.',
-				'Le POW Block n\'est ajouté que si tous les joueurs sont d\'accord.'
-			);
-		group.appendChild(note);
-		return group;
-	}
-
-	function currentPowChoice() {
-		return powChoice ? 1 : 0;
-	}
-
-	function onPowToggle() {
-		if (actionInFlight) return;
-		powChoice = powChoice ? 0 : 1;
-		this.classList.toggle('is-selected', !!powChoice);
-		this.setAttribute('aria-pressed', powChoice ? 'true' : 'false');
-		// only meaningful once a mode has been picked; otherwise it rides along with it
-		if (!currentQueue || !currentQueue.my_vote) return;
-		sendVote(currentQueue.my_vote);
 	}
 
 	function renderLaunching(container, queue) {
@@ -671,7 +616,7 @@
 		actionInFlight = true;
 		var buttons = document.querySelectorAll('.lounge-vote-btn');
 		for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
-		var body = 'mode=' + encodeURIComponent(mode) + '&pow=' + currentPowChoice();
+		var body = 'mode=' + encodeURIComponent(mode);
 		postJSON('lounge/vote.php', body, function(data) {
 			actionInFlight = false;
 			if (data && data.queue) {
@@ -699,7 +644,6 @@
 
 	function leaveQueueState() {
 		currentQueue = null;
-		powChoice = null;
 		announcedStatus = null;
 		announcedConfirm = false;
 		setUnloadGuard(false);
