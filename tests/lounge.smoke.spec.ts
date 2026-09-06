@@ -889,3 +889,79 @@ test('Random is on the ballot and never decides a mode on its own', async ({ pag
 	await cleanupLoungeQueues();
 	await cleanupLoungeQueues(loungeBotPattern('random'));
 });
+
+// The ladder still lives on Discord, so a mogi gathering on the site has to show up there.
+// discord_enabled stays off in CI - nothing leaves the machine - but every message the system
+// would send is recorded, which is what these assert on.
+test('a gathering lineup is narrated to the tier channel', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await sql(
+		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1)
+		 ON DUPLICATE KEY UPDATE value = 1`
+	);
+
+	const sent = async () =>
+		(await sql(`SELECT channel, content, action FROM mklounge_discord_log ORDER BY id`)) as any[];
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	let log = await sent();
+	// the tier message, then the #mllu summary it triggers
+	expect(log[0].content).toContain('Wargor has joined the mogi -- 1 player');
+	expect(log[0].content).toContain('`Mogi List`');
+	expect(log[0].content).toMatch(/`1\.` Wargor \(MMR: \d+\)/);
+	// first player in an empty lineup always pings, asking for the three still needed
+	expect(log[0].content).toContain('@here +3');
+	expect(log[1].channel).not.toBe(log[0].channel);
+	expect(log[1].content).toContain('There are 1 active mogi and 0 full mogi.');
+
+	// a second player is announced but must not ping again
+	await sql(`DELETE FROM mklounge_discord_log`);
+	const bots = await createLoungeBots(1, 'discord');
+	await login(page, loungeBotName('discord', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	log = await sent();
+	expect(log[0].content).toContain('has joined the mogi -- 2 players');
+	expect(log[0].content).not.toContain('@here');
+
+	// dropping is announced too, and never pings
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await dropOut(page.request);
+	log = await sent();
+	expect(log[0].content).toContain('has dropped from the mogi -- 1 player');
+	expect(log[0].content).not.toContain('@here');
+
+	await login(page);
+	await dropOut(page.request);
+	await sql(`DELETE FROM mklounge_settings WHERE name = 'discord_enabled'`);
+	await cleanupLoungeQueues(loungeBotPattern('discord'));
+});
+
+// #mllu is a dashboard, not a feed: one message for the whole channel, edited in place.
+test('the #mllu summary is edited rather than reposted', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await sql(`DELETE FROM mklounge_state`);
+	await sql(
+		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1)
+		 ON DUPLICATE KEY UPDATE value = 1`
+	);
+	// pretend the summary was posted once already, so the next sync has something to edit
+	await sql(`INSERT INTO mklounge_state (name, value) VALUES ('mllu_message', '123')`);
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	const mllu: any[] = await sql(
+		`SELECT action, message_id, content FROM mklounge_discord_log
+		 WHERE message_id = '123' ORDER BY id`
+	);
+	expect(mllu).toHaveLength(1);
+	expect(mllu[0].action).toBe('edit');
+	expect(mllu[0].content).toContain('Wargor');
+	expect(mllu[0].content).toContain('Last updated:');
+
+	await dropOut(page.request);
+	await sql(`DELETE FROM mklounge_settings WHERE name = 'discord_enabled'`);
+	await sql(`DELETE FROM mklounge_state`);
+});
