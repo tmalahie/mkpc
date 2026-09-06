@@ -9,9 +9,11 @@ define('LOUNGE_AFK_SECONDS', 300);
 define('LOUNGE_HEARTBEAT_POLL_SECONDS', 5);
 // Rule 3aa: wait 5 minutes after a lineup gathers, to let a 5th-8th player join.
 define('LOUNGE_LOCK_WAIT_SECONDS', 300);
-define('LOUNGE_VOTE_WAIT_SECONDS', 60);
+define('LOUNGE_VOTE_WAIT_SECONDS', 120);
 // Rule 3a: 15 seconds in a list before you may drop out of it.
 define('LOUNGE_DROP_DELAY_SECONDS', 15);
+// What an indecisive player votes for: counted as no preference, never as a mode.
+define('LOUNGE_RANDOM_VOTE', 'Random');
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
@@ -22,9 +24,10 @@ define('LOUNGE_JOIN_TIMEOUT_SECONDS', 300);
 // let a mogi gather around somebody who walked away.
 define('LOUNGE_CONFIRM_SECONDS', 600);
 define('LOUNGE_CONFIRM_GRACE_SECONDS', 120);
-// Access to ranked. 0 disables the check - the original spec asks for "un certain nombre de
-// critères" without ever saying which, so only the site-wide ban is enforced for now.
-define('LOUNGE_MIN_ACCOUNT_AGE_DAYS', 0);
+// Access to ranked, agreed with staff on 2026-09-06: 10000 VS points and a 14-day-old
+// account. 0 disables either check.
+define('LOUNGE_MIN_ACCOUNT_AGE_DAYS', 14);
+define('LOUNGE_MIN_VS_POINTS', 10000);
 // A mogi is 12 races of ~3 minutes. Past this it is not being played any more, whatever
 // the race counter says.
 define('LOUNGE_MATCH_MAX_MINUTES', 120);
@@ -149,6 +152,14 @@ function lounge_settings_schema() {
 			'help_en' => 'Rule 2b says 7 days (10080) for a first offence.',
 			'help_fr' => 'La règle 2b dit 7 jours (10080) à la première infraction.'
 		),
+		'min_vs_points' => array(
+			'default' => LOUNGE_MIN_VS_POINTS, 'min' => 0, 'max' => 1000000,
+			'group' => 'sanctions', 'unit_en' => 'VS points', 'unit_fr' => 'points VS',
+			'label_en' => 'Online (VS) points required to enter ranked',
+			'label_fr' => 'Points en ligne (VS) requis pour le classé',
+			'help_en' => 'Points from normal online play, not from ranked. 0 disables the check.',
+			'help_fr' => 'Points du mode en ligne normal, pas du classé. 0 désactive la vérification.'
+		),
 		'min_account_age_days' => array(
 			'default' => LOUNGE_MIN_ACCOUNT_AGE_DAYS, 'min' => 0, 'max' => 365,
 			'group' => 'sanctions', 'unit_en' => 'days', 'unit_fr' => 'jours',
@@ -268,7 +279,7 @@ function lounge_get_player_state($playerId) {
 
 function lounge_access_error($playerId) {
 	$row = mysql_fetch_array(mysql_query(
-		'SELECT j.banned, j.deleted,
+		'SELECT j.banned, j.deleted, j.pts_vs,
 			DATEDIFF(NOW(), p.sub_date) AS account_age
 		FROM `mkjoueurs` j
 		LEFT JOIN `mkprofiles` p ON p.id=j.id
@@ -278,10 +289,39 @@ function lounge_access_error($playerId) {
 		return 'no_account';
 	if ($row['banned'])
 		return 'site_banned';
-	if (lounge_setting('min_account_age_days') && !is_null($row['account_age'])
-		&& intval($row['account_age']) < lounge_setting('min_account_age_days'))
+	$minAge = lounge_setting('min_account_age_days');
+	if ($minAge && !is_null($row['account_age']) && intval($row['account_age']) < $minAge)
 		return 'account_too_new';
+	if (intval($row['pts_vs']) < lounge_setting('min_vs_points'))
+		return 'not_enough_points';
+	if (!lounge_has_accepted_rules($playerId))
+		return 'rules_not_accepted';
 	return null;
+}
+
+// Staff want every player to have seen the rules once before their first queue, the way any
+// terms-of-use checkbox works. Recorded per season, so a new season asks again.
+function lounge_has_accepted_rules($playerId) {
+	return (bool) mysql_fetch_array(mysql_query(
+		'SELECT 1 AS ok FROM `mklounge_players`
+		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"
+		AND rules_accepted_at IS NOT NULL'
+	));
+}
+
+function lounge_accept_rules($playerId) {
+	mysql_query(
+		'INSERT INTO `mklounge_players` (player, season, rules_accepted_at)
+		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", NOW())
+		ON DUPLICATE KEY UPDATE rules_accepted_at=IFNULL(rules_accepted_at, NOW())'
+	);
+}
+
+function lounge_access_requirements() {
+	return array(
+		'min_vs_points' => lounge_setting('min_vs_points'),
+		'min_account_age_days' => lounge_setting('min_account_age_days')
+	);
 }
 
 function lounge_tier_eligible($tier, $mmr) {
@@ -508,15 +548,24 @@ function lounge_build_game_rules($mode, $playerCount) {
 	return $rules;
 }
 
+// A "Random" vote is a vote for nothing in particular, so it only decides the outcome when
+// nothing else does: it is dropped from the tally and the winner is drawn from the modes that
+// tied on top. With no real votes at all that is a draw between every allowed mode.
 function lounge_tally_vote($votes, $allowedModes) {
-	if (empty($votes)) return $allowedModes[0];
-	$best = null;
-	$bestCount = -1;
+	unset($votes[LOUNGE_RANDOM_VOTE]);
+	$bestCount = 0;
 	foreach ($allowedModes as $mode) {
 		$c = isset($votes[$mode]) ? intval($votes[$mode]) : 0;
-		if ($c > $bestCount) { $bestCount = $c; $best = $mode; }
+		if ($c > $bestCount)
+			$bestCount = $c;
 	}
-	return $best;
+	$tied = array();
+	foreach ($allowedModes as $mode) {
+		$c = isset($votes[$mode]) ? intval($votes[$mode]) : 0;
+		if ($c === $bestCount)
+			$tied[] = $mode;
+	}
+	return $tied[array_rand($tied)];
 }
 
 function lounge_start_voting($queueId) {
@@ -554,10 +603,18 @@ function lounge_launch_match($queueId) {
 	if (!mysql_affected_rows())
 		return null;
 
+	// The link belongs to the oldest account in the lineup. Staff wanted a real owner rather
+	// than nobody, so that whoever is most likely to know the system can repair the room -
+	// and picking by account id makes it the same person every time rather than a race.
+	$owner = 0;
+	foreach ($members as $m) {
+		if (!$owner || ($m['id'] < $owner))
+			$owner = $m['id'];
+	}
 	do {
 		$key = rand();
 		if (!$key) continue;
-		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'. $key .'",player=0');
+		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'. $key .'",player="'. intval($owner) .'"');
 	} while (!mysql_affected_rows());
 
 	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members))));

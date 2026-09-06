@@ -100,19 +100,34 @@ export async function cleanupLoungeFixtures() {
   await sql('DELETE FROM mkgamerank WHERE game BETWEEN ? AND ?', range);
 }
 
+// Entry to ranked needs online VS points, an account past a minimum age and a one-off
+// acceptance of the rules. The seeded account already has the points and no sub_date (so the
+// age check does not apply to it); the rules tick is the part every spec would otherwise have
+// to click through, so it is stamped here instead.
+export async function acceptLoungeRules(namePattern: string = SEEDED_ACCOUNT) {
+  await sql(
+    `INSERT INTO mklounge_players (player, season, rules_accepted_at)
+     SELECT id, 1, NOW() FROM mkjoueurs WHERE nom LIKE ?
+     ON DUPLICATE KEY UPDATE rules_accepted_at = IFNULL(rules_accepted_at, NOW())`,
+    [namePattern]
+  );
+}
+
 // Throwaway players for a staged lineup. mkjoueurs has no defaults for these
-// columns, so they are all spelled out.
+// columns, so they are all spelled out. They are created past the entry criteria:
+// plenty of VS points, no mkprofiles row so no account age, and the rules accepted.
 export async function createLoungeBots(count: number, tag: string): Promise<number[]> {
   const ids: number[] = [];
   for (let i = 1; i <= count; i++) {
     const res: any = await sql(
       `INSERT INTO mkjoueurs
         (nom, course, code, joueur, choice_map, choice_rand, pts_vs, pts_battle, pts_challenge, online, deleted)
-       VALUES (?, 0, ?, 'mario', 0, 0, 0, 0, 0, 0, 0)`,
+       VALUES (?, 0, ?, 'mario', 0, 0, 999999, 0, 0, 0, 0)`,
       [LOUNGE_BOT_PREFIX + tag + '-' + i, LOUNGE_BOT_HASH]
     );
     ids.push(res.insertId);
   }
+  await acceptLoungeRules(LOUNGE_BOT_PREFIX + tag + '-%');
   return ids;
 }
 

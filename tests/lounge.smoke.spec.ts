@@ -269,16 +269,16 @@ async function rulesFor(queueId: number) {
 	return JSON.parse(options.rules);
 }
 
-test('tier minimums follow the tier, not a global constant', async ({ page }) => {
+// Staff settled this on 2026-09-06: 4 to start and 8 at most, in every tier including All.
+// The minimum still comes from the tier row rather than a global, so they can split them
+// again later without a deploy.
+test('every tier starts at four players', async ({ page }) => {
 	await login(page);
 	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
 	const tiers = (await res.json()).tiers;
 
-	const all = tiers.find((t: any) => t.code === 'all');
-	const c = tiers.find((t: any) => t.code === 'C');
-	// rule 3aa: Tier All deliberately needs more players so the other tiers stay busy
-	expect(all.min_players).toBe(6);
-	expect(c.min_players).toBe(4);
+	for (const tier of tiers)
+		expect(tier.min_players).toBe(4);
 });
 
 test('a queue reports its own tier minimum', async ({ page }) => {
@@ -288,7 +288,7 @@ test('a queue reports its own tier minimum', async ({ page }) => {
 	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
 		form: { tier: String(tierAll.id) },
 	});
-	expect((await joined.json()).queue.lock_threshold).toBe(6);
+	expect((await joined.json()).queue.lock_threshold).toBe(4);
 	await dropOut(page.request);
 });
 
@@ -693,7 +693,7 @@ test('the settings page retunes the lounge and logs the change', async ({ page }
 		[adminId]
 	);
 	expect(logs.map((r: any) => r.log)).toEqual([
-		'LoungeSetting vote_wait_seconds 60 300',
+		'LoungeSetting vote_wait_seconds 120 300',
 		'LoungeSetting ban_minutes 60 10080',
 		'LoungeSetting races_per_match 12 32',
 	]);
@@ -802,4 +802,90 @@ test('the queue timers default to what the rules say', async ({ page }) => {
 		[joined.queue.id]
 	);
 	await dropOut(page.request);
+});
+
+// Staff asked for a terms-of-use style gate: the rules shown at least once, with a checkbox,
+// before a player can pick a tier at all.
+test('the rules have to be accepted once before a tier can be picked', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	await sql(`UPDATE mklounge_players SET rules_accepted_at = NULL WHERE player = ?`, [playerId]);
+
+	// joining is refused server-side, not just hidden in the UI
+	const refused = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(refused.error).toBe('rules_not_accepted');
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	const gate = page.locator('.lounge-rules-gate');
+	await expect(gate).toBeVisible();
+	await expect(page.locator('.lounge-tier')).toHaveCount(0);
+	// the gate shows the published rules rather than a copy of them
+	await expect(gate.locator('.lounge-rules-body')).toContainText('10000');
+
+	const accept = gate.locator('.lounge-rules-accept');
+	await expect(accept).toBeDisabled();
+	await gate.locator('.lounge-rules-check input').check();
+	await expect(accept).toBeEnabled();
+	await accept.click();
+
+	await expect(page.locator('.lounge-tier').first()).toBeVisible();
+	const [row]: any = await sql(
+		`SELECT rules_accepted_at FROM mklounge_players WHERE player = ?`, [playerId]);
+	expect(row.rules_accepted_at).not.toBeNull();
+});
+
+// 10000 VS points and a 14-day-old account, agreed with staff. Both are settings, so the
+// numbers can move; what matters is that the tier screen explains the refusal.
+test('a player short of the entry criteria is told which one they fail', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	// the schema clamps to its own maximum, so ask for the most the setting can hold
+	await sql(
+		`INSERT INTO mklounge_settings (name, value) VALUES ('min_vs_points', 1000000)
+		 ON DUPLICATE KEY UPDATE value = 1000000`
+	);
+
+	const refused = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(refused.error).toBe('not_enough_points');
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-access-block')).toBeVisible();
+	await expect(page.locator('.lounge-access-block li.is-unmet')).toContainText('1000000');
+	await expect(page.locator('.lounge-tier')).toHaveCount(0);
+
+	await sql(`DELETE FROM mklounge_settings WHERE name = 'min_vs_points'`);
+});
+
+// A Random vote is "no preference", so it never wins on its own: it is dropped from the tally
+// and the winner drawn from whatever tied on top.
+test('Random is on the ballot and never decides a mode on its own', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	const bots = await createLoungeBots(3, 'random');
+	for (const bot of bots)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [queueId, bot]);
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	const buttons = page.locator('.lounge-vote-btn');
+	await expect(buttons).toHaveCount(3); // FFA, 2v2, Random
+	await expect(buttons.nth(2)).toContainText('Random');
+
+	// wargor picks Random, one bot picks 2v2: the single real vote decides
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'Random' } });
+	await login(page, loungeBotName('random', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: '2v2' } });
+	await login(page);
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+	await tick(page);
+
+	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.mode).toBe('2v2');
+
+	await cleanupLoungeQueues();
+	await cleanupLoungeQueues(loungeBotPattern('random'));
 });

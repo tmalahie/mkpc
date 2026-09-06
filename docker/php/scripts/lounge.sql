@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_players` (
   `total_score` int(11) NOT NULL DEFAULT 0,
   `strikes` int(11) NOT NULL DEFAULT 0,
   `banned_until` timestamp NULL DEFAULT NULL,
+  `rules_accepted_at` timestamp NULL DEFAULT NULL,
   `placed` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`player`,`season`),
   KEY `season_mmr` (`season`,`mmr`)
@@ -133,7 +134,7 @@ INSERT INTO `mklounge_ranks` (`code`,`label_en`,`label_fr`,`min_mmr`,`color`,`or
 -- min_players: Tier All needs 6 to gather, every other tier 4 (rule 3aa), so that
 -- players are pushed towards their own tier rather than all piling into Tier All.
 INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`min_players`,`ordering`) VALUES
-  ('all', 'Tier All', 'Tier All', 0,    NULL, 6, 0),
+  ('all', 'Tier All', 'Tier All', 0,    NULL, 4, 0),
   ('C',   'Tier C',   'Tier C',   0,    999,  4, 1),
   ('B',   'Tier B',   'Tier B',   1000, 1999, 4, 2),
   ('A',   'Tier A',   'Tier A',   2000, 2999, 4, 3),
