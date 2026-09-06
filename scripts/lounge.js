@@ -186,6 +186,9 @@
 	}
 
 	function renderRulesGate(container) {
+		// the poll keeps ticking behind this screen; rebuilding it would clear the tick box
+		// under the reader every few seconds
+		if (container.querySelector('.lounge-rules-gate')) return;
 		container.innerHTML = '';
 		var box = document.createElement('div');
 		box.className = 'lounge-rules-gate';
@@ -605,6 +608,11 @@
 				'Vote the game mode (' + formatCountdown(voteLeft) + ' left)',
 				'Votez pour le mode de jeu (' + formatCountdown(voteLeft) + ' restant)'
 			);
+		} else if (queue.status === 'drafting') {
+			status.textContent = toLanguage(
+				queue.mode + ' it is. The captains are picking their teams.',
+				'Ce sera ' + queue.mode + '. Les capitaines composent leurs équipes.'
+			);
 		}
 		container.appendChild(status);
 		announceConfirm(queue);
@@ -612,9 +620,11 @@
 			container.appendChild(renderConfirmPrompt(queue));
 		container.appendChild(renderAlertToggle());
 
+		// during the draft the two team columns and the pool already account for everyone
+		var showLineup = (queue.status !== 'drafting');
 		var list = document.createElement('ol');
 		list.className = 'lounge-member-list';
-		for (var i = 0; i < queue.members.length; i++) {
+		for (var i = 0; showLineup && (i < queue.members.length); i++) {
 			var m = queue.members[i];
 			var li = document.createElement('li');
 			li.className = 'lounge-member' + (m.id === mId ? ' is-self' : '');
@@ -622,13 +632,105 @@
 			li.querySelector('.lounge-member-name').textContent = m.name;
 			list.appendChild(li);
 		}
-		container.appendChild(list);
+		if (showLineup)
+			container.appendChild(list);
 
 		if (queue.status === 'voting') {
 			container.appendChild(renderVoteSection(queue));
+		} else if (queue.status === 'drafting' && queue.draft) {
+			container.appendChild(renderDraft(queue.draft));
 		} else {
 			container.appendChild(renderQueueActions(queue));
 		}
+	}
+
+	function renderDraftTeam(captain, members) {
+		var col = document.createElement('section');
+		col.className = 'lounge-draft-team';
+		var title = document.createElement('h3');
+		title.textContent = toLanguage('Team ' + captain.name, 'Équipe ' + captain.name);
+		col.appendChild(title);
+		var list = document.createElement('ol');
+		for (var i = 0; i < members.length; i++) {
+			var li = document.createElement('li');
+			li.className = (members[i].id === captain.id) ? 'is-captain' : '';
+			li.textContent = members[i].name;
+			list.appendChild(li);
+		}
+		col.appendChild(list);
+		return col;
+	}
+
+	function renderDraft(draft) {
+		var section = document.createElement('div');
+		section.className = 'lounge-draft';
+
+		var myTurn = draft.current_captain && (draft.current_captain.id === mId);
+		var turn = document.createElement('p');
+		turn.className = 'lounge-draft-turn' + (myTurn ? ' is-mine' : '');
+		if (!draft.current_captain) {
+			turn.textContent = toLanguage('Teams are set.', 'Les équipes sont faites.');
+		} else if (myTurn) {
+			turn.textContent = toLanguage(
+				'Your pick — ' + formatCountdown(draft.seconds_left) + ' left',
+				'À vous de choisir — ' + formatCountdown(draft.seconds_left) + ' restant'
+			);
+		} else {
+			turn.textContent = toLanguage(
+				draft.current_captain.name + ' is picking (' + formatCountdown(draft.seconds_left) + ' left)',
+				draft.current_captain.name + ' choisit (' + formatCountdown(draft.seconds_left) + ' restant)'
+			);
+		}
+		section.appendChild(turn);
+
+		var teams = document.createElement('div');
+		teams.className = 'lounge-draft-teams';
+		teams.appendChild(renderDraftTeam(draft.captains[0], draft.teams[0]));
+		teams.appendChild(renderDraftTeam(draft.captains[1], draft.teams[1]));
+		section.appendChild(teams);
+
+		if (draft.available.length) {
+			var pool = document.createElement('div');
+			pool.className = 'lounge-draft-pool';
+			for (var i = 0; i < draft.available.length; i++) {
+				var m = draft.available[i];
+				var btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'lounge-draft-pick';
+				btn.setAttribute('data-player', m.id);
+				btn.disabled = !myTurn;
+				btn.innerHTML = '<span class="lounge-draft-pick-name"></span>'
+					+ '<span class="lounge-draft-pick-mmr">MMR ' + m.mmr + '</span>';
+				btn.querySelector('.lounge-draft-pick-name').textContent = m.name;
+				btn.addEventListener('click', onDraftPickClick);
+				pool.appendChild(btn);
+			}
+			section.appendChild(pool);
+
+			var hint = document.createElement('p');
+			hint.className = 'lounge-draft-hint';
+			hint.textContent = toLanguage(
+				'A captain who runs out of time gets the highest-rated player left.',
+				'Un capitaine à court de temps reçoit le joueur le mieux classé restant.'
+			);
+			section.appendChild(hint);
+		}
+		return section;
+	}
+
+	function onDraftPickClick(e) {
+		if (actionInFlight) return;
+		var target = e.currentTarget.getAttribute('data-player');
+		actionInFlight = true;
+		var buttons = document.querySelectorAll('.lounge-draft-pick');
+		for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+		postJSON('lounge/draft.php', 'player=' + encodeURIComponent(target), function(data) {
+			actionInFlight = false;
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+			}
+		});
 	}
 
 	function renderQueueActions(queue) {

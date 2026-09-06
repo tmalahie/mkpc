@@ -903,8 +903,9 @@ test('Random is on the ballot and never decides a mode on its own', async ({ pag
 	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
 	await tick(page);
 
-	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
-	expect(match.mode).toBe('2v2');
+	// the mode is settled when the vote closes, whether or not a captain draft follows it
+	const [queue]: any = await sql(`SELECT mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.mode).toBe('2v2');
 
 	await cleanupLoungeQueues();
 	await cleanupLoungeQueues(loungeBotPattern('random'));
@@ -1028,3 +1029,125 @@ test('a lost #mllu message is replaced exactly once', async ({ page }) => {
 	await sql(`DELETE FROM mklounge_state`);
 });
 
+// The captain draft, settled with staff on 2026-09-06: the two highest-rated players captain
+// the two sides and fill them by hand before the room ever opens, so the in-game team screen
+// is skipped entirely.
+async function stageDraftLineup(page, tag: string, lineup: number, mode: string) {
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const bots = await createLoungeBots(lineup, tag);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, ready_at) VALUES (1, ?, 'voting', NOW())`,
+		[tier.id]
+	);
+	// descending, so the captains are bots 1 and 2 and the auto-pick order is the bot order
+	for (let i = 0; i < bots.length; i++) {
+		await sql(
+			`INSERT INTO mklounge_queue_members (queue, player, voted_mode) VALUES (?, ?, ?)`,
+			[q.insertId, bots[i], mode]
+		);
+		await sql(
+			`INSERT INTO mklounge_players (player, season, mmr) VALUES (?, 1, ?)
+			 ON DUPLICATE KEY UPDATE mmr = VALUES(mmr)`,
+			[bots[i], 2000 - i * 100]
+		);
+	}
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]);
+	await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
+	await tick(page);
+	return { queueId: q.insertId, bots };
+}
+
+async function draftState(page, tag: string, captainIndex: number) {
+	await login(page, loungeBotName(tag, captainIndex), LOUNGE_BOT_PASSWORD);
+	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php');
+	return (await res.json()).queue;
+}
+
+test('a team-mode vote hands the lineup to the two highest-rated captains', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'draft6', 6, '3v3');
+
+	const [queue]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('drafting');
+	expect(queue.mode).toBe('3v3');
+
+	const state = await draftState(page, 'draft6', 1);
+	expect(state.draft.captains.map((c: any) => c.mmr).sort()).toEqual([1900, 2000]);
+	// each captain already stands on their own side, and nobody else is placed yet
+	expect(state.draft.teams[0]).toHaveLength(1);
+	expect(state.draft.teams[1]).toHaveLength(1);
+	expect(state.draft.available).toHaveLength(4);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('the draft snakes 1-2-1 and launches with the teams already set', async ({ page }) => {
+	const { queueId, bots } = await stageDraftLineup(page, 'draft3v3', 6, '3v3');
+
+	const captainIndexOf = (state: any, side: number) =>
+		bots.indexOf(state.draft.captains[side].id) + 1;
+
+	// 1-2-1: first captain, then the second twice, then the first again
+	const expectedSides = [0, 1, 1, 0];
+	for (const side of expectedSides) {
+		let state = await draftState(page, 'draft3v3', 1);
+		expect(state.status).toBe('drafting');
+		expect(state.draft.current_captain.id).toBe(state.draft.captains[side].id);
+
+		const captain = captainIndexOf(state, side);
+		state = await draftState(page, 'draft3v3', captain);
+		const target = state.draft.available[0].id;
+		const res = await page.request.post('http://127.0.0.1:8080/api/lounge/draft.php', {
+			form: { player: String(target) },
+		});
+		expect((await res.json()).error).toBeUndefined();
+	}
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const teams: any = await sql(
+		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members WHERE queue = ? GROUP BY team`, [queueId]
+	);
+	expect(teams.map((t: any) => Number(t.n))).toEqual([3, 3]);
+
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(2);
+	// the whole point of drafting beforehand: no in-game team-selection screen
+	expect(rules.manualTeams).toBeUndefined();
+	expect(Object.keys(rules.fixedTeams)).toHaveLength(6);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('a captain who runs out of time gets the highest-rated player left', async ({ page }) => {
+	const { queueId, bots } = await stageDraftLineup(page, 'draftto', 6, '3v3');
+
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]
+	);
+	await login(page, loungeBotName('draftto', 1), LOUNGE_BOT_PASSWORD);
+	await tick(page);
+
+	// bots 1 and 2 captain; bot 3 is the highest-rated player still in the pool
+	const [assigned]: any = await sql(
+		`SELECT team FROM mklounge_queue_members WHERE queue = ? AND player = ?`, [queueId, bots[2]]
+	);
+	expect(assigned.team).not.toBeNull();
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('a lineup that splits into more than two teams keeps the in-game team screen', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'draft2v2', 8, '2v2');
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(4);
+	expect(rules.manualTeams).toBe(1);
+	expect(rules.fixedTeams).toBeUndefined();
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});

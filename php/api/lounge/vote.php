@@ -47,7 +47,7 @@ $missing = mysql_fetch_array(mysql_query(
 	WHERE queue="'. intval($queue['id']) .'" AND dropped_at IS NULL AND voted_mode IS NULL'
 ));
 if ($missing && intval($missing['n']) === 0) {
-	lounge_launch_match($queue['id']);
+	lounge_close_vote($queue['id']);
 }
 
 echo json_encode(array('queue' => lounge_queue_state($queue['id'], $id)));

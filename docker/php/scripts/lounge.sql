@@ -79,12 +79,14 @@ CREATE TABLE IF NOT EXISTS `mklounge_queues` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `season` int(10) unsigned NOT NULL,
   `tier` int(10) unsigned NOT NULL,
-  `status` enum('open','locked','voting','launching','launched','finished','cancelled') NOT NULL DEFAULT 'open',
+  `status` enum('open','locked','voting','drafting','launching','launched','finished','cancelled') NOT NULL DEFAULT 'open',
   `opened_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `locked_at` timestamp NULL DEFAULT NULL,
   `ready_at` timestamp NULL DEFAULT NULL,
   `launched_at` timestamp NULL DEFAULT NULL,
   `discord_here_at` timestamp NULL DEFAULT NULL,
+  `mode` varchar(8) DEFAULT NULL,
+  `draft_turn_at` timestamp NULL DEFAULT NULL,
   `privgame_key` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `season_tier_status` (`season`,`tier`,`status`)
@@ -98,6 +100,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
   `confirmed_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `perso` varchar(250) DEFAULT NULL,
   `voted_mode` varchar(8) DEFAULT NULL,
+  `team` tinyint(4) DEFAULT NULL,
   `dropped_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`queue`,`player`),
   KEY `player_active` (`player`,`dropped_at`)
