@@ -8,6 +8,7 @@ include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
 require_once('../includes/utils-logs.php');
+require_once('../includes/utils-nicks.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -39,6 +40,7 @@ elseif (isset($_GET['del'])) {
         $wordSnapshot
     ));
 }
+$testNick = isset($_GET['test']) ? stripslashes($_GET['test']) : '';
 $isListed = ($checkWord !== null) && mysql_fetch_array(mysql_query('SELECT id FROM mkbadnicks WHERE word="'. $checkWord .'"'));
 $maxMatches = 200;
 ?>
@@ -83,8 +85,11 @@ td.options-cell .action_button + .action_button {
     font-style: normal;
     color: #888;
 }
-.word-added {
+.word-added, .test-accepted {
     color: #0A0;
+}
+.test-refused {
+    color: #C00;
 }
 .word-actions {
     margin: 10px 0;
@@ -114,10 +119,14 @@ include('../includes/header.php');
 $page = 'forum';
 include('../includes/menu.php');
 if ($checkWord !== null) {
-    $getMatches = mysql_query('SELECT j.id,j.nom,j.banned,j.deleted,b.end_date,NULLIF(DATE(p.last_connect),0) AS last_connect FROM `mkjoueurs` j LEFT JOIN `mkbans` b ON b.player=j.id LEFT JOIN `mkprofiles` p ON p.id=j.id WHERE LOCATE("'. $checkWord .'",j.nom)>0 ORDER BY j.deleted ASC,j.banned ASC,last_connect DESC,j.id DESC LIMIT '. ($maxMatches+1));
+    $rawWord = stripslashes($checkWord);
+    $wordGroups = blacklistPatternGroups(array($rawWord), NICK_SEPARATORS);
+    $wordPattern = mysql_real_escape_string(fuzzyWordPattern($rawWord, NICK_SEPARATORS));
+    $getMatches = mysql_query('SELECT j.id,j.nom,j.banned,j.deleted,b.end_date,NULLIF(DATE(p.last_connect),0) AS last_connect FROM `mkjoueurs` j LEFT JOIN `mkbans` b ON b.player=j.id LEFT JOIN `mkprofiles` p ON p.id=j.id WHERE j.nom REGEXP "'. $wordPattern .'" ORDER BY j.deleted ASC,j.banned ASC,last_connect DESC,j.id DESC LIMIT '. ($maxMatches+1));
     $matches = array();
     while ($match = mysql_fetch_array($getMatches))
-        $matches[] = $match;
+        if (findBlacklistedWord(stripWhitelistedWords($match['nom'], NICK_SEPARATORS), $wordGroups, false))
+            $matches[] = $match;
     $truncated = (count($matches) > $maxMatches);
     if ($truncated)
         array_pop($matches);
@@ -232,6 +241,7 @@ else {
         This page allows you to manage a words blacklist for usernames.<br />
         A member can no longer register, nor rename themselves, with a username containing one of these words: they are told their username is inappropriate.<br />
         Unlike the <a href="chat-blacklist.php"><strong>online chat blacklist</strong></a>, a word matches anywhere inside the username, so <em>hitler</em> also blocks <em>xXHitler42Xx</em>.<br />
+        Separators and repeated letters are ignored too, so <em>hitler</em> also blocks <em>hit-ler</em> and <em>hitleeeerr</em>. If a forbidden word is hidden inside an innocent one, add the innocent one to the <a href="word-whitelist.php"><strong>allowed words</strong></a>.<br />
         Accounts registered before a word was added keep their username: rename them from the <a href="edit-pseudo.php"><strong>username change page</strong></a>.
         <?php
     }
@@ -240,6 +250,7 @@ else {
         Cette page vous permet de gérer une blacklist de mots pour les pseudos.<br />
         Un membre ne peut plus s'inscrire, ni se renommer, avec un pseudo contenant un de ces mots : il lui est indiqué que son pseudo est inapproprié.<br />
         Contrairement à la <a href="chat-blacklist.php"><strong>blacklist du chat en ligne</strong></a>, un mot est détecté n'importe où dans le pseudo, donc <em>hitler</em> bloque aussi <em>xXHitler42Xx</em>.<br />
+        Les séparateurs et les lettres doublées sont également ignorés, donc <em>hitler</em> bloque aussi <em>hit-ler</em> et <em>hitleeeerr</em>. Si un mot interdit se cache dans un mot innocent, ajoutez ce dernier aux <a href="word-whitelist.php"><strong>mots autorisés</strong></a>.<br />
         Les comptes inscrits avant l'ajout d'un mot gardent leur pseudo : renommez-les depuis la <a href="edit-pseudo.php"><strong>page de modification de pseudo</strong></a>.
         <?php
     }
@@ -253,6 +264,32 @@ else {
         <button type="submit" formmethod="get" class="action_button"><?php echo $language ? 'Preview matching members' : 'Voir les membres concernés'; ?></button>
         <input type="submit" class="action_button action_warning" value="<?php echo $language ? 'Add to blacklist' : 'Blacklister'; ?>" />
 	</form>
+    <h2><?php echo ($language ? 'Test a username:' : 'Tester un pseudo :'); ?></h2>
+    <form method="get" action="nick-blacklist.php">
+        <label>
+            <?php echo $language ? 'Username:' : 'Pseudo :'; ?>
+            <input type="text" name="test" placeholder="xXHitler42Xx" required="required" value="<?php echo htmlspecialchars($testNick); ?>" />
+        </label>
+        <input type="submit" class="action_button" value="<?php echo $language ? 'Test' : 'Tester'; ?>" />
+    </form>
+    <?php
+    if ($testNick !== '') {
+        $quotedNick = '&laquo;&nbsp;<strong>'. htmlspecialchars($testNick) .'</strong>&nbsp;&raquo;';
+        $testMatch = matchNickBlacklist($testNick);
+        if ($testMatch) {
+            $quotedMatch = '&laquo;&nbsp;<strong>'. htmlspecialchars($testMatch['match']) .'</strong>&nbsp;&raquo;';
+            $quotedCause = '&laquo;&nbsp;<strong>'. htmlspecialchars($testMatch['word']) .'</strong>&nbsp;&raquo;';
+            if ($language)
+                echo '<p class="test-refused">The username '. $quotedNick .' is <strong>refused</strong>: '. $quotedMatch .' is read as the forbidden word '. $quotedCause .'.</p>';
+            else
+                echo '<p class="test-refused">Le pseudo '. $quotedNick .' est <strong>refusé</strong> : '. $quotedMatch .' est lu comme le mot interdit '. $quotedCause .'.</p>';
+        }
+        elseif ($language)
+            echo '<p class="test-accepted">The username '. $quotedNick .' is <strong>accepted</strong>.</p>';
+        else
+            echo '<p class="test-accepted">Le pseudo '. $quotedNick .' est <strong>accepté</strong>.</p>';
+    }
+    ?>
     <h2><?php echo ($language ? 'Current forbidden word list:' : 'Liste des mots interdits :'); ?></h2>
     <table>
         <tr id="titres">

@@ -463,6 +463,14 @@ msgid "removed word #$1 from list of forbidden usernames"
 msgstr "a retiré le mot #$1 de la liste des pseudos interdits"
 
 #: php/pages/admin-logs.php
+msgid " to the allowed words list"
+msgstr " à la liste des mots autorisés"
+
+#: php/pages/admin-logs.php
+msgid "removed word #$1 from list of allowed words"
+msgstr "a retiré le mot #$1 de la liste des mots autorisés"
+
+#: php/pages/admin-logs.php
 msgid "deleted multicup #$1"
 msgstr "a supprimé la multicoupe #$1"
 
@@ -613,6 +621,18 @@ msgid ""
 msgstr ""
 "Les membres ne peuvent plus s'inscrire ni se renommer avec un pseudo "
 "contenant un de ces mots"
+
+#: php/pages/admin.php
+msgid "Manage <strong>allowed words</strong>"
+msgstr "Gérer les <strong>mots autorisés</strong>"
+
+#: php/pages/admin.php
+msgid ""
+"Innocent words that contain a forbidden one, and must be accepted anyway in "
+"usernames and in the online chat"
+msgstr ""
+"Les mots innocents qui contiennent un mot interdit, et qui doivent quand "
+"même être acceptés dans les pseudos et dans le chat en ligne"
 
 #: php/pages/admin.php
 msgid "Give / Remove <strong>points</strong> in <strong>online mode</strong>"

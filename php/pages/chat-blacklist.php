@@ -13,6 +13,7 @@ if (!$id) {
 }
 require_once('../includes/getRights.php');
 require_once('../includes/utils-logs.php');
+require_once('../includes/utils-blacklist.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -35,6 +36,7 @@ elseif (isset($_GET['del'])) {
         $wordSnapshot
     ));
 }
+$testMsg = isset($_GET['test']) ? stripslashes($_GET['test']) : '';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -60,6 +62,12 @@ form #action-label {
 form input[type="submit"] {
     margin-top: 5px;
 }
+.test-clean {
+    color: #0A0;
+}
+.test-caught {
+    color: #C00;
+}
 </style>
 <?php
 include('../includes/o_online.php');
@@ -79,6 +87,7 @@ include('../includes/menu.php');
         This page allows you to manage a words blacklist in online mode chat.<br />
         If a user sends a text containing one of these words, you will see it in the <a href="blacklist-logs.php"><strong>message logs</strong></a>.<br />
         Depending on the word, you can decide to just log, block the message, or even mute the member.<br />
+        A word is detected as a whole word, but separators and repeated letters are ignored, so <em>fumier</em> also catches <em>fu-mier</em> and <em>fuuumier</em>. If a watched word is hidden inside an innocent one, add the innocent one to the <a href="word-whitelist.php"><strong>allowed words</strong></a>.<br />
         Note that this blacklist does not apply to private games.
         <?php
     }
@@ -87,6 +96,7 @@ include('../includes/menu.php');
         Cette page vous permet de gérer une blacklist de mots dans le chat du mode en ligne.<br />
         Si un utilisateur envoie un texte contenant un de ces mots, vous pourrez le voir dans les <a href="blacklist-logs.php"><strong>logs des messages</strong></a>.<br />
         En fonction du mot, vous pouvez décider de juste logguer, bloquer le message, ou carrément muter le membre.<br />
+        Un mot est détecté en tant que mot entier, mais les séparateurs et les lettres doublées sont ignorés, donc <em>fumier</em> détecte aussi <em>fu-mier</em> et <em>fuuumier</em>. Si un mot surveillé se cache dans un mot innocent, ajoutez ce dernier aux <a href="word-whitelist.php"><strong>mots autorisés</strong></a>.<br />
         Notez que cette blacklist ne s'applique pas aux parties privées.
         <?php
     }
@@ -107,6 +117,50 @@ include('../includes/menu.php');
         </label>
         <input type="submit" class="action_button" value="<?php echo $language ? 'Confirm' : 'Valider'; ?>" />
 	</form>
+    <h2><?php echo ($language ? 'Test a message:' : 'Tester un message :'); ?></h2>
+    <form method="get" action="chat-blacklist.php">
+        <label>
+            <?php echo $language ? 'Message:' : 'Message :'; ?>
+            <input type="text" name="test" placeholder="t'es un fu-mier" required="required" value="<?php echo htmlspecialchars($testMsg); ?>" />
+        </label>
+        <input type="submit" class="action_button" value="<?php echo $language ? 'Test' : 'Tester'; ?>" />
+    </form>
+    <?php
+    if ($testMsg !== '') {
+        $testWords = array('mute' => array(), 'block' => array(), 'none' => array());
+        $getWatched = mysql_query('SELECT word,action FROM mkbadwords');
+        while ($watched = mysql_fetch_array($getWatched))
+            $testWords[$watched['action']][] = $watched['word'];
+        $checkedMsg = stripWhitelistedWords($testMsg, CHAT_SEPARATORS);
+        $testMatch = null;
+        foreach ($testWords as $action => $actionWords) {
+            $testMatch = findBlacklistedWord($checkedMsg, blacklistPatternGroups($actionWords, CHAT_SEPARATORS), true);
+            if ($testMatch) break;
+        }
+        if ($testMatch) {
+            $quotedMatch = '&laquo;&nbsp;<strong>'. htmlspecialchars($testMatch['match']) .'</strong>&nbsp;&raquo;';
+            $quotedCause = '&laquo;&nbsp;<strong>'. htmlspecialchars($testMatch['word']) .'</strong>&nbsp;&raquo;';
+            switch ($action) {
+            case 'mute':
+                $consequence = $language ? 'the message is blocked and the member is muted':'le message est bloqué et le membre est muté';
+                break;
+            case 'block':
+                $consequence = $language ? 'the message is blocked':'le message est bloqué';
+                break;
+            default:
+                $consequence = $language ? 'the message is sent and logged':'le message est envoyé et loggué';
+            }
+            if ($language)
+                echo '<p class="test-caught">'. $quotedMatch .' is read as the watched word '. $quotedCause .': '. $consequence .'.</p>';
+            else
+                echo '<p class="test-caught">'. $quotedMatch .' est lu comme le mot surveillé '. $quotedCause .' : '. $consequence .'.</p>';
+        }
+        elseif ($language)
+            echo '<p class="test-clean">No watched word: the message is sent normally.</p>';
+        else
+            echo '<p class="test-clean">Aucun mot surveillé : le message est envoyé normalement.</p>';
+    }
+    ?>
     <h2><?php echo ($language ? 'Current watched word list:' : 'Liste des mots surveillés :'); ?></h2>
     <table>
         <tr id="titres">

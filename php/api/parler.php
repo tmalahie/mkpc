@@ -7,6 +7,7 @@ if (isset($_POST['msg'])) {
 		include('../includes/getId.php');
 		include('../includes/initdb.php');
 		include('../includes/onlineUtils.php');
+		require_once('../includes/utils-blacklist.php');
 		$course = getCourse(array('check_ban' => true));
 		if ($course) {
 			function log_blacklist_msg($resultCode, $msgId) {
@@ -36,35 +37,28 @@ if (isset($_POST['msg'])) {
 				if (strlen($msg) > 255)
 					return_failure(-3);
 				$getBlacklist = mysql_query('SELECT word,action FROM mkbadwords');
-				$blackListRegex = '';
-				$blackListRegexParts = array(
+				$blackListWords = array(
 					'mute' => array(),
 					'block' => array(),
 					'none' => array()
 				);
-				while ($blacklist = mysql_fetch_array($getBlacklist)) {
-					$word = $blacklist['word'];
-					$action = $blacklist['action'];
-					$blackListRegexParts[$action][] = preg_quote($word);
-				}
-				$resultCode = 1;
-				foreach ($blackListRegexParts as $action => $actionRegexPart) {
-					$actionRegexPartStr = implode('|', $actionRegexPart);
-					if ($actionRegexPartStr === '') continue;
-					$blackListRegex = '#\b('. $actionRegexPartStr .')\b#i';
-					if (preg_match($blackListRegex, $msg)) {
-						switch ($action) {
-						case 'mute':
-							mute_member();
-							return_failure(-1);
-							break;
-						case 'block':
-							return_failure(-1);
-							break;
-						case 'none':
-							$shouldLog = true;
-							break;
-						}
+				while ($blacklist = mysql_fetch_array($getBlacklist))
+					$blackListWords[$blacklist['action']][] = $blacklist['word'];
+				$checkedMsg = stripWhitelistedWords($msg, CHAT_SEPARATORS);
+				foreach ($blackListWords as $action => $actionWords) {
+					if (!findBlacklistedWord($checkedMsg, blacklistPatternGroups($actionWords, CHAT_SEPARATORS), true))
+						continue;
+					switch ($action) {
+					case 'mute':
+						mute_member();
+						return_failure(-1);
+						break;
+					case 'block':
+						return_failure(-1);
+						break;
+					case 'none':
+						$shouldLog = true;
+						break;
 					}
 				}
 				$getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchat WHERE course="'. $course .'" AND auteur="'. $id .'" AND date>NOW() - INTERVAL 10 SECOND'));

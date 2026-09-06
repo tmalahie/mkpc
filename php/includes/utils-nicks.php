@@ -1,12 +1,21 @@
 <?php
-function isNickBlacklisted($nick) {
-    $nick = strtolower($nick);
-    $getBlacklist = mysql_query('SELECT word FROM `mkbadnicks`');
-    while ($badNick = mysql_fetch_array($getBlacklist)) {
-        if (strpos($nick, strtolower($badNick['word'])) !== false)
-            return true;
+require_once('utils-blacklist.php');
+function getNickPatternGroups() {
+    static $groups = null;
+    if ($groups === null) {
+        $blacklist = array();
+        $getBlacklist = mysql_query('SELECT word FROM `mkbadnicks`');
+        while ($badNick = mysql_fetch_array($getBlacklist))
+            $blacklist[] = $badNick['word'];
+        $groups = blacklistPatternGroups($blacklist, NICK_SEPARATORS);
     }
-    return false;
+    return $groups;
+}
+function matchNickBlacklist($nick) {
+    return findBlacklistedWord(stripWhitelistedWords($nick, NICK_SEPARATORS), getNickPatternGroups(), false);
+}
+function isNickBlacklisted($nick) {
+    return matchNickBlacklist($nick) !== null;
 }
 function editNick($userId,$old,$new,&$message,$allowBlacklisted=false) {
     global $language;

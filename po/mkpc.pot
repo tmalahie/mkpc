@@ -453,6 +453,14 @@ msgid "removed word #$1 from list of forbidden usernames"
 msgstr ""
 
 #: php/pages/admin-logs.php
+msgid " to the allowed words list"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "removed word #$1 from list of allowed words"
+msgstr ""
+
+#: php/pages/admin-logs.php
 msgid "deleted multicup #$1"
 msgstr ""
 
@@ -597,6 +605,16 @@ msgstr ""
 msgid ""
 "Members can no longer register nor rename themselves with a username "
 "containing one of these words"
+msgstr ""
+
+#: php/pages/admin.php
+msgid "Manage <strong>allowed words</strong>"
+msgstr ""
+
+#: php/pages/admin.php
+msgid ""
+"Innocent words that contain a forbidden one, and must be accepted anyway in "
+"usernames and in the online chat"
 msgstr ""
 
 #: php/pages/admin.php

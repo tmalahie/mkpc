@@ -331,6 +331,14 @@ $logMapping = array(
         'render' => _('removed word #$1 from list of forbidden usernames'),
         'role' => 'moderator'
     ),
+    'Whitelist' => array(
+        'render' => _('added ') . '<strong>{{table.mkgoodwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the allowed words list'),
+        'role' => 'moderator'
+    ),
+    'Unwhitelist' => array(
+        'render' => _('removed word #$1 from list of allowed words'),
+        'role' => 'moderator'
+    ),
     'MCup' => array(
         'render' => _('deleted multicup #$1'),
         'role' => 'moderator'
