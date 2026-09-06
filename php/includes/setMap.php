@@ -108,8 +108,18 @@ if ($course) {
 		return $joueursData;
 	}
 	$joueursData = listPlayers();
+	// Teams settled before the room opened (the lounge's captain draft). Seeding them here
+	// makes the balancing pass below keep them, the same way it keeps a manual pick.
+	$fixedTeams = array();
+	if (isset($courseRules->fixedTeams)) {
+		foreach ((array) $courseRules->fixedTeams as $playerId => $team)
+			$fixedTeams[intval($playerId)] = intval($team);
+	}
+	$keepTeams = !empty($courseRules->manualTeams) || $fixedTeams;
 	$nbPlayers = 0;
 	foreach ($joueursData as &$joueur) {
+		if (isset($fixedTeams[intval($joueur['id'])]))
+			$joueur['team'] = $fixedTeams[intval($joueur['id'])];
 		if (!$joueur['controller'])
 			$nbPlayers++;
 	}
@@ -126,8 +136,8 @@ if ($course) {
 			foreach ($joueursData as $i=>$joueur)
 				$sJoueurs[] = $i;
 			function sortPlayerIds($i1,$i2) {
-				global $joueursData, $courseRules;
-				if (!empty($courseRules->manualTeams)) {
+				global $joueursData, $keepTeams;
+				if ($keepTeams) {
 					$t1 = ($joueursData[$i1]['team']!=-1);
 					$t2 = ($joueursData[$i2]['team']!=-1);
 					if ($t1 && !$t2) return -1;
@@ -149,7 +159,7 @@ if ($course) {
 			$teamId = 0;
 			foreach ($sJoueurs as $i) {
 				$joueur = &$joueursData[$i];
-				if (empty($courseRules->manualTeams) || ($joueur['team']==-1))
+				if (!$keepTeams || ($joueur['team']==-1))
 					$joueur['team'] = $teamId;
 				else
 					$teamId = $joueur['team'];

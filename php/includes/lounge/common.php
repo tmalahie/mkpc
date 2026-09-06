@@ -395,7 +395,7 @@ function lounge_get_active_queue_for_player($playerId) {
 		INNER JOIN `mklounge_queue_members` m ON m.queue=q.id
 		WHERE m.player="'. intval($playerId) .'"
 		AND m.dropped_at IS NULL
-		AND q.status IN ("open","locked","voting","launching","launched")
+		AND q.status IN ("open","locked","voting","drafting","launching","launched")
 		LIMIT 1'
 	));
 }
@@ -411,7 +411,7 @@ function lounge_active_member_count($queueId) {
 function lounge_queue_members($queueId) {
 	$members = array();
 	$res = mysql_query(
-		'SELECT m.player, m.joined_at, m.last_heartbeat, m.perso, j.nom,
+		'SELECT m.player, m.joined_at, m.last_heartbeat, m.perso, m.team, j.nom,
 			COALESCE(p.mmr, '. lounge_setting('default_mmr') .') AS mmr
 		FROM `mklounge_queue_members` m
 		INNER JOIN `mkjoueurs` j ON j.id=m.player
@@ -425,6 +425,7 @@ function lounge_queue_members($queueId) {
 			'name' => $row['nom'],
 			'mmr' => intval($row['mmr']),
 			'perso' => $row['perso'],
+			'team' => is_null($row['team']) ? null : intval($row['team']),
 			'joined_at' => $row['joined_at']
 		);
 	}
@@ -501,7 +502,9 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'confirm_due' => $confirmDue,
 		'confirm_seconds_left' => $confirmSecondsLeft,
 		'lock_wait_seconds' => lounge_setting('lock_wait_seconds'),
-		'vote_wait_seconds' => lounge_setting('vote_wait_seconds')
+		'vote_wait_seconds' => lounge_setting('vote_wait_seconds'),
+		'mode' => $queue['mode'],
+		'draft' => ($queue['status'] === 'drafting') ? lounge_draft_state($queueId) : null
 	);
 }
 
@@ -565,7 +568,7 @@ function lounge_point_distribution($playerCount) {
 	return $fallback;
 }
 
-function lounge_build_game_rules($mode, $playerCount) {
+function lounge_build_game_rules($mode, $playerCount, $fixedTeams = array()) {
 	$rules = array(
 		'friendly' => 1,
 		'localScore' => 1,
@@ -589,9 +592,14 @@ function lounge_build_game_rules($mode, $playerCount) {
 	$nbTeams = lounge_mode_team_count($mode, $playerCount);
 	if ($nbTeams) {
 		$rules['team'] = 1;
-		$rules['manualTeams'] = 1;
 		$rules['friendlyFire'] = 1;
 		$rules['nbTeams'] = $nbTeams;
+		// A drafted lineup already knows its sides, so the room skips the team-selection
+		// screen entirely; every other team mode still picks them in-game.
+		if ($fixedTeams)
+			$rules['fixedTeams'] = $fixedTeams;
+		else
+			$rules['manualTeams'] = 1;
 	}
 	return $rules;
 }
@@ -616,20 +624,155 @@ function lounge_tally_vote($votes, $allowedModes) {
 	return $tied[array_rand($tied)];
 }
 
-function lounge_start_voting($queueId) {
-	mysql_query(
-		'UPDATE `mklounge_queues` SET status="voting", ready_at=NOW()
-		WHERE id="'. intval($queueId) .'" AND status IN ("open","locked")'
+// The two highest-rated players in the lineup captain the two sides. Ties go to the older
+// account so the pair is the same for everyone deciding it, rather than a race.
+function lounge_draft_captains($members) {
+	$pool = $members;
+	$captains = array();
+	for ($n = 0; ($n < 2) && count($pool); $n++) {
+		$bestIndex = 0;
+		foreach ($pool as $i => $m) {
+			$best = $pool[$bestIndex];
+			if (($m['mmr'] > $best['mmr']) || (($m['mmr'] === $best['mmr']) && ($m['id'] < $best['id'])))
+				$bestIndex = $i;
+		}
+		$captains[] = $pool[$bestIndex];
+		array_splice($pool, $bestIndex, 1);
+	}
+	return $captains;
+}
+
+// "Le 1er pick 1 membre, le 2e pick 2 membres, le 1er pick 2 membres, le 2e pick 1 membre":
+// a snake, which reads as 1-2-2-1 at 4v4 and 1-2-1 at 3v3 and stays balanced at any size.
+function lounge_draft_side($pickIndex) {
+	return ((int) (($pickIndex + 1) / 2)) % 2;
+}
+
+// Captains only make sense with two sides to captain. Modes that split the lineup further -
+// 2v2 at six or eight players - have no draft in the rules, so they keep the in-game screen.
+function lounge_draft_applies($mode, $playerCount) {
+	return lounge_mode_team_count($mode, $playerCount) === 2;
+}
+
+function lounge_draft_state($queueId) {
+	$queue = mysql_fetch_array(mysql_query(
+		'SELECT id, mode,
+			GREATEST(0, UNIX_TIMESTAMP(draft_turn_at) + '. intval(lounge_setting('draft_pick_seconds')) .'
+				- UNIX_TIMESTAMP(NOW())) AS seconds_left
+		FROM `mklounge_queues`
+		WHERE id="'. intval($queueId) .'" AND status="drafting"'
+	));
+	if (!$queue) return null;
+
+	$members = lounge_queue_members($queueId);
+	$captains = lounge_draft_captains($members);
+	if (count($captains) < 2) return null;
+	// The coin flip is recorded by seeding the winner onto side 0, so the sides are read back
+	// from the teams themselves rather than from a second column that could disagree.
+	if (intval($captains[0]['team']) !== 0) {
+		$swap = $captains[0];
+		$captains[0] = $captains[1];
+		$captains[1] = $swap;
+	}
+
+	$teams = array(array(), array());
+	$available = array();
+	foreach ($members as $m) {
+		if (is_null($m['team']))
+			$available[] = $m;
+		else
+			$teams[$m['team'] ? 1 : 0][] = $m;
+	}
+	$picksMade = count($members) - count($available) - count($captains);
+	$side = lounge_draft_side($picksMade);
+
+	return array(
+		'mode' => $queue['mode'],
+		'captains' => $captains,
+		'teams' => $teams,
+		'available' => $available,
+		'picks_made' => $picksMade,
+		'side' => $side,
+		'current_captain' => count($available) ? $captains[$side] : null,
+		'seconds_left' => intval($queue['seconds_left']),
+		'pick_seconds' => lounge_setting('draft_pick_seconds')
 	);
 }
 
-function lounge_launch_match($queueId) {
-	$queueRow = mysql_fetch_array(mysql_query(
-		'SELECT id, season, tier FROM `mklounge_queues`
-		WHERE id="'. intval($queueId) .'" AND status="voting"'
-	));
-	if (!$queueRow) return null;
+function lounge_start_draft($queueId, $mode) {
+	$members = lounge_queue_members($queueId);
+	$captains = lounge_draft_captains($members);
+	if (count($captains) < 2)
+		return false;
+	// "coin flip pour le 1er qui choisit": the winner is seeded onto side 0, which is the
+	// side the snake picks for first.
+	$first = $captains[rand(0, 1)];
+	$second = ($first['id'] === $captains[0]['id']) ? $captains[1] : $captains[0];
 
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues`
+		SET status="drafting", mode="'. mysql_real_escape_string($mode) .'", draft_turn_at=NOW()
+		WHERE id="'. intval($queueId) .'" AND status="voting"'
+	);
+	if (!mysql_affected_rows())
+		return false;
+
+	foreach (array($first['id'] => 0, $second['id'] => 1) as $playerId => $team) {
+		mysql_query(
+			'UPDATE `mklounge_queue_members` SET team="'. intval($team) .'"
+			WHERE queue="'. intval($queueId) .'" AND player="'. intval($playerId) .'"'
+		);
+	}
+	return true;
+}
+
+function lounge_draft_assign($queueId, $playerId, $side) {
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queue_members` SET team="'. intval($side) .'"
+		WHERE queue="'. intval($queueId) .'" AND player="'. intval($playerId) .'"
+		AND team IS NULL AND dropped_at IS NULL'
+	);
+	if (!mysql_affected_rows())
+		return false;
+	// Every captain gets their own full clock, so the turn restarts here rather than running
+	// one deadline for the whole draft.
+	mysql_query(
+		'UPDATE `mklounge_queues` SET draft_turn_at=NOW() WHERE id="'. intval($queueId) .'"'
+	);
+	$state = lounge_draft_state($queueId);
+	if ($state && !count($state['available']))
+		lounge_launch_match($queueId);
+	return true;
+}
+
+function lounge_draft_pick($queueId, $captainId, $targetId) {
+	$state = lounge_draft_state($queueId);
+	if (!$state)
+		return 'no_draft';
+	if (!$state['current_captain'] || ($state['current_captain']['id'] !== intval($captainId)))
+		return 'not_your_turn';
+	return lounge_draft_assign($queueId, $targetId, $state['side']) ? null : 'not_available';
+}
+
+// "si il n'a pas selectionne a temps, on fallback sur les membres avec le plus de MMR"
+function lounge_draft_autopick($queueId) {
+	$state = lounge_draft_state($queueId);
+	if (!$state || !count($state['available']))
+		return;
+	$bestIndex = 0;
+	foreach ($state['available'] as $i => $m) {
+		$best = $state['available'][$bestIndex];
+		if (($m['mmr'] > $best['mmr']) || (($m['mmr'] === $best['mmr']) && ($m['id'] < $best['id'])))
+			$bestIndex = $i;
+	}
+	lounge_draft_assign($queueId, $state['available'][$bestIndex]['id'], $state['side']);
+}
+
+// Closing the vote is what picks the mode; whether that leads straight into a room or through
+// a captain draft first is the only thing that changes after it.
+function lounge_close_vote($queueId) {
 	$members = lounge_queue_members($queueId);
 	$voteRes = mysql_query(
 		'SELECT voted_mode FROM `mklounge_queue_members`
@@ -640,16 +783,45 @@ function lounge_launch_match($queueId) {
 		if ($v['voted_mode'])
 			$votes[$v['voted_mode']] = (isset($votes[$v['voted_mode']]) ? $votes[$v['voted_mode']] : 0) + 1;
 	}
-	$allowedModes = lounge_allowed_modes(count($members));
-	$mode = lounge_tally_vote($votes, $allowedModes);
+	$mode = lounge_tally_vote($votes, lounge_allowed_modes(count($members)));
+	if (lounge_draft_applies($mode, count($members)) && lounge_start_draft($queueId, $mode))
+		return null;
+	return lounge_launch_match($queueId, $mode);
+}
+
+function lounge_start_voting($queueId) {
+	mysql_query(
+		'UPDATE `mklounge_queues` SET status="voting", ready_at=NOW()
+		WHERE id="'. intval($queueId) .'" AND status IN ("open","locked")'
+	);
+}
+
+function lounge_launch_match($queueId, $mode = null) {
+	$queueRow = mysql_fetch_array(mysql_query(
+		'SELECT id, season, tier, mode FROM `mklounge_queues`
+		WHERE id="'. intval($queueId) .'" AND status IN ("voting","drafting")'
+	));
+	if (!$queueRow) return null;
+
+	$members = lounge_queue_members($queueId);
+	if (is_null($mode))
+		$mode = $queueRow['mode'];
+	if (!$mode)
+		return null;
 
 	global $q;
 	$q = mysql_query(
-		'UPDATE `mklounge_queues` SET status="launching"
-		WHERE id="'. intval($queueId) .'" AND status="voting"'
+		'UPDATE `mklounge_queues` SET status="launching", mode="'. mysql_real_escape_string($mode) .'"
+		WHERE id="'. intval($queueId) .'" AND status IN ("voting","drafting")'
 	);
 	if (!mysql_affected_rows())
 		return null;
+
+	$fixedTeams = array();
+	foreach ($members as $m) {
+		if (!is_null($m['team']))
+			$fixedTeams[(string) $m['id']] = $m['team'];
+	}
 
 	// The link belongs to the oldest account in the lineup. Staff wanted a real owner rather
 	// than nobody, so that whoever is most likely to know the system can repair the room -
@@ -665,7 +837,7 @@ function lounge_launch_match($queueId) {
 		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'. $key .'",player="'. intval($owner) .'"');
 	} while (!mysql_affected_rows());
 
-	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members))));
+	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members), $fixedTeams)));
 	mysql_query(
 		'INSERT INTO `mkgameoptions` SET id="'. $key .'", rules="'. $rulesJson .'", public=0'
 	);
@@ -686,9 +858,10 @@ function lounge_launch_match($queueId) {
 	$matchId = mysql_insert_id();
 	foreach ($members as $m) {
 		mysql_query(
-			'INSERT INTO `mklounge_match_players` (`match`, player, perso)
+			'INSERT INTO `mklounge_match_players` (`match`, player, perso, team)
 			VALUES ("'. intval($matchId) .'", "'. intval($m['id']) .'", '.
-			(is_null($m['perso']) ? 'NULL' : '"'. mysql_real_escape_string($m['perso']) .'"') .')'
+			(is_null($m['perso']) ? 'NULL' : '"'. mysql_real_escape_string($m['perso']) .'"') .', '.
+			(is_null($m['team']) ? 'NULL' : intval($m['team'])) .')'
 		);
 	}
 
@@ -1331,6 +1504,16 @@ function lounge_tick() {
 	// The official rules never penalise a missed vote, so the deadline just falls back to
 	// the majority of the players who did vote rather than cancelling on the whole lineup.
 	while ($row = mysql_fetch_array($voteDeadlines)) {
-		lounge_launch_match(intval($row['id']));
+		lounge_close_vote(intval($row['id']));
+	}
+
+	$draftDeadlines = mysql_query(
+		'SELECT id FROM `mklounge_queues`
+		WHERE status="drafting"
+		AND draft_turn_at IS NOT NULL
+		AND draft_turn_at < (NOW() - INTERVAL '. intval(lounge_setting('draft_pick_seconds')) .' SECOND)'
+	);
+	while ($row = mysql_fetch_array($draftDeadlines)) {
+		lounge_draft_autopick(intval($row['id']));
 	}
 }
