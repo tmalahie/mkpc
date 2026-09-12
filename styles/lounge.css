@@ -1,14 +1,44 @@
+/* The lounge borrows the site's furniture rather than inventing its own: the red nav
+   gradient and its orange active pill, the green section bar with its mushroom, panels
+   boxed in a grooved border over alternating rows, dark-red Verdana headings and green
+   action buttons. Every value below comes from styles/main.css. */
+:root {
+	--mk-ink: #000;
+	--mk-muted: #677;
+	--mk-heading: #560000;
+	--mk-rule: #880000;
+	--mk-row: #FFF6EC;
+	--mk-row-alt: #FFE6D2;
+	--mk-row-hover: #FFFDF8;
+	--mk-row-self: #FFEFAE;
+	--mk-nav-top: #C00;
+	--mk-nav-bottom: #500;
+	--mk-nav-active: #F60;
+	--mk-gold: #F0C92E;
+	--mk-green: #0C0;
+	--mk-green-dark: #080;
+	--mk-bar: #80CE2F;
+	--mk-danger: #C00;
+}
+
 html, body {
 	margin: 0;
 	padding: 0;
 	height: 100%;
 	font-family: Helvetica, Arial, sans-serif;
-	color: #f0f0f0;
-	background: #15161a;
+	font-size: 16px;
+	color: var(--mk-ink);
+	background: #fff;
 }
 
 a {
-	color: #f0c92e;
+	color: var(--mk-heading);
+}
+
+h2 {
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	color: var(--mk-heading);
 }
 
 .lounge-gate {
@@ -16,9 +46,15 @@ a {
 	margin: 80px auto;
 	text-align: center;
 	padding: 24px;
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 8px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+}
+
+.lounge-gate h1 {
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	font-size: 24px;
+	color: var(--mk-heading);
 }
 
 #lounge {
@@ -33,38 +69,38 @@ a {
 	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
-	padding: 12px 20px;
-	background: linear-gradient(180deg, #1f2128 0%, #15161a 100%);
-	border-bottom: 1px solid #2a2c33;
+	padding: 8px 16px;
+	background: linear-gradient(var(--mk-nav-top), var(--mk-nav-bottom));
 }
 
 .lounge-header h1 {
 	margin: 0;
-	font-size: 18px;
-	letter-spacing: 0.04em;
-	color: #f0c92e;
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	font-size: 20px;
+	color: #fff;
+	text-shadow: 1px 1px 2px #300;
 }
 
 .lounge-tabs {
 	display: flex;
-	gap: 6px;
+	gap: 4px;
 }
 
 .lounge-tab {
 	appearance: none;
 	background: transparent;
-	color: #c9cbd3;
-	border: 1px solid #2a2c33;
+	color: #fff;
+	border: none;
 	padding: 6px 14px;
-	border-radius: 999px;
+	border-radius: 10px;
 	cursor: pointer;
-	font-size: 13px;
-	transition: background 0.15s, color 0.15s, border-color 0.15s;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: bold;
 }
 
 .lounge-tab:hover {
-	background: #20232b;
-	color: #fff;
+	color: var(--mk-gold);
 }
 
 .lounge-modlink {
@@ -72,21 +108,15 @@ a {
 	line-height: 1.4;
 }
 
-.lounge-modlink:hover {
-	background: #20232b;
-	color: #fff;
-}
-
 .lounge-tab.is-active {
-	background: #E65130;
-	border-color: #E65130;
+	background-color: var(--mk-nav-active);
 	color: #fff;
 }
 
 .lounge-tabpanel {
 	display: none;
 	flex: 1;
-	padding: 20px;
+	padding: 16px 20px 24px;
 	box-sizing: border-box;
 }
 
@@ -94,46 +124,81 @@ a {
 	display: block;
 }
 
+/* The site's section bar: the tiled green with its 1-up mushroom, used here to head a
+   screen the way the home page heads Forum, News and Track builder. */
+.lounge-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 14px;
+	margin: 0 0 12px;
+	background-color: var(--mk-bar);
+	background-image: url('../images/sidebar.png');
+	background-repeat: repeat;
+	border-radius: 10px;
+	color: #fff;
+	font-size: 120%;
+	font-weight: bold;
+}
+
+.lounge-bar::before {
+	content: "";
+	width: 36px;
+	height: 36px;
+	flex: none;
+	background: url('../images/sidebar_icon.png') no-repeat center;
+}
+
 .lounge-playerstrip {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 10px;
-	padding: 10px 12px;
+	gap: 14px;
+	padding: 8px 12px;
 	margin-bottom: 16px;
-	background: #1a1c22;
-	border: 1px solid #2a2c33;
-	border-radius: 6px;
-	font-size: 13px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	font-size: 14px;
 }
 
 .lounge-stat {
 	display: inline-flex;
 	gap: 6px;
-	align-items: baseline;
+	align-items: center;
 }
 
 .lounge-stat-label {
-	color: #8a8d96;
-	text-transform: uppercase;
-	font-size: 11px;
-	letter-spacing: 0.06em;
+	color: var(--mk-muted);
+	font-size: 13px;
 }
 
 .lounge-stat-value {
-	color: #fff;
-	font-weight: 600;
+	font-weight: bold;
 }
 
 .lounge-stat--warn .lounge-stat-value {
-	color: #f0a330;
+	color: #C60;
 }
 
 .lounge-stat--ban {
-	color: #ff5a5a;
+	color: var(--mk-danger);
+	font-weight: bold;
+}
+
+/* A rank is a coloured chip rather than coloured text: the ladder's own colours run from
+   near-black to near-white, and only a handful of them would be legible as ink. */
+.lounge-rank {
+	display: inline-block;
+	padding: 1px 8px;
+	border-radius: 9px;
+	border: solid 1px rgba(0,0,0,0.35);
+	font-size: 13px;
+	font-weight: bold;
+	line-height: 1.5;
 }
 
 .lounge-loading {
-	color: #8a8d96;
+	color: var(--mk-muted);
 	font-style: italic;
 }
 
@@ -144,10 +209,10 @@ a {
 }
 
 .lounge-tier {
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 8px;
-	padding: 16px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	padding: 14px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -155,56 +220,70 @@ a {
 }
 
 .lounge-tier.is-locked {
-	opacity: 0.5;
+	background: #EEE;
+	border-color: #999;
+	color: var(--mk-muted);
 }
 
 .lounge-tier-title {
 	margin: 0 0 4px;
+	font-family: Verdana, Helvetica, Arial, sans-serif;
 	font-size: 18px;
-	color: #f0c92e;
+	color: var(--mk-heading);
+}
+
+.lounge-tier.is-locked .lounge-tier-title {
+	color: #777;
 }
 
 .lounge-tier-range {
 	margin: 0 0 10px;
-	font-size: 12px;
-	color: #8a8d96;
+	font-size: 13px;
+	color: var(--mk-muted);
 }
 
 .lounge-tier-count {
 	margin: 0 0 14px;
-	font-size: 13px;
-	color: #c9cbd3;
+	font-size: 14px;
 }
 
-.lounge-tier-join {
+/* The site's action button, as on "Go to the forum" and "All news". */
+.lounge-tier-join,
+.lounge-confirm-btn,
+.lounge-rules-accept,
+.lounge-results-back {
 	appearance: none;
 	border: none;
-	background: #E65130;
+	background-color: var(--mk-green);
 	color: #fff;
-	padding: 8px 18px;
-	border-radius: 4px;
-	font-size: 13px;
+	font-family: inherit;
+	font-size: 16px;
+	font-weight: bold;
+	padding: 5px 14px;
+	border-radius: 5px;
 	cursor: pointer;
-	transition: background 0.15s;
 }
 
-.lounge-tier-join:hover:not(:disabled) {
-	background: #F60;
+.lounge-tier-join:hover:not(:disabled),
+.lounge-confirm-btn:hover:not(:disabled),
+.lounge-rules-accept:hover:not(:disabled),
+.lounge-results-back:hover {
+	background-color: #0E0;
 }
 
-.lounge-tier-join:disabled {
-	background: #3a3d45;
-	color: #6c6f78;
+.lounge-tier-join:disabled,
+.lounge-confirm-btn:disabled,
+.lounge-rules-accept:disabled {
+	background-color: #BBB;
+	color: #EEE;
 	cursor: not-allowed;
 }
 
 [data-panel="howitworks"] ul {
 	line-height: 1.7;
-	color: #c9cbd3;
 }
 
 [data-panel="howitworks"] h2 {
-	color: #f0c92e;
 	margin-top: 0;
 }
 
@@ -215,55 +294,64 @@ a {
 
 .lounge-waiting-header h2 {
 	margin: 0;
-	color: #f0c92e;
 	font-size: 22px;
 }
 
 .lounge-waiting-count {
 	margin: 4px 0 16px;
-	color: #c9cbd3;
+	color: var(--mk-muted);
 	font-size: 14px;
 }
 
 .lounge-waiting-status {
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 6px;
-	padding: 10px 14px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	padding: 8px 14px;
 	margin: 0 0 16px;
-	color: #c9cbd3;
-	font-size: 13px;
+	font-size: 14px;
 }
 
 .lounge-member-list {
 	list-style: none;
 	padding: 0;
 	margin: 0 0 16px;
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	overflow: hidden;
 }
 
 .lounge-member {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 10px 14px;
-	background: #1a1c22;
-	border: 1px solid #2a2c33;
-	border-radius: 6px;
-	margin-bottom: 6px;
+	padding: 8px 14px;
+	border-top: solid 1px #000;
+}
+
+.lounge-member:nth-child(2n) {
+	background: var(--mk-row-alt);
+}
+
+.lounge-member:nth-child(2n+1) {
+	background: var(--mk-row);
+}
+
+.lounge-member:first-child {
+	border-top: none;
 }
 
 .lounge-member.is-self {
-	border-color: #E65130;
+	background: var(--mk-row-self);
 }
 
 .lounge-member-name {
-	color: #fff;
-	font-weight: 600;
+	font-weight: bold;
 }
 
 .lounge-member-mmr {
-	color: #8a8d96;
-	font-size: 12px;
+	color: var(--mk-muted);
+	font-size: 13px;
 }
 
 .lounge-waiting-actions {
@@ -273,23 +361,24 @@ a {
 
 .lounge-drop {
 	appearance: none;
-	border: 1px solid #ff5a5a;
-	background: transparent;
-	color: #ff5a5a;
-	padding: 8px 18px;
-	border-radius: 4px;
-	font-size: 13px;
+	border: none;
+	background-color: var(--mk-danger);
+	color: #fff;
+	font-family: inherit;
+	font-size: 16px;
+	font-weight: bold;
+	padding: 5px 14px;
+	border-radius: 5px;
 	cursor: pointer;
-	transition: background 0.15s, color 0.15s;
 }
 
 .lounge-drop:hover:not(:disabled) {
-	background: #ff5a5a;
-	color: #fff;
+	background-color: #E00;
 }
 
 .lounge-drop:disabled {
-	opacity: 0.5;
+	background-color: #BBB;
+	color: #EEE;
 	cursor: not-allowed;
 }
 
@@ -298,39 +387,18 @@ a {
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 12px;
-	background: #2b2118;
-	border: 1px solid #6b5c33;
-	border-radius: 8px;
-	padding: 12px 14px;
+	background: #FFF6D0;
+	border: groove 2px #B80;
+	border-radius: 5px;
+	padding: 10px 14px;
 	margin: 0 0 16px;
 }
 
 .lounge-confirm-text {
 	margin: 0;
 	flex: 1 1 240px;
-	color: #f0c92e;
-	font-size: 13px;
-}
-
-.lounge-confirm-btn {
-	appearance: none;
-	background: #E65130;
-	border: 1px solid #E65130;
-	border-radius: 6px;
-	color: #fff;
-	font-size: 13px;
-	font-weight: 700;
-	padding: 8px 16px;
-	cursor: pointer;
-}
-
-.lounge-confirm-btn:hover:not(:disabled) {
-	background: #ff6244;
-}
-
-.lounge-confirm-btn:disabled {
-	opacity: 0.5;
-	cursor: default;
+	font-size: 14px;
+	font-weight: bold;
 }
 
 .lounge-alerts {
@@ -343,26 +411,26 @@ a {
 
 .lounge-alerts-toggle {
 	appearance: none;
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 999px;
-	color: #c9cbd3;
-	padding: 5px 8px 5px 11px;
-	font-size: 12px;
+	background: var(--mk-row);
+	border: solid 1px var(--mk-rule);
+	border-radius: 12px;
+	color: var(--mk-ink);
+	padding: 3px 8px 3px 11px;
+	font-family: inherit;
+	font-size: 13px;
 	cursor: pointer;
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
-	transition: border-color 0.15s;
 }
 
 .lounge-alerts-toggle:hover {
-	border-color: #E65130;
+	background: var(--mk-row-hover);
 }
 
 .lounge-alerts-icon::before {
 	content: "\1F515";
-	font-size: 13px;
+	font-size: 14px;
 }
 
 .lounge-alerts-toggle.is-on .lounge-alerts-icon::before {
@@ -371,14 +439,13 @@ a {
 
 /* the label names the setting, the state word and the switch both report it */
 .lounge-alerts-state {
-	font-size: 11px;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: #8a8d96;
+	font-size: 12px;
+	color: var(--mk-muted);
 }
 
 .lounge-alerts-toggle.is-on .lounge-alerts-state {
-	color: #f0c92e;
+	color: var(--mk-green-dark);
+	font-weight: bold;
 }
 
 .lounge-alerts-switch {
@@ -386,8 +453,8 @@ a {
 	width: 26px;
 	height: 14px;
 	border-radius: 7px;
-	background: #2a2c33;
-	border: 1px solid #3a3d45;
+	background: #DDD;
+	border: solid 1px #999;
 	position: relative;
 	transition: background 0.15s, border-color 0.15s;
 }
@@ -400,30 +467,30 @@ a {
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
-	background: #8a8d96;
+	background: #888;
 	transition: transform 0.15s, background 0.15s;
 }
 
 .lounge-alerts-toggle.is-on .lounge-alerts-switch {
-	background: #4a412a;
-	border-color: #6b5c33;
+	background: #CEF0C0;
+	border-color: var(--mk-green-dark);
 }
 
 .lounge-alerts-toggle.is-on .lounge-alerts-switch::after {
-	background: #f0c92e;
+	background: var(--mk-green-dark);
 	transform: translateX(12px);
 }
 
 .lounge-alerts-hint {
-	color: #8a8d96;
-	font-size: 11px;
+	color: var(--mk-muted);
+	font-size: 12px;
 	font-style: italic;
 }
 
 .lounge-waiting-note {
 	margin: 0;
-	color: #8a8d96;
-	font-size: 12px;
+	color: var(--mk-muted);
+	font-size: 13px;
 	font-style: italic;
 }
 
@@ -433,8 +500,8 @@ a {
 
 .lounge-vote-hint {
 	margin: 0 0 12px;
-	color: #f0a330;
-	font-size: 12px;
+	color: #C60;
+	font-size: 13px;
 	font-style: italic;
 }
 
@@ -448,11 +515,9 @@ a {
 
 .lounge-vote-group-title {
 	margin: 0 0 8px;
-	font-size: 11px;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: #8a8d96;
+	font-size: 13px;
+	font-weight: bold;
+	color: var(--mk-muted);
 }
 
 .lounge-vote-buttons {
@@ -463,26 +528,26 @@ a {
 
 .lounge-vote-btn {
 	appearance: none;
-	background: #1f2128;
-	color: #fff;
-	border: 1px solid #2a2c33;
-	border-radius: 8px;
-	padding: 14px 8px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	padding: 12px 8px;
 	cursor: pointer;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 4px;
-	transition: border-color 0.15s, background 0.15s;
+	font-family: inherit;
 }
 
 .lounge-vote-btn:hover:not(:disabled) {
-	border-color: #E65130;
+	background: var(--mk-row-hover);
 }
 
 .lounge-vote-btn.is-selected {
-	background: #E65130;
-	border-color: #E65130;
+	background: var(--mk-row-self);
+	border: solid 3px #B80;
+	padding: 11px 7px;
 }
 
 .lounge-vote-btn:disabled {
@@ -491,24 +556,15 @@ a {
 }
 
 .lounge-vote-label {
+	font-family: Verdana, Helvetica, Arial, sans-serif;
 	font-size: 16px;
-	font-weight: 700;
-	color: #f0c92e;
-}
-
-.lounge-vote-btn.is-selected .lounge-vote-label {
-	color: #fff;
+	font-weight: bold;
+	color: var(--mk-heading);
 }
 
 .lounge-vote-count {
-	font-size: 11px;
-	color: #8a8d96;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-}
-
-.lounge-vote-btn.is-selected .lounge-vote-count {
-	color: #fff;
+	font-size: 13px;
+	color: var(--mk-muted);
 }
 
 .lounge-launching {
@@ -517,12 +573,11 @@ a {
 }
 
 .lounge-launching h2 {
-	color: #f0c92e;
 	margin: 0 0 8px;
 }
 
 .lounge-launching p {
-	color: #c9cbd3;
+	color: var(--mk-muted);
 	margin: 0;
 }
 
@@ -536,119 +591,68 @@ a {
 }
 
 .lounge-results-header h2 {
-	color: #f0c92e;
 	margin: 0 0 6px;
 }
 
 .lounge-results-sub {
-	color: #8a8d96;
+	color: var(--mk-muted);
 	margin: 0;
-	font-size: 13px;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	font-size: 14px;
 }
 
-.lounge-results-table {
+/* The site's list boxes: a grooved frame, black hairlines between rows and two tints
+   alternating down them, as on the home page's forum and news panels. */
+.lounge-results-table,
+.lounge-leaderboard-table {
 	width: 100%;
 	border-collapse: collapse;
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	overflow: hidden;
 }
 
-.lounge-results-table th {
+.lounge-results-table th,
+.lounge-leaderboard-table th {
 	text-align: left;
-	font-size: 11px;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: #8a8d96;
-	padding: 6px 10px;
-	border-bottom: 1px solid #2a2c33;
+	font-size: 13px;
+	color: var(--mk-heading);
+	background: var(--mk-row-alt);
+	padding: 5px 10px;
+	border-bottom: solid 1px #000;
 }
 
-.lounge-results-row td {
-	padding: 10px;
-	border-bottom: 1px solid #1f2128;
-	color: #c9cbd3;
+.lounge-results-row td,
+.lounge-leaderboard-row td {
+	padding: 7px 10px;
+	border-top: solid 1px #000;
 }
 
-.lounge-results-row.is-self td {
-	background: #1f2128;
-	color: #fff;
+.lounge-results-row:nth-child(2n) td,
+.lounge-leaderboard-row:nth-child(2n) td {
+	background: var(--mk-row-alt);
 }
 
-.lounge-results-place {
+.lounge-results-row:nth-child(2n+1) td,
+.lounge-leaderboard-row:nth-child(2n+1) td {
+	background: var(--mk-row);
+}
+
+.lounge-results-row.is-self td,
+.lounge-leaderboard-row.is-self td {
+	background: var(--mk-row-self);
+	font-weight: bold;
+}
+
+.lounge-results-place,
+.lounge-lb-place {
 	width: 60px;
 	font-weight: bold;
-	color: #f0c92e;
+	color: var(--mk-heading);
 }
 
 .lounge-results-score,
 .lounge-results-races,
-.lounge-results-mmr {
-	text-align: right;
-	white-space: nowrap;
-}
-
-.lounge-results-races.is-short {
-	color: #e0803a;
-	cursor: help;
-}
-
-.lounge-results-penalty {
-	font-size: 11px;
-	color: #e0803a;
-}
-
-.lounge-results-back {
-	display: block;
-	margin: 22px auto 0;
-	padding: 10px 22px;
-	background: #2a2c33;
-	color: #fff;
-	border: 1px solid #3a3d47;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 14px;
-}
-
-.lounge-results-back:hover {
-	background: #343740;
-}
-
-.lounge-leaderboard-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-.lounge-leaderboard-table th {
-	text-align: left;
-	font-size: 11px;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: #8a8d96;
-	padding: 6px 10px;
-	border-bottom: 1px solid #2a2c33;
-}
-
-.lounge-leaderboard-row td {
-	padding: 9px 10px;
-	border-bottom: 1px solid #1f2128;
-	color: #c9cbd3;
-}
-
-.lounge-leaderboard-row.is-self td {
-	background: #1f2128;
-	color: #fff;
-}
-
-.lounge-lb-place {
-	width: 60px;
-	font-weight: bold;
-	color: #f0c92e;
-}
-
-.lounge-lb-rank {
-	font-weight: bold;
-}
-
+.lounge-results-mmr,
 .lounge-lb-mmr,
 .lounge-lb-games,
 .lounge-lb-avg {
@@ -656,8 +660,23 @@ a {
 	white-space: nowrap;
 }
 
+.lounge-results-races.is-short {
+	color: #C60;
+	cursor: help;
+}
+
+.lounge-results-penalty {
+	font-size: 12px;
+	color: var(--mk-danger);
+}
+
+.lounge-results-back {
+	display: block;
+	margin: 22px auto 0;
+}
+
 .lounge-empty {
-	color: #8a8d96;
+	color: var(--mk-muted);
 	text-align: center;
 	padding: 40px 20px;
 }
@@ -667,17 +686,24 @@ a {
 	grid-column: 1 / -1;
 	max-width: 720px;
 	margin: 0 auto;
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 10px;
-	padding: 20px 24px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	padding: 16px 22px 20px;
+}
+
+.lounge-rules-gate {
+	padding-top: 14px;
+}
+
+.lounge-rules-gate .lounge-bar {
+	margin-bottom: 8px;
 }
 
 .lounge-rules-body h2,
 .lounge-access-block h2 {
 	margin-top: 0;
-	color: #f0c92e;
-	font-size: 18px;
+	font-size: 20px;
 }
 
 .lounge-rules-body ul,
@@ -686,48 +712,28 @@ a {
 	line-height: 1.6;
 }
 
-.lounge-rules-body a {
-	color: #E65130;
-}
-
 .lounge-rules-check {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	margin: 18px 0 14px;
 	padding-top: 16px;
-	border-top: 1px solid #2a2c33;
+	border-top: solid 1px var(--mk-rule);
 	cursor: pointer;
-	font-size: 14px;
-}
-
-.lounge-rules-accept {
-	appearance: none;
-	background: #E65130;
-	color: #fff;
-	border: none;
-	border-radius: 6px;
-	padding: 10px 22px;
-	font-size: 14px;
-	cursor: pointer;
-}
-
-.lounge-rules-accept:disabled {
-	background: #2a2c33;
-	color: #6d707a;
-	cursor: not-allowed;
+	font-size: 15px;
 }
 
 .lounge-access-block li.is-met {
-	color: #27dd6a;
+	color: var(--mk-green-dark);
 }
 
 .lounge-access-block li.is-unmet {
-	color: #ff5a5a;
+	color: var(--mk-danger);
 }
 
 .lounge-access-note {
-	color: #ff5a5a;
+	color: var(--mk-danger);
+	font-weight: bold;
 }
 
 .lounge-draft {
@@ -736,13 +742,12 @@ a {
 
 .lounge-draft-turn {
 	text-align: center;
-	font-size: 15px;
-	color: #c8cad2;
+	font-size: 16px;
 	margin: 0 0 16px;
 }
 
 .lounge-draft-turn.is-mine {
-	color: #f0c92e;
+	color: var(--mk-heading);
 	font-weight: bold;
 }
 
@@ -753,16 +758,17 @@ a {
 }
 
 .lounge-draft-team {
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 8px;
-	padding: 12px 16px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	padding: 10px 16px;
 }
 
 .lounge-draft-team h3 {
 	margin: 0 0 8px;
-	font-size: 14px;
-	color: #f0c92e;
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	font-size: 15px;
+	color: var(--mk-heading);
 }
 
 .lounge-draft-team ol {
@@ -788,32 +794,34 @@ a {
 	flex-direction: column;
 	align-items: center;
 	gap: 2px;
-	background: #1f2128;
-	border: 1px solid #2a2c33;
-	border-radius: 8px;
-	color: #fff;
-	padding: 10px 18px;
-	font-size: 14px;
+	background: var(--mk-row);
+	border: groove 2px var(--mk-rule);
+	border-radius: 5px;
+	padding: 8px 18px;
+	font-family: inherit;
+	font-size: 15px;
 	cursor: pointer;
 }
 
 .lounge-draft-pick:enabled:hover {
-	border-color: #E65130;
+	background: var(--mk-row-hover);
 }
 
 .lounge-draft-pick:disabled {
-	color: #6d707a;
+	background: #EEE;
+	border-color: #999;
+	color: var(--mk-muted);
 	cursor: default;
 }
 
 .lounge-draft-pick-mmr {
-	font-size: 12px;
-	color: #8a8d96;
+	font-size: 13px;
+	color: var(--mk-muted);
 }
 
 .lounge-draft-hint {
 	text-align: center;
-	font-size: 12px;
-	color: #8a8d96;
+	font-size: 13px;
+	color: var(--mk-muted);
 	margin: 14px 0 0;
 }
