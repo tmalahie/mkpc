@@ -21,6 +21,9 @@ export function loungeBotPattern(tag: string): string {
 // Private-game keys are normally random, so the specs that stage a finished match
 // take them from a reserved range. Cleanup sweeps the range rather than a list of
 // keys the specs would have to keep in sync with it.
+// What docker/php/scripts/lounge.sql seeds every tier with, and what the specs stage against.
+export const SEEDED_MIN_PLAYERS = 4;
+
 export const LOUNGE_KEY_MIN = 990000;
 export const LOUNGE_KEY_MAX = 999999;
 
@@ -80,20 +83,26 @@ export async function cleanupLoungeQueues(namePattern: string = SEEDED_ACCOUNT) 
 // Held in a file rather than in memory because globalSetup and globalTeardown do not share
 // one. A killed run leaves the snapshot behind, and the next run keeps it rather than
 // snapshotting the emptied table, so the tuning survives that too.
+// Per-tier minimums are tuned the same way and for the same reason - a lineup of one is the
+// only way to test a mogi single-handed - so they travel with the settings.
 const SETTINGS_SNAPSHOT = join(tmpdir(), 'mkpc-lounge-settings.json');
 
 export async function stashLoungeSettings() {
   if (existsSync(SETTINGS_SNAPSHOT)) return;
-  const rows: any = await sql('SELECT name, value FROM mklounge_settings');
-  writeFileSync(SETTINGS_SNAPSHOT, JSON.stringify(rows));
+  const settings: any = await sql('SELECT name, value FROM mklounge_settings');
+  const tiers: any = await sql('SELECT code, min_players FROM mklounge_tiers');
+  writeFileSync(SETTINGS_SNAPSHOT, JSON.stringify({ settings, tiers }));
+  await sql('UPDATE mklounge_tiers SET min_players = ?', [SEEDED_MIN_PLAYERS]);
 }
 
 export async function restoreLoungeSettings() {
   if (!existsSync(SETTINGS_SNAPSHOT)) return;
-  const rows = JSON.parse(readFileSync(SETTINGS_SNAPSHOT, 'utf8'));
+  const saved = JSON.parse(readFileSync(SETTINGS_SNAPSHOT, 'utf8'));
   await sql('DELETE FROM mklounge_settings');
-  for (const row of rows)
+  for (const row of saved.settings)
     await sql('INSERT INTO mklounge_settings (name, value) VALUES (?, ?)', [row.name, row.value]);
+  for (const row of saved.tiers)
+    await sql('UPDATE mklounge_tiers SET min_players = ? WHERE code = ?', [row.min_players, row.code]);
   unlinkSync(SETTINGS_SNAPSHOT);
 }
 

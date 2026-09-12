@@ -52,7 +52,21 @@ if ($course) {
 		}
 		mysql_query('DELETE p FROM `mkplayers` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' AND j.course!='.$course);
 		$nbPlayers = $i;
-		if (isset($courseRules->cpuCount) && ($nbPlayers > 1) && ($nbPlayers < $courseRules->cpuCount)) {
+		// A ranked lineup is fixed at launch, so a member missing at the start of a race keeps
+		// their place on the grid: their own kart, under AI control, with the points they have
+		// already scored. Coming back reclaims it above, where a present player is re-seeded
+		// with controller=0.
+		$subIds = array();
+		if (!empty($courseRules->lounge) && $nbPlayers) {
+			require_once('lounge/common.php');
+			foreach (lounge_absent_members($getMap['link'], $course) as $sub) {
+				$toUpate = 'course='.$course.',controller='.$playerIds[count($subIds)%$nbPlayers].',aPts='. $sub['pts'] .','.$toUpdate0;
+				mysql_query('INSERT INTO `mkplayers` SET id='. $sub['id'] .','.$toUpate.',place=0 ON DUPLICATE KEY UPDATE '.$toUpate);
+				$subIds[] = $sub['id'];
+				$i++;
+			}
+		}
+		if (isset($courseRules->cpuCount) && ($nbPlayers > 1) && ($i < $courseRules->cpuCount)) {
 			$cpuIds = array();
 			$maxiter = 10;
 			while (!($minAvailableId = mysql_fetch_array(mysql_query('SELECT min_id FROM `mkgamecpu` WHERE course='. $course)))) {
@@ -86,7 +100,7 @@ if ($course) {
 				mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND p.id=r.player SET p.aPts=IFNULL(r.pts,0) WHERE p.course='.$course.' AND p.controller!=0');
 		}
 		else
-			mysql_query('DELETE FROM `mkplayers` WHERE course='. $course .' AND controller!=0');
+			mysql_query('DELETE FROM `mkplayers` WHERE course='. $course .' AND controller!=0'. ($subIds ? ' AND id NOT IN ('. implode(',', $subIds) .')' : ''));
 		mysql_query('SET @place=0');
 		mysql_query(
 			'UPDATE mkplayers p INNER JOIN
@@ -99,7 +113,7 @@ if ($course) {
 		$joueurs = mysql_query(
 			'(SELECT j.id,j.'.$pts_.' AS pts,j.joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,j.choice_map,j.choice_rand,j.nom,0 AS controller FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .')
 			UNION
-			(SELECT id,5000 AS pts,NULL AS joueur,IFNULL(place,1) AS place,IFNULL(team,-1) AS team,1 AS choice_map,1 AS choice_rand,NULL AS nom,controller FROM `mkplayers` WHERE course='. $course .' AND controller!=0)
+			(SELECT p.id,5000 AS pts,IF(j.joueur IN ("","0"),"mario",j.joueur) AS joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,1 AS choice_map,1 AS choice_rand,j.nom,p.controller FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON j.id=p.id WHERE p.course='. $course .' AND p.controller!=0 AND IFNULL(j.course,0)!='. $course .')
 			ORDER BY id'
 		);
 		$joueursData = array();
@@ -216,7 +230,9 @@ if ($course) {
 	echo '[[';
 	$cpuInc = 0;
 	foreach ($joueursData as $i=>$joueur) {
-		if ($joueur['controller']) {
+		// A bot standing in for an absent member is not a CPU: it races under their name and
+		// their character, and never takes one of the numbered CPU slots.
+		if ($joueur['controller'] && is_null($joueur['nom'])) {
 			if (!isset($persosList)) {
 				include('onlineRulesUtils.php');
 				ob_start();
