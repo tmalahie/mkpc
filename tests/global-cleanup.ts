@@ -3,7 +3,9 @@ import { cleanupCreations } from './helpers/mkpc';
 import { cleanupTopics } from './helpers/forum';
 import { cleanupLoungeQueues, cleanupLoungeFixtures, acceptLoungeRules } from './helpers/lounge';
 
-// Runs once before the suite and once after it, outside every worker.
+// Runs once before the suite and once after it, outside every worker - global-setup.ts and
+// global-teardown.ts are thin wrappers that call this and add whatever only belongs to their
+// end of the run.
 //
 // Cleanup used to live in per-spec beforeAll/afterAll hooks, which was the wrong
 // place for it twice over: those hooks run once per *worker*, so a worker
