@@ -446,7 +446,8 @@ function lounge_open_queues_for($playerId) {
 			'label_en' => $row['label_en'],
 			'label_fr' => $row['label_fr'],
 			'status' => $row['status'],
-			'players' => intval($row['players'])
+			'players' => intval($row['players']),
+			'members' => lounge_queue_members(intval($row['id']))
 		);
 	}
 	return $queues;
