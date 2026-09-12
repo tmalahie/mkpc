@@ -32,9 +32,25 @@ document.querySelectorAll(".flag_counter img").forEach(function(img) {
 document.querySelectorAll(".ranking_activeplayernb, .ranking_fancytitle").forEach(function(elt) {
 	var lines = elt.getAttribute("title").split(", ");
 	elt.setAttribute("title", "");
-	var fancyTitle;
+	var fancyTitle, hideTimer;
+	function placeFancyTitle() {
+		var eltPos = elt.getBoundingClientRect();
+		fancyTitle.style.left = Math.round(eltPos.left + (elt.offsetWidth-fancyTitle.offsetWidth)/2) - 3 + "px";
+		fancyTitle.style.top = eltPos.top-fancyTitle.offsetHeight-2 + "px";
+	}
 	elt.addEventListener('mouseover', function() {
-		if (fancyTitle) return;
+		// Coming back before the last one finished fading: keep the node and fade it back in.
+		// Letting its removal go ahead would take this one away instead, which is what made a
+		// second hover show nothing at all.
+		if (hideTimer) {
+			clearTimeout(hideTimer);
+			hideTimer = undefined;
+		}
+		if (fancyTitle) {
+			placeFancyTitle();
+			fancyTitle.style.opacity = 1;
+			return;
+		}
 		fancyTitle = document.createElement("div");
 		fancyTitle.className = "ranking_activeplayertitle";
 		// one node per name rather than one blob of markup: these are member-supplied
@@ -44,19 +60,19 @@ document.querySelectorAll(".ranking_activeplayernb, .ranking_fancytitle").forEac
 		});
 		fancyTitle.style.opacity = 0;
 		document.body.appendChild(fancyTitle);
-		var eltPos = elt.getBoundingClientRect();
-		fancyTitle.style.left = Math.round(eltPos.left + (elt.offsetWidth-fancyTitle.offsetWidth)/2) - 3 + "px";
-		fancyTitle.style.top = eltPos.top-fancyTitle.offsetHeight-2 + "px";
+		placeFancyTitle();
 		fancyTitle.style.opacity = 1;
 	});
 	elt.addEventListener('mouseout', function() {
 		if (!fancyTitle) return;
 		fancyTitle.style.opacity = 0;
-		setTimeout(function() {
-			if (fancyTitle) {
-				document.body.removeChild(fancyTitle);
+		// the node this timer was started for, so it can never remove a later one
+		var fading = fancyTitle;
+		hideTimer = setTimeout(function() {
+			document.body.removeChild(fading);
+			if (fancyTitle === fading)
 				fancyTitle = undefined;
-			}
+			hideTimer = undefined;
 		}, 200);
 	});
 });
