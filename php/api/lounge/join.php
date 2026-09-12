@@ -50,12 +50,19 @@ if (lounge_get_active_queue_for_player($id)) {
 
 mysql_query('START TRANSACTION');
 
+// A locked lineup is still gathering - the lock window exists so the rest of the mogi can
+// join before the vote - so it takes newcomers right up to the maximum. Only a full lineup,
+// or one that has started voting, sends the next player to a queue of their own.
 $existing = mysql_fetch_array(mysql_query(
-	'SELECT id FROM `mklounge_queues`
-	WHERE tier="'. intval($tierId) .'"
-	AND season="'. LOUNGE_CURRENT_SEASON .'"
-	AND status="open"
-	ORDER BY id LIMIT 1 FOR UPDATE'
+	'SELECT q.id FROM `mklounge_queues` q
+	WHERE q.tier="'. intval($tierId) .'"
+	AND q.season="'. LOUNGE_CURRENT_SEASON .'"
+	AND q.status IN ("open","locked")
+	AND (
+		SELECT COUNT(*) FROM `mklounge_queue_members` m
+		WHERE m.queue=q.id AND m.dropped_at IS NULL
+	) < '. intval(lounge_setting('ready_threshold')) .'
+	ORDER BY q.id LIMIT 1 FOR UPDATE'
 ));
 
 if ($existing) {
