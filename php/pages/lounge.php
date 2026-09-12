@@ -16,7 +16,7 @@ if ($id) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CT Lounge - Mario Kart PC</title>
-<link rel="stylesheet" type="text/css" href="styles/lounge.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/lounge.css?reload=2" />
 <script type="text/javascript">
 var language = <?php echo $language ? 'true':'false'; ?>;
 var mId = <?php echo $id ? intval($id) : 'null'; ?>;
@@ -61,14 +61,15 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 	</section>
 
 	<section class="lounge-tabpanel" data-panel="leaderboard">
+		<div class="lounge-bar"><?php echo $language ? 'Season leaderboard':'Classement de la saison'; ?></div>
 		<div id="lounge-leaderboard">
 			<span class="lounge-loading"><?php echo $language ? 'Loading...':'Chargement...'; ?></span>
 		</div>
 	</section>
 
 	<section class="lounge-tabpanel" data-panel="howitworks">
+		<div class="lounge-bar"><?php echo $language ? 'Lounge rules':'R&egrave;gles du lounge'; ?></div>
 		<div class="lounge-rules">
-		<h2><?php echo $language ? 'Lounge rules':'R&egrave;gles du lounge'; ?></h2>
 		<?php if ($language) { ?>
 		<p>The CT Lounge is ranked matchmaking. Pick a tier, wait for the lineup to fill, vote on the game mode, then play a 12-race mogi on the CT Project multicup. Your MMR moves with your final standing.</p>
 		<ul>
