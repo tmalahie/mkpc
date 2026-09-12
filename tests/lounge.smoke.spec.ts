@@ -1260,6 +1260,28 @@ test('a gathering lineup is advertised on the home page, to those who could join
 	await expect(tooltip).toHaveText(/^e2e-lounge-advert-1 \(MMR \d+\)$/);
 	await icon.hover();
 	await expect(tooltip).toHaveText('Ranked game - click for details');
+
+	// leaving and coming back inside the 200ms fade used to take the new tooltip away with the
+	// old one, so a second hover showed nothing at all
+	const reHover = await page.evaluate(async () => {
+		const li = document.querySelector('li.ranked_game');
+		const fire = (el: Element, type: string) => el.dispatchEvent(new MouseEvent(type, { bubbles: true }));
+		const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+		const target = li.querySelector('.ranking_activeplayernb');
+		fire(li.querySelector('.ranked_game_icon'), 'mouseout');
+		await sleep(400);
+		fire(target, 'mouseover');
+		await sleep(30);
+		fire(target, 'mouseout');
+		await sleep(50);
+		fire(target, 'mouseover');
+		await sleep(400);
+		return [...document.querySelectorAll('.ranking_activeplayertitle')]
+			.filter(t => getComputedStyle(t).opacity !== '0')
+			.map(t => t.textContent);
+	});
+	expect(reHover).toHaveLength(1);
+	expect(reHover[0]).toMatch(/^e2e-lounge-advert-1 \(MMR \d+\)$/);
 	// Join goes where the Ranked button goes: online.php, which is where a character is picked
 	await expect(gathering.locator('.action_button'))
 		.toHaveAttribute('href', /^online\.php\?mid=\d+&ranked$/);
