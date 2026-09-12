@@ -641,6 +641,17 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				return 0;
 			}
+			// A gathering ranked lineup belongs in the same list as any other online game, so it
+			// is collected here and folded into the VS tab below. Only advertised to someone who
+			// could join it: past the entry criteria, and inside that tier's MMR band.
+			$loungeQueues = array();
+			$loungeMulticup = 0;
+			if ($id) {
+				require_once('../includes/lounge/common.php');
+				$loungeMulticup = lounge_get_season_multicup();
+				if ($loungeMulticup)
+					$loungeQueues = lounge_open_queues_for($id);
+			}
 			$activePlayersByLink = array();
 			foreach ($activePlayers as $game=>$players) {
 				$playersWithLink = array();
@@ -755,12 +766,34 @@ $placeholderPath = 'images/pages/pixel.png';
 						$url .= '?'.implode('&',$urlParams);
 					echo '<a class="action_button" href="'. $url .'">'. _('Join') .'</a>';
 				}
+				// The trophy stands in for the bullet, so a ranked lineup is tellable from a normal
+				// game at a glance, and doubles as the way to find out what one is.
+				function print_lounge_line($loungeQueue) {
+					global $language, $loungeMulticup;
+					echo '<li class="ranked_game">';
+					echo '<a class="ranked_game_icon ranking_fancytitle" href="topic.php?topic=15006" target="_blank"'
+						.' title="'. _('Ranked game - click for details') .'">'
+						.'<img src="images/cups/cup1.png" alt="'. _('Ranked') .'" /></a>';
+					$loungeNames = array();
+					foreach ($loungeQueue['members'] as $loungeMember)
+						$loungeNames[] = $loungeMember['name'] .' (MMR '. $loungeMember['mmr'] .')';
+					echo '<span class="ranking_activeplayernb" title="'. htmlspecialchars(implode(', ', $loungeNames)) .'">';
+					echo FN_("{count} member", "{count} members", count: $loungeQueue['players']);
+					echo '</span> ';
+					echo P_("circuit", "in ");
+					echo '<strong>'. htmlspecialchars($language ? $loungeQueue['label_en'] : $loungeQueue['label_fr']) .'</strong>';
+					// ranked.php's destination: online.php is where a character gets picked, and
+					// the lounge opens over it once one has been
+					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. _('Join') .'</a>';
+					echo '</li>';
+				}
 				function print_active_players($game,$type) {
-					global $activePlayers, $activePlayersByLink;
-					if (!empty($activePlayers[$game])) {
+					global $activePlayers, $activePlayersByLink, $loungeQueues;
+					$lounge = $game ? array() : $loungeQueues;
+					if (!empty($activePlayers[$game]) || !empty($lounge)) {
 						echo '<div class="ranking_current" id="ranking_current_'.$type.'">';
-						$firstPlayer = reset($activePlayers[$game]);
-						if ((count($activePlayersByLink[$game]) < 2) && !$firstPlayer['link'] && !$firstPlayer['cup']) {
+						$firstPlayer = !empty($activePlayers[$game]) ? reset($activePlayers[$game]) : null;
+						if ($firstPlayer && empty($lounge) && (count($activePlayersByLink[$game]) < 2) && !$firstPlayer['link'] && !$firstPlayer['cup']) {
 							echo '<span class="ranking_list">';
 							echo _('Currently online:');
 							echo ' ';
@@ -772,13 +805,17 @@ $placeholderPath = 'images/pages/pixel.png';
 						else {
 							echo _('Currently online:');
 							echo '<ul class="ranking_list_game">';
-							foreach ($activePlayersByLink[$game] as $players) {
-								echo '<li>';
-								$params = reset($players);
-								print_players_raw($players, $params);
-								print_join_button($params);
-								echo '</li>';
+							if (!empty($activePlayers[$game])) {
+								foreach ($activePlayersByLink[$game] as $players) {
+									echo '<li>';
+									$params = reset($players);
+									print_players_raw($players, $params);
+									print_join_button($params);
+									echo '</li>';
+								}
 							}
+							foreach ($lounge as $loungeQueue)
+								print_lounge_line($loungeQueue);
 							echo '</ul>';
 						}
 						echo '</div>';
@@ -798,30 +835,6 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 			print_active_players(0,'vs');
 			print_active_players(1,'battle');
-			// A gathering ranked lineup is only advertised to someone who could join it: past
-			// the entry criteria, and inside that tier's MMR band. Tier All has no band, so it
-			// reaches every eligible player including one who has never queued.
-			if ($id) {
-				require_once('../includes/lounge/common.php');
-				$loungeQueues = lounge_open_queues_for($id);
-				if (!empty($loungeQueues)) {
-					echo '<div class="ranking_current" id="ranking_current_ranked">';
-					echo _('Ranked games gathering:');
-					echo '<ul class="ranking_list_game">';
-					foreach ($loungeQueues as $loungeQueue) {
-						echo '<li>';
-						echo '<span class="ranking_activeplayernb">';
-						echo FN_("{count} member", "{count} members", count: $loungeQueue['players']);
-						echo '</span> ';
-						echo P_("circuit", "in ");
-						echo '<strong>'. htmlspecialchars($language ? $loungeQueue['label_en'] : $loungeQueue['label_fr']) .'</strong>';
-						echo '<a class="action_button" href="lounge.php">'. _('Join') .'</a>';
-						echo '</li>';
-					}
-					echo '</ul>';
-					echo '</div>';
-				}
-			}
 			?>
 			</div>
 			<div id="clm_cc">
