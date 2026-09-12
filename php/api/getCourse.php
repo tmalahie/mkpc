@@ -135,6 +135,18 @@ if ($id) {
 			$pendingCourse = $newCourse;
 		}
 	}
+	// A lounge room pins minPlayers to the exact lineup, so one member who never opens the link
+	// leaves the rest waiting for ever. The lounge has a join timeout for exactly that, but
+	// nothing ticks it before the first race, and by then everyone has left the lounge page - so
+	// it gets its chance here, where the waiting is. Called once the caller has been placed in
+	// the room, so the first player to arrive is not mistaken for nobody having turned up.
+	function resolve_lounge_join_timeout() {
+		global $nlink, $linkOptions;
+		if (empty($linkOptions->rules->lounge))
+			return;
+		require_once(__DIR__ .'/../includes/lounge/common.php');
+		lounge_resolve_join_timeout($nlink);
+	}
 	function check_for_active_games($course=0) {
 		global $id, $spectatorId, $time, $cupSQL, $noJoin, $newSpectatorId, $newSpectatorState, $linkOptions;
 		if ($spectatorId) return false;
@@ -341,6 +353,7 @@ if ($id) {
 				addLog("course updated $course");
 				switchCourseIfNeeded();
 			}
+			resolve_lounge_join_timeout();
 			return_failure();
 		}
 	}
