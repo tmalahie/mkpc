@@ -25549,9 +25549,9 @@ function openLoungeOverlay(opts) {
 	oFrame.src = "lounge.php" + (aFrameParams.length ? ("?" + aFrameParams.join("&")) : "");
 	oFrame.style.width = "min(960px, 95vw)";
 	oFrame.style.height = "min(720px, 92vh)";
-	oFrame.style.border = "1px solid #2a2c33";
+	oFrame.style.border = "groove 4px #880000";
 	oFrame.style.borderRadius = "8px";
-	oFrame.style.background = "#15161a";
+	oFrame.style.background = "#fff";
 	oFrame.style.boxShadow = "0 8px 32px rgba(0,0,0,0.6)";
 	oOverlay.appendChild(oFrame);
 
@@ -25565,9 +25565,9 @@ function openLoungeOverlay(opts) {
 	oClose.style.width = "36px";
 	oClose.style.height = "36px";
 	oClose.style.fontSize = "18px";
-	oClose.style.background = "#1f2128";
+	oClose.style.background = "#C00";
 	oClose.style.color = "#fff";
-	oClose.style.border = "1px solid #2a2c33";
+	oClose.style.border = "solid 2px #500";
 	oClose.style.borderRadius = "999px";
 	oClose.style.cursor = "pointer";
 	oClose.onclick = closeLoungeOverlay;
