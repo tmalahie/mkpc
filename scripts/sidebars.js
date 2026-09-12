@@ -29,16 +29,19 @@ document.querySelectorAll(".flag_counter img").forEach(function(img) {
 	});
 });
 
-document.querySelectorAll(".ranking_activeplayernb").forEach(function(elt) {
-	var title = elt.getAttribute("title");
-	title = title.replace(/, /g, "<br />");
+document.querySelectorAll(".ranking_activeplayernb, .ranking_fancytitle").forEach(function(elt) {
+	var lines = elt.getAttribute("title").split(", ");
 	elt.setAttribute("title", "");
 	var fancyTitle;
 	elt.addEventListener('mouseover', function() {
 		if (fancyTitle) return;
 		fancyTitle = document.createElement("div");
 		fancyTitle.className = "ranking_activeplayertitle";
-		fancyTitle.innerHTML = title;
+		// one node per name rather than one blob of markup: these are member-supplied
+		lines.forEach(function(line, i) {
+			if (i) fancyTitle.appendChild(document.createElement("br"));
+			fancyTitle.appendChild(document.createTextNode(line));
+		});
 		fancyTitle.style.opacity = 0;
 		document.body.appendChild(fancyTitle);
 		var eltPos = elt.getBoundingClientRect();
