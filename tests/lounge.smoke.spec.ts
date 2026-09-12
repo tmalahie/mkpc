@@ -1239,20 +1239,37 @@ test('a gathering lineup is advertised on the home page, to those who could join
 	await login(page, loungeBotName('advert', 1), LOUNGE_BOT_PASSWORD);
 	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
 
-	// the seeded account is past the criteria, so it is invited
+	// the seeded account is past the criteria, so it is invited - in the VS list, alongside
+	// any other online game rather than in a section of its own
 	await login(page);
 	await page.goto('http://127.0.0.1:8080/index.php');
-	const gathering = page.locator('#ranking_current_ranked');
-	await expect(gathering).toBeVisible();
+	const gathering = page.locator('#ranking_current_vs li.ranked_game');
+	await expect(gathering).toHaveCount(1);
 	await expect(gathering).toContainText('1 member');
 	await expect(gathering).toContainText('Tier All');
+	// the trophy stands in for the bullet and explains what a ranked game is; ranking_fancytitle
+	// is what sidebars.js turns into the styled tooltip the other lines use
+	const icon = gathering.locator('.ranked_game_icon');
+	await expect(icon).toHaveAttribute('href', 'topic.php?topic=15006');
+	await expect(icon).toHaveClass(/ranking_fancytitle/);
+	// the member count names them, the way a normal game's does. sidebars.js moves the title
+	// into its own element, so the tooltip is what there is to assert on.
+	// the previous tooltip fades out rather than vanishing, so the newest one is the one to read
+	const tooltip = page.locator('.ranking_activeplayertitle').last();
+	await gathering.locator('.ranking_activeplayernb').hover();
+	await expect(tooltip).toHaveText(/^e2e-lounge-advert-1 \(MMR \d+\)$/);
+	await icon.hover();
+	await expect(tooltip).toHaveText('Ranked game - click for details');
+	// Join goes where the Ranked button goes: online.php, which is where a character is picked
+	await expect(gathering.locator('.action_button'))
+		.toHaveAttribute('href', /^online\.php\?mid=\d+&ranked$/);
 
 	// a player short of the criteria is not shown a lineup they could not join
 	const shortName = 'e2e-lounge-advert-short';
 	await createEntryBot(shortName, 500);
 	await login(page, shortName, LOUNGE_BOT_PASSWORD);
 	await page.goto('http://127.0.0.1:8080/index.php');
-	await expect(page.locator('#ranking_current_ranked')).toHaveCount(0);
+	await expect(page.locator('li.ranked_game')).toHaveCount(0);
 
 	await sql(`DELETE FROM mkjoueurs WHERE nom = ?`, [shortName]);
 	await login(page);
