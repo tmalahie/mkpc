@@ -581,9 +581,20 @@ a {
 }
 
 .lounge-results-score,
+.lounge-results-races,
 .lounge-results-mmr {
 	text-align: right;
 	white-space: nowrap;
+}
+
+.lounge-results-races.is-short {
+	color: #e0803a;
+	cursor: help;
+}
+
+.lounge-results-penalty {
+	font-size: 11px;
+	color: #e0803a;
 }
 
 .lounge-results-back {
