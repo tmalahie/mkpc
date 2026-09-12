@@ -1109,6 +1109,61 @@ test('a lost #mllu message is replaced exactly once', async ({ page }) => {
 	await sql(`DELETE FROM mklounge_state`);
 });
 
+// Between the launch and the first race a lounge match has no supervision at all: everyone has
+// left the lounge page, so lounge_tick() never runs, and reload.php only reaches the lounge at
+// the end of a race. A lineup that never fully turned up hung there for ever.
+test('a room nobody fully joined is relaxed rather than left hanging', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const key = LOUNGE_KEY_MIN + 40;
+	const bots = await createLoungeBots(3, 'relax');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`DELETE FROM mkprivgame WHERE id = ?`, [key]);
+	await sql(`INSERT INTO mkprivgame (id, player) VALUES (?, ?)`, [key, bots[0]]);
+	await sql(
+		`INSERT INTO mkgameoptions (id, public, rules) VALUES (?, 0, ?)
+		 ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ minPlayers: 5, maxPlayers: 5, friendly: 1, localScore: 1, lounge: 1 })]
+	);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, launched_at, privgame_key, mode)
+		 VALUES (1, ?, 'launched', NOW(), ?, 'FFA')`, [tier.id, key]
+	);
+	// Three of the five reach the room; the other two never open the link. None of them has an
+	// mkplayers row yet - those only appear once setMap has run - so this also covers the lounge
+	// being unable to see a player who is still in matchmaking, and voiding the mogi over it.
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, UNIX_TIMESTAMP(NOW())+35, 0, 0, ?)`,
+		[key]
+	);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id IN (?)`, [room.insertId, bots]);
+
+	await sql(
+		`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]
+	);
+	await login(page, loungeBotName('relax', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [q.insertId]);
+	// the mogi survives: three is enough to race
+	expect(queue.status).toBe('launched');
+
+	const [options]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	const rules = JSON.parse(options.rules);
+	expect(rules.minPlayers).toBe(3);
+	// cpuCount is the field size setMap fills up to - setting only `cpu` created no bots at all
+	expect(rules.cpuCount).toBe(5);
+	// Extreme outside the top two tiers, which staff settled on the call
+	expect(rules.cpuLevel).toBe(-1);
+
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id IN (?)`, [bots]);
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('relax'));
+});
+
 // The captain draft, settled with staff on 2026-09-06: the two highest-rated players captain
 // the two sides and fill them by hand before the room ever opens, so the in-game team screen
 // is skipped entirely.
