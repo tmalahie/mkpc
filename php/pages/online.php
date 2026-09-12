@@ -63,6 +63,11 @@ if (isset($_GET['key'])) {
 	}
 }
 $isRanked = isset($_GET['ranked']);
+// Ranked is only offered to a player who could actually enter it. Someone short of the entry
+// criteria gets no button at all rather than one that turns them away after a click.
+require_once('../includes/lounge/common.php');
+$loungeEligible = lounge_is_eligible($id);
+$loungeUnlockBanner = $loungeEligible && lounge_should_show_unlock_banner($id);
 // A lounge link has no owner, so without this nobody could ever edit a mogi's rules; a
 // lounge moderator stands in for the human host the Discord mogis rely on.
 $canEditLink = false;
@@ -240,6 +245,8 @@ var complete = <?php echo $complete ? 'true':'false'; ?>;
 var simplified = <?php echo $simplified ? 'true':'false'; ?>;
 var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
 var isRanked = <?php echo $isRanked ? 'true':'false'; ?>;
+var loungeEligible = <?php echo $loungeEligible ? 'true':'false'; ?>;
+var loungeUnlockBanner = <?php echo $loungeUnlockBanner ? 'true':'false'; ?>;
 var rankedPerso = <?php echo isset($rankedPerso) ? json_encode($rankedPerso):'null'; ?>;
 var shareLink = {
 	key: <?php echo isset($privateLink) ? "'$privateLink'":'null'; ?>,

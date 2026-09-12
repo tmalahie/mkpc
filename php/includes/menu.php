@@ -405,6 +405,31 @@
 						else
 							$toDelete = true;
 						break;
+					case 'lounge_queue' :
+						$linkData = explode(',', $myNotif['link']);
+						require_once('lounge/common.php');
+						$loungeQueue = mysql_fetch_array(mysql_query(
+							'SELECT q.status, t.code, t.label_en, t.label_fr, t.min_mmr, t.max_mmr,
+								SUM(m.player="'. $linkData[1] .'") AS joiner_still_in
+							FROM `mklounge_queues` q
+							INNER JOIN `mklounge_tiers` t ON t.id=q.tier
+							LEFT JOIN `mklounge_queue_members` m ON m.queue=q.id AND m.dropped_at IS NULL
+							WHERE q.id="'. $linkData[0] .'" AND q.status IN ("open","locked","voting","drafting")
+							GROUP BY q.id'
+						));
+						// gone once the lineup breaks up or starts, and never shown to someone who
+						// has since stopped being able to join it
+						$loungeState = lounge_get_player_state($id);
+						if ($loungeQueue && intval($loungeQueue['joiner_still_in'])
+							&& lounge_is_eligible($id)
+							&& lounge_tier_eligible($loungeQueue, $loungeState['mmr'])) {
+							$notifData['sender'] = $linkData[1];
+							$notifData['title'] = $language ? $loungeQueue['label_en'] : $loungeQueue['label_fr'];
+							$notifData['link'] = 'lounge.php#tier-'. $loungeQueue['code'];
+						}
+						else
+							$toDelete = true;
+						break;
 					case 'new_record' :
 						if ($rData = mysql_fetch_array(mysql_query('SELECT r.* FROM `mkrecords` r LEFT JOIN mkrecords r2 ON r2.identifiant='.$identifiants[0].' AND r2.identifiant2='.$identifiants[1].' AND r2.identifiant3='.$identifiants[2].' AND r2.identifiant4='.$identifiants[3].' AND r2.class=r.class AND r2.type=r.type AND r2.circuit=r.circuit AND r2.time<r.time WHERE r.id="'. $myNotif['link'] .'" AND r2.id IS NULL'))) {
 							$notifData['link'] = 'classement.php?map='. $rData['circuit'] .'&cc='. $rData['class'];
@@ -675,6 +700,12 @@
 				elseif ($notifData['battle'])
 					$additionnal = $language ? ' in <strong>battle</strong> mode':' en mode <strong>bataille</strong>';
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'currently playing online':'actuellement en ligne') . $additionnal;
+				break;
+			case 'lounge_queue':
+				$verb = $language
+					? ((count($names)>1) ? 'are queueing for a ranked game in':'is queueing for a ranked game in')
+					: ((count($names)>1) ? 'cherchent une partie classée en':'cherche une partie classée en');
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'new_record':
 				include_once('circuitNames.php');

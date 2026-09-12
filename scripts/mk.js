@@ -6305,6 +6305,71 @@ function reprendre(debug) {
 	}
 }
 
+// Shown once a player crosses the entry criteria, above the button it is pointing at. It
+// comes back on every online.php load until they either use ranked or say not to - which is
+// the server's call, handed over as loungeUnlockBanner.
+function rankedUnlockBanner() {
+	var banner = document.createElement("div");
+	banner.style.position = "absolute";
+	// the band to the left of the two buttons: the character grid above it and the menu links
+	// below it are the only things on this screen that must not be covered
+	banner.style.left = (1.5*iScreenScale)+"px";
+	banner.style.top = (28.3*iScreenScale)+"px";
+	banner.style.width = (59*iScreenScale)+"px";
+	banner.style.boxSizing = "border-box";
+	banner.style.padding = Math.round(iScreenScale*0.5)+"px";
+	banner.style.backgroundColor = "rgba(230, 81, 48, 0.95)";
+	banner.style.border = "solid 1px white";
+	banner.style.borderRadius = Math.round(iScreenScale*0.8)+"px";
+	banner.style.color = "white";
+	banner.style.fontSize = Math.round(1.6*iScreenScale)+"px";
+	banner.style.lineHeight = "1.3";
+	banner.style.textAlign = "center";
+
+	var message = document.createElement("div");
+	message.appendChild(document.createTextNode(toLanguage(
+		"Congratulations! You unlocked ranked games ",
+		"Félicitations ! Vous avez débloqué les parties classées "
+	)));
+	var help = document.createElement("a");
+	help.href = "topic.php?topic=15006";
+	help.target = "_blank";
+	help.rel = "noopener";
+	help.style.color = "white";
+	help.style.textDecoration = "underline";
+	help.title = toLanguage("What are ranked games?", "Qu'est-ce que les parties classées ?");
+	help.appendChild(document.createTextNode("[?]"));
+	message.appendChild(help);
+	banner.appendChild(message);
+
+	function bannerAction(labelEn, labelFr, onclick) {
+		var action = document.createElement("a");
+		action.href = "#null";
+		action.style.color = "white";
+		action.style.textDecoration = "underline";
+		action.style.margin = "0 "+ Math.round(iScreenScale*0.8) +"px";
+		action.appendChild(document.createTextNode(toLanguage(labelEn, labelFr)));
+		action.onclick = function() {
+			onclick();
+			if (banner.parentNode)
+				banner.parentNode.removeChild(banner);
+			return false;
+		};
+		return action;
+	}
+	var actions = document.createElement("div");
+	actions.style.marginTop = Math.round(iScreenScale*0.3)+"px";
+	actions.style.fontSize = Math.round(1.4*iScreenScale)+"px";
+	actions.appendChild(bannerAction("Dismiss", "Masquer", function() {}));
+	actions.appendChild(bannerAction("Don't show again", "Ne plus afficher", function() {
+		xhr("lounge/dismiss-unlock.php", null, function() {
+			return true;
+		});
+	}));
+	banner.appendChild(actions);
+	return banner;
+}
+
 function onlineExitLink() {
 	// ranked.php and the lounge both build their links as online.php?mid=...&ranked, so the
 	// way back is spelled the same rather than going through onlineModeLink(), whose param
@@ -26312,7 +26377,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				}
 			}
 			else if (!isRanked) {
-				if (document.location.pathname.split("/").pop() == "online.php" && !document.location.search) {
+				// Ranked is hidden from anyone who could not enter it anyway: online VS points
+				// and account age are checked server-side and handed over as loungeEligible.
+				if (document.location.pathname.split("/").pop() == "online.php" && !document.location.search
+					&& (typeof loungeEligible !== "undefined") && loungeEligible) {
+					if ((typeof loungeUnlockBanner !== "undefined") && loungeUnlockBanner)
+						oScr.appendChild(rankedUnlockBanner());
 					var oPInput = document.createElement("input");
 					oPInput.type = "button";
 					oPInput.value = toLanguage("Ranked game...", "Partie classée...");
