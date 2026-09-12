@@ -43,6 +43,11 @@ define('LOUNGE_MATCH_MAX_MINUTES', 120);
 // How far the room's required player count may be lowered when players fail to join or
 // walk out mid-mogi. Below this there is no race worth playing.
 define('LOUNGE_MIN_RACE_PLAYERS', 2);
+// "si tu as raté plus de 4 courses tu prends -25, si tu as joué au moins 8 courses mais raté
+// au moins une tu prends -10": the bot races in the member's place, so their result still
+// stands and the absence is charged as a flat adjustment on top of it.
+define('LOUNGE_ABSENCE_PENALTY_MAJOR', 25);
+define('LOUNGE_ABSENCE_PENALTY_MINOR', 10);
 
 // Everything below is staff-tunable from admin-lounge.php: the ladder is still finding its
 // settings, and a deploy per timer is not a workable way to run it. The constants above stay
@@ -144,6 +149,22 @@ function lounge_settings_schema() {
 			'label_fr' => 'Effectif minimum pour jouer quand même',
 			'help_en' => 'Below this a mogi is voided rather than played with bots.',
 			'help_fr' => 'En dessous, le mogi est annulé plutôt que joué avec des bots.'
+		),
+		'absence_penalty_major' => array(
+			'default' => LOUNGE_ABSENCE_PENALTY_MAJOR, 'min' => 0, 'max' => 500,
+			'group' => 'sanctions', 'unit_en' => 'MMR', 'unit_fr' => 'MMR',
+			'label_en' => 'Penalty for missing over a third of a mogi',
+			'label_fr' => 'Pénalité pour plus d\'un tiers du mogi manqué',
+			'help_en' => 'Taken off the rating a bot earned in their place.',
+			'help_fr' => 'Retirée du score gagné par le bot à sa place.'
+		),
+		'absence_penalty_minor' => array(
+			'default' => LOUNGE_ABSENCE_PENALTY_MINOR, 'min' => 0, 'max' => 500,
+			'group' => 'sanctions', 'unit_en' => 'MMR', 'unit_fr' => 'MMR',
+			'label_en' => 'Penalty for missing any race at all',
+			'label_fr' => 'Pénalité pour toute course manquée',
+			'help_en' => 'Applies when they still played most of the mogi.',
+			'help_fr' => 'S\'applique s\'ils ont joué la majeure partie du mogi.'
 		),
 		'strikes_before_ban' => array(
 			'default' => LOUNGE_STRIKES_BEFORE_BAN, 'min' => 0, 'max' => 10,
@@ -687,10 +708,14 @@ function lounge_point_distribution($playerCount) {
 	return $fallback;
 }
 
-function lounge_build_game_rules($mode, $playerCount, $fixedTeams = array()) {
+function lounge_build_game_rules($mode, $playerCount, $tierCode = '', $fixedTeams = array()) {
 	$rules = array(
 		'friendly' => 1,
 		'localScore' => 1,
+		// Not a bot count - `cpuCount` is what puts bots on the grid. This is the difficulty
+		// the client reads, and a substitute can appear from the very first race.
+		'cpu' => 1,
+		'cpuLevel' => lounge_cpu_level($tierCode),
 		'minPlayers' => $playerCount,
 		'maxPlayers' => $playerCount,
 		'itemDistrib' => array(
@@ -933,8 +958,10 @@ function lounge_start_voting($queueId) {
 
 function lounge_launch_match($queueId, $mode = null) {
 	$queueRow = mysql_fetch_array(mysql_query(
-		'SELECT id, season, tier, mode FROM `mklounge_queues`
-		WHERE id="'. intval($queueId) .'" AND status IN ("voting","drafting")'
+		'SELECT q.id, q.season, q.tier, q.mode, t.code AS tier_code
+		FROM `mklounge_queues` q
+		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
+		WHERE q.id="'. intval($queueId) .'" AND q.status IN ("voting","drafting")'
 	));
 	if (!$queueRow) return null;
 
@@ -972,7 +999,7 @@ function lounge_launch_match($queueId, $mode = null) {
 		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'. $key .'",player="'. intval($owner) .'"');
 	} while (!mysql_affected_rows());
 
-	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members), $fixedTeams)));
+	$rulesJson = mysql_real_escape_string(json_encode(lounge_build_game_rules($mode, count($members), $queueRow['tier_code'], $fixedTeams)));
 	mysql_query(
 		'INSERT INTO `mkgameoptions` SET id="'. $key .'", rules="'. $rulesJson .'", public=0'
 	);
@@ -1033,6 +1060,51 @@ function lounge_cpu_level($tierCode) {
 		: LOUNGE_CPU_LEVEL_EXTREME;
 }
 
+// The substitute, "il est remplacé par un bot": a member who is not in the room when a race
+// starts does not leave a hole in the grid. Their own kart stays on it under AI control -
+// same account id, so the same name, the same character and the points they have already
+// scored - and `setMap.php` hands it straight back the moment they come back, because a
+// present player is re-seeded there with `controller=0`.
+//
+// Keeping the member's own row is what makes the rest fall out for free: one line in the
+// standings rather than a player and a bot, `mkgamerank` accumulating under their id, and a
+// rating computed as though they had raced the whole mogi. What the absence costs them is a
+// flat penalty, applied by lounge_apply_mmr().
+function lounge_absent_members($privgameKey, $course) {
+	$members = array();
+	$res = mysql_query(
+		'SELECT mp.player, IFNULL(r.pts,0) AS pts
+		FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.ended_at IS NULL
+			AND m.privgame_key="'. intval($privgameKey) .'"
+		LEFT JOIN `mkjoueurs` j ON j.id=mp.player AND j.course="'. intval($course) .'"
+		LEFT JOIN `mkgamerank` r ON r.game="'. intval($privgameKey) .'" AND r.player=mp.player
+		WHERE j.id IS NULL
+		ORDER BY mp.player'
+	);
+	while ($row = mysql_fetch_array($res))
+		$members[] = array('id' => intval($row['player']), 'pts' => intval($row['pts']));
+	return $members;
+}
+
+// Who actually drove their own kart this race. reload.php can reach the end-of-race branch
+// from more than one client at once, so the race number is the claim: a second caller for
+// the same race finds last_race already there and counts nobody twice.
+function lounge_record_race_attendance($privgameKey, $course) {
+	$race = lounge_match_race_count($privgameKey);
+	if (!$race)
+		return;
+	mysql_query(
+		'UPDATE `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.ended_at IS NULL
+			AND m.privgame_key="'. intval($privgameKey) .'"
+		INNER JOIN `mkplayers` p ON p.id=mp.player AND p.course="'. intval($course) .'"
+			AND p.controller=0
+		SET mp.races_played=mp.races_played+1, mp.last_race="'. intval($race) .'"
+		WHERE mp.last_race < "'. intval($race) .'"'
+	);
+}
+
 // The lounge link pins minPlayers to the lineup size, so one no-show or one player walking
 // out leaves everyone else stuck on "waiting for players" for good. Staff fix that by hand
 // today - #link-guidelines tells the host to lower "Minimum number of players" by one - and
@@ -1078,7 +1150,7 @@ function lounge_room_player_count($privgameKey) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT COUNT(DISTINCT p.id) AS n FROM `mkplayers` p
 		INNER JOIN `mariokart` m ON m.id=p.course
-		WHERE m.link="'. intval($privgameKey) .'"'
+		WHERE m.link="'. intval($privgameKey) .'" AND p.controller=0'
 	));
 	return $row ? intval($row['n']) : 0;
 }
@@ -1088,9 +1160,10 @@ function lounge_room_player_count($privgameKey) {
 // struck, and strike_reason doubles as the claim so a walkout is never struck twice.
 function lounge_strike_dropouts($privgameKey, $course = 0) {
 	$inRoom = $course
-		? 'LEFT JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course="'. intval($course) .'"'
+		? 'LEFT JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course="'. intval($course) .'"
+		   AND gp.controller=0'
 		: 'LEFT JOIN (`mkplayers` gp INNER JOIN `mariokart` c ON c.id=gp.course
-		   AND c.link="'. intval($privgameKey) .'") ON gp.id=mp.player';
+		   AND c.link="'. intval($privgameKey) .'") ON gp.id=mp.player AND gp.controller=0';
 	$missing = mysql_query(
 		'SELECT mp.player FROM `mklounge_match_players` mp
 		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.privgame_key="'. intval($privgameKey) .'"
@@ -1131,8 +1204,9 @@ function lounge_maintain_match($privgameKey, $course = 0, $playersInRoom = null)
 // Called from reload.php at the end of every race. The lounge tick only runs from its own
 // endpoints, and nobody is sitting on the lounge page while a mogi is being played, so this
 // is the heartbeat a match in trouble depends on.
-function lounge_race_finished($privgameKey, $course, $playersInRoom) {
-	lounge_maintain_match($privgameKey, $course, $playersInRoom);
+function lounge_race_finished($privgameKey, $course) {
+	lounge_record_race_attendance($privgameKey, $course);
+	lounge_maintain_match($privgameKey, $course);
 }
 
 // A launched queue that stops being played has no other way out: it is not finished (fewer
@@ -1284,7 +1358,8 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 
 	$players = array();
 	$res = mysql_query(
-		'SELECT mp.player, mp.final_score, mp.final_position, mp.mmr_before, mp.mmr_after, mp.mmr_delta, j.nom
+		'SELECT mp.player, mp.final_score, mp.final_position, mp.mmr_before, mp.mmr_after,
+			mp.mmr_delta, mp.mmr_penalty, mp.races_played, j.nom
 		FROM `mklounge_match_players` mp
 		INNER JOIN `mkjoueurs` j ON j.id=mp.player
 		WHERE mp.`match`="'. intval($match['id']) .'"
@@ -1298,7 +1373,9 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
 			'mmr_before' => is_null($row['mmr_before']) ? null : (int) round($row['mmr_before']),
 			'mmr_after' => is_null($row['mmr_after']) ? null : (int) round($row['mmr_after']),
-			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta'])
+			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
+			'mmr_penalty' => is_null($row['mmr_penalty']) ? null : (int) round($row['mmr_penalty']),
+			'races_played' => intval($row['races_played'])
 		);
 	}
 	return array(
@@ -1321,7 +1398,7 @@ function lounge_match_joined_players($privgameKey) {
 	$res = mysql_query(
 		'SELECT DISTINCT p.id AS player FROM `mkplayers` p
 		INNER JOIN `mariokart` m ON m.id=p.course
-		WHERE m.link="'. intval($privgameKey) .'"
+		WHERE m.link="'. intval($privgameKey) .'" AND p.controller=0
 		UNION
 		SELECT DISTINCT j.id AS player FROM `mkjoueurs` j
 		INNER JOIN `mariokart` m ON m.id=j.course
@@ -1481,6 +1558,17 @@ function lounge_mmr_sql($value) {
 	return number_format($value, 6, '.', '');
 }
 
+// A member whose kart was driven by a bot is still rated on the result the bot produced -
+// the alternative, leaving them unrated, pays better than turning up. The absence itself is
+// charged here: "plus de 4 courses ratées" is more than a third of the mogi.
+function lounge_absence_penalty($racesPlayed, $racesTotal) {
+	if (($racesTotal <= 0) || ($racesPlayed >= $racesTotal))
+		return 0;
+	if ($racesPlayed < ceil($racesTotal*2/3))
+		return -floatval(lounge_setting('absence_penalty_major'));
+	return -floatval(lounge_setting('absence_penalty_minor'));
+}
+
 function lounge_apply_mmr($matchId) {
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT mode FROM `mklounge_matches` WHERE id="'. intval($matchId) .'"'
@@ -1488,9 +1576,18 @@ function lounge_apply_mmr($matchId) {
 	if (!$match)
 		return false;
 
+	// How long the mogi was, according to the players who were there for all of it. Taking it
+	// from attendance rather than from the setting is what keeps a missed race-end hook from
+	// charging the whole lineup with an absence none of them had.
+	$attendance = mysql_fetch_array(mysql_query(
+		'SELECT MAX(races_played) AS n FROM `mklounge_match_players`
+		WHERE `match`="'. intval($matchId) .'"'
+	));
+	$racesTotal = min(intval($attendance['n']), lounge_setting('races_per_match'));
+
 	$participants = array();
 	$res = mysql_query(
-		'SELECT mp.player, mp.team, mp.final_score, p.mmr
+		'SELECT mp.player, mp.team, mp.final_score, mp.races_played, p.mmr
 		FROM `mklounge_match_players` mp
 		LEFT JOIN `mklounge_players` p
 			ON p.player=mp.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
@@ -1503,6 +1600,7 @@ function lounge_apply_mmr($matchId) {
 			'player' => intval($row['player']),
 			'team' => $team,
 			'score' => intval($row['final_score']),
+			'penalty' => lounge_absence_penalty(intval($row['races_played']), $racesTotal),
 			'mmr' => is_null($row['mmr']) ? floatval(lounge_setting('default_mmr')) : floatval($row['mmr'])
 		);
 	}
@@ -1525,12 +1623,14 @@ function lounge_apply_mmr($matchId) {
 	foreach ($participants as $participant) {
 		$playerId = $participant['player'];
 		$before = $participant['mmr'];
-		$after = max(lounge_setting('mmr_min'), $before + $deltas[$playerId]);
+		$penalty = $participant['penalty'];
+		$after = max(lounge_setting('mmr_min'), $before + $deltas[$playerId] + $penalty);
 		mysql_query(
 			'UPDATE `mklounge_match_players`
 			SET mmr_before="'. lounge_mmr_sql($before) .'",
 				mmr_after="'. lounge_mmr_sql($after) .'",
-				mmr_delta="'. lounge_mmr_sql($after - $before) .'"
+				mmr_delta="'. lounge_mmr_sql($after - $before) .'",
+				mmr_penalty="'. lounge_mmr_sql($penalty) .'"
 			WHERE `match`="'. intval($matchId) .'" AND player="'. $playerId .'"'
 		);
 		mysql_query(

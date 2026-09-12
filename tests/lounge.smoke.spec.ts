@@ -731,6 +731,62 @@ test('the played course is recorded server-side and handed back to the room', as
 	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
 });
 
+// The substitute, rule 4db: a member missing when a race starts does not leave a hole in the
+// grid - their own kart stays on it under AI control, and they take it back when they return.
+test('an absent member keeps their kart, under a bot, until they come back', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 41;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [absent] = await createLoungeBots(1, 'sub');
+	const [{ nom: absentName }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [absent]);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 2, cpu: 1, cpuLevel: -1, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (const player of [playerId, absent])
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, player]);
+	// the points the absentee had already scored, which their bot has to carry on from
+	await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, 37)`, [key, absent]);
+
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7, choice_rand = 0 WHERE id = ?`,
+		[room.insertId, playerId]);
+
+	const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const body = await res.text();
+
+	const [kart]: any = await sql(`SELECT controller, aPts FROM mkplayers WHERE id = ? AND course = ?`,
+		[absent, room.insertId]);
+	expect(kart.controller).toBe(playerId);
+	expect(kart.aPts).toBe(37);
+	// it races under their name, not as a numbered CPU
+	expect(body).toContain(JSON.stringify(absentName));
+	expect(body).not.toContain('CPU 1');
+
+	// and it is handed straight back when they turn up
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7 WHERE id = ?`, [room.insertId, absent]);
+	await sql(`UPDATE mariokart SET map = -1, time = ? WHERE link = ?`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const [back]: any = await sql(`SELECT controller FROM mkplayers WHERE id = ? AND course = ?`,
+		[absent, room.insertId]);
+	expect(back.controller).toBe(0);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?)`, [playerId, absent]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+});
+
 // Adjusting a rating, lifting a ban or freeing a wedged queue all needed direct SQL before
 // this page existed.
 test('the lounge moderation page acts on a member and logs it', async ({ page, browser }) => {
