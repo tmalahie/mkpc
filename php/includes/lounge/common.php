@@ -895,6 +895,18 @@ function lounge_snapshot_teams($privgameKey, $course = 0) {
 	);
 }
 
+// mk.js reads these straight off the rules: Impossible=-2, Extreme=-1, Difficult=0.
+define('LOUNGE_CPU_LEVEL_EXTREME', -1);
+define('LOUNGE_CPU_LEVEL_IMPOSSIBLE', -2);
+
+// Staff settled the split on the call: the two top tiers get a bot nobody can farm, everyone
+// else gets one a human might plausibly have been.
+function lounge_cpu_level($tierCode) {
+	return in_array($tierCode, array('A', 'X'), true)
+		? LOUNGE_CPU_LEVEL_IMPOSSIBLE
+		: LOUNGE_CPU_LEVEL_EXTREME;
+}
+
 // The lounge link pins minPlayers to the lineup size, so one no-show or one player walking
 // out leaves everyone else stuck on "waiting for players" for good. Staff fix that by hand
 // today - #link-guidelines tells the host to lower "Minimum number of players" by one - and
@@ -904,8 +916,9 @@ function lounge_relax_room($privgameKey, $playersInRoom) {
 	if ($playersInRoom < lounge_setting('min_race_players'))
 		return false;
 	$row = mysql_fetch_array(mysql_query(
-		'SELECT o.rules FROM `mkgameoptions` o
+		'SELECT o.rules, t.code AS tier_code FROM `mkgameoptions` o
 		INNER JOIN `mklounge_queues` q ON q.privgame_key=o.id
+		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
 		WHERE o.id="'. intval($privgameKey) .'" AND q.status="launched"
 		AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)'
 	));
@@ -920,7 +933,14 @@ function lounge_relax_room($privgameKey, $playersInRoom) {
 	// "il est remplacé par un bot": keeping the field at its original size is what makes the
 	// point distribution, which was built for the full lineup, still add up. CPUs are left
 	// out of mkgamerank by reload.php, so they never reach the rating pass.
+	//
+	// cpuCount is the field size setMap fills up to, and the only thing it actually reads -
+	// `cpu` on its own allows bots without ever creating one.
 	$rules['cpu'] = 1;
+	$rules['cpuCount'] = isset($rules['maxPlayers'])
+		? intval($rules['maxPlayers'])
+		: $playersInRoom;
+	$rules['cpuLevel'] = lounge_cpu_level($row['tier_code']);
 	mysql_query(
 		'UPDATE `mkgameoptions` SET rules="'. mysql_real_escape_string(json_encode($rules)) .'"
 		WHERE id="'. intval($privgameKey) .'"'
@@ -1166,11 +1186,19 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 	);
 }
 
+// A `mkplayers` row only appears once setMap has run, which is after the course vote - so a
+// member still on the matchmaking or course-selection screen is in the room but invisible
+// there, and is only accounted for by `mkjoueurs`.`course`. Counting both is what keeps the
+// join timeout from voiding a mogi whose lineup is sitting right there waiting for it.
 function lounge_match_joined_players($privgameKey) {
 	$joined = array();
 	$res = mysql_query(
 		'SELECT DISTINCT p.id AS player FROM `mkplayers` p
 		INNER JOIN `mariokart` m ON m.id=p.course
+		WHERE m.link="'. intval($privgameKey) .'"
+		UNION
+		SELECT DISTINCT j.id AS player FROM `mkjoueurs` j
+		INNER JOIN `mariokart` m ON m.id=j.course
 		WHERE m.link="'. intval($privgameKey) .'"'
 	);
 	while ($row = mysql_fetch_array($res))
@@ -1239,6 +1267,24 @@ function lounge_handle_join_timeout($queueId) {
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
 	);
 	return true;
+}
+
+// Nothing ticks the lounge between the launch and the first race: reload.php only reaches it
+// at the end of one, and by then everybody has left the lounge page. A mogi whose lineup never
+// fully turned up would therefore wait for ever, so the endpoint the waiting players poll gets
+// to resolve the timeout itself. The condition mirrors lounge_tick's.
+function lounge_resolve_join_timeout($privgameKey) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT q.id FROM `mklounge_queues` q
+		LEFT JOIN `mkgamedata` d ON d.game=q.privgame_key
+		WHERE q.privgame_key="'. intval($privgameKey) .'" AND q.status="launched"
+		AND IFNULL(d.raceCount, 0)=0
+		AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)
+		AND q.launched_at >= (NOW() - INTERVAL '. intval(lounge_setting('match_max_minutes')) .' MINUTE)'
+	));
+	if (!$row)
+		return false;
+	return lounge_handle_join_timeout(intval($row['id']));
 }
 
 // Rating model of the production ladder, which runs on Lorenzi's Game Boards under its
