@@ -70,10 +70,8 @@
 		if (player.rank) {
 			var rankBadge = document.createElement('span');
 			rankBadge.className = 'lounge-stat';
-			rankBadge.innerHTML = '<span class="lounge-stat-label">'+ toLanguage('Rank','Rang') +'</span> <span class="lounge-stat-value"></span>';
-			var rankValue = rankBadge.querySelector('.lounge-stat-value');
-			rankValue.textContent = rankLabel(player.rank);
-			rankValue.style.color = player.rank.color;
+			rankBadge.innerHTML = '<span class="lounge-stat-label">'+ toLanguage('Rank','Rang') +'</span>';
+			rankBadge.appendChild(rankChip(player.rank));
 			strip.appendChild(rankBadge);
 		}
 
@@ -105,6 +103,24 @@
 	function rankLabel(rank) {
 		if (!rank) return '';
 		return language ? rank.label_en : rank.label_fr;
+	}
+
+	// The ladder's own rank colours run from near-black (Master) to near-white (Silver), so
+	// none of them can be ink on the page: the colour is the chip, and the label on it is
+	// black or white depending on how dark the chip is.
+	function rankChip(rank) {
+		var chip = document.createElement('span');
+		chip.className = 'lounge-rank';
+		chip.textContent = rankLabel(rank);
+		if (!rank || !rank.color) return chip;
+		chip.style.backgroundColor = rank.color;
+		var hex = rank.color.replace('#', '');
+		if (hex.length === 3)
+			hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+		var rgb = parseInt(hex, 16);
+		var luma = 0.299 * ((rgb >> 16) & 255) + 0.587 * ((rgb >> 8) & 255) + 0.114 * (rgb & 255);
+		chip.style.color = (luma > 150) ? '#000' : '#fff';
+		return chip;
 	}
 
 	function loadLeaderboard() {
@@ -147,8 +163,7 @@
 				row.querySelector('.lounge-lb-place').textContent = p.place;
 				row.querySelector('.lounge-lb-name').textContent = p.name;
 				var rankCell = row.querySelector('.lounge-lb-rank');
-				rankCell.textContent = rankLabel(p.rank);
-				if (p.rank) rankCell.style.color = p.rank.color;
+				if (p.rank) rankCell.appendChild(rankChip(p.rank));
 				row.querySelector('.lounge-lb-mmr').textContent = p.mmr;
 				row.querySelector('.lounge-lb-games').textContent = p.games + ' (' + p.wins + 'W)';
 				row.querySelector('.lounge-lb-avg').textContent = (p.avg_score === null) ? '–' : p.avg_score;
@@ -194,6 +209,8 @@
 		box.className = 'lounge-rules-gate';
 
 		// cloned from the "?" panel so the gate can never drift from the published rules
+		var bar = document.querySelector('[data-panel="howitworks"] .lounge-bar');
+		if (bar) box.appendChild(bar.cloneNode(true));
 		var body = document.createElement('div');
 		body.className = 'lounge-rules-body';
 		var panel = document.querySelector('.lounge-rules');
@@ -939,8 +956,10 @@
 			row.querySelector('.lounge-results-name').textContent = p.name;
 			row.querySelector('.lounge-results-score').textContent = (p.score === null) ? '–' : p.score;
 			var races = row.querySelector('.lounge-results-races');
-			races.textContent = p.races_played + '/' + match.races;
-			if (p.races_played < match.races) {
+			// Zero is "no attendance was recorded", not "raced none of it" - a mogi played
+			// before attendance was tracked has it for everyone.
+			races.textContent = p.races_played ? (p.races_played + '/' + match.races) : '–';
+			if (p.races_played && (p.races_played < match.races)) {
 				races.className += ' is-short';
 				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
 			}
