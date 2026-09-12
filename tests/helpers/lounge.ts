@@ -28,7 +28,7 @@ export const LOUNGE_KEY_MAX = 999999;
 // throwaway players can log in through testcode.php and drive the real API flows
 // instead of contending with the seeded account for its single queue slot.
 export const LOUNGE_BOT_PASSWORD = 'aaaa';
-const LOUNGE_BOT_HASH = '$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/tqGwnO';
+export const LOUNGE_BOT_HASH = '$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/tqGwnO';
 
 // Also used mid-test, to release a queue that has passed the point where leave.php
 // will let a player out.
