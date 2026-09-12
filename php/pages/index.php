@@ -798,6 +798,30 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 			print_active_players(0,'vs');
 			print_active_players(1,'battle');
+			// A gathering ranked lineup is only advertised to someone who could join it: past
+			// the entry criteria, and inside that tier's MMR band. Tier All has no band, so it
+			// reaches every eligible player including one who has never queued.
+			if ($id) {
+				require_once('../includes/lounge/common.php');
+				$loungeQueues = lounge_open_queues_for($id);
+				if (!empty($loungeQueues)) {
+					echo '<div class="ranking_current" id="ranking_current_ranked">';
+					echo _('Ranked games gathering:');
+					echo '<ul class="ranking_list_game">';
+					foreach ($loungeQueues as $loungeQueue) {
+						echo '<li>';
+						echo '<span class="ranking_activeplayernb">';
+						echo FN_("{count} member", "{count} members", count: $loungeQueue['players']);
+						echo '</span> ';
+						echo P_("circuit", "in ");
+						echo '<strong>'. htmlspecialchars($language ? $loungeQueue['label_en'] : $loungeQueue['label_fr']) .'</strong>';
+						echo '<a class="action_button" href="lounge.php">'. _('Join') .'</a>';
+						echo '</li>';
+					}
+					echo '</ul>';
+					echo '</div>';
+				}
+			}
 			?>
 			</div>
 			<div id="clm_cc">
