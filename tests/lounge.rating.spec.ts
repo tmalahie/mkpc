@@ -264,6 +264,55 @@ test('a player who walks out mid-mogi is struck and replaced', async ({ page }) 
 	expect(again.strikes).toBe(1);
 });
 
+// "si tu as rate plus de 4 courses tu prends -25, si tu as joue au moins 8 courses mais rate
+// au moins une tu prends -10". The bot races in the absentee's place, so they are rated on the
+// result it produced and the absence is charged on top of it - rather than going unrated,
+// which would pay better than turning up.
+test('an absence is charged on top of the rating the bot earned', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const key = LOUNGE_KEY_MIN + 24;
+	const players = await createLoungeBots(4, 'absent');
+
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launching', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+
+	// same finishing order as the plain FFA match above, so the deltas are the same 41/14/-14/-41
+	// and the only difference on the board is what the absences cost
+	const scores = [120, 90, 60, 30];
+	const attendance = [12, 12, 11, 3];
+	for (let i = 0; i < players.length; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player, races_played) VALUES (?, ?, ?)`,
+			[match.id, players[i], attendance[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], scores[i]]);
+	}
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+	await publish(key);
+
+	await login(page);
+	await tick(page);
+
+	const rows: any[] = await sql(
+		`SELECT mp.races_played, mp.mmr_penalty, mp.mmr_delta FROM mklounge_match_players mp
+		 WHERE mp.\`match\` = ? ORDER BY mp.final_position`, [match.id]);
+	expect(rows.map(r => r.races_played)).toEqual([12, 12, 11, 3]);
+	// nothing for the two who raced it all, -10 for one missed race, -25 for missing a third of it
+	expect(rows.map(r => r.mmr_penalty === null ? null : Math.round(r.mmr_penalty))).toEqual([0, 0, -10, -25]);
+	expect(rows.map(r => Math.round(r.mmr_delta))).toEqual([41, 14, -24, -66]);
+});
+
+// If the race-end hook never ran, every attendance is 0 - which must read as "we do not know
+// how long the mogi was", not as "nobody turned up for any of it".
+test('a mogi with no attendance recorded penalises nobody', async ({ page }) => {
+	const [row]: any = await sql(
+		`SELECT mmr_penalty FROM mklounge_match_players WHERE \`match\` =
+		 (SELECT id FROM mklounge_matches WHERE privgame_key = ?) LIMIT 1`, [PRIVGAME_KEY]);
+	expect(Math.round(row.mmr_penalty)).toBe(0);
+});
+
 test('a lineup too small to race is voided instead', async ({ page }) => {
 	await login(page);
 	const key = LOUNGE_KEY_MIN + 21;

@@ -132,6 +132,9 @@ CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
   `mmr_before` double DEFAULT NULL,
   `mmr_after` double DEFAULT NULL,
   `mmr_delta` double DEFAULT NULL,
+  `mmr_penalty` double DEFAULT NULL,
+  `races_played` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `last_race` smallint(5) unsigned NOT NULL DEFAULT 0,
   `strike_reason` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`match`,`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
