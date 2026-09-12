@@ -323,6 +323,43 @@ test('a single member does not lock Tier All', async ({ page }) => {
 	await dropOut(page.request);
 });
 
+// The lock window exists so the rest of the mogi can still turn up before the vote, so a
+// locked lineup has to keep taking joiners. Looking only for an "open" queue sent everyone
+// after the fourth into a lineup of their own.
+test('a locked lineup keeps taking players up to the maximum', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const lineup = 8;
+	const bots = await createLoungeBots(lineup + 1, 'lockjoin');
+
+	const queues: number[] = [];
+	for (let i = 1; i <= lineup + 1; i++) {
+		await login(page, loungeBotName('lockjoin', i), LOUNGE_BOT_PASSWORD);
+		const res = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+			form: { tier: String(tier.id) },
+		});
+		const body = await res.json();
+		expect(body.error).toBeUndefined();
+		queues.push(body.queue.id);
+	}
+
+	// everyone up to the maximum lands in the same lineup, whether it was open or locked
+	expect(new Set(queues.slice(0, lineup)).size).toBe(1);
+	const [first]: any = await sql(
+		`SELECT COUNT(*) AS n FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`,
+		[queues[0]]
+	);
+	expect(Number(first.n)).toBe(lineup);
+	// only a full lineup sends the next player somewhere else
+	expect(queues[lineup]).not.toBe(queues[0]);
+
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('lockjoin'));
+	expect(bots).toHaveLength(lineup + 1);
+});
+
 // The official rules penalise drops and no-shows, never a missed vote, and a background
 // tab can throttle the poll past a 60s window - so the deadline falls back to whoever did
 // vote instead of cancelling the mogi and striking the rest of the lineup.

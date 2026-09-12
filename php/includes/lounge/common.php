@@ -69,8 +69,8 @@ function lounge_settings_schema() {
 			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
 			'label_en' => 'Wait after a queue locks, for latecomers',
 			'label_fr' => 'Attente après verrouillage, pour les retardataires',
-			'help_en' => 'Rule 3aa. A lineup that just hit 4 can still grow to 8.',
-			'help_fr' => 'Règle 3aa. Un effectif qui vient d\'atteindre 4 peut encore monter à 8.'
+			'help_en' => 'A lineup that just reached the minimum can still grow to 8 before the vote starts.',
+			'help_fr' => 'Un effectif qui vient d\'atteindre le minimum peut encore monter à 8 avant le vote.'
 		),
 		'vote_wait_seconds' => array(
 			'default' => LOUNGE_VOTE_WAIT_SECONDS, 'min' => 10, 'max' => 3600,
@@ -85,8 +85,8 @@ function lounge_settings_schema() {
 			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
 			'label_en' => 'Time in a list before you may drop out of it',
 			'label_fr' => 'Temps dans une file avant de pouvoir la quitter',
-			'help_en' => 'Rule 3a says 15. Stops players flickering in and out of a gathering list.',
-			'help_fr' => 'La règle 3a dit 15. Évite les allers-retours dans une file en formation.'
+			'help_en' => 'Stops players flickering in and out of a gathering list.',
+			'help_fr' => 'Évite les allers-retours dans une file en formation.'
 		),
 		'afk_seconds' => array(
 			'default' => LOUNGE_AFK_SECONDS, 'min' => 30, 'max' => 3600,
@@ -101,8 +101,8 @@ function lounge_settings_schema() {
 			'group' => 'queue', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
 			'label_en' => 'Time in a queue before "are you still there?"',
 			'label_fr' => 'Temps en file avant « toujours là ? »',
-			'help_en' => 'The spec asks for every 10-15 minutes.',
-			'help_fr' => 'La spec demande toutes les 10-15 minutes.'
+			'help_en' => 'Keeps a forgotten tab from gathering a mogi around a player who has left.',
+			'help_fr' => 'Évite qu\'un onglet oublié fasse se former un mogi autour d\'un joueur parti.'
 		),
 		'confirm_grace_seconds' => array(
 			'default' => LOUNGE_CONFIRM_GRACE_SECONDS, 'min' => 30, 'max' => 3600,
@@ -117,16 +117,16 @@ function lounge_settings_schema() {
 			'group' => 'match', 'unit_en' => 'races', 'unit_fr' => 'courses',
 			'label_en' => 'Races per mogi',
 			'label_fr' => 'Courses par mogi',
-			'help_en' => 'Rule 3a says 12. Changing this only affects new matches.',
-			'help_fr' => 'La règle 3a dit 12. Ne change que les parties à venir.'
+			'help_en' => 'Changing this only affects new matches.',
+			'help_fr' => 'Ne change que les parties à venir.'
 		),
 		'join_timeout_seconds' => array(
 			'default' => LOUNGE_JOIN_TIMEOUT_SECONDS, 'min' => 30, 'max' => 3600,
 			'group' => 'match', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
 			'label_en' => 'Time to join the room before being marked absent',
 			'label_fr' => 'Temps pour rejoindre le salon avant absence',
-			'help_en' => 'Rule 4da. Past it the absentee is struck and the room shrinks.',
-			'help_fr' => 'Règle 4da. Au-delà, l\'absent prend un strike et le salon rétrécit.'
+			'help_en' => 'Past it the absentee gets a strike and the room shrinks.',
+			'help_fr' => 'Au-delà, l\'absent prend un strike et le salon rétrécit.'
 		),
 		'match_max_minutes' => array(
 			'default' => LOUNGE_MATCH_MAX_MINUTES, 'min' => 10, 'max' => 600,
@@ -149,16 +149,16 @@ function lounge_settings_schema() {
 			'group' => 'sanctions', 'unit_en' => 'strikes', 'unit_fr' => 'strikes',
 			'label_en' => 'Strikes before a ranked ban',
 			'label_fr' => 'Strikes avant un bannissement du classé',
-			'help_en' => 'Rule 2b says 3. Set to 0 to never ban automatically.',
-			'help_fr' => 'La règle 2b dit 3. Mettre 0 pour ne jamais bannir automatiquement.'
+			'help_en' => 'Set to 0 to never ban automatically.',
+			'help_fr' => 'Mettre 0 pour ne jamais bannir automatiquement.'
 		),
 		'ban_minutes' => array(
 			'default' => LOUNGE_BAN_MINUTES, 'min' => 1, 'max' => 525600,
 			'group' => 'sanctions', 'unit_en' => 'minutes', 'unit_fr' => 'minutes',
 			'label_en' => 'How long that ban lasts',
 			'label_fr' => 'Durée de ce bannissement',
-			'help_en' => 'Rule 2b says 7 days (10080) for a first offence.',
-			'help_fr' => 'La règle 2b dit 7 jours (10080) à la première infraction.'
+			'help_en' => 'In minutes: 1440 is a day, 10080 a week.',
+			'help_fr' => 'En minutes : 1440 pour un jour, 10080 pour une semaine.'
 		),
 		'min_vs_points' => array(
 			'default' => LOUNGE_MIN_VS_POINTS, 'min' => 0, 'max' => 1000000,
@@ -181,8 +181,8 @@ function lounge_settings_schema() {
 			'group' => 'discord', 'unit_en' => '1 = on', 'unit_fr' => '1 = activé',
 			'label_en' => 'Post lounge notifications to Discord',
 			'label_fr' => 'Publier les notifications du lounge sur Discord',
-			'help_en' => 'Needs the bot credentials in php/includes/config/discord.php.',
-			'help_fr' => 'Nécessite les identifiants du bot dans php/includes/config/discord.php.'
+			'help_en' => 'Needs the Discord bot to be set up on the server.',
+			'help_fr' => 'Nécessite que le bot Discord soit configuré sur le serveur.'
 		),
 		'discord_dry_run' => array(
 			'default' => LOUNGE_DISCORD_DRY_RUN, 'min' => 0, 'max' => 1,
