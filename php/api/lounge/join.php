@@ -89,6 +89,8 @@ mysql_query('COMMIT');
 $wasBelowMin = (lounge_active_member_count($queueId) - 1) < lounge_queue_min_players($queueId);
 lounge_update_queue_status($queueId);
 
+lounge_notify_queue_join($queueId, $id);
+
 require_once('../../includes/lounge/discord.php');
 $count = lounge_active_member_count($queueId);
 $name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. intval($id) .'"'));

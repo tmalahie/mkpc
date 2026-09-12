@@ -326,7 +326,10 @@ function lounge_get_player_state($playerId) {
 	);
 }
 
-function lounge_access_error($playerId) {
+// The entry criteria on their own. This is what decides whether ranked is offered to a player
+// at all, as opposed to whether they may queue this second - the rules tick is a gate inside
+// the lounge, not a reason to hide it from someone who has earned their way in.
+function lounge_entry_error($playerId) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT j.banned, j.deleted, j.pts_vs,
 			DATEDIFF(NOW(), p.sub_date) AS account_age
@@ -343,9 +346,48 @@ function lounge_access_error($playerId) {
 		return 'account_too_new';
 	if (intval($row['pts_vs']) < lounge_setting('min_vs_points'))
 		return 'not_enough_points';
+	return null;
+}
+
+function lounge_is_eligible($playerId) {
+	return $playerId && !lounge_entry_error($playerId);
+}
+
+function lounge_access_error($playerId) {
+	$error = lounge_entry_error($playerId);
+	if ($error)
+		return $error;
 	if (!lounge_has_accepted_rules($playerId))
 		return 'rules_not_accepted';
 	return null;
+}
+
+function lounge_has_ever_queued($playerId) {
+	return (bool) mysql_fetch_array(mysql_query(
+		'SELECT 1 FROM `mklounge_queue_members` WHERE player="'. intval($playerId) .'" LIMIT 1'
+	));
+}
+
+// Shown on online.php once a player crosses the entry criteria, and kept out of the way after
+// they have either used ranked or said they do not want telling again.
+function lounge_should_show_unlock_banner($playerId) {
+	if (!lounge_is_eligible($playerId))
+		return false;
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT unlock_dismissed_at FROM `mklounge_players`
+		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+	));
+	if ($row && $row['unlock_dismissed_at'])
+		return false;
+	return !lounge_has_ever_queued($playerId);
+}
+
+function lounge_dismiss_unlock_banner($playerId) {
+	mysql_query(
+		'INSERT INTO `mklounge_players` (player, season, unlock_dismissed_at)
+		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", NOW())
+		ON DUPLICATE KEY UPDATE unlock_dismissed_at=NOW()'
+	);
 }
 
 // Staff want every player to have seen the rules once before their first queue, the way any
@@ -371,6 +413,81 @@ function lounge_access_requirements() {
 		'min_vs_points' => lounge_setting('min_vs_points'),
 		'min_account_age_days' => lounge_setting('min_account_age_days')
 	);
+}
+
+// Lineups a given player could actually walk into: the entry criteria, then the tier's own
+// MMR band. Tier All has no band, so it shows to every eligible player including one who has
+// never queued. A lineup the player is already standing in is not an invitation.
+function lounge_open_queues_for($playerId) {
+	if (!lounge_is_eligible($playerId))
+		return array();
+	$state = lounge_get_player_state($playerId);
+	$queues = array();
+	$res = mysql_query(
+		'SELECT q.id, q.status, t.code, t.label_en, t.label_fr, t.min_mmr, t.max_mmr,
+			COUNT(m.player) AS players,
+			SUM(m.player="'. intval($playerId) .'") AS mine
+		FROM `mklounge_queues` q
+		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
+		INNER JOIN `mklounge_queue_members` m ON m.queue=q.id AND m.dropped_at IS NULL
+		WHERE q.season="'. LOUNGE_CURRENT_SEASON .'"
+		AND q.status IN ("open","locked","voting","drafting")
+		GROUP BY q.id
+		ORDER BY players DESC, q.id'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		if (intval($row['mine']) || !intval($row['players']))
+			continue;
+		if (!lounge_tier_eligible($row, $state['mmr']))
+			continue;
+		$queues[] = array(
+			'id' => intval($row['id']),
+			'tier_code' => $row['code'],
+			'label_en' => $row['label_en'],
+			'label_fr' => $row['label_fr'],
+			'status' => $row['status'],
+			'players' => intval($row['players'])
+		);
+	}
+	return $queues;
+}
+
+// Everyone who has ever queued gets told when a lineup they could join starts gathering. The
+// row is claimed per (queue, joiner) so a player who leaves and comes back does not notify
+// twice, and menu.php drops it again once the lineup is gone or full.
+function lounge_notify_queue_join($queueId, $joinerId) {
+	$queue = mysql_fetch_array(mysql_query(
+		'SELECT t.code, t.min_mmr, t.max_mmr FROM `mklounge_queues` q
+		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
+		WHERE q.id="'. intval($queueId) .'"'
+	));
+	if (!$queue)
+		return;
+	$link = intval($queueId) .','. intval($joinerId);
+	$res = mysql_query(
+		'SELECT p.player, p.mmr FROM `mklounge_players` p
+		LEFT JOIN `mknotifs` n ON n.user=p.player AND n.type="lounge_queue" AND n.link="'. $link .'"
+		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.player!="'. intval($joinerId) .'"
+		AND n.id IS NULL
+		AND p.player NOT IN (
+			SELECT m.player FROM `mklounge_queue_members` m
+			WHERE m.queue="'. intval($queueId) .'" AND m.dropped_at IS NULL
+		)'
+	);
+	$targets = array();
+	while ($row = mysql_fetch_array($res)) {
+		if (!lounge_tier_eligible($queue, intval(round($row['mmr']))))
+			continue;
+		if (!lounge_is_eligible($row['player']))
+			continue;
+		$targets[] = intval($row['player']);
+	}
+	foreach ($targets as $target) {
+		mysql_query(
+			'INSERT INTO `mknotifs` SET type="lounge_queue",
+			user="'. $target .'", link="'. $link .'"'
+		);
+	}
 }
 
 function lounge_tier_eligible($tier, $mmr) {
