@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
 import { sql } from './helpers/db';
-import { cleanupLoungeQueues, createLoungeBots, loungeBotName, loungeBotPattern, LOUNGE_BOT_PASSWORD, LOUNGE_KEY_MIN } from './helpers/lounge';
+import { cleanupLoungeQueues, createLoungeBots, loungeBotName, loungeBotPattern, acceptLoungeRules, LOUNGE_BOT_PASSWORD, LOUNGE_BOT_HASH, LOUNGE_KEY_MIN } from './helpers/lounge';
 
 // One file on purpose. join.php puts a player into the tier's existing open queue, so
 // every test here shares that queue whichever account it uses - and Playwright can only
@@ -169,6 +169,70 @@ test('voting flow: join → lock → vote → launch creates a private game', as
 
 	await ageJoins();
 	await apiCall(cookies1, 'lounge/leave.php');
+});
+
+// Ranked is only offered to a player who could actually enter it. The two criteria are
+// checked server-side and handed to mk.js, so the page itself is what these read.
+async function createEntryBot(name: string, ptsVs: number): Promise<number> {
+	await sql(`DELETE FROM mkjoueurs WHERE nom = ?`, [name]);
+	const res: any = await sql(
+		`INSERT INTO mkjoueurs
+			(nom, course, code, joueur, choice_map, choice_rand, pts_vs, pts_battle, pts_challenge, online, deleted)
+		 VALUES (?, 0, ?, 'mario', 0, 0, ?, 0, 0, 0, 0)`,
+		[name, LOUNGE_BOT_HASH, ptsVs]
+	);
+	return res.insertId;
+}
+
+async function loungeFlags(page, pseudo: string) {
+	await login(page, pseudo, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	return page.evaluate(() => ({
+		eligible: window['loungeEligible'],
+		banner: window['loungeUnlockBanner'],
+	}));
+}
+
+test('ranked is hidden from a player short of the entry criteria', async ({ page }) => {
+	const short = 'e2e-lounge-entry-short';
+	const met = 'e2e-lounge-entry-met';
+	await createEntryBot(short, 500);
+	const metId = await createEntryBot(met, 999999);
+
+	expect(await loungeFlags(page, short)).toEqual({ eligible: false, banner: false });
+	// crossing the criteria both offers ranked and says so
+	expect(await loungeFlags(page, met)).toEqual({ eligible: true, banner: true });
+
+	// "Don't show again" is remembered; the button stays
+	await page.request.post('http://127.0.0.1:8080/api/lounge/dismiss-unlock.php');
+	expect(await loungeFlags(page, met)).toEqual({ eligible: true, banner: false });
+
+	const [row]: any = await sql(
+		`SELECT unlock_dismissed_at FROM mklounge_players WHERE player = ? AND season = 1`, [metId]
+	);
+	expect(row.unlock_dismissed_at).toBeTruthy();
+
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [metId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
+// Someone who has already used ranked does not need telling it exists.
+test('the unlock banner stops once a player has queued', async ({ page }) => {
+	const name = 'e2e-lounge-entry-queued';
+	const botId = await createEntryBot(name, 999999);
+	expect((await loungeFlags(page, name)).banner).toBe(true);
+
+	await acceptLoungeRules(name);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
+	expect((await loungeFlags(page, name)).banner).toBe(false);
+
+	await cleanupLoungeQueues(name);
+	await sql(`DELETE FROM mklounge_queue_members WHERE player = ?`, [botId]);
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [botId]);
+	await sql(`DELETE FROM mkjoueurs WHERE id = ?`, [botId]);
+	await login(page);
 });
 
 test('Ranked button opens the lounge overlay from online.php', async ({ page }) => {
@@ -1162,6 +1226,77 @@ test('a room nobody fully joined is relaxed rather than left hanging', async ({ 
 	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id IN (?)`, [bots]);
 	await login(page);
 	await cleanupLoungeQueues(loungeBotPattern('relax'));
+});
+
+// A gathering lineup has to be visible from outside the lounge, or nobody turns up: the home
+// page advertises it, and everyone who has queued before is notified.
+test('a gathering lineup is advertised on the home page, to those who could join it', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const bots = await createLoungeBots(1, 'advert');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await login(page, loungeBotName('advert', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
+
+	// the seeded account is past the criteria, so it is invited
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/index.php');
+	const gathering = page.locator('#ranking_current_ranked');
+	await expect(gathering).toBeVisible();
+	await expect(gathering).toContainText('1 member');
+	await expect(gathering).toContainText('Tier All');
+
+	// a player short of the criteria is not shown a lineup they could not join
+	const shortName = 'e2e-lounge-advert-short';
+	await createEntryBot(shortName, 500);
+	await login(page, shortName, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/index.php');
+	await expect(page.locator('#ranking_current_ranked')).toHaveCount(0);
+
+	await sql(`DELETE FROM mkjoueurs WHERE nom = ?`, [shortName]);
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('advert'));
+	expect(bots).toHaveLength(1);
+});
+
+test('players who have queued before are notified when a lineup gathers', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	await sql(`DELETE FROM mknotifs WHERE type = 'lounge_queue'`);
+	const [{ id: wargorId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	const bots = await createLoungeBots(1, 'notify');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await login(page, loungeBotName('notify', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
+
+	const mine: any = await sql(
+		`SELECT link FROM mknotifs WHERE type = 'lounge_queue' AND user = ?`, [wargorId]
+	);
+	expect(mine).toHaveLength(1);
+	// the joiner is never notified about their own lineup
+	const joiners: any = await sql(
+		`SELECT COUNT(*) AS n FROM mknotifs WHERE type = 'lounge_queue' AND user = ?`, [bots[0]]
+	);
+	expect(Number(joiners[0].n)).toBe(0);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/index.php');
+	const notif = page.locator('#notifs-list .notif-container').first();
+	await expect(notif).toContainText('queueing for a ranked game');
+	await expect(notif).toContainText('Tier All');
+
+	// and it is gone once the lineup is
+	await cleanupLoungeQueues(loungeBotPattern('notify'));
+	await page.goto('http://127.0.0.1:8080/index.php');
+	const left: any = await sql(
+		`SELECT COUNT(*) AS n FROM mknotifs WHERE type = 'lounge_queue' AND user = ?`, [wargorId]
+	);
+	expect(Number(left[0].n)).toBe(0);
+
+	await sql(`DELETE FROM mknotifs WHERE type = 'lounge_queue'`);
 });
 
 // The captain draft, settled with staff on 2026-09-06: the two highest-rated players captain

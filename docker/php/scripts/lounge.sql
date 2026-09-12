@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_players` (
   `strikes` int(11) NOT NULL DEFAULT 0,
   `banned_until` timestamp NULL DEFAULT NULL,
   `rules_accepted_at` timestamp NULL DEFAULT NULL,
+  `unlock_dismissed_at` timestamp NULL DEFAULT NULL,
   `placed` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`player`,`season`),
   KEY `season_mmr` (`season`,`mmr`)
