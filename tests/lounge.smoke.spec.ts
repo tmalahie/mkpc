@@ -360,6 +360,49 @@ test('a locked lineup keeps taking players up to the maximum', async ({ page }) 
 	expect(bots).toHaveLength(lineup + 1);
 });
 
+// MogiBot tailors its ballot to the lineup and has never once put a one-option poll to a
+// room. Five and seven divide into nothing, so FFA is forced and the 120 seconds would buy
+// nobody anything.
+test('a lineup with only one possible mode skips the vote', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	const settleWith = async (lineup: number, tag: string) => {
+		const bots = await createLoungeBots(lineup, tag);
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status, locked_at) VALUES (1, ?, 'locked', NOW())`,
+			[tier.id]
+		);
+		for (const bot of bots)
+			await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, bot]);
+		await sql(
+			`UPDATE mklounge_queues SET locked_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]
+		);
+		await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
+		await tick(page);
+		const [row]: any = await sql(
+			`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [q.insertId]
+		);
+		await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+		await sql(`UPDATE mklounge_queue_members SET dropped_at = NOW() WHERE queue = ?`, [q.insertId]);
+		await cleanupLoungeQueues(loungeBotPattern(tag));
+		return row;
+	};
+
+	// five divides into nothing, so the lock window ends in a launched FFA, not a ballot
+	const five = await settleWith(5, 'onemode5');
+	expect(five.status).toBe('launched');
+	expect(five.mode).toBe('FFA');
+
+	// six has 2v2 and 3v3 on the ballot, so it still asks
+	const six = await settleWith(6, 'onemode6');
+	expect(six.status).toBe('voting');
+
+	await login(page);
+});
+
 // The official rules penalise drops and no-shows, never a missed vote, and a background
 // tab can throttle the poll past a 60s window - so the deadline falls back to whoever did
 // vote instead of cancelling the mogi and striking the rest of the lineup.

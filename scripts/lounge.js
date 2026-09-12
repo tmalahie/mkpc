@@ -590,16 +590,29 @@
 				'En attente d\'autres joueurs… vous pouvez encore quitter.'
 			);
 		} else if (queue.status === 'locked') {
+			// a lineup that divides into nothing has FFA as its only option, so there is no
+			// vote to announce - it starts as soon as the wait is over
+			var onlyMode = (queue.allowed_modes.length === 1) ? queue.allowed_modes[0] : null;
 			var lockLeft = queue.lock_seconds_left;
-			if (lockLeft !== null) {
+			if (lockLeft === null) {
+				status.textContent = onlyMode
+					? toLanguage(
+						'Queue locked. ' + onlyMode + ' starts soon.',
+						'File verrouillée. ' + onlyMode + ' commence bientôt.'
+					)
+					: toLanguage(
+						'Queue locked. Voting starts soon.',
+						'File verrouillée. Le vote commence bientôt.'
+					);
+			} else if (onlyMode) {
 				status.textContent = toLanguage(
-					'Queue locked. Voting starts in ' + formatCountdown(lockLeft) + '.',
-					'File verrouillée. Le vote commence dans ' + formatCountdown(lockLeft) + '.'
+					'Queue locked. ' + onlyMode + ' starts in ' + formatCountdown(lockLeft) + '.',
+					'File verrouillée. ' + onlyMode + ' commence dans ' + formatCountdown(lockLeft) + '.'
 				);
 			} else {
 				status.textContent = toLanguage(
-					'Queue locked. Voting starts soon.',
-					'File verrouillée. Le vote commence bientôt.'
+					'Queue locked. Voting starts in ' + formatCountdown(lockLeft) + '.',
+					'File verrouillée. Le vote commence dans ' + formatCountdown(lockLeft) + '.'
 				);
 			}
 		} else if (queue.status === 'voting') {
