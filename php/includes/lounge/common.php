@@ -790,10 +790,19 @@ function lounge_close_vote($queueId) {
 }
 
 function lounge_start_voting($queueId) {
-	mysql_query(
+	global $q;
+	$q = mysql_query(
 		'UPDATE `mklounge_queues` SET status="voting", ready_at=NOW()
 		WHERE id="'. intval($queueId) .'" AND status IN ("open","locked")'
 	);
+	if (!mysql_affected_rows())
+		return;
+	// A lineup of five or seven divides into nothing, so FFA is the only thing on the ballot
+	// and there is nothing to decide. MogiBot never puts a one-option poll to a room either -
+	// it tailors the ballot to the lineup and skips the vote when the format is forced. The
+	// lineup is final by now: joins only reach an open or locked queue.
+	if (count(lounge_allowed_modes(lounge_active_member_count($queueId))) < 2)
+		lounge_close_vote($queueId);
 }
 
 function lounge_launch_match($queueId, $mode = null) {
