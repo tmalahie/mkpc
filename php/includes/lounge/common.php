@@ -22,6 +22,7 @@ define('LOUNGE_DISCORD_HERE_MINUTES', 30);
 define('LOUNGE_DISCORD_MLLU_SECONDS', 30);
 // Rule 4i: how long a captain has to make each pick before it is made for them.
 define('LOUNGE_DRAFT_PICK_SECONDS', 45);
+define('LOUNGE_DRAFT_REVEAL_SECONDS', 2);
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
@@ -742,8 +743,15 @@ function lounge_draft_assign($queueId, $playerId, $side) {
 		'UPDATE `mklounge_queues` SET draft_turn_at=NOW() WHERE id="'. intval($queueId) .'"'
 	);
 	$state = lounge_draft_state($queueId);
-	if ($state && !count($state['available']))
-		lounge_launch_match($queueId);
+	if (!$state)
+		return true;
+	// The final pick is not a choice - whoever is left goes to the side that is still short -
+	// so the draft ends a turn early rather than asking a captain for a formality.
+	if (count($state['available']) === 1)
+		return lounge_draft_assign($queueId, $state['available'][0]['id'], $state['side']);
+	// A completed draft is left standing for a moment before the room opens, so everyone gets
+	// to see the teams they are about to play rather than being thrown straight into the game.
+	// lounge_tick() launches it once that has elapsed.
 	return true;
 }
 
@@ -1570,5 +1578,18 @@ function lounge_tick() {
 	);
 	while ($row = mysql_fetch_array($draftDeadlines)) {
 		lounge_draft_autopick(intval($row['id']));
+	}
+
+	$draftsSettled = mysql_query(
+		'SELECT q.id FROM `mklounge_queues` q
+		WHERE q.status="drafting"
+		AND q.draft_turn_at < (NOW() - INTERVAL '. LOUNGE_DRAFT_REVEAL_SECONDS .' SECOND)
+		AND NOT EXISTS (
+			SELECT 1 FROM `mklounge_queue_members` m
+			WHERE m.queue=q.id AND m.dropped_at IS NULL AND m.team IS NULL
+		)'
+	);
+	while ($row = mysql_fetch_array($draftsSettled)) {
+		lounge_launch_match(intval($row['id']));
 	}
 }
