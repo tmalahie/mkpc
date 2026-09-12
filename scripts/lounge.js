@@ -919,12 +919,13 @@
 		var table = document.createElement('table');
 		table.className = 'lounge-results-table';
 		var head = document.createElement('tr');
-		head.innerHTML = '<th></th><th></th><th></th><th></th>';
+		head.innerHTML = '<th></th><th></th><th></th><th></th><th></th>';
 		var headCells = head.querySelectorAll('th');
 		headCells[0].textContent = toLanguage('Place', 'Place');
 		headCells[1].textContent = toLanguage('Player', 'Joueur');
 		headCells[2].textContent = toLanguage('Score', 'Score');
-		headCells[3].textContent = 'MMR';
+		headCells[3].textContent = toLanguage('Races', 'Courses');
+		headCells[4].textContent = 'MMR';
 		table.appendChild(head);
 
 		for (var i = 0; i < match.players.length; i++) {
@@ -932,11 +933,25 @@
 			var row = document.createElement('tr');
 			row.className = 'lounge-results-row' + (p.id === mId ? ' is-self' : '');
 			row.innerHTML = '<td class="lounge-results-place"></td><td class="lounge-results-name"></td>'
-				+ '<td class="lounge-results-score"></td><td class="lounge-results-mmr"></td>';
+				+ '<td class="lounge-results-score"></td><td class="lounge-results-races"></td>'
+				+ '<td class="lounge-results-mmr"></td>';
 			row.querySelector('.lounge-results-place').textContent = (p.position === null) ? '–' : p.position;
 			row.querySelector('.lounge-results-name').textContent = p.name;
 			row.querySelector('.lounge-results-score').textContent = (p.score === null) ? '–' : p.score;
-			row.querySelector('.lounge-results-mmr').textContent = formatMmrChange(p);
+			var races = row.querySelector('.lounge-results-races');
+			races.textContent = p.races_played + '/' + match.races;
+			if (p.races_played < match.races) {
+				races.className += ' is-short';
+				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
+			}
+			var mmr = row.querySelector('.lounge-results-mmr');
+			mmr.textContent = formatMmrChange(p);
+			if (p.mmr_penalty) {
+				var penalty = document.createElement('div');
+				penalty.className = 'lounge-results-penalty';
+				penalty.textContent = p.mmr_penalty + ' ' + toLanguage('absent', 'absent');
+				mmr.appendChild(penalty);
+			}
 			table.appendChild(row);
 		}
 		container.appendChild(table);

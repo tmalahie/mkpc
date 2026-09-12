@@ -265,7 +265,7 @@ if ($id) {
 						// never runs while one is being played: this is its only heartbeat
 						if (!empty($courseRules->lounge)) {
 							require_once('../includes/lounge/common.php');
-							lounge_race_finished($courseOptions['id'], $course, $nbScores);
+							lounge_race_finished($courseOptions['id'], $course);
 						}
 					}
 				}
@@ -337,14 +337,16 @@ if ($id) {
 				$i = 0;
 				$cpuIds = array();
 				foreach ($allPlayersData as $player) {
-					if ($player['cpu'])
+					// A bot standing in for an absent player keeps their name, and leaves the
+					// numbered CPU slots to the bots that really are nobody.
+					if ($player['cpu'] && is_null($player['nom']))
 						$cpuIds[] = intval($player['id']);
 				}
 				sort($cpuIds);
 				$cpuRankById = array_flip($cpuIds);
 				include('../includes/onlineRulesUtils.php');
 				foreach ($allPlayersData as $v=>$player) {
-					if ($player['cpu'])
+					if (isset($cpuRankById[$player['id']]))
 						$playerName = getCpuName($cpuRankById[$player['id']], $courseRules);
 					else
 						$playerName = $player['nom'];
