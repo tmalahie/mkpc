@@ -1,4 +1,7 @@
 import { sql } from './db';
+import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
 
 // The lounge tests queue up as the seeded account, and a queue that reached
 // "locked" or beyond cannot be released through leave.php - which is exactly the
@@ -67,6 +70,31 @@ export async function cleanupLoungeQueues(namePattern: string = SEEDED_ACCOUNT) 
      WHERE j.nom LIKE ?`,
     [namePattern]
   );
+}
+
+// cleanupLoungeQueues clears mklounge_settings before every case, which also throws away
+// whatever the developer had tuned for their own manual testing - a 10-second lock window
+// and a two-race mogi, say. The snapshot is taken before the suite's first sweep and put
+// back after the last one.
+//
+// Held in a file rather than in memory because globalSetup and globalTeardown do not share
+// one. A killed run leaves the snapshot behind, and the next run keeps it rather than
+// snapshotting the emptied table, so the tuning survives that too.
+const SETTINGS_SNAPSHOT = join(tmpdir(), 'mkpc-lounge-settings.json');
+
+export async function stashLoungeSettings() {
+  if (existsSync(SETTINGS_SNAPSHOT)) return;
+  const rows: any = await sql('SELECT name, value FROM mklounge_settings');
+  writeFileSync(SETTINGS_SNAPSHOT, JSON.stringify(rows));
+}
+
+export async function restoreLoungeSettings() {
+  if (!existsSync(SETTINGS_SNAPSHOT)) return;
+  const rows = JSON.parse(readFileSync(SETTINGS_SNAPSHOT, 'utf8'));
+  await sql('DELETE FROM mklounge_settings');
+  for (const row of rows)
+    await sql('INSERT INTO mklounge_settings (name, value) VALUES (?, ?)', [row.name, row.value]);
+  unlinkSync(SETTINGS_SNAPSHOT);
 }
 
 // Scoped by the bot prefix and the reserved key range rather than by what this run
