@@ -257,25 +257,30 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
 
-// The Discord server is where the ladder is actually followed, and the character screen is
-// the one place every online player passes through.
-test('the character screen points at the Discord server', async ({ page }) => {
+// The Discord server belongs to the ladder, so it is offered where the ladder is played and
+// nowhere else - not in the public lobby, and not on a private link that happens to be ranked.
+test('a ranked room points at the Discord server, and nothing else does', async ({ page }) => {
 	test.setTimeout(60000);
-	await login(page);
-	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	await uiLogin(page);
+	const circuitIds = await createCircuits(page.request, 2, OWNER);
+	const cupId = await createCup(page.request, { name: 'e2e-discord-cup', circuitIds, author: OWNER });
+	const mid = await createMulticup(page.request, { name: 'e2e-discord-mcup', cupIds: [cupId], author: OWNER });
 	const invite = page.locator('a[href*="discord.gg"]');
-	await expect(invite).toBeVisible({ timeout: 30000 });
+
+	await page.goto('http://127.0.0.1:8080/online.php?mid=' + mid + '&ranked');
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await expect(invite).toBeVisible();
 	await expect(invite).toHaveAttribute('target', '_blank');
 
-	// it belongs to the menu column, above "Private game..." rather than over the characters
-	const box = (await invite.boundingBox())!;
-	const privateGame = await page.evaluate(() => {
-		const buttons: any[] = [].slice.call(document.querySelectorAll('input[type=button]'));
-		const rect = buttons.filter(b => /Private game|Partie priv/.test(b.value))[0].getBoundingClientRect();
-		return { x: rect.x, y: rect.y };
-	});
-	expect(box.x).toBeCloseTo(privateGame.x, 0);
-	expect(box.y + box.height).toBeLessThanOrEqual(privateGame.y);
+	const key = LOUNGE_KEY_MIN;
+	await sql('INSERT IGNORE INTO mkprivgame SET id = ?, player = 0', [key]);
+	await page.goto(`http://127.0.0.1:8080/online.php?mid=${mid}&ranked&key=${key}`);
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await expect(invite).toHaveCount(0);
+
+	await page.goto('http://127.0.0.1:8080/online.php');
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await expect(invite).toHaveCount(0);
 });
 
 test('ranked entry redirects to the season multicup', async ({ page }) => {
