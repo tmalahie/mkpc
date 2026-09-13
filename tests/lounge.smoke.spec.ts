@@ -128,6 +128,30 @@ test('joining a tier transitions to the waiting screen and dropping returns', as
 	await expect(page.locator('#lounge-queueup')).toBeHidden();
 });
 
+test('a lounge that was left in a background tab catches up the moment it is looked at', async ({ page }) => {
+	await login(page);
+	await resetLoungeState(page.request);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await page.locator('.lounge-tier').nth(0).locator('.lounge-tier-join').click();
+	await expect(page.locator('#lounge-queueup .lounge-member')).toHaveCount(1);
+
+	// a browser throttles a hidden tab's timers to about one a minute, so the poll chain
+	// cannot be what keeps the lineup current when the player comes back to it
+	let polls = 0;
+	await page.route('**/api/lounge/poll.php', route => { polls++; return route.continue(); });
+	// line up with the 3s chain, then sit in the quiet stretch that follows one of its polls,
+	// so a poll arriving here can only have come from looking at the tab
+	await expect.poll(() => polls).toBeGreaterThan(0);
+	const before = polls;
+	await page.waitForTimeout(1100);
+	expect(polls).toBe(before);
+	await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+	await expect.poll(() => polls, { timeout: 800 }).toBeGreaterThan(before);
+
+	await page.unroute('**/api/lounge/poll.php');
+	await page.locator('.lounge-drop').click({ timeout: 20000 });
+});
+
 test('reopening lounge while queued shows waiting view directly', async ({ page }) => {
 	await login(page);
 	await resetLoungeState(page.request);
