@@ -49,6 +49,15 @@ async function resetLoungeState(request) {
 // The dev container carries real bot credentials, so a suite that only flipped discord_enabled
 // would ping a staff channel on every run. Dry run still records every message - which is what
 // these cases assert on - it just never sends one.
+// Every settled lineup sits on the recap for a few seconds before the room opens. The cases
+// that care about the room rather than the wait step over it.
+async function passRecap(page, queueId: number) {
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
+		[queueId]);
+	await tick(page);
+}
+
 async function enableDiscord() {
 	await sql(
 		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1), ('discord_dry_run', 1)
@@ -455,9 +464,9 @@ test('a lineup with only one possible mode skips the vote', async ({ page }) => 
 		return row;
 	};
 
-	// five divides into nothing, so the lock window ends in a launched FFA, not a ballot
+	// five divides into nothing, so the lock window ends on the FFA recap, not a ballot
 	const five = await settleWith(5, 'onemode5');
-	expect(five.status).toBe('launched');
+	expect(five.status).toBe('drafting');
 	expect(five.mode).toBe('FFA');
 
 	// six has 2v2 and 3v3 on the ballot, so it still asks
@@ -480,6 +489,7 @@ test('a missed vote launches on the votes cast rather than striking', async ({ p
 
 	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
 	await tick(page);
+	await passRecap(page, queueId);
 
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
@@ -618,6 +628,7 @@ test('the POW Block is always in the item distribution', async ({ page }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
 	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
+	await passRecap(page, queueId);
 
 	// #link-guidelines pins one mandatory composition and it contains the POW unconditionally
 	const distrib = (await rulesFor(queueId)).itemDistrib.value;
@@ -665,6 +676,7 @@ test('the launched link carries the lounge lightning settings', async ({ page })
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
 	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
+	await passRecap(page, queueId);
 
 	const distrib = (await rulesFor(queueId)).itemDistrib;
 	expect(distrib.lightningx2).toBe(1);
@@ -945,6 +957,7 @@ test('only a lounge moderator can edit a lounge link', async ({ page, browser })
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
 	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
+	await passRecap(page, queueId);
 	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
 	const key = queue.privgame_key;
 
@@ -1072,10 +1085,7 @@ test('a 2v2 lineup of six launches as three teams', async ({ page }) => {
 	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
 	await tick(page);
 	// the drawn teams are held on screen first, so the room only opens on the tick after
-	await sql(
-		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
-		[queueId]);
-	await tick(page);
+	await passRecap(page, queueId);
 
 	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
 	expect(match.mode).toBe('2v2');
@@ -1604,11 +1614,7 @@ test('the draft snakes 1-2-1 and launches with the teams already set', async ({ 
 	expect(recap).toContain('`Team 2`:');
 	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
 
-	await sql(
-		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
-		[queueId]
-	);
-	await tick(page);
+	await passRecap(page, queueId);
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
 
@@ -1619,6 +1625,52 @@ test('the draft snakes 1-2-1 and launches with the teams already set', async ({ 
 	expect(Object.keys(rules.fixedTeams)).toHaveLength(6);
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+// Every settled lineup gets the recap, not just the ones with sides to read: an FFA lineup is
+// told it is playing FFA. It is also where the "your mogi is starting" alert now lands.
+test('an FFA lineup gets a recap of its own before the room opens', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'ffarecap', 5, 'FFA');
+
+	const [held]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(held.status).toBe('drafting');
+	expect(held.mode).toBe('FFA');
+
+	// no sides to show, and nobody waiting to be placed - the lineup itself is the recap
+	const state = await draftState(page, 'ffarecap', 1);
+	expect(state.draft.teams).toHaveLength(0);
+	expect(state.draft.available).toHaveLength(0);
+	expect(state.members).toHaveLength(5);
+
+	await passRecap(page, queueId);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+// The recap is for the lineup that waited for it. Someone opening the lounge to find their
+// mogi already under way has missed it, is most likely late, and is sent straight there.
+test('a player who walks in on a running mogi is sent to it, not shown the recap', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const key = LOUNGE_KEY_MIN + 44;
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, mode, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', 'FFA', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, playerId]);
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-launching h2')).toHaveText('Match found!', { timeout: 4000 });
+	// and it takes them there rather than leaving them on it
+	await page.waitForURL(/online\.php\?mid=\d+&ranked&key=/, { timeout: 8000 });
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [q.insertId]);
+	await sql(`DELETE FROM mkprivgame WHERE id = ?`, [key]);
 });
 
 // The ladder only hands a lineup to captains for its two big two-sided modes. A 2v2 splits
@@ -1650,10 +1702,7 @@ test('a 2v2 of four is drawn at random rather than drafted', async ({ page }) =>
 	expect(recap).toContain('`Team 2`:');
 
 	// the room opens once the lineup has had its look
-	await sql(
-		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
-		[queueId]);
-	await tick(page);
+	await passRecap(page, queueId);
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
 
@@ -1697,10 +1746,7 @@ test('a lineup that splits into more than two teams is drawn at random too', asy
 	const state = await draftState(page, 'draft2v2', 1);
 	expect(state.draft.teams.map((t: any[]) => t.length)).toEqual([2, 2, 2, 2]);
 
-	await sql(
-		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
-		[queueId]);
-	await tick(page);
+	await passRecap(page, queueId);
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
 
