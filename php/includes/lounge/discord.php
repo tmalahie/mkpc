@@ -207,6 +207,44 @@ function lounge_discord_announce($queueId, $event, $forcePing = false) {
 	lounge_discord_sync_mllu();
 }
 
+// Once the sides are settled - drafted or drawn - the tier channel gets them, so anyone not
+// watching the site knows who they are with before the room opens. Same shape MogiBot posts,
+// down to the team average, because that is the one the players already read.
+function lounge_discord_announce_teams($queueId) {
+	if (!lounge_setting('discord_enabled'))
+		return;
+	$queue = lounge_queue_state($queueId);
+	if (!$queue || !$queue['mode'])
+		return;
+	$channel = lounge_discord_tier_channel($queue['tier_code']);
+	if (!$channel)
+		return;
+
+	$teams = array();
+	foreach ($queue['members'] as $member) {
+		if (is_null($member['team']))
+			return;
+		$teams[intval($member['team'])][] = $member;
+	}
+	if (count($teams) < 2)
+		return;
+	ksort($teams);
+
+	$lines = array('**Teams — '. $queue['mode'] .'**');
+	foreach ($teams as $side => $members) {
+		$names = array();
+		$mmr = 0;
+		foreach ($members as $member) {
+			$names[] = lounge_discord_player_link($member);
+			$mmr += $member['mmr'];
+		}
+		$lines[] = '`Team '. ($side + 1) .'`: '. implode(', ', $names)
+			.' (MMR: '. round($mmr/count($members)) .')';
+	}
+	lounge_discord_post($channel, implode("\n", $lines));
+	lounge_discord_sync_mllu();
+}
+
 // #mllu carries one message for the whole channel, edited in place, so the channel stays a
 // dashboard rather than a feed. Only the tier channels get a message per event.
 function lounge_discord_mllu_text() {

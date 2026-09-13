@@ -23,6 +23,9 @@ define('LOUNGE_DISCORD_MLLU_SECONDS', 30);
 // Rule 4i: how long a captain has to make each pick before it is made for them.
 define('LOUNGE_DRAFT_PICK_SECONDS', 45);
 define('LOUNGE_DRAFT_REVEAL_SECONDS', 2);
+// Drawn teams arrive all at once, where a draft was watched being built, so they are left up
+// a little longer before the room takes over the screen.
+define('LOUNGE_TEAMS_REVEAL_SECONDS', 3);
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
 define('LOUNGE_BAN_MINUTES', 60);
@@ -817,7 +820,7 @@ function lounge_assign_random_teams($queueId, $mode) {
 	$members = lounge_queue_members($queueId);
 	$teamCount = lounge_mode_team_count($mode, count($members));
 	if ($teamCount < 2)
-		return;
+		return 0;
 	$playerIds = array();
 	foreach ($members as $member)
 		$playerIds[] = $member['id'];
@@ -829,6 +832,7 @@ function lounge_assign_random_teams($queueId, $mode) {
 			AND dropped_at IS NULL'
 		);
 	}
+	return $teamCount;
 }
 
 function lounge_draft_state($queueId) {
@@ -842,23 +846,27 @@ function lounge_draft_state($queueId) {
 	if (!$queue) return null;
 
 	$members = lounge_queue_members($queueId);
-	$captains = lounge_draft_captains($members);
-	if (count($captains) < 2) return null;
+	// Teams drawn at random reach this screen too - same shape, no captains and no pool, and
+	// as many sides as the mode makes.
+	$drafted = lounge_draft_applies($queue['mode'], count($members));
+	$captains = $drafted ? lounge_draft_captains($members) : array();
+	if ($drafted && (count($captains) < 2)) return null;
 	// The coin flip is recorded by seeding the winner onto side 0, so the sides are read back
 	// from the teams themselves rather than from a second column that could disagree.
-	if (intval($captains[0]['team']) !== 0) {
+	if ($captains && (intval($captains[0]['team']) !== 0)) {
 		$swap = $captains[0];
 		$captains[0] = $captains[1];
 		$captains[1] = $swap;
 	}
 
-	$teams = array(array(), array());
+	$teamCount = max(2, lounge_mode_team_count($queue['mode'], count($members)));
+	$teams = array_fill(0, $teamCount, array());
 	$available = array();
 	foreach ($members as $m) {
 		if (is_null($m['team']))
 			$available[] = $m;
-		else
-			$teams[$m['team'] ? 1 : 0][] = $m;
+		elseif (isset($teams[intval($m['team'])]))
+			$teams[intval($m['team'])][] = $m;
 	}
 	$picksMade = count($members) - count($available) - count($captains);
 	$side = lounge_draft_side($picksMade);
@@ -870,7 +878,7 @@ function lounge_draft_state($queueId) {
 		'available' => $available,
 		'picks_made' => $picksMade,
 		'side' => $side,
-		'current_captain' => count($available) ? $captains[$side] : null,
+		'current_captain' => ($captains && count($available)) ? $captains[$side] : null,
 		'seconds_left' => intval($queue['seconds_left']),
 		'pick_seconds' => lounge_setting('draft_pick_seconds')
 	);
@@ -928,6 +936,10 @@ function lounge_draft_assign($queueId, $playerId, $side) {
 	// A completed draft is left standing for a moment before the room opens, so everyone gets
 	// to see the teams they are about to play rather than being thrown straight into the game.
 	// lounge_tick() launches it once that has elapsed.
+	if (!count($state['available'])) {
+		require_once(__DIR__ .'/discord.php');
+		lounge_discord_announce_teams($queueId);
+	}
 	return true;
 }
 
@@ -970,7 +982,21 @@ function lounge_close_vote($queueId) {
 	$mode = lounge_tally_vote($votes, lounge_allowed_modes(count($members)));
 	if (lounge_draft_applies($mode, count($members)) && lounge_start_draft($queueId, $mode))
 		return null;
-	lounge_assign_random_teams($queueId, $mode);
+	// Drawn teams go up on the same screen a draft ends on, and the room opens from there once
+	// the lineup has had a moment to read them.
+	if (lounge_assign_random_teams($queueId, $mode)) {
+		global $q;
+		$q = mysql_query(
+			'UPDATE `mklounge_queues`
+			SET status="drafting", mode="'. mysql_real_escape_string($mode) .'", draft_turn_at=NOW()
+			WHERE id="'. intval($queueId) .'" AND status="voting"'
+		);
+		if (mysql_affected_rows()) {
+			require_once(__DIR__ .'/discord.php');
+			lounge_discord_announce_teams($queueId);
+			return null;
+		}
+	}
 	return lounge_launch_match($queueId, $mode);
 }
 
@@ -1834,16 +1860,25 @@ function lounge_tick() {
 		lounge_draft_autopick(intval($row['id']));
 	}
 
+	// How long the settled teams stay up depends on how they were settled, so the window is
+	// weighed per queue rather than in the WHERE clause.
 	$draftsSettled = mysql_query(
-		'SELECT q.id FROM `mklounge_queues` q
+		'SELECT q.id, q.mode,
+			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(q.draft_turn_at) AS revealed_for,
+			(SELECT COUNT(*) FROM `mklounge_queue_members` m
+				WHERE m.queue=q.id AND m.dropped_at IS NULL) AS lineup
+		FROM `mklounge_queues` q
 		WHERE q.status="drafting"
-		AND q.draft_turn_at < (NOW() - INTERVAL '. LOUNGE_DRAFT_REVEAL_SECONDS .' SECOND)
+		AND q.draft_turn_at IS NOT NULL
 		AND NOT EXISTS (
 			SELECT 1 FROM `mklounge_queue_members` m
 			WHERE m.queue=q.id AND m.dropped_at IS NULL AND m.team IS NULL
 		)'
 	);
 	while ($row = mysql_fetch_array($draftsSettled)) {
-		lounge_launch_match(intval($row['id']));
+		$reveal = lounge_draft_applies($row['mode'], intval($row['lineup']))
+			? LOUNGE_DRAFT_REVEAL_SECONDS : LOUNGE_TEAMS_REVEAL_SECONDS;
+		if (intval($row['revealed_for']) >= $reveal)
+			lounge_launch_match(intval($row['id']));
 	}
 }

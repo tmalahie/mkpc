@@ -613,7 +613,7 @@
 			var onlyMode = (queue.allowed_modes.length === 1) ? queue.allowed_modes[0] : null;
 			var lockLeft = queue.lock_seconds_left;
 			if (lockLeft === null) {
-				status.textContent = onlyMode
+				statusText.textContent = onlyMode
 					? toLanguage(
 						'Queue locked. ' + onlyMode + ' starts soon.',
 						'File verrouillée. ' + onlyMode + ' commence bientôt.'
@@ -623,27 +623,33 @@
 						'File verrouillée. Le vote commence bientôt.'
 					);
 			} else if (onlyMode) {
-				status.textContent = toLanguage(
+				statusText.textContent = toLanguage(
 					'Queue locked. ' + onlyMode + ' starts in ' + formatCountdown(lockLeft) + '.',
 					'File verrouillée. ' + onlyMode + ' commence dans ' + formatCountdown(lockLeft) + '.'
 				);
 			} else {
-				status.textContent = toLanguage(
+				statusText.textContent = toLanguage(
 					'Queue locked. Voting starts in ' + formatCountdown(lockLeft) + '.',
 					'File verrouillée. Le vote commence dans ' + formatCountdown(lockLeft) + '.'
 				);
 			}
 		} else if (queue.status === 'voting') {
 			var voteLeft = queue.vote_seconds_left;
-			status.textContent = toLanguage(
+			statusText.textContent = toLanguage(
 				'Vote the game mode (' + formatCountdown(voteLeft) + ' left)',
 				'Votez pour le mode de jeu (' + formatCountdown(voteLeft) + ' restant)'
 			);
 		} else if (queue.status === 'drafting') {
-			status.textContent = toLanguage(
-				queue.mode + ' it is. The captains are picking their teams.',
-				'Ce sera ' + queue.mode + '. Les capitaines composent leurs équipes.'
-			);
+			// the same screen ends a draft and reveals a draw, and only one of them is a wait
+			statusText.textContent = (queue.draft && queue.draft.captains.length)
+				? toLanguage(
+					queue.mode + ' it is. The captains are picking their teams.',
+					'Ce sera ' + queue.mode + '. Les capitaines composent leurs équipes.'
+				)
+				: toLanguage(
+					queue.mode + ' it is. The race is about to start.',
+					'Ce sera ' + queue.mode + '. La course va commencer.'
+				);
 		}
 		announceConfirm(queue);
 		// above the status card: missing this one drops you from the lineup
@@ -683,16 +689,19 @@
 		}
 	}
 
-	function renderDraftTeam(captain, members) {
+	// A drafted side is named after its captain; a drawn one has no captain to name it after.
+	function renderDraftTeam(captain, members, index) {
 		var col = document.createElement('section');
 		col.className = 'lounge-draft-team';
 		var title = document.createElement('h3');
-		title.textContent = toLanguage('Team ' + captain.name, 'Équipe ' + captain.name);
+		title.textContent = captain
+			? toLanguage('Team ' + captain.name, 'Équipe ' + captain.name)
+			: toLanguage('Team ' + (index + 1), 'Équipe ' + (index + 1));
 		col.appendChild(title);
 		var list = document.createElement('ol');
 		for (var i = 0; i < members.length; i++) {
 			var li = document.createElement('li');
-			li.className = (members[i].id === captain.id) ? 'is-captain' : '';
+			li.className = (captain && (members[i].id === captain.id)) ? 'is-captain' : '';
 			li.textContent = members[i].name;
 			list.appendChild(li);
 		}
@@ -708,7 +717,9 @@
 		var turn = document.createElement('p');
 		turn.className = 'lounge-draft-turn' + (myTurn ? ' is-mine' : '');
 		if (!draft.current_captain) {
-			turn.textContent = toLanguage('Teams are set.', 'Les équipes sont faites.');
+			turn.textContent = draft.captains.length
+				? toLanguage('Teams are set.', 'Les équipes sont faites.')
+				: toLanguage('Teams have been drawn.', 'Les équipes ont été tirées au sort.');
 		} else if (myTurn) {
 			turn.textContent = toLanguage(
 				'Your pick — ' + formatCountdown(draft.seconds_left) + ' left',
@@ -724,8 +735,8 @@
 
 		var teams = document.createElement('div');
 		teams.className = 'lounge-draft-teams';
-		teams.appendChild(renderDraftTeam(draft.captains[0], draft.teams[0]));
-		teams.appendChild(renderDraftTeam(draft.captains[1], draft.teams[1]));
+		for (var t = 0; t < draft.teams.length; t++)
+			teams.appendChild(renderDraftTeam(draft.captains[t], draft.teams[t], t));
 		section.appendChild(teams);
 
 		if (draft.available.length) {
