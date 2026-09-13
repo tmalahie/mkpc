@@ -8,6 +8,7 @@
 	var currentQueue = null;
 	var lastPlayerState = null;
 	var pollTimer = null;
+	var lastPollAt = 0;
 	var actionInFlight = false;
 	// Kept out of the DOM so a poll-driven re-render does not wipe a pending choice.
 
@@ -1034,6 +1035,7 @@
 	}
 
 	function pollOnce() {
+		lastPollAt = Date.now();
 		if (view === 'tiers') {
 			postJSON('lounge/tiers.php', '', function(data) {
 				if (!data || data.error) {
@@ -1063,6 +1065,18 @@
 			});
 		}
 	}
+
+	// A background tab has its timers throttled to about one a minute, and a lineup moves on
+	// in seconds - so a lounge left in another window shows a lineup that is minutes old, and
+	// two players comparing screens see two different lineups. Ask again the moment the
+	// player looks at it, rather than waiting for the throttled timer to come round.
+	function refreshOnReturn() {
+		if (document.hidden || ((Date.now() - lastPollAt) < 1000)) return;
+		scheduleNextPoll(0);
+	}
+
+	document.addEventListener('visibilitychange', refreshOnReturn);
+	window.addEventListener('focus', refreshOnReturn);
 
 	function init() {
 		setupTabs();
