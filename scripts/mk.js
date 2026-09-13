@@ -30511,12 +30511,17 @@ function choose(map,rand) {
 				while (trs.length)
 					oTBody.removeChild(trs[0]);
 				var nbChoices = 0;
+				// Which kart each row of the table stands for: substitutes and CPUs have
+				// nothing to pick, so they hold no row, and the two lists are not the same
+				// length any more.
+				var rowChoices = [];
 				for (i=0;i<choixJoueurs.length;i++) {
 					// A substitute races in its member's place, so the lineup is not short of
 					// them - it just has nothing to pick, so it stays out of the track table.
 					if (choixJoueurs[i][8])
 						nbChoices++;
 					if (!choixJoueurs[i][7]) {
+						rowChoices.push(i);
 						var oTr = document.createElement("tr");
 
 						let nameCell = document.createElement("td");
@@ -30661,9 +30666,9 @@ function choose(map,rand) {
 						var cTime = 50;
 						function moveCursor() {
 							var isInFuckingLoop = true;
-							if (cCursor == rCode[1]) {
+							if (rowChoices[cCursor] == rCode[1]) {
 								var pTime = 0, iTime = cTime;
-								for (var i=0;i<nbChoices;i++) {
+								for (var i=0;i<rowChoices.length;i++) {
 									iTime = Math.round(iTime*1.05);
 									pTime += iTime;
 								}
@@ -30674,7 +30679,7 @@ function choose(map,rand) {
 								trs[cCursor].style.backgroundColor = "";
 								trs[cCursor].style.color = "";
 								cCursor++;
-								if (cCursor == nbChoices)
+								if (cCursor == rowChoices.length)
 									cCursor = 0;
 								trs[cCursor].style.backgroundColor = "#F80";
 								trs[cCursor].style.color = "white";
@@ -30692,7 +30697,7 @@ function choose(map,rand) {
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
 							if (cID == 1)
-								trs[cCursor].getElementsByTagName("td")[1].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
+								trs[cCursor].getElementsByTagName("td")[1].innerHTML = dCircuits[choixJoueurs[rowChoices[cCursor]][2]-1];
 						}
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
 						if (onlineSpectatorState) {
