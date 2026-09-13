@@ -476,8 +476,8 @@ a {
 	margin: 0 0 12px;
 	border: none;
 	border-radius: 5px;
-	background: rgba(255, 237, 199, 0.93);
-	color: #6B3A00;
+	background: #fc6;
+	color: #c40;
 	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 
@@ -485,22 +485,21 @@ a {
 	margin: 0;
 	flex: 1 1 240px;
 	font-size: 14px;
-	font-weight: bold;
 }
 
 .lounge-confirm-btn {
-	background: #6B3A00;
-	color: #FFEDC6;
+	background: #f70;
+	color: #FED;
 	border: none;
 	padding: 5px 16px;
 }
 
 .lounge-confirm-btn:hover:not(:disabled) {
-	background: #8A4D00;
+	background: #d70;
 }
 
 .lounge-confirm-btn:disabled {
-	background: #6B3A00;
+	background: #630;
 	color: #FFEDC6;
 	border: none;
 	opacity: 0.55;
