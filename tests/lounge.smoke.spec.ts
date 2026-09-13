@@ -731,6 +731,51 @@ test('the played course is recorded server-side and handed back to the room', as
 	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
 });
 
+// A whole lineup opening one private link has to land in one room. Anyone still carrying the
+// course of an earlier race used to keep it, wait there alone, and report the lineup's size as
+// if they were in it - so a mogi of five showed up as three waiting for two next to two waiting
+// for three, until the lounge's join timeout eventually let them in.
+test('a player who still carries an old course joins the link\'s room, not their own', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 42;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const mates = await createLoungeBots(2, 'stale');
+	const soon = Math.floor(Date.now() / 1000) + 500;
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	// the lineup is still short, which is when the old room looked like a good enough place to
+	// wait - with the room one player off starting, matchmaking would have moved them anyway
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 5, maxPlayers: 8, lounge: 1 })]);
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`, [soon, key]);
+	for (const mate of mates)
+		await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, mate]);
+
+	// the leftover: a room from another game this player never left cleanly
+	const stale: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`, [soon, key + 1]);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [stale.insertId, playerId]);
+
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+
+	const [me]: any = await sql(`SELECT course FROM mkjoueurs WHERE id = ?`, [playerId]);
+	expect(me.course).toBe(room.insertId);
+	// and the lineup is one room, so nobody is counted twice
+	const [rooms]: any = await sql(
+		`SELECT COUNT(DISTINCT course) AS n FROM mkjoueurs WHERE course IN (?, ?)`,
+		[room.insertId, stale.insertId]);
+	expect(rooms.n).toBe(1);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE course IN (?, ?)`,
+		[room.insertId, stale.insertId]);
+	await sql(`DELETE FROM mkplayers WHERE course IN (?, ?)`, [room.insertId, stale.insertId]);
+	await sql(`DELETE FROM mariokart WHERE link IN (?, ?)`, [key, key + 1]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
+});
+
 // The substitute, rule 4db: a member missing when a race starts does not leave a hole in the
 // grid - their own kart stays on it under AI control, and they take it back when they return.
 test('an absent member keeps their kart, under a bot, until they come back', async ({ page }) => {
