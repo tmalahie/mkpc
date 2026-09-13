@@ -1071,6 +1071,11 @@ test('a 2v2 lineup of six launches as three teams', async ({ page }) => {
 	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: '2v2' } });
 	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
 	await tick(page);
+	// the drawn teams are held on screen first, so the room only opens on the tick after
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
+		[queueId]);
+	await tick(page);
 
 	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
 	expect(match.mode).toBe('2v2');
@@ -1502,7 +1507,9 @@ test('players who have queued before are notified when a lineup gathers', async 
 // The captain draft, settled with staff on 2026-09-06: the two highest-rated players captain
 // the two sides and fill them by hand before the room ever opens, so the in-game team screen
 // is skipped entirely.
-async function stageDraftLineup(page, tag: string, lineup: number, mode: string) {
+// `discord` has to be switched on inside here rather than before the call: cleanupLoungeQueues
+// clears the settings table, and the announcement happens on the tick below.
+async function stageDraftLineup(page, tag: string, lineup: number, mode: string, discord = false) {
 	await cleanupLoungeQueues();
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const bots = await createLoungeBots(lineup, tag);
@@ -1523,6 +1530,10 @@ async function stageDraftLineup(page, tag: string, lineup: number, mode: string)
 		);
 	}
 	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]);
+	if (discord) {
+		await sql(`DELETE FROM mklounge_discord_log`);
+		await enableDiscord();
+	}
 	await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
 	await tick(page);
 	return { queueId: q.insertId, bots };
@@ -1557,6 +1568,9 @@ test('the draft snakes 1-2-1 and launches with the teams already set', async ({ 
 	const captainIndexOf = (state: any, side: number) =>
 		bots.indexOf(state.draft.captains[side].id) + 1;
 
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await enableDiscord();
+
 	// 1-2-1 is four picks, but the last one is a formality - one player, one empty seat - so
 	// only the first three are ever put to a captain
 	const expectedSides = [0, 1, 1];
@@ -1583,6 +1597,13 @@ test('the draft snakes 1-2-1 and launches with the teams already set', async ({ 
 	);
 	expect(teams.map((t: any) => Number(t.n))).toEqual([3, 3]);
 
+	// a settled draft is recapped to the tier channel the same way a drawn lineup is
+	const log: any = await sql(`SELECT content FROM mklounge_discord_log ORDER BY id`);
+	const recap = log.map((r: any) => r.content).find((c: string) => c.includes('**Teams'));
+	expect(recap).toContain('**Teams — 3v3**');
+	expect(recap).toContain('`Team 2`:');
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+
 	await sql(
 		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
 		[queueId]
@@ -1604,12 +1625,16 @@ test('the draft snakes 1-2-1 and launches with the teams already set', async ({ 
 // four players into two teams as well, but MogiBot posts those teams with the poll result:
 // drawn at random, unbalanced as often as not, and never put to a draft.
 test('a 2v2 of four is drawn at random rather than drafted', async ({ page }) => {
-	const { queueId } = await stageDraftLineup(page, 'rand2v2', 4, '2v2');
+	const { queueId } = await stageDraftLineup(page, 'rand2v2', 4, '2v2', true);
 
-	// straight into a room - no drafting state to pass through
-	const [queue]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
-	expect(queue.status).toBe('launched');
-	expect(queue.mode).toBe('2v2');
+	// the teams go up on the same screen a draft ends on, with nothing to pick
+	const [held]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(held.status).toBe('drafting');
+	expect(held.mode).toBe('2v2');
+	const state = await draftState(page, 'rand2v2', 1);
+	expect(state.draft.captains).toHaveLength(0);
+	expect(state.draft.available).toHaveLength(0);
+	expect(state.draft.teams.map((t: any[]) => t.length)).toEqual([2, 2]);
 
 	const teams: any = await sql(
 		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members
@@ -1617,12 +1642,28 @@ test('a 2v2 of four is drawn at random rather than drafted', async ({ page }) =>
 	expect(teams.map((t: any) => Number(t.team))).toEqual([0, 1]);
 	expect(teams.map((t: any) => Number(t.n))).toEqual([2, 2]);
 
-	// and the sides are settled before the room opens, so nobody picks one in-game
+	// and the tier channel is told who is with whom, for anyone not watching the site
+	const log: any = await sql(`SELECT content FROM mklounge_discord_log ORDER BY id`);
+	const recap = log.map((r: any) => r.content).find((c: string) => c.includes('**Teams'));
+	expect(recap).toContain('**Teams — 2v2**');
+	expect(recap).toMatch(/`Team 1`: \[.+\]\(.+\), \[.+\]\(.+\) \(MMR: \d+\)/);
+	expect(recap).toContain('`Team 2`:');
+
+	// the room opens once the lineup has had its look
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
+		[queueId]);
+	await tick(page);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	// the sides were settled before it did, so nobody picks one in-game
 	const rules = await rulesFor(queueId);
 	expect(rules.nbTeams).toBe(2);
 	expect(rules.manualTeams).toBeUndefined();
 	expect(Object.keys(rules.fixedTeams)).toHaveLength(4);
 
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
 
@@ -1647,15 +1688,21 @@ test('a captain who runs out of time gets the highest-rated player left', async 
 test('a lineup that splits into more than two teams is drawn at random too', async ({ page }) => {
 	const { queueId } = await stageDraftLineup(page, 'draft2v2', 8, '2v2');
 
-	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
-	expect(queue.status).toBe('launched');
-
-	// eight players in pairs is four teams, and every one of them is filled
+	// eight players in pairs is four teams, and the reveal screen shows all four
 	const teams: any = await sql(
 		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members
 		 WHERE queue = ? AND dropped_at IS NULL GROUP BY team ORDER BY team`, [queueId]);
 	expect(teams.map((t: any) => Number(t.team))).toEqual([0, 1, 2, 3]);
 	expect(teams.map((t: any) => Number(t.n))).toEqual([2, 2, 2, 2]);
+	const state = await draftState(page, 'draft2v2', 1);
+	expect(state.draft.teams.map((t: any[]) => t.length)).toEqual([2, 2, 2, 2]);
+
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
+		[queueId]);
+	await tick(page);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
 
 	const rules = await rulesFor(queueId);
 	expect(rules.nbTeams).toBe(4);
