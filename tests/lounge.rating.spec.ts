@@ -304,6 +304,51 @@ test('an absence is charged on top of the rating the bot earned', async ({ page 
 	expect(rows.map(r => Math.round(r.mmr_delta))).toEqual([41, 14, -24, -66]);
 });
 
+// The rule is a flat count - "plus de 4 courses ratees" - not a share of the mogi. Staff
+// shorten races_per_match to test, and a third of a two-race mogi is one race: reading the
+// threshold as a proportion charged the heavy penalty for missing a single race.
+test('a short mogi charges the light penalty for one missed race', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const key = LOUNGE_KEY_MIN + 25;
+	const players = await createLoungeBots(4, 'shortmogi');
+	// restored whatever happens: every other case in this file reads the default mogi length,
+	// and a leaked override would rate them against the wrong one
+	await sql(`INSERT INTO mklounge_settings (name, value) VALUES ('races_per_match', 2)
+	           ON DUPLICATE KEY UPDATE value = VALUES(value)`);
+	try {
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launching', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+
+	const scores = [120, 90, 60, 30];
+	const attendance = [2, 2, 1, 0];
+	for (let i = 0; i < players.length; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player, races_played) VALUES (?, ?, ?)`,
+			[match.id, players[i], attendance[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], scores[i]]);
+	}
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+	await publish(key);
+
+	await login(page);
+	await tick(page);
+
+	const rows: any[] = await sql(
+		`SELECT mp.races_played, mp.mmr_penalty FROM mklounge_match_players mp
+		 WHERE mp.\`match\` = ? ORDER BY mp.final_position`, [match.id]);
+	expect(rows.map(r => r.races_played)).toEqual([2, 2, 1, 0]);
+	// missing one of two races is still only one missed race, so it is the light penalty;
+	// missing both is still under the threshold and stays light too
+	expect(rows.map(r => Math.round(r.mmr_penalty))).toEqual([0, 0, -10, -10]);
+	}
+	finally {
+		await sql(`DELETE FROM mklounge_settings WHERE name = 'races_per_match'`);
+	}
+});
+
 // If the race-end hook never ran, every attendance is 0 - which must read as "we do not know
 // how long the mogi was", not as "nobody turned up for any of it".
 test('a mogi with no attendance recorded penalises nobody', async ({ page }) => {
