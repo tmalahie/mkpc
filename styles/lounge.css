@@ -841,9 +841,10 @@ a {
 	font-weight: bold;
 }
 
+/* two sides for a drafted mode, up to four for a drawn one */
 .lounge-draft-teams {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 	gap: 9px;
 }
 
