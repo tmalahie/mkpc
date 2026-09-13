@@ -759,7 +759,8 @@ a {
 	border-bottom: solid 1px var(--lounge-frame);
 }
 
-.lounge-results-table td {
+.lounge-results-table td,
+.lounge-leaderboard-row td {
 	text-align: center;
 }
 
@@ -807,9 +808,23 @@ a {
 	color: var(--lounge-bad);
 }
 
-.lounge-results-back {
-	display: block;
-	margin: 20px auto 0;
+.lounge-results-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+	margin-top: 20px;
+}
+
+/* sized against the Back button it stands next to, not the rules panel it is cloned from */
+.lounge-results-actions .lounge-discord {
+	padding: 4px 15px;
+}
+
+.lounge-results-actions .lounge-discord svg {
+	width: 15px;
+	height: 15px;
 }
 
 .lounge-empty {
