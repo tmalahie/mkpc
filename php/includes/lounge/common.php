@@ -747,8 +747,9 @@ function lounge_build_game_rules($mode, $playerCount, $tierCode = '', $fixedTeam
 		$rules['team'] = 1;
 		$rules['friendlyFire'] = 1;
 		$rules['nbTeams'] = $nbTeams;
-		// A drafted lineup already knows its sides, so the room skips the team-selection
-		// screen entirely; every other team mode still picks them in-game.
+		// A ranked lineup always arrives with its sides settled - drafted by captains, or drawn
+		// at random - so the room skips the team-selection screen. The fallback is for a room
+		// built before the teams were, which only a repaired queue can produce.
 		if ($fixedTeams)
 			$rules['fixedTeams'] = $fixedTeams;
 		else
@@ -801,10 +802,33 @@ function lounge_draft_side($pickIndex) {
 	return ((int) (($pickIndex + 1) / 2)) % 2;
 }
 
-// Captains only make sense with two sides to captain. Modes that split the lineup further -
-// 2v2 at six or eight players - have no draft in the rules, so they keep the in-game screen.
+// Captains are for the two big two-sided modes only, the ones staff named: 3v3 at six and 4v4
+// at eight. Two sides is not enough on its own - 2v2 splits a four-player lineup in two as
+// well, and the ladder draws those at random like every other team mode.
 function lounge_draft_applies($mode, $playerCount) {
-	return lounge_mode_team_count($mode, $playerCount) === 2;
+	return ($playerCount >= 6) && (lounge_mode_team_count($mode, $playerCount) === 2);
+}
+
+// How every team mode that is not captain-drafted gets its sides. MogiBot posts them with the
+// poll result - no picking phase, and no attempt to balance them either: the two weakest in a
+// room can and do end up together. Written to the same column the draft fills, so the room is
+// built from settled teams either way and nobody picks a side in-game.
+function lounge_assign_random_teams($queueId, $mode) {
+	$members = lounge_queue_members($queueId);
+	$teamCount = lounge_mode_team_count($mode, count($members));
+	if ($teamCount < 2)
+		return;
+	$playerIds = array();
+	foreach ($members as $member)
+		$playerIds[] = $member['id'];
+	shuffle($playerIds);
+	foreach ($playerIds as $i => $playerId) {
+		mysql_query(
+			'UPDATE `mklounge_queue_members` SET team="'. ($i % $teamCount) .'"
+			WHERE queue="'. intval($queueId) .'" AND player="'. intval($playerId) .'"
+			AND dropped_at IS NULL'
+		);
+	}
 }
 
 function lounge_draft_state($queueId) {
@@ -946,6 +970,7 @@ function lounge_close_vote($queueId) {
 	$mode = lounge_tally_vote($votes, lounge_allowed_modes(count($members)));
 	if (lounge_draft_applies($mode, count($members)) && lounge_start_draft($queueId, $mode))
 		return null;
+	lounge_assign_random_teams($queueId, $mode);
 	return lounge_launch_match($queueId, $mode);
 }
 

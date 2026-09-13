@@ -1600,32 +1600,28 @@ test('the draft snakes 1-2-1 and launches with the teams already set', async ({ 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
 
-// Two players left is a real choice; one is not. A four-player lineup drafting 2v2 therefore
-// asks its first captain once, and the fourth player seats themselves.
-test('the last player is placed without being picked', async ({ page }) => {
-	const { queueId, bots } = await stageDraftLineup(page, 'draft2x2', 4, '2v2');
+// The ladder only hands a lineup to captains for its two big two-sided modes. A 2v2 splits
+// four players into two teams as well, but MogiBot posts those teams with the poll result:
+// drawn at random, unbalanced as often as not, and never put to a draft.
+test('a 2v2 of four is drawn at random rather than drafted', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'rand2v2', 4, '2v2');
 
-	let state = await draftState(page, 'draft2x2', 1);
-	expect(state.draft.available).toHaveLength(2);
-
-	const captain = bots.indexOf(state.draft.current_captain.id) + 1;
-	state = await draftState(page, 'draft2x2', captain);
-	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/draft.php', {
-		form: { player: String(state.draft.available[0].id) },
-	});
-	expect((await res.json()).error).toBeUndefined();
-
-	// that one pick settled the whole lineup - nobody was asked about the fourth player
-	const unplaced: any = await sql(
-		`SELECT COUNT(*) AS n FROM mklounge_queue_members
-		 WHERE queue = ? AND dropped_at IS NULL AND team IS NULL`, [queueId]
-	);
-	expect(Number(unplaced[0].n)).toBe(0);
+	// straight into a room - no drafting state to pass through
+	const [queue]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+	expect(queue.mode).toBe('2v2');
 
 	const teams: any = await sql(
-		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members WHERE queue = ? GROUP BY team`, [queueId]
-	);
+		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members
+		 WHERE queue = ? AND dropped_at IS NULL GROUP BY team ORDER BY team`, [queueId]);
+	expect(teams.map((t: any) => Number(t.team))).toEqual([0, 1]);
 	expect(teams.map((t: any) => Number(t.n))).toEqual([2, 2]);
+
+	// and the sides are settled before the room opens, so nobody picks one in-game
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(2);
+	expect(rules.manualTeams).toBeUndefined();
+	expect(Object.keys(rules.fixedTeams)).toHaveLength(4);
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
@@ -1648,16 +1644,23 @@ test('a captain who runs out of time gets the highest-rated player left', async 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
 
-test('a lineup that splits into more than two teams keeps the in-game team screen', async ({ page }) => {
+test('a lineup that splits into more than two teams is drawn at random too', async ({ page }) => {
 	const { queueId } = await stageDraftLineup(page, 'draft2v2', 8, '2v2');
 
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
 	expect(queue.status).toBe('launched');
 
+	// eight players in pairs is four teams, and every one of them is filled
+	const teams: any = await sql(
+		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members
+		 WHERE queue = ? AND dropped_at IS NULL GROUP BY team ORDER BY team`, [queueId]);
+	expect(teams.map((t: any) => Number(t.team))).toEqual([0, 1, 2, 3]);
+	expect(teams.map((t: any) => Number(t.n))).toEqual([2, 2, 2, 2]);
+
 	const rules = await rulesFor(queueId);
 	expect(rules.nbTeams).toBe(4);
-	expect(rules.manualTeams).toBe(1);
-	expect(rules.fixedTeams).toBeUndefined();
+	expect(rules.manualTeams).toBeUndefined();
+	expect(Object.keys(rules.fixedTeams)).toHaveLength(8);
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
