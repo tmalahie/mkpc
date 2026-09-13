@@ -156,11 +156,15 @@ INSERT INTO `mklounge_ranks` (`code`,`label_en`,`label_fr`,`min_mmr`,`color`,`or
   ('master',   'Master',   'Maitre',   2000, '#4c4c4c', 7),
   ('gm',       'GM',       'GM',       2500, '#a32937', 8);
 
--- min_players: Tier All needs 6 to gather, every other tier 4 (rule 3aa), so that
--- players are pushed towards their own tier rather than all piling into Tier All.
+-- Bands are the rank ranges the ladder's staff gave, read off mklounge_ranks above:
+-- C is Iron to Silver, B Bronze to Emerald, A Silver upwards, X Emerald upwards. They
+-- overlap on purpose - a Diamond player chooses between A and X - so a max_mmr of NULL
+-- means "no ceiling", not "top tier". Expected to be retuned for the next season.
+-- min_players is 4 everywhere, including Tier All: rule 3aa still reads 6 there, but the
+-- ladder lowered it to 4 for lack of activity and never wrote it back.
 INSERT IGNORE INTO `mklounge_tiers` (`code`,`label_en`,`label_fr`,`min_mmr`,`max_mmr`,`min_players`,`ordering`) VALUES
   ('all', 'Tier All', 'Tier All', 0,    NULL, 4, 0),
-  ('C',   'Tier C',   'Tier C',   0,    999,  4, 1),
-  ('B',   'Tier B',   'Tier B',   1000, 1999, 4, 2),
-  ('A',   'Tier A',   'Tier A',   2000, 2999, 4, 3),
-  ('X',   'Tier X',   'Tier X',   3000, NULL, 4, 4);
+  ('C',   'Tier C',   'Tier C',   0,    1199, 4, 1),
+  ('B',   'Tier B',   'Tier B',   500,  1799, 4, 2),
+  ('A',   'Tier A',   'Tier A',   900,  NULL, 4, 3),
+  ('X',   'Tier X',   'Tier X',   1600, NULL, 4, 4);
