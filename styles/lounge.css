@@ -825,6 +825,32 @@ a {
 	font-weight: bold;
 }
 
+/* What the vote settled on, at the size of an answer: the one thing on this screen that has
+   to carry across a room, so it takes the accent and the title outline. */
+.lounge-verdict {
+	text-align: center;
+	margin: 0 0 14px;
+}
+
+.lounge-verdict-mode {
+	margin: 0;
+	font-family: var(--lounge-mono);
+	font-size: 42px;
+	font-weight: bold;
+	line-height: 1.05;
+	letter-spacing: 0.04em;
+	color: var(--lounge-hot);
+	text-shadow: var(--lounge-outline);
+}
+
+.lounge-verdict-note {
+	margin: 3px 0 0;
+	font-size: 12px;
+	font-style: italic;
+	color: var(--lounge-dim);
+	text-shadow: 0 1px 2px #000, 0 0 4px #000;
+}
+
 .lounge-draft {
 	margin-top: 16px;
 }
