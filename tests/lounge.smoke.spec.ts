@@ -1649,6 +1649,39 @@ test('an FFA lineup gets a recap of its own before the room opens', async ({ pag
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
 });
 
+// The vote's answer used to be half a sentence in the status line, which is not where anyone
+// looks to find out what they are about to play. "2v2" is also the ladder's name for pairs
+// however many pairs that makes, so the recap says the shape rather than the name.
+test('the recap announces the mode in the shape it will be played', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	const recapSays = async (mode: string, lineup: number, teamCount: number, tag: string, shape: string) => {
+		const bots = await createLoungeBots(lineup - 1, tag);
+		// held open, so the recap cannot launch out from under the assertion
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status, mode, draft_turn_at)
+			 VALUES (1, ?, 'drafting', ?, NOW() + INTERVAL 1 HOUR)`, [tier.id, mode]);
+		const members = [playerId, ...bots];
+		for (let i = 0; i < members.length; i++)
+			await sql(`INSERT INTO mklounge_queue_members (queue, player, team) VALUES (?, ?, ?)`,
+				[q.insertId, members[i], teamCount ? i % teamCount : null]);
+
+		await page.goto('http://127.0.0.1:8080/lounge.php');
+		await expect(page.locator('.lounge-verdict-mode')).toHaveText(shape);
+
+		await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+		await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [q.insertId]);
+		await cleanupLoungeQueues(loungeBotPattern(tag));
+	};
+
+	await recapSays('2v2', 8, 4, 'shape8', '2v2v2v2');
+	await recapSays('2v2', 4, 2, 'shape4', '2v2');
+	await recapSays('FFA', 5, 0, 'shapeffa', 'FFA');
+});
+
 // The recap is for the lineup that waited for it. Someone opening the lounge to find their
 // mogi already under way has missed it, is most likely late, and is sent straight there.
 test('a player who walks in on a running mogi is sent to it, not shown the recap', async ({ page }) => {
