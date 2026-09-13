@@ -323,6 +323,14 @@ a {
 	padding: 4px 15px;
 	cursor: pointer;
 }
+.lounge-tier-join:not(:disabled):active,
+.lounge-confirm-btn:not(:disabled):active,
+.lounge-rules-accept:not(:disabled):active,
+.lounge-results-back:not(:disabled):active,
+.lounge-drop:not(:disabled):active,
+.lounge-draft-pick:not(:disabled):active {
+	border: inset 2px var(--lounge-frame);
+}
 
 .lounge-tier-join:hover:not(:disabled),
 .lounge-confirm-btn:hover:not(:disabled),
@@ -362,6 +370,9 @@ a {
 
 .lounge-discord:hover {
 	background: #4752C4;
+}
+.lounge-discord:active {
+	border: inset 2px #8A92F7;
 }
 
 [data-panel="howitworks"] ul,
