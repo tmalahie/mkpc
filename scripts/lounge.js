@@ -16,6 +16,12 @@
 	var announcedStatus = null;
 	var unloadGuarded = false;
 	var announcedConfirm = false;
+	// Set once this client has seen the recap - what the lineup settled on, before the room
+	// opens. Someone who opens the lounge to find their mogi already running has not, and is
+	// most likely late for it, so they get told it is on and sent straight there instead.
+	var sawRecap = false;
+	var announcedStart = false;
+	var leavingForRoom = false;
 
 	function toLanguage(en, fr) {
 		return language ? en : fr;
@@ -457,8 +463,23 @@
 		if (announcedStatus === status) return;
 		var wasKnown = (announcedStatus !== null);
 		announcedStatus = status;
-		if (!wasKnown || !STATUS_ALERTS[status] || !alertsEnabled()) return;
+		// the start is announced off the recap rather than off the status, so it lands when
+		// the lineup is told what it is playing rather than a beat later
+		if (!wasKnown || (status === 'launched') || !STATUS_ALERTS[status] || !alertsEnabled()) return;
 		fireAlert(status);
+	}
+
+	// The recap is where a waiting player finds out the mogi is on, so it carries the alert the
+	// launch used to. A player who was not waiting gets no alert, the way they never did.
+	function announceStart(queue, wasWatching) {
+		if (announcedStart) return;
+		var settled = (queue.status === 'launched')
+			|| ((queue.status === 'drafting') && queue.draft && !queue.draft.available.length);
+		if (!settled) return;
+		announcedStart = true;
+		sawRecap = (queue.status !== 'launched');
+		if (wasWatching && alertsEnabled())
+			fireAlert('launched');
 	}
 
 	function fireAlert(key) {
@@ -580,11 +601,18 @@
 		var container = $('lounge-queueup');
 		if (!container) return;
 
+		var wasWatching = (announcedStatus !== null);
 		announceStatus(queue.status);
+		announceStart(queue, wasWatching);
 		setUnloadGuard(queue.status !== 'launched');
 
 		if (queue.status === 'launched' && queue.privgame_key) {
-			renderLaunching(container, queue);
+			// the recap is already on screen and says all of this, so it stays there until the
+			// room takes over rather than blinking through a second announcement
+			if (sawRecap)
+				goToRoom(queue);
+			else
+				renderLaunching(container, queue);
 			return;
 		}
 
@@ -658,8 +686,9 @@
 		status.appendChild(renderAlertControls());
 		container.appendChild(status);
 
-		// during the draft the two team columns and the pool already account for everyone
-		var showLineup = (queue.status !== 'drafting');
+		// the team columns already account for everyone; an FFA recap has none, so it keeps the
+		// lineup it was already showing
+		var showLineup = (queue.status !== 'drafting') || !queue.draft || !queue.draft.teams.length;
 		var list = document.createElement('ol');
 		list.className = 'lounge-member-list';
 		for (var i = 0; showLineup && (i < queue.members.length); i++) {
@@ -682,8 +711,9 @@
 
 		if (queue.status === 'voting') {
 			container.appendChild(renderVoteSection(queue));
-		} else if (queue.status === 'drafting' && queue.draft) {
-			container.appendChild(renderDraft(queue.draft));
+		} else if (queue.status === 'drafting') {
+			if (queue.draft && queue.draft.teams.length)
+				container.appendChild(renderDraft(queue.draft));
 		} else {
 			container.appendChild(renderQueueActions(queue));
 		}
@@ -861,6 +891,8 @@
 		return group;
 	}
 
+	// Only for a player who never saw the recap: they have walked in on a mogi that is already
+	// running, so they are told it is on and taken there without a countdown.
 	function renderLaunching(container, queue) {
 		container.innerHTML = '';
 		var box = document.createElement('div');
@@ -872,7 +904,12 @@
 			'Lancement de la partie…'
 		);
 		container.appendChild(box);
+		goToRoom(queue, 1200);
+	}
 
+	function goToRoom(queue, delay) {
+		if (leavingForRoom) return;
+		leavingForRoom = true;
 		var url = 'online.php?mid=' + queue.multicup_id + '&ranked&key=' + queue.privgame_key;
 		setTimeout(function() {
 			if (window.parent && window.parent !== window) {
@@ -880,7 +917,7 @@
 			} else {
 				window.location.href = url;
 			}
-		}, 1200);
+		}, delay || 0);
 	}
 
 	function formatCountdown(seconds) {
@@ -935,6 +972,8 @@
 		currentQueue = null;
 		announcedStatus = null;
 		announcedConfirm = false;
+		announcedStart = false;
+		sawRecap = false;
 		setUnloadGuard(false);
 		mkNotify.clear();
 	}
