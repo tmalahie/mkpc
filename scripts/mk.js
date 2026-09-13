@@ -25587,7 +25587,7 @@ function openLoungeOverlay(opts) {
 			oOverlay.parentNode.removeChild(oOverlay);
 		// the ranked flow replaces the game screen, so there is nothing to go back to
 		if (opts.perso)
-			document.location.href = "index.php";
+			document.location.reload();
 	}
 	document.addEventListener("keydown", onKey);
 
