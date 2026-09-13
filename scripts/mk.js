@@ -25549,10 +25549,10 @@ function openLoungeOverlay(opts) {
 	oFrame.src = "lounge.php" + (aFrameParams.length ? ("?" + aFrameParams.join("&")) : "");
 	oFrame.style.width = "min(960px, 95vw)";
 	oFrame.style.height = "min(720px, 92vh)";
-	oFrame.style.border = "groove 4px #880000";
-	oFrame.style.borderRadius = "8px";
-	oFrame.style.background = "#fff";
-	oFrame.style.boxShadow = "0 8px 32px rgba(0,0,0,0.6)";
+	oFrame.style.border = "outset 3px #5A6088";
+	oFrame.style.borderRadius = "6px";
+	oFrame.style.background = "#0A0C15";
+	oFrame.style.boxShadow = "0 8px 32px rgba(0,0,0,0.7)";
 	oOverlay.appendChild(oFrame);
 
 	var oClose = document.createElement("button");
@@ -25565,10 +25565,10 @@ function openLoungeOverlay(opts) {
 	oClose.style.width = "36px";
 	oClose.style.height = "36px";
 	oClose.style.fontSize = "18px";
-	oClose.style.background = "#C00";
-	oClose.style.color = "#fff";
-	oClose.style.border = "solid 2px #500";
-	oClose.style.borderRadius = "999px";
+	oClose.style.background = "#2B3150";
+	oClose.style.color = "#FEFF3F";
+	oClose.style.border = "outset 2px #5A6088";
+	oClose.style.borderRadius = "5px";
 	oClose.style.cursor = "pointer";
 	oClose.onclick = closeLoungeOverlay;
 	oOverlay.appendChild(oClose);

@@ -16,7 +16,7 @@ if ($id) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CT Lounge - Mario Kart PC</title>
-<link rel="stylesheet" type="text/css" href="styles/lounge.css?reload=2" />
+<link rel="stylesheet" type="text/css" href="styles/lounge.css?reload=3" />
 <script type="text/javascript">
 var language = <?php echo $language ? 'true':'false'; ?>;
 var mId = <?php echo $id ? intval($id) : 'null'; ?>;
