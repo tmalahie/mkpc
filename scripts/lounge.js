@@ -483,15 +483,15 @@
 		text.className = 'lounge-confirm-text';
 		var left = queue.confirm_seconds_left;
 		text.textContent = toLanguage(
-			'Are you still in the queue? You will be removed in ' + formatCountdown(left) + '.',
-			'Êtes-vous toujours en file ? Vous en serez retiré dans ' + formatCountdown(left) + '.'
+			'Still here? Please confirm before ' + formatCountdown(left) + ' or you\'ll be dropped',
+			'Toujours là ? Confirmez sous ' + formatCountdown(left) + ' ou vous serez retiré de la liste'
 		);
 		box.appendChild(text);
 
 		var btn = document.createElement('button');
 		btn.type = 'button';
 		btn.className = 'lounge-confirm-btn';
-		btn.textContent = toLanguage('I am still here', 'Je suis toujours là');
+		btn.textContent = toLanguage('Keep me in', 'Je reste !');
 		btn.addEventListener('click', onConfirmClick);
 		box.appendChild(btn);
 		return box;
@@ -645,11 +645,12 @@
 				'Ce sera ' + queue.mode + '. Les capitaines composent leurs équipes.'
 			);
 		}
-		status.appendChild(renderAlertControls());
-		container.appendChild(status);
 		announceConfirm(queue);
+		// above the status card: missing this one drops you from the lineup
 		if (queue.confirm_due)
 			container.appendChild(renderConfirmPrompt(queue));
+		status.appendChild(renderAlertControls());
+		container.appendChild(status);
 
 		// during the draft the two team columns and the pool already account for everyone
 		var showLineup = (queue.status !== 'drafting');
@@ -662,6 +663,13 @@
 			li.innerHTML = '<span class="lounge-member-name"></span> <span class="lounge-member-mmr">MMR ' + m.mmr + '</span>';
 			li.querySelector('.lounge-member-name').textContent = m.name;
 			list.appendChild(li);
+		}
+		// the empty seats say what the lineup is still waiting for, rather than the count alone
+		for (var j = queue.members.length; showLineup && (queue.status === 'open') && (j < queue.lock_threshold); j++) {
+			var slot = document.createElement('li');
+			slot.className = 'lounge-slot';
+			slot.textContent = toLanguage('Waiting for a player…', 'En attente d\'un joueur…');
+			list.appendChild(slot);
 		}
 		if (showLineup)
 			container.appendChild(list);
