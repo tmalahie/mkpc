@@ -1010,9 +1010,10 @@ test('only a lounge moderator can edit a lounge link', async ({ page, browser })
 	expect(await minPlayers()).toBe(3);
 });
 
-// Most of the ladder's numbers are still guesses - the tier bands, the vote timer, how long
-// a ban lasts - so they are staff-tunable rather than a deploy away. The constants in
-// common.php stay the defaults; a row in mklounge_settings overrides one.
+// Several of the ladder's numbers are still guesses - the vote timer, how long a ban lasts -
+// so they are staff-tunable rather than a deploy away. The constants in common.php stay the
+// defaults; a row in mklounge_settings overrides one. (The tier bands are not in here: they
+// are seed rows in mklounge_tiers, and only SQL changes them.)
 test('the settings page retunes the lounge and logs the change', async ({ page }) => {
 	await login(page);
 	const [{ id: adminId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
