@@ -70,7 +70,6 @@ a {
 .lounge-draft-team,
 .lounge-rules-gate,
 .lounge-access-block,
-.lounge-confirm,
 .lounge-alerts-toggle,
 .lounge-results-table,
 .lounge-leaderboard-table {
@@ -120,7 +119,7 @@ a {
 	align-items: flex-end;
 	justify-content: space-between;
 	gap: 16px;
-	padding: 10px 16px 5px;
+	padding: 10px 16px;
 	border-bottom: solid 2px var(--lounge-frame);
 }
 
@@ -405,24 +404,30 @@ a {
 	overflow: hidden;
 }
 
-.lounge-member {
+.lounge-member-list li {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 6px 11px;
 }
 
-.lounge-member + .lounge-member {
+.lounge-member-list li + li {
 	border-top: solid 1px var(--lounge-hair);
 }
 
-.lounge-member:nth-child(2n) {
+.lounge-member-list li:nth-child(2n) {
 	background: var(--lounge-stripe);
 }
 
 .lounge-member.is-self {
 	background: var(--lounge-self);
 	color: var(--lounge-hot);
+}
+
+/* the seats the lineup is still short of, so the wait has a shape */
+.lounge-slot {
+	color: var(--lounge-off);
+	font-style: italic;
 }
 
 .lounge-member-name {
@@ -460,28 +465,52 @@ a {
 	cursor: not-allowed;
 }
 
+/* Miss this one and you are out of the lineup, so it is the one thing on the screen that
+   does not wear the panel's colours: a lit warning block that cannot be read past. */
 .lounge-confirm {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 12px;
-	padding: 9px 11px;
-	margin: 0 0 14px;
-	border-color: #8A7A34;
-	background: rgba(46, 42, 22, 0.82);
+	gap: 8px 14px;
+	padding: 8px 14px;
+	margin: 0 0 12px;
+	border: none;
+	border-radius: 5px;
+	background: rgba(255, 237, 199, 0.93);
+	color: #6B3A00;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 
 .lounge-confirm-text {
 	margin: 0;
 	flex: 1 1 240px;
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: bold;
+}
+
+.lounge-confirm-btn {
+	background: #6B3A00;
+	color: #FFEDC6;
+	border: none;
+	padding: 5px 16px;
+}
+
+.lounge-confirm-btn:hover:not(:disabled) {
+	background: #8A4D00;
+}
+
+.lounge-confirm-btn:disabled {
+	background: #6B3A00;
+	color: #FFEDC6;
+	border: none;
+	opacity: 0.55;
 }
 
 .lounge-alerts-toggle {
 	appearance: none;
 	color: var(--lounge-ink);
-	padding: 3px 10px;
+	border: none;
+	padding-right: 0;
 	font-family: inherit;
 	font-size: 11px;
 	cursor: pointer;
