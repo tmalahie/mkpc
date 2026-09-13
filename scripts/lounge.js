@@ -558,7 +558,7 @@
 			+ '<span class="lounge-alerts-label"></span>'
 			+ '<span class="lounge-alerts-state"></span>'
 			+ '<span class="lounge-alerts-switch" aria-hidden="true"></span>';
-		toggle.querySelector('.lounge-alerts-label').textContent = toLanguage('Match alerts', 'Alertes de partie');
+		toggle.querySelector('.lounge-alerts-label').textContent = toLanguage('Match alerts', 'Notifications');
 		toggle.querySelector('.lounge-alerts-state').textContent = alertStateLabel(on);
 		toggle.addEventListener('click', onAlertToggle);
 		controls.appendChild(toggle);
@@ -668,16 +668,14 @@
 				'Votez pour le mode de jeu (' + formatCountdown(voteLeft) + ' restant)'
 			);
 		} else if (queue.status === 'drafting') {
-			// the same screen ends a draft and reveals a draw, and only one of them is a wait
-			statusText.textContent = (queue.draft && queue.draft.captains.length)
+			// what was settled is announced below, in the size it deserves; this line is only
+			// what happens next
+			statusText.textContent = (queue.draft && queue.draft.current_captain)
 				? toLanguage(
-					queue.mode + ' it is. The captains are picking their teams.',
-					'Ce sera ' + queue.mode + '. Les capitaines composent leurs équipes.'
+					'The captains are picking their teams.',
+					'Les capitaines composent leurs équipes.'
 				)
-				: toLanguage(
-					queue.mode + ' it is. The race is about to start.',
-					'Ce sera ' + queue.mode + '. La course va commencer.'
-				);
+				: toLanguage('The race is about to start.', 'La course va commencer.');
 		}
 		announceConfirm(queue);
 		// above the status card: missing this one drops you from the lineup
@@ -685,6 +683,8 @@
 			container.appendChild(renderConfirmPrompt(queue));
 		status.appendChild(renderAlertControls());
 		container.appendChild(status);
+		if (queue.status === 'drafting')
+			container.appendChild(renderModeVerdict(queue));
 
 		// the team columns already account for everyone; an FFA recap has none, so it keeps the
 		// lineup it was already showing
@@ -719,6 +719,45 @@
 		}
 	}
 
+	// "2v2" is the ladder's name for pairs, however many pairs that makes, so a lineup of eight
+	// is told it is playing 2v2v2v2 rather than left to count the columns.
+	function modeShape(queue) {
+		var teamCount = (queue.draft && queue.draft.teams.length) ? queue.draft.teams.length : 0;
+		var teamSize = parseInt(queue.mode, 10);
+		if (!teamCount || !teamSize) return queue.mode;
+		var parts = [];
+		for (var i = 0; i < teamCount; i++) parts.push(teamSize);
+		return parts.join('v');
+	}
+
+	// The vote's answer, at the size of an answer. It used to be half of a sentence in the
+	// status line, which is not where anyone looks to find out what they are about to play.
+	function renderModeVerdict(queue) {
+		var box = document.createElement('div');
+		box.className = 'lounge-verdict';
+		var mode = document.createElement('p');
+		mode.className = 'lounge-verdict-mode';
+		mode.textContent = modeShape(queue);
+		box.appendChild(mode);
+
+		var note = '';
+		if (queue.draft && !queue.draft.current_captain) {
+			if (!queue.draft.teams.length)
+				note = toLanguage('Everyone for themselves.', 'Chacun pour soi.');
+			else if (queue.draft.captains.length)
+				note = toLanguage('The captains have picked.', 'Les capitaines ont choisi.');
+			else
+				note = toLanguage('Teams drawn at random.', 'Équipes tirées au sort.');
+		}
+		if (note) {
+			var line = document.createElement('p');
+			line.className = 'lounge-verdict-note';
+			line.textContent = note;
+			box.appendChild(line);
+		}
+		return box;
+	}
+
 	// A drafted side is named after its captain; a drawn one has no captain to name it after.
 	function renderDraftTeam(captain, members, index) {
 		var col = document.createElement('section');
@@ -747,9 +786,8 @@
 		var turn = document.createElement('p');
 		turn.className = 'lounge-draft-turn' + (myTurn ? ' is-mine' : '');
 		if (!draft.current_captain) {
-			turn.textContent = draft.captains.length
-				? toLanguage('Teams are set.', 'Les équipes sont faites.')
-				: toLanguage('Teams have been drawn.', 'Les équipes ont été tirées au sort.');
+			// the verdict above already says the teams are settled and how
+			turn = null;
 		} else if (myTurn) {
 			turn.textContent = toLanguage(
 				'Your pick — ' + formatCountdown(draft.seconds_left) + ' left',
@@ -761,7 +799,8 @@
 				draft.current_captain.name + ' choisit (' + formatCountdown(draft.seconds_left) + ' restant)'
 			);
 		}
-		section.appendChild(turn);
+		if (turn)
+			section.appendChild(turn);
 
 		var teams = document.createElement('div');
 		teams.className = 'lounge-draft-teams';
