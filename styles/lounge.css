@@ -718,7 +718,6 @@ a {
 
 .lounge-results-table th,
 .lounge-leaderboard-table th {
-	text-align: left;
 	font-family: var(--lounge-mono);
 	font-size: 11px;
 	font-weight: normal;
@@ -728,6 +727,10 @@ a {
 	background: rgba(34, 34, 85, 0.55);
 	padding: 5px 8px;
 	border-bottom: solid 1px var(--lounge-frame);
+}
+
+.lounge-results-table td {
+	text-align: center;
 }
 
 .lounge-results-row td,
@@ -852,7 +855,7 @@ a {
 	margin: 0 0 5px;
 	font-family: var(--lounge-mono);
 	font-size: 13px;
-	color: var(--lounge-legend);
+	color: var(--lounge-hot);
 	text-shadow: var(--lounge-outline-thin);
 }
 
