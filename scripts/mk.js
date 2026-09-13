@@ -30512,6 +30512,10 @@ function choose(map,rand) {
 					oTBody.removeChild(trs[0]);
 				var nbChoices = 0;
 				for (i=0;i<choixJoueurs.length;i++) {
+					// A substitute races in its member's place, so the lineup is not short of
+					// them - it just has nothing to pick, so it stays out of the track table.
+					if (choixJoueurs[i][8])
+						nbChoices++;
 					if (!choixJoueurs[i][7]) {
 						var oTr = document.createElement("tr");
 
