@@ -42,7 +42,7 @@ html, body {
 }
 
 body {
-	background-image: linear-gradient(rgba(8,10,22,0.9), rgba(8,10,22,0.1)), url('../images/challenges/fond_challenges.jpg');
+	background-image: linear-gradient(rgba(8,10,22,0.9), rgba(8,10,22,0.4)), url('../images/challenges/fond_challenges.jpg');
 	background-size: cover;
 	background-position: center bottom;
 	background-attachment: fixed;
@@ -51,7 +51,7 @@ body {
 
 @media screen and (max-width: 720px) {
 	body {
-		background-image: linear-gradient(rgba(8,10,22,0.9), rgba(8,10,22,0.1)), url('../images/challenges/fond_challenges_ld.jpg');
+		background-image: linear-gradient(rgba(8,10,22,0.9), rgba(8,10,22,0.4)), url('../images/challenges/fond_challenges.jpg');
 	}
 }
 
@@ -244,7 +244,6 @@ a {
 .lounge-loading,
 .lounge-waiting-count,
 .lounge-waiting-note,
-.lounge-alerts-hint,
 .lounge-vote-hint,
 .lounge-vote-group-title,
 .lounge-draft-hint,
@@ -382,10 +381,21 @@ a {
 	font-style: italic;
 }
 
+/* One card carries where the queue stands and whether it will alert you about it. */
 .lounge-waiting-status {
-	padding: 6px 11px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 7px 14px;
+	padding: 7px 11px;
 	margin: 0 0 14px;
 	font-size: 13px;
+}
+
+.lounge-waiting-text {
+	margin: 0;
+	flex: 1 1 220px;
 }
 
 .lounge-member-list {
@@ -468,14 +478,6 @@ a {
 	font-weight: bold;
 }
 
-.lounge-alerts {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin: -6px 0 14px;
-}
-
 .lounge-alerts-toggle {
 	appearance: none;
 	color: var(--lounge-ink);
@@ -548,7 +550,14 @@ a {
 	transform: translateX(12px);
 }
 
-.lounge-alerts-hint,
+.lounge-alerts-hint {
+	flex-basis: 100%;
+	margin: 0;
+	color: var(--lounge-dim);
+	font-size: 11px;
+	font-style: italic;
+}
+
 .lounge-waiting-note,
 .lounge-vote-hint,
 .lounge-draft-hint {
