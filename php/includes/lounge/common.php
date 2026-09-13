@@ -48,6 +48,7 @@ define('LOUNGE_MIN_RACE_PLAYERS', 2);
 // stands and the absence is charged as a flat adjustment on top of it.
 define('LOUNGE_ABSENCE_PENALTY_MAJOR', 25);
 define('LOUNGE_ABSENCE_PENALTY_MINOR', 10);
+define('LOUNGE_ABSENCE_MAJOR_MISSED', 4);
 
 // Everything below is staff-tunable from admin-lounge.php: the ladder is still finding its
 // settings, and a deploy per timer is not a workable way to run it. The constants above stay
@@ -150,11 +151,19 @@ function lounge_settings_schema() {
 			'help_en' => 'Below this a mogi is voided rather than played with bots.',
 			'help_fr' => 'En dessous, le mogi est annulé plutôt que joué avec des bots.'
 		),
+		'absence_major_missed' => array(
+			'default' => LOUNGE_ABSENCE_MAJOR_MISSED, 'min' => 0, 'max' => 100,
+			'group' => 'sanctions', 'unit_en' => 'races', 'unit_fr' => 'courses',
+			'label_en' => 'Races missed before the heavier penalty',
+			'label_fr' => 'Courses manquées avant la pénalité lourde',
+			'help_en' => 'Miss more than this and the major penalty applies instead of the minor one.',
+			'help_fr' => 'Au-delà, la pénalité lourde s\'applique à la place de la légère.'
+		),
 		'absence_penalty_major' => array(
 			'default' => LOUNGE_ABSENCE_PENALTY_MAJOR, 'min' => 0, 'max' => 500,
 			'group' => 'sanctions', 'unit_en' => 'MMR', 'unit_fr' => 'MMR',
-			'label_en' => 'Penalty for missing over a third of a mogi',
-			'label_fr' => 'Pénalité pour plus d\'un tiers du mogi manqué',
+			'label_en' => 'Penalty for missing more races than that',
+			'label_fr' => 'Pénalité au-delà de ce nombre de courses manquées',
 			'help_en' => 'Taken off the rating a bot earned in their place.',
 			'help_fr' => 'Retirée du score gagné par le bot à sa place.'
 		),
@@ -1560,11 +1569,13 @@ function lounge_mmr_sql($value) {
 
 // A member whose kart was driven by a bot is still rated on the result the bot produced -
 // the alternative, leaving them unrated, pays better than turning up. The absence itself is
-// charged here: "plus de 4 courses ratées" is more than a third of the mogi.
+// charged here, on the count of races missed rather than on a share of the mogi: "plus de 4
+// courses ratees" is a flat number, so shortening a mogi must not make one missed race weigh
+// as heavily as nine do in a full one.
 function lounge_absence_penalty($racesPlayed, $racesTotal) {
 	if (($racesTotal <= 0) || ($racesPlayed >= $racesTotal))
 		return 0;
-	if ($racesPlayed < ceil($racesTotal*2/3))
+	if (($racesTotal - $racesPlayed) > lounge_setting('absence_major_missed'))
 		return -floatval(lounge_setting('absence_penalty_major'));
 	return -floatval(lounge_setting('absence_penalty_minor'));
 }
