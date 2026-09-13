@@ -36,10 +36,14 @@ if ($id) {
 			addLog("switchCourse $switchCourse");
 		}
 	}
-	if (!$course && !$linkOptions->public) {
+	// A private link has exactly one room, so whoever opens it belongs in that one. A player
+	// still carrying the course of an earlier race used to skip this and keep the old room:
+	// they then waited there alone, counted themselves into a lineup they had never joined,
+	// and only got out when something else cleared them.
+	if (!$linkOptions->public && (!$course || !$spectatorId)) {
 		// private race, force race ID if already existing
 		$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
-		if ($alreadyCreated) {
+		if ($alreadyCreated && ($course != $alreadyCreated['id'])) {
 			$course = $alreadyCreated['id'];
 			$switchCourse = true;
 		}
