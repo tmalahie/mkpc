@@ -6313,11 +6313,10 @@ function rankedUnlockBanner() {
 	banner.style.position = "absolute";
 	// the band to the left of the two buttons: the character grid above it and the menu links
 	// below it are the only things on this screen that must not be covered
-	banner.style.left = (1.5*iScreenScale)+"px";
-	banner.style.top = (28.3*iScreenScale)+"px";
-	banner.style.width = (59*iScreenScale)+"px";
+	banner.style.right = (19*iScreenScale)+"px";
+	banner.style.top = (28*iScreenScale)+"px";
 	banner.style.boxSizing = "border-box";
-	banner.style.padding = Math.round(iScreenScale*0.5)+"px";
+	banner.style.padding = Math.round(iScreenScale*0.5)+"px " + iScreenScale+"px";
 	banner.style.backgroundColor = "rgba(230, 81, 48, 0.95)";
 	banner.style.border = "solid 1px white";
 	banner.style.borderRadius = Math.round(iScreenScale*0.8)+"px";
@@ -6327,10 +6326,12 @@ function rankedUnlockBanner() {
 	banner.style.textAlign = "center";
 
 	var message = document.createElement("div");
-	message.appendChild(document.createTextNode(toLanguage(
-		"Congratulations! You unlocked ranked games ",
-		"Félicitations ! Vous avez débloqué les parties classées "
-	)));
+	message.style.fontWeight = "normal";
+	message.innerHTML = toLanguage(
+		"Congratulations! You unlocked <strong>ranked games</strong>! ",
+		"Félicitations ! Vous avez débloqué les <strong>parties classées</strong> ! "
+	);
+	message.querySelector("strong").style.color = primaryColor;
 	var help = document.createElement("a");
 	help.href = "topic.php?topic=15006";
 	help.target = "_blank";
@@ -6342,13 +6343,15 @@ function rankedUnlockBanner() {
 	message.appendChild(help);
 	banner.appendChild(message);
 
-	function bannerAction(labelEn, labelFr, onclick) {
+	function bannerAction(labelEn, labelFr, styles, onclick) {
 		var action = document.createElement("a");
 		action.href = "#null";
 		action.style.color = "white";
 		action.style.textDecoration = "underline";
 		action.style.margin = "0 "+ Math.round(iScreenScale*0.8) +"px";
 		action.appendChild(document.createTextNode(toLanguage(labelEn, labelFr)));
+		for (var key in styles)
+			action.style[key] = styles[key];
 		action.onclick = function() {
 			onclick();
 			if (banner.parentNode)
@@ -6360,12 +6363,12 @@ function rankedUnlockBanner() {
 	var actions = document.createElement("div");
 	actions.style.marginTop = Math.round(iScreenScale*0.3)+"px";
 	actions.style.fontSize = Math.round(1.4*iScreenScale)+"px";
-	actions.appendChild(bannerAction("Dismiss", "Masquer", function() {}));
-	actions.appendChild(bannerAction("Don't show again", "Ne plus afficher", function() {
+	actions.appendChild(bannerAction("Don't show again", "Ne plus afficher", {"font-weight":"normal","opacity":0.9}, function() {
 		xhr("lounge/dismiss-unlock.php", null, function() {
 			return true;
 		});
 	}));
+	actions.appendChild(bannerAction("Ok", "Ok", {}, function() {}));
 	banner.appendChild(actions);
 	return banner;
 }
