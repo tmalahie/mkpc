@@ -45,7 +45,7 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 			<button type="button" class="lounge-tab" data-tab="leaderboard"><?php echo $language ? 'Leaderboard':'Classement'; ?></button>
 			<button type="button" class="lounge-tab" data-tab="howitworks">?</button>
 <?php if ($isLoungeMod) { ?>
-			<a class="lounge-tab lounge-modlink" href="admin-lounge.php" target="_top"><?php
+			<a class="lounge-tab lounge-modlink" href="admin-lounge.php" target="_blank"><?php
 				echo $language ? 'Moderation':'Mod&eacute;ration'; ?></a>
 <?php } ?>
 		</nav>
