@@ -643,7 +643,7 @@ test('a queued player is asked to confirm, and dropped if they never answer', as
 	await page.goto('http://127.0.0.1:8080/lounge.php');
 	const prompt = page.locator('.lounge-confirm');
 	await expect(prompt).toBeVisible();
-	await expect(prompt.locator('.lounge-confirm-text')).toContainText('still in the queue');
+	await expect(prompt.locator('.lounge-confirm-text')).toContainText('Please confirm');
 
 	// answering resets the clock and clears the prompt
 	await prompt.locator('.lounge-confirm-btn').click();
