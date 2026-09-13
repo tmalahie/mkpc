@@ -1073,6 +1073,9 @@
 		}
 		container.appendChild(table);
 
+		var actions = document.createElement('div');
+		actions.className = 'lounge-results-actions';
+
 		var back = document.createElement('button');
 		back.type = 'button';
 		back.className = 'lounge-results-back';
@@ -1081,7 +1084,27 @@
 			// re-enter through the ranked flow so the character gets picked again
 			(window.top || window).location.href = 'ranked.php';
 		});
-		container.appendChild(back);
+		actions.appendChild(back);
+
+		var discord = discordLink();
+		if (discord)
+			actions.appendChild(discord);
+		container.appendChild(actions);
+	}
+
+	// The results are where a mogi ends, which is where the Discord has something to offer:
+	// the post-match talk happens there. Cloned off the rules panel so the invite and the logo
+	// are spelled once.
+	function discordLink() {
+		var source = document.querySelector('.lounge-rules .lounge-discord');
+		if (!source) return null;
+		var link = source.cloneNode(false);
+		var logo = source.querySelector('svg');
+		if (logo) link.appendChild(logo.cloneNode(true));
+		link.appendChild(document.createTextNode(
+			toLanguage('Continue on Discord', 'Continuer sur Discord')
+		));
+		return link;
 	}
 
 	function formatMmrChange(player) {
