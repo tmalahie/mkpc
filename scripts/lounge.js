@@ -39,6 +39,7 @@
 		var tabs = document.querySelectorAll('.lounge-tab');
 		var panels = document.querySelectorAll('.lounge-tabpanel');
 		for (var i = 0; i < tabs.length; i++) {
+			if (tabs[i].tagName.toLowerCase() === 'a') continue;
 			tabs[i].addEventListener('click', onTabClick);
 		}
 		function onTabClick() {
@@ -521,9 +522,8 @@
 		fireAlert('confirm');
 	}
 
-	function renderAlertToggle() {
-		var row = document.createElement('div');
-		row.className = 'lounge-alerts';
+	function renderAlertControls() {
+		var controls = document.createDocumentFragment();
 		var toggle = document.createElement('button');
 		var on = alertsEnabled();
 		toggle.type = 'button';
@@ -540,7 +540,7 @@
 		toggle.querySelector('.lounge-alerts-label').textContent = toLanguage('Match alerts', 'Alertes de partie');
 		toggle.querySelector('.lounge-alerts-state').textContent = alertStateLabel(on);
 		toggle.addEventListener('click', onAlertToggle);
-		row.appendChild(toggle);
+		controls.appendChild(toggle);
 
 		if (on && mkNotify.permission() === 'denied') {
 			var warn = document.createElement('span');
@@ -549,9 +549,9 @@
 				'Notifications are blocked for this site — only the sound and the tab title will alert you.',
 				'Les notifications sont bloquées pour ce site — seuls le son et le titre de l\'onglet vous alerteront.'
 			);
-			row.appendChild(warn);
+			controls.appendChild(warn);
 		}
-		return row;
+		return controls;
 	}
 
 	function alertStateLabel(on) {
@@ -566,9 +566,7 @@
 		if (on) requestAlertPermission();
 		else mkNotify.clear();
 		// rebuilt rather than patched, so the "blocked" hint follows the new state too
-		var row = this.parentNode;
-		if (row && row.parentNode)
-			row.parentNode.replaceChild(renderAlertToggle(), row);
+		if (currentQueue) renderWaiting(currentQueue);
 	}
 
 	function requestAlertPermission() {
@@ -599,10 +597,13 @@
 			+ '<p class="lounge-waiting-count">' + queue.members.length + ' / ' + queue.ready_threshold + ' ' + toLanguage('players', 'joueurs') + '</p>';
 		container.appendChild(header);
 
-		var status = document.createElement('p');
+		var status = document.createElement('div');
 		status.className = 'lounge-waiting-status';
+		var statusText = document.createElement('p');
+		statusText.className = 'lounge-waiting-text';
+		status.appendChild(statusText);
 		if (queue.status === 'open') {
-			status.textContent = toLanguage(
+			statusText.textContent = toLanguage(
 				'Waiting for more players… you can still drop.',
 				'En attente d\'autres joueurs… vous pouvez encore quitter.'
 			);
@@ -644,11 +645,11 @@
 				'Ce sera ' + queue.mode + '. Les capitaines composent leurs équipes.'
 			);
 		}
+		status.appendChild(renderAlertControls());
 		container.appendChild(status);
 		announceConfirm(queue);
 		if (queue.confirm_due)
 			container.appendChild(renderConfirmPrompt(queue));
-		container.appendChild(renderAlertToggle());
 
 		// during the draft the two team columns and the pool already account for everyone
 		var showLineup = (queue.status !== 'drafting');
