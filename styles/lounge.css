@@ -345,6 +345,25 @@ a {
 	padding: 2px 20px 14px;
 }
 
+/* Discord's own colours, but the bevelled square edge the rest of the buttons wear. */
+.lounge-discord {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	background: #5865F2;
+	color: #FFF;
+	border: outset 2px #8A92F7;
+	border-radius: 5px;
+	font-size: 13px;
+	font-weight: bold;
+	padding: 5px 15px;
+	text-decoration: none;
+}
+
+.lounge-discord:hover {
+	background: #4752C4;
+}
+
 [data-panel="howitworks"] ul,
 .lounge-rules-body ul,
 .lounge-access-block ul {
