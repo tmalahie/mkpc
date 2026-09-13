@@ -40,6 +40,7 @@ define('LOUNGE_CONFIRM_GRACE_SECONDS', 120);
 // account. 0 disables either check.
 define('LOUNGE_MIN_ACCOUNT_AGE_DAYS', 14);
 define('LOUNGE_MIN_VS_POINTS', 10000);
+define('LOUNGE_DISCORD_INVITE', 'https://discord.gg/qh9DhJsMw');
 // A mogi is 12 races of ~3 minutes. Past this it is not being played any more, whatever
 // the race counter says.
 define('LOUNGE_MATCH_MAX_MINUTES', 120);
