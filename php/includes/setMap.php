@@ -122,6 +122,20 @@ if ($course) {
 		return $joueursData;
 	}
 	$joueursData = listPlayers();
+	// `mariokart.map` is an index into the very list the client is handed, and that list now
+	// carries substitutes and CPUs - none of which picked anything, and all of which report a
+	// placeholder choice. Draw the course only among the karts that really chose one.
+	if ($continuer) {
+		$choosers = array();
+		foreach ($joueursData as $i=>$joueur) {
+			if (!$joueur['controller'])
+				$choosers[] = $i;
+		}
+		if ($choosers) {
+			$map = $choosers[array_rand($choosers)];
+			mysql_query('UPDATE `mariokart` SET map='. $map .' WHERE id='. $course);
+		}
+	}
 	// Teams settled before the room opened (the lounge's captain draft). Seeding them here
 	// makes the balancing pass below keep them, the same way it keeps a manual pick.
 	$fixedTeams = array();
@@ -134,7 +148,10 @@ if ($course) {
 	foreach ($joueursData as &$joueur) {
 		if (isset($fixedTeams[intval($joueur['id'])]))
 			$joueur['team'] = $fixedTeams[intval($joueur['id'])];
-		if (!$joueur['controller'])
+		// A substitute stands in its member's place, so the room is not short of them: only a
+		// place nobody is filling at all - a numbered CPU, which has no account behind it -
+		// leaves the lineup below strength.
+		if (!$joueur['controller'] || !is_null($joueur['nom']))
 			$nbPlayers++;
 	}
 	unset($joueur);
@@ -232,6 +249,7 @@ if ($course) {
 	foreach ($joueursData as $i=>$joueur) {
 		// A bot standing in for an absent member is not a CPU: it races under their name and
 		// their character, and never takes one of the numbered CPU slots.
+		$isSub = $joueur['controller'] && !is_null($joueur['nom']);
 		if ($joueur['controller'] && is_null($joueur['nom'])) {
 			if (!isset($persosList)) {
 				include('onlineRulesUtils.php');
@@ -248,7 +266,7 @@ if ($course) {
 			$joueur['nom'] = getCpuName($cpuInc, $courseRules);
 			$cpuInc++;
 		}
-		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choice_map'].','.$joueur['choice_rand'].','.$joueur['place'].','.json_encode($joueur['nom']).','.$joueur['team'].','.$joueur['controller'].']';
+		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choice_map'].','.$joueur['choice_rand'].','.$joueur['place'].','.json_encode($joueur['nom']).','.$joueur['team'].','.$joueur['controller'].','.($isSub ? 1:0).']';
 	}
 	echo '],'.$map.','.($time-$now).','.round($time/67);
 	echo ',{';
