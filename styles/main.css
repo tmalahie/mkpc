@@ -1366,6 +1366,10 @@ footer a {
 	font-size: 0.75em;
 }
 
+.ranking_list_lounge {
+	margin-left: 35px;
+}
+
 .ranking_activeplayernb {
 	font-weight: bold;
 	text-decoration: underline;
