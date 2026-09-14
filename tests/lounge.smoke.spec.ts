@@ -257,6 +257,36 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
 
+// The home page builds every Top 10 table server-side on each load, so the ranked one is
+// built only for players who have a ladder to be in.
+test('the home page Top 10 gains a Ranked tab, for eligible players only', async ({ page }) => {
+	const short = 'e2e-lounge-top10-short';
+	const met = 'e2e-lounge-top10-met';
+	await createEntryBot(short, 500);
+	await createEntryBot(met, 999999);
+	const tabs = () => page.locator('.ranking_tab');
+
+	await login(page, met, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	await expect(tabs()).toHaveCount(4);
+	await expect(tabs().last()).toHaveText(/Ranked|Class/);
+	await page.locator('.tab_ranked').click();
+	await expect(page.locator('#top_ranked')).toBeVisible();
+	// ordered by MMR, and only players who have actually raced
+	const mmrs = await page.locator('#top_ranked tr td:nth-child(3)').allTextContents();
+	expect(mmrs.length).toBeGreaterThan(0);
+	const numbers = mmrs.map(Number);
+	expect(numbers).toEqual([...numbers].sort((a, b) => b - a));
+
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	await expect(tabs()).toHaveCount(3);
+	await expect(page.locator('#top_ranked')).toHaveCount(0);
+
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
 // The Discord server belongs to the ladder, so it is offered where the ladder is played and
 // nowhere else - not in the public lobby, and not on a private link that happens to be ranked.
 test('a ranked room points at the Discord server, and nothing else does', async ({ page }) => {

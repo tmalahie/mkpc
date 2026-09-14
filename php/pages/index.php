@@ -646,11 +646,16 @@ $placeholderPath = 'images/pages/pixel.png';
 			// could join it: past the entry criteria, and inside that tier's MMR band.
 			$loungeQueues = array();
 			$loungeMulticup = 0;
+			$loungeEligible = false;
 			if ($id) {
 				require_once('../includes/lounge/common.php');
 				$loungeMulticup = lounge_get_season_multicup();
-				if ($loungeMulticup)
+				if ($loungeMulticup) {
 					$loungeQueues = lounge_open_queues_for($id);
+					// The ranked Top 10 is one more query on the busiest page of the site, so it
+					// is built only for the players who have a ladder to be in.
+					$loungeEligible = lounge_is_eligible($id);
+				}
 			}
 			$activePlayersByLink = array();
 			foreach ($activePlayers as $game=>$players) {
@@ -829,7 +834,9 @@ $placeholderPath = 'images/pages/pixel.png';
 					<?php print_badge(1); ?>
 				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
 					<?= _('Time Trial') ?>
-				</a>
+				</a><?php if ($loungeEligible) { ?><a class="ranking_tab tab_ranked" href="javascript:dispRankTab(4)">
+					<?= _('Ranked') ?>
+				</a><?php } ?>
 			</div>
 			<div id="currently_online">
 			<?php
@@ -844,20 +851,28 @@ $placeholderPath = 'images/pages/pixel.png';
 			<div id="top10" class="right_subsection">
 				<?php
 				$modeIds = array('vs','battle','clm150','clm200');
-				for ($i=0;$i<4;$i++) {
+				if ($loungeEligible)
+					$modeIds[] = 'ranked';
+				for ($i=0;$i<count($modeIds);$i++) {
 					$modeId = $modeIds[$i];
 					$isBattle = ($i===1);
-					$isClm = ($i>=2);
+					$isClm = (($i>=2) && ($i<=3));
+					$isRanked = ($modeId === 'ranked');
 					$pts_ = 'pts_'.$modeId;
 					?>
 					<table id="top_<?php echo $modeId; ?>">
 						<tr>
 							<th><?= _('Rank') ?></th>
 							<th><?= _('Nick') ?></th>
-							<th><?= _('Score') ?></th>
+							<th><?php echo $isRanked ? 'MMR' : _('Score'); ?></th>
 						</tr>
 						<?php
-						if ($isClm) {
+						if ($isRanked) {
+							// Aliased to the same id/nom/pts the other modes return, so the row
+							// loop below stays one loop.
+							$players = mysql_query('SELECT p.player AS id,j.nom,ROUND(p.mmr) AS pts FROM `mklounge_players` p INNER JOIN `mkjoueurs` j ON j.id=p.player WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0 ORDER BY p.mmr DESC, p.player LIMIT 10');
+						}
+						elseif ($isClm) {
 							$cc = ($i===3) ? 200 : 150;
 							$players = mysql_query('SELECT t.player AS id,j.nom,t.score AS pts FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id WHERE t.class="'.$cc.'" AND j.deleted=0 ORDER BY t.score DESC LIMIT 10');
 						}
@@ -882,6 +897,8 @@ $placeholderPath = 'images/pages/pixel.png';
 			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
+<?php if ($loungeEligible) { ?>			<a class="right_section_actions action_button action_gotoranked" href="online.php?mid=<?php echo $loungeMulticup; ?>&amp;ranked"><?= _('Display all'); ?></a>
+<?php } ?>
 		</div>
 		<?php
 		if ($shouldShowAds) {
