@@ -44,12 +44,22 @@
 	function setupTabs() {
 		var tabs = document.querySelectorAll('.lounge-tab');
 		var panels = document.querySelectorAll('.lounge-tabpanel');
+		// Joining needs a character, and the only place to pick one is the game itself. So on
+		// the standalone page - reached from the home page's leaderboard link - Queue Up is the
+		// way back into online.php rather than a tier list nobody could join from. Only when it
+		// would show that tier list: a player already queued, or reading their results, opened
+		// this page to see exactly that, and sending them to the game would drop them out of it.
+		var inGame = (window.top !== window.self);
 		for (var i = 0; i < tabs.length; i++) {
 			if (tabs[i].tagName.toLowerCase() === 'a') continue;
 			tabs[i].addEventListener('click', onTabClick);
 		}
 		function onTabClick() {
 			var target = this.getAttribute('data-tab');
+			if ((target === 'queueup') && !inGame && (view === 'tiers')) {
+				location.href = 'ranked.php';
+				return;
+			}
 			for (var i = 0; i < tabs.length; i++)
 				tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-tab') === target);
 			for (var j = 0; j < panels.length; j++)
