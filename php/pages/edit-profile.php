@@ -15,6 +15,7 @@ if (isset($_GET['member'])) {
 	$userId = intval($_GET['member']);
 	$member = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $userId .'"'));
 }
+$canEditEmail = !isset($_GET['member']);
 if ($getProfile = mysql_fetch_array(mysql_query('SELECT YEAR(birthdate) AS y0,MONTH(birthdate) AS m0,DAY(birthdate) AS d0,birthdate,description,email,country FROM `mkprofiles` WHERE id="'. $userId .'"'))) {
 	if ($getProfile['country']) {
 		if ($getCountryCode = mysql_fetch_array(mysql_query('SELECT code FROM mkcountries WHERE id='. $getProfile['country'])))
@@ -54,7 +55,7 @@ function zerofill($s,$l) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	$email = isset($_POST['email']) ? $_POST['email']:'';
+	$email = ($canEditEmail && isset($_POST['email'])) ? $_POST['email']:'';
 	$country = isset($_POST['country']) ? $_POST['country']:'';
 	$description = isset($_POST['description']) ? $_POST['description']:'';
 	$d0 = isset($_POST['d0']) ? $_POST['d0']:'';
@@ -93,7 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				$countryId = 0;
 			$profileFields = 'country,birthdate,description';
 			$formerProfile = isset($_GET['member']) ? snapshotQuery('SELECT '. $profileFields .' FROM `mkprofiles` WHERE id="'. $userId .'"') : null;
-			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$userId.'"');
+			$setEmail = $canEditEmail ? 'email="'. $email .'",':'';
+			mysql_query('UPDATE `mkprofiles` SET '. $setEmail .'country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$userId.'"');
 			if (isset($_GET['member']))
 				insertLog($id, 'Profile '. $_GET['member'], array(
 					'type' => 'profile',
@@ -106,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	}
 }
 else {
-	$email = $getProfile['email'];
+	$email = $canEditEmail ? $getProfile['email']:'';
 	$description = $getProfile['description'];
 	$d0 = $getProfile['d0'];
 	$m0 = $getProfile['m0'];
@@ -132,6 +134,7 @@ else {
 			echo $language ? "Edit ". $member['nom'] ."'s profile":"Modifier le profil de ". $member['nom'];
 	?></h1>
 	<table class="signup">
+		<?php if ($canEditEmail) { ?>
 		<tr>
 			<td class="ligne">
 				<label for="email"><?php echo $language ? 'Email address<br /><em style="font-size:0.7em">(won\'t appear on profile)</em>':'Adresse email<br /><em style="font-size:0.7em">(n\'apparaîtra pas sur le profil)</em>'; ?></label>
@@ -140,6 +143,7 @@ else {
 				<input type="text" name="email" id="email" value="<?php echo htmlspecialchars($email); ?>" />
 			</td>
 		</tr>
+		<?php } ?>
 		<tr>
 			<td class="ligne">
 				<label for="country"><?php echo $language ? 'Country':'Pays'; ?></label>
