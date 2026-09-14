@@ -290,7 +290,7 @@ include('../includes/menu.php');
 		<span><strong><?php echo $state['mmr']; ?></strong> MMR</span>
 		<?php if ($state['rank']) { ?>
 		<span style="color:<?php echo $state['rank']['color']; ?>"><strong><?php
-			echo $language ? $state['rank']['label_en'] : $state['rank']['label_fr']; ?></strong></span>
+			echo $state['rank']['label']; ?></strong></span>
 		<?php } ?>
 		<span><?php echo $state['games']; ?> <?php echo $language ? 'mogis':'mogis'; ?></span>
 		<span><?php echo $state['strikes']; ?> strike<?php echo $state['strikes'] > 1 ? 's':''; ?></span>
