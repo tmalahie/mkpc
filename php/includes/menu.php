@@ -704,7 +704,7 @@
 			case 'lounge_queue':
 				$verb = $language
 					? ((count($names)>1) ? 'are queueing for a ranked game in':'is queueing for a ranked game in')
-					: ((count($names)>1) ? 'cherchent une partie classée en':'cherche une partie classée en');
+					: ((count($names)>1) ? 'ont rejoint une partie classée en':'a rejoint une partie classée en');
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'new_record':
