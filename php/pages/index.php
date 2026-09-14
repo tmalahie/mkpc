@@ -641,9 +641,8 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				return 0;
 			}
-			// A gathering ranked lineup belongs in the same list as any other online game, so it
-			// is collected here and folded into the VS tab below. Only advertised to someone who
-			// could join it: past the entry criteria, and inside that tier's MMR band.
+			// Gathering ranked lineups, shown under the Ranked tab below. Only advertised to
+			// someone who could join one: past the entry criteria, and inside that tier's MMR band.
 			$loungeQueues = array();
 			$loungeMulticup = 0;
 			$loungeEligible = false;
@@ -792,13 +791,34 @@ $placeholderPath = 'images/pages/pixel.png';
 					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. _('Join') .'</a>';
 					echo '</li>';
 				}
+				// A gathering ranked lineup lives under the Ranked tab, beside the ladder it
+				// belongs to, rather than in with the public games.
+				function print_lounge_queues() {
+					global $loungeQueues;
+					if (empty($loungeQueues))
+						return;
+					echo '<div class="ranking_current" id="ranking_current_ranked">';
+					echo _('Currently online:');
+					echo '<ul class="ranking_list_game">';
+					foreach ($loungeQueues as $loungeQueue)
+						print_lounge_line($loungeQueue);
+					echo '</ul>';
+					echo '</div>';
+				}
+				function print_lounge_badge() {
+					global $loungeQueues;
+					$waiting = 0;
+					foreach ($loungeQueues as $loungeQueue)
+						$waiting += $loungeQueue['players'];
+					if ($waiting)
+						echo '<span class="ranking_badge"><span>'. $waiting .'</span></span>';
+				}
 				function print_active_players($game,$type) {
-					global $activePlayers, $activePlayersByLink, $loungeQueues;
-					$lounge = $game ? array() : $loungeQueues;
-					if (!empty($activePlayers[$game]) || !empty($lounge)) {
+					global $activePlayers, $activePlayersByLink;
+					if (!empty($activePlayers[$game])) {
 						echo '<div class="ranking_current" id="ranking_current_'.$type.'">';
-						$firstPlayer = !empty($activePlayers[$game]) ? reset($activePlayers[$game]) : null;
-						if ($firstPlayer && empty($lounge) && (count($activePlayersByLink[$game]) < 2) && !$firstPlayer['link'] && !$firstPlayer['cup']) {
+						$firstPlayer = reset($activePlayers[$game]);
+						if ((count($activePlayersByLink[$game]) < 2) && !$firstPlayer['link'] && !$firstPlayer['cup']) {
 							echo '<span class="ranking_list">';
 							echo _('Currently online:');
 							echo ' ';
@@ -810,17 +830,13 @@ $placeholderPath = 'images/pages/pixel.png';
 						else {
 							echo _('Currently online:');
 							echo '<ul class="ranking_list_game">';
-							if (!empty($activePlayers[$game])) {
-								foreach ($activePlayersByLink[$game] as $players) {
-									echo '<li>';
-									$params = reset($players);
-									print_players_raw($players, $params);
-									print_join_button($params);
-									echo '</li>';
-								}
+							foreach ($activePlayersByLink[$game] as $players) {
+								echo '<li>';
+								$params = reset($players);
+								print_players_raw($players, $params);
+								print_join_button($params);
+								echo '</li>';
 							}
-							foreach ($lounge as $loungeQueue)
-								print_lounge_line($loungeQueue);
 							echo '</ul>';
 						}
 						echo '</div>';
@@ -836,12 +852,14 @@ $placeholderPath = 'images/pages/pixel.png';
 					<?= _('Time Trial') ?>
 				</a><?php if ($loungeEligible) { ?><a class="ranking_tab tab_ranked" href="javascript:dispRankTab(4)">
 					<?= _('Ranked') ?>
+					<?php print_lounge_badge(); ?>
 				</a><?php } ?>
 			</div>
 			<div id="currently_online">
 			<?php
 			print_active_players(0,'vs');
 			print_active_players(1,'battle');
+			print_lounge_queues();
 			?>
 			</div>
 			<div id="clm_cc">
@@ -897,7 +915,7 @@ $placeholderPath = 'images/pages/pixel.png';
 			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
-<?php if ($loungeEligible) { ?>			<a class="right_section_actions action_button action_gotoranked" href="online.php?mid=<?php echo $loungeMulticup; ?>&amp;ranked"><?= _('Display all'); ?></a>
+<?php if ($loungeEligible) { ?>			<a class="right_section_actions action_button action_gotoranked" href="lounge.php?tab=leaderboard"><?= _('Display all'); ?></a>
 <?php } ?>
 		</div>
 		<?php
