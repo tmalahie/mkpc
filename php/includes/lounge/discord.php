@@ -12,7 +12,12 @@ function lounge_discord_config() {
 		return $config;
 	$config = array();
 	$path = dirname(__DIR__) .'/config/discord.php';
-	if (file_exists($path)) {
+	// A config the web user cannot read looks exactly like no config at all, and the module
+	// is built to go quiet rather than break a mogi - so the one case worth a noise is the
+	// file being there and unreadable, which is a deploy that dropped its permissions.
+	if (file_exists($path) && !is_readable($path))
+		error_log('lounge: '. $path .' exists but is not readable, Discord stays off');
+	if (is_readable($path)) {
 		include($path);
 		$config = array(
 			'token' => isset($loungeDiscordToken) ? $loungeDiscordToken : '',
