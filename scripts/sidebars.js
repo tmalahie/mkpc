@@ -1,4 +1,4 @@
-var onlineModeIds = ["vs","battle","clm150","clm200"];
+var onlineModeIds = ["vs","battle","clm150","clm200","ranked"];
 var currenttabcc = 2;
 
 function dispRankTab(mode) {
