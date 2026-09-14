@@ -794,7 +794,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						return;
 					echo '<div class="ranking_current" id="ranking_current_ranked">';
 					echo _('Currently online:');
-					echo '<ul class="ranking_list_game">';
+					echo '<ul class="ranking_list_game ranking_list_lounge">';
 					foreach ($loungeQueues as $loungeQueue)
 						print_lounge_line($loungeQueue);
 					echo '</ul>';
