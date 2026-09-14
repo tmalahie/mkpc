@@ -1407,12 +1407,14 @@ footer a {
 	padding: 3px 20px;
 }
 
-#rankings_section.rank_battle .tab_battle .ranking_badge {
+#rankings_section.rank_battle .tab_battle .ranking_badge,
+#rankings_section.rank_ranked .tab_ranked .ranking_badge {
 	display: none;
 }
 
 #rankings_section:not(.rank_vs) #ranking_current_vs,
 #rankings_section:not(.rank_battle) #ranking_current_battle,
+#rankings_section:not(.rank_ranked) #ranking_current_ranked,
 #rankings_section:not(.rank_clm150):not(.rank_clm200) #ranking_current_clm {
 	display: none;
 }
