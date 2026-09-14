@@ -262,7 +262,7 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 test('the home page Top 10 gains a Ranked tab, for eligible players only', async ({ page }) => {
 	const short = 'e2e-lounge-top10-short';
 	const met = 'e2e-lounge-top10-met';
-	await createEntryBot(short, 500);
+	const shortId = await createEntryBot(short, 500);
 	await createEntryBot(met, 999999);
 	const tabs = () => page.locator('.ranking_tab');
 
@@ -288,11 +288,44 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 	await expect(page.locator('#top_clm200')).toBeVisible();
 	await expect(page.locator('#top_ranked')).toBeHidden();
 
+	// A gathering lineup belongs beside the ladder, not in with the public VS games, and the
+	// tab wears a badge so it is noticed from whichever tab you happen to be on.
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'open')`, [tier.id]);
+	await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`,
+		[queue.insertId, shortId]);
+
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	const badge = page.locator('.tab_ranked .ranking_badge');
+	await expect(badge).toHaveText('1');
+	await expect(badge).toBeVisible();
+	await expect(page.locator('#ranking_current_vs .ranked_game')).toHaveCount(0);
+	await expect(page.locator('#ranking_current_ranked')).toBeHidden();
+
+	await page.locator('.tab_ranked').click();
+	await expect(page.locator('#ranking_current_ranked .ranked_game')).toHaveCount(1);
+	await expect(badge).toBeHidden();
+
+	// "Display all" opens the leaderboard itself, and Queue Up on that standalone page is the
+	// way back into the game, where a character can be picked
+	await expect(page.locator('.action_gotoranked'))
+		.toHaveAttribute('href', 'lounge.php?tab=leaderboard');
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard');
+	await expect(page.locator('.lounge-tab[data-tab="leaderboard"]')).toHaveClass(/is-active/);
+	await expect(page.locator('.lounge-leaderboard-table')).toBeVisible();
+	await page.locator('.lounge-tab[data-tab="queueup"]').click();
+	await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:8080\/online\.php\?mid=\d+&ranked$/);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queue.insertId]);
+
 	await login(page, short, LOUNGE_BOT_PASSWORD);
 	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
 	await expect(tabs()).toHaveCount(3);
 	await expect(page.locator('#top_ranked')).toHaveCount(0);
 
+	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [queue.insertId]);
+	await sql(`DELETE FROM mklounge_queues WHERE id = ?`, [queue.insertId]);
 	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
 	await login(page);
 });
@@ -1482,11 +1515,12 @@ test('a gathering lineup is advertised on the home page, to those who could join
 	await login(page, loungeBotName('advert', 1), LOUNGE_BOT_PASSWORD);
 	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
 
-	// the seeded account is past the criteria, so it is invited - in the VS list, alongside
-	// any other online game rather than in a section of its own
+	// the seeded account is past the criteria, so it is invited - under the Ranked tab, beside
+	// the ladder it belongs to rather than in with the public VS games
 	await login(page);
 	await page.goto('http://127.0.0.1:8080/index.php');
-	const gathering = page.locator('#ranking_current_vs li.ranked_game');
+	await page.locator('.tab_ranked').click();
+	const gathering = page.locator('#ranking_current_ranked li.ranked_game');
 	await expect(gathering).toHaveCount(1);
 	await expect(gathering).toContainText('1 member');
 	await expect(gathering).toContainText('Tier All');
