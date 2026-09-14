@@ -278,6 +278,16 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 	const numbers = mmrs.map(Number);
 	expect(numbers).toEqual([...numbers].sort((a, b) => b - a));
 
+	// Time Trial reopens the cc you last looked at, and Ranked must not become that memory
+	await page.locator('.tab_clm').click();
+	await expect(page.locator('#top_clm150')).toBeVisible();
+	await expect(page.locator('#top_ranked')).toBeHidden();
+	await page.locator('.clm_cc_200').click();
+	await page.locator('.tab_ranked').click();
+	await page.locator('.tab_clm').click();
+	await expect(page.locator('#top_clm200')).toBeVisible();
+	await expect(page.locator('#top_ranked')).toBeHidden();
+
 	await login(page, short, LOUNGE_BOT_PASSWORD);
 	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
 	await expect(tabs()).toHaveCount(3);
