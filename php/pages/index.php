@@ -770,14 +770,9 @@ $placeholderPath = 'images/pages/pixel.png';
 						$url .= '?'.implode('&',$urlParams);
 					echo '<a class="action_button" href="'. $url .'">'. _('Join') .'</a>';
 				}
-				// The trophy stands in for the bullet, so a ranked lineup is tellable from a normal
-				// game at a glance, and doubles as the way to find out what one is.
 				function print_lounge_line($loungeQueue) {
-					global $language, $loungeMulticup;
-					echo '<li class="ranked_game">';
-					echo '<a class="ranked_game_icon ranking_fancytitle" href="topic.php?topic=15006" target="_blank"'
-						.' title="'. _('Ranked game - click for details') .'">'
-						.'<img src="images/cups/cup1.png" alt="'. _('Ranked') .'" /></a>';
+					global $loungeMulticup;
+					echo '<li>';
 					$loungeNames = array();
 					foreach ($loungeQueue['members'] as $loungeMember)
 						$loungeNames[] = $loungeMember['name'] .' (MMR '. $loungeMember['mmr'] .')';
@@ -786,8 +781,8 @@ $placeholderPath = 'images/pages/pixel.png';
 					echo '</span> ';
 					echo P_("circuit", "in ");
 					echo '<strong>'. htmlspecialchars($loungeQueue['label']) .'</strong>';
-					// ranked.php's destination: online.php is where a character gets picked, and
-					// the lounge opens over it once one has been
+					// online.php is where a character gets picked, and the lounge opens over it
+					// once one has been
 					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. _('Join') .'</a>';
 					echo '</li>';
 				}
