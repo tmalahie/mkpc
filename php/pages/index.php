@@ -781,7 +781,7 @@ $placeholderPath = 'images/pages/pixel.png';
 					echo FN_("{count} member", "{count} members", count: $loungeQueue['players']);
 					echo '</span> ';
 					echo P_("circuit", "in ");
-					echo '<strong>'. htmlspecialchars($language ? $loungeQueue['label_en'] : $loungeQueue['label_fr']) .'</strong>';
+					echo '<strong>'. htmlspecialchars($loungeQueue['label']) .'</strong>';
 					// ranked.php's destination: online.php is where a character gets picked, and
 					// the lounge opens over it once one has been
 					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. _('Join') .'</a>';

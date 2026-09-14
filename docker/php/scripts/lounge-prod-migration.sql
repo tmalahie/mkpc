@@ -72,9 +72,27 @@ UPDATE `mklounge_tiers` SET `min_mmr`=0,    `max_mmr`=1199 WHERE `code`='C';
 UPDATE `mklounge_tiers` SET `min_mmr`=500,  `max_mmr`=1799 WHERE `code`='B';
 UPDATE `mklounge_tiers` SET `min_mmr`=900,  `max_mmr`=NULL WHERE `code`='A';
 UPDATE `mklounge_tiers` SET `min_mmr`=1600, `max_mmr`=NULL WHERE `code`='X';
-UPDATE `mklounge_tiers` SET `min_players`=4;
+-- min_players is deliberately NOT normalised here: production already carries 4 everywhere,
+-- and Tier All gets lowered by hand while staff are testing. Setting it would undo that on a
+-- re-run.
 
--- 5. The six moderators staff named. 3586 is FwaysZedong, which is Fways - not the account
+-- 5. One name per rank and tier instead of two. The ladder has always said Master, Diamond,
+--    Emerald in both languages, so the French column was translationese nobody used. The
+--    names are set from their code rather than copied out of label_en, so this still runs
+--    once label_en is gone.
+ALTER TABLE `mklounge_ranks` ADD COLUMN IF NOT EXISTS `label` varchar(32) NOT NULL AFTER `code`;
+ALTER TABLE `mklounge_tiers` ADD COLUMN IF NOT EXISTS `label` varchar(32) NOT NULL AFTER `code`;
+UPDATE `mklounge_ranks` SET `label`=CASE `code`
+  WHEN 'iron' THEN 'Iron'         WHEN 'bronze' THEN 'Bronze'
+  WHEN 'silver' THEN 'Silver'     WHEN 'gold' THEN 'Gold'
+  WHEN 'platinum' THEN 'Platinum' WHEN 'emerald' THEN 'Emerald'
+  WHEN 'diamond' THEN 'Diamond'   WHEN 'master' THEN 'Master'
+  WHEN 'gm' THEN 'GM'             ELSE `label` END;
+UPDATE `mklounge_tiers` SET `label`=CONCAT('Tier ', IF(`code`='all', 'All', `code`));
+ALTER TABLE `mklounge_ranks` DROP COLUMN IF EXISTS `label_en`, DROP COLUMN IF EXISTS `label_fr`;
+ALTER TABLE `mklounge_tiers` DROP COLUMN IF EXISTS `label_en`, DROP COLUMN IF EXISTS `label_fr`;
+
+-- 6. The six moderators staff named. 3586 is FwaysZedong, which is Fways - not the account
 --    literally named `Fways` (227719).
 INSERT IGNORE INTO `mkrights` (`player`, `privilege`)
   SELECT `id`, 'lounge' FROM `mkjoueurs`
