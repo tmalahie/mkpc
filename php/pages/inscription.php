@@ -1,6 +1,11 @@
 <?php
 include('../includes/handle_sub.php');
+include('../includes/returnurl.php');
 $isBattle = isset($_GET['battle']);
+$returnUrl = getReturnUrl();
+$backUrl = $returnUrl ? $returnUrl : ('online.php'. ($isBattle ? '?battle' : ''));
+// keep the target across a failed submission
+$formQuery = $returnUrl ? '?'. $returnUrl : ($isBattle ? '?battle' : '');
 if ($inscrit) {
 	$message = $language ? 
 	'You are now registered! You start with 5000 points.<br />
@@ -42,7 +47,7 @@ include('../includes/menu.php');
 	}
 	if (!$inscrit) {
 		?>
-		<form method="post" action="inscription.php<?php echo ($isBattle ? '?battle':''); ?>">
+		<form method="post" action="inscription.php<?php echo htmlspecialchars($formQuery); ?>">
 		<table class="signup">
 		<tr><td class="ligne"><label for="pseudo"><?php echo $language ? 'Choose a username':'Choisissez un pseudo'; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="pseudo" id="pseudo" value="<?php if (isset($pseudo)) echo $pseudo ?>" maxlength="30" /></td></tr>
 		<tr><td class="ligne"><label for="code"><?php echo $language ? 'Choose a password':'Choisissez un mot de passe'; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="password" name="code" id="code" value="<?php if (isset($code)) echo $code ?>" maxlength="30" /></td></tr>
@@ -57,7 +62,7 @@ include('../includes/menu.php');
 		<?php
 	}
 	?>
-	<p class="forumButtons"><a href="online.php<?php echo ($isBattle ? '?battle':''); ?>"><?php echo $language ? 'Back to online mode':'Retour au mode en ligne'; ?></a></p>
+	<p class="forumButtons"><a href="<?php echo htmlspecialchars($backUrl); ?>"><?php echo $language ? 'Back to online mode':'Retour au mode en ligne'; ?></a></p>
 </main>
 <?php
 include('../includes/footer.php');

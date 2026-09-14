@@ -1,0 +1,1223 @@
+(function() {
+	if (typeof mId !== 'number') return;
+
+	var POLL_INTERVAL_TIERS = 5000;
+	var POLL_INTERVAL_WAITING = 3000;
+
+	var view = 'tiers';
+	var currentQueue = null;
+	var lastPlayerState = null;
+	var pollTimer = null;
+	var actionInFlight = false;
+	// Kept out of the DOM so a poll-driven re-render does not wipe a pending choice.
+
+	var ALERT_SOUND = 'musics/events/ctalert.mp3';
+	var ALERT_STORAGE_KEY = 'lounge.alerts';
+	var announcedStatus = null;
+	var unloadGuarded = false;
+	var announcedConfirm = false;
+	// Set once this client has seen the recap - what the lineup settled on, before the room
+	// opens. Someone who opens the lounge to find their mogi already running has not, and is
+	// most likely late for it, so they get told it is on and sent straight there instead.
+	var sawRecap = false;
+	var announcedStart = false;
+	var leavingForRoom = false;
+
+	function toLanguage(en, fr) {
+		return language ? en : fr;
+	}
+
+	function $(id) {
+		return document.getElementById(id);
+	}
+
+	function postJSON(endpoint, body, cb) {
+		xhr(endpoint, body, function(res) {
+			var data;
+			try { data = JSON.parse(res); }
+			catch (e) { return false; }
+			cb(data);
+			return true;
+		});
+	}
+
+	function setupTabs() {
+		var tabs = document.querySelectorAll('.lounge-tab');
+		var panels = document.querySelectorAll('.lounge-tabpanel');
+		// Joining needs a character, and the only place to pick one is the game itself. So on
+		// the standalone page - reached from the home page's leaderboard link - Queue Up is the
+		// way back into online.php rather than a tier list nobody could join from. Only when it
+		// would show that tier list: a player already queued, or reading their results, opened
+		// this page to see exactly that, and sending them to the game would drop them out of it.
+		var inGame = (window.top !== window.self);
+		for (var i = 0; i < tabs.length; i++) {
+			if (tabs[i].tagName.toLowerCase() === 'a') continue;
+			tabs[i].addEventListener('click', onTabClick);
+		}
+		function onTabClick() {
+			var target = this.getAttribute('data-tab');
+			if ((target === 'queueup') && !inGame && (view === 'tiers')) {
+				location.href = 'ranked.php';
+				return;
+			}
+			for (var i = 0; i < tabs.length; i++)
+				tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-tab') === target);
+			for (var j = 0; j < panels.length; j++)
+				panels[j].classList.toggle('is-active', panels[j].getAttribute('data-panel') === target);
+			if (target === 'leaderboard')
+				loadLeaderboard();
+		}
+
+		var requested = (location.search.match(/[?&]tab=([a-z]+)/) || [])[1];
+		if (requested) {
+			for (var k = 0; k < tabs.length; k++) {
+				if (tabs[k].getAttribute('data-tab') === requested) {
+					onTabClick.call(tabs[k]);
+					break;
+				}
+			}
+		}
+	}
+
+	function renderPlayerStrip(player) {
+		var strip = $('lounge-playerstrip');
+		if (!strip) return;
+		strip.innerHTML = '';
+
+		if (player.rank) {
+			var rankBadge = document.createElement('span');
+			rankBadge.className = 'lounge-stat';
+			rankBadge.innerHTML = '<span class="lounge-stat-label">'+ toLanguage('Rank','Rang') +'</span>';
+			rankBadge.appendChild(rankChip(player.rank));
+			strip.appendChild(rankBadge);
+		}
+
+		var mmrLabel = document.createElement('span');
+		mmrLabel.className = 'lounge-stat';
+		mmrLabel.innerHTML = '<span class="lounge-stat-label">MMR</span> <span class="lounge-stat-value">'+ player.mmr +'</span>';
+		strip.appendChild(mmrLabel);
+
+		var gamesLabel = document.createElement('span');
+		gamesLabel.className = 'lounge-stat';
+		gamesLabel.innerHTML = '<span class="lounge-stat-label">'+ toLanguage('Games','Parties') +'</span> <span class="lounge-stat-value">'+ player.games +'</span>';
+		strip.appendChild(gamesLabel);
+
+		if (player.strikes > 0) {
+			var strikesLabel = document.createElement('span');
+			strikesLabel.className = 'lounge-stat lounge-stat--warn';
+			strikesLabel.innerHTML = '<span class="lounge-stat-label">Strikes</span> <span class="lounge-stat-value">'+ player.strikes +'</span>';
+			strip.appendChild(strikesLabel);
+		}
+
+		if (player.banned_until) {
+			var ban = document.createElement('span');
+			ban.className = 'lounge-stat lounge-stat--ban';
+			ban.textContent = toLanguage('Banned until ', 'Banni jusqu\'au ') + player.banned_until;
+			strip.appendChild(ban);
+		}
+	}
+
+	function rankLabel(rank) {
+		if (!rank) return '';
+		return rank.label;
+	}
+
+	// The ladder's own rank colours run from near-black (Master) to near-white (Silver), so
+	// none of them can be ink on the page: the colour is the chip, and the label on it is
+	// black or white depending on how dark the chip is.
+	function rankChip(rank) {
+		var chip = document.createElement('span');
+		chip.className = 'lounge-rank';
+		chip.textContent = rankLabel(rank);
+		if (!rank || !rank.color) return chip;
+		chip.style.backgroundColor = rank.color;
+		var hex = rank.color.replace('#', '');
+		if (hex.length === 3)
+			hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+		var rgb = parseInt(hex, 16);
+		var luma = 0.299 * ((rgb >> 16) & 255) + 0.587 * ((rgb >> 8) & 255) + 0.114 * (rgb & 255);
+		chip.style.color = (luma > 150) ? '#000' : '#fff';
+		return chip;
+	}
+
+	function loadLeaderboard() {
+		var container = $('lounge-leaderboard');
+		if (!container) return;
+		postJSON('lounge/leaderboard.php', '', function(data) {
+			if (!data || data.error || !data.players) return;
+			container.innerHTML = '';
+			if (!data.players.length) {
+				var empty = document.createElement('p');
+				empty.className = 'lounge-empty';
+				empty.textContent = toLanguage(
+					'No mogi has been played yet this season.',
+					'Aucun mogi n\'a encore été joué cette saison.'
+				);
+				container.appendChild(empty);
+				return;
+			}
+
+			var table = document.createElement('table');
+			table.className = 'lounge-leaderboard-table';
+			var head = document.createElement('tr');
+			head.innerHTML = '<th></th><th></th><th></th><th></th><th></th><th></th>';
+			var cells = head.querySelectorAll('th');
+			cells[0].textContent = toLanguage('Place', 'Place');
+			cells[1].textContent = toLanguage('Player', 'Joueur');
+			cells[2].textContent = toLanguage('Rank', 'Rang');
+			cells[3].textContent = 'MMR';
+			cells[4].textContent = toLanguage('Mogis', 'Mogis');
+			cells[5].textContent = toLanguage('Avg. score', 'Score moyen');
+			table.appendChild(head);
+
+			for (var i = 0; i < data.players.length; i++) {
+				var p = data.players[i];
+				var row = document.createElement('tr');
+				row.className = 'lounge-leaderboard-row' + (p.id === data.me ? ' is-self' : '');
+				row.innerHTML = '<td class="lounge-lb-place"></td><td class="lounge-lb-name"></td>'
+					+ '<td class="lounge-lb-rank"></td><td class="lounge-lb-mmr"></td>'
+					+ '<td class="lounge-lb-games"></td><td class="lounge-lb-avg"></td>';
+				row.querySelector('.lounge-lb-place').textContent = p.place;
+				row.querySelector('.lounge-lb-name').textContent = p.name;
+				var rankCell = row.querySelector('.lounge-lb-rank');
+				if (p.rank) rankCell.appendChild(rankChip(p.rank));
+				row.querySelector('.lounge-lb-mmr').textContent = p.mmr;
+				row.querySelector('.lounge-lb-games').textContent = p.games + ' (' + p.wins + 'W)';
+				row.querySelector('.lounge-lb-avg').textContent = (p.avg_score === null) ? '–' : p.avg_score;
+				table.appendChild(row);
+			}
+			container.appendChild(table);
+		});
+	}
+
+	function tierLabel(tier) {
+		return tier.label;
+	}
+
+	function tierRangeLabel(tier) {
+		if (tier.code === 'all') return toLanguage('Open to everyone', 'Ouvert à tous');
+		if (tier.max_mmr === null) return 'MMR ' + tier.min_mmr + '+';
+		return 'MMR ' + tier.min_mmr + '–' + tier.max_mmr;
+	}
+
+	// Staff want everyone to have seen the rules once before their first queue, and a player
+	// who cannot enter at all should learn why here rather than after clicking Join. Both
+	// take over the tier screen, so neither can be clicked past.
+	function renderTierScreen(data) {
+		var container = $('lounge-tiers');
+		if (!container) return;
+		if (!data.rules_accepted) {
+			renderRulesGate(container);
+			return;
+		}
+		if (data.access_error && data.access_error !== 'rules_not_accepted') {
+			renderAccessBlock(container, data);
+			return;
+		}
+		renderTiers(data.tiers);
+	}
+
+	function renderRulesGate(container) {
+		// the poll keeps ticking behind this screen; rebuilding it would clear the tick box
+		// under the reader every few seconds
+		if (container.querySelector('.lounge-rules-gate')) return;
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-rules-gate';
+
+		// cloned from the "?" panel so the gate can never drift from the published rules
+		var bar = document.querySelector('[data-panel="howitworks"] .lounge-bar');
+		if (bar) box.appendChild(bar.cloneNode(true));
+		var body = document.createElement('div');
+		body.className = 'lounge-rules-body';
+		var panel = document.querySelector('.lounge-rules');
+		body.innerHTML = panel ? panel.innerHTML : '';
+		box.appendChild(body);
+
+		var label = document.createElement('label');
+		label.className = 'lounge-rules-check';
+		var check = document.createElement('input');
+		check.type = 'checkbox';
+		var text = document.createElement('span');
+		text.textContent = toLanguage(
+			'I have read and accept the lounge rules.',
+			'J\'ai lu et j\'accepte les règles du lounge.'
+		);
+		label.appendChild(check);
+		label.appendChild(text);
+		box.appendChild(label);
+
+		var btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'lounge-rules-accept';
+		btn.disabled = true;
+		btn.textContent = toLanguage('Continue', 'Continuer');
+		check.addEventListener('change', function() {
+			btn.disabled = !check.checked;
+		});
+		btn.addEventListener('click', function() {
+			if (actionInFlight || !check.checked) return;
+			actionInFlight = true;
+			btn.disabled = true;
+			postJSON('lounge/accept-rules.php', '', function() {
+				actionInFlight = false;
+				pollOnce();
+			});
+		});
+		box.appendChild(btn);
+		container.appendChild(box);
+	}
+
+	function renderAccessBlock(container, data) {
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-access-block';
+		var title = document.createElement('h2');
+		title.textContent = toLanguage('Not open to you yet', 'Pas encore accessible');
+		box.appendChild(title);
+
+		var list = document.createElement('ul');
+		var req = data.requirements || {};
+		if (req.min_vs_points) {
+			list.appendChild(requirementRow(
+				toLanguage(
+					req.min_vs_points + ' points in online VS mode',
+					req.min_vs_points + ' points en mode en ligne VS'
+				),
+				toLanguage('you have ' + data.vs_points, 'vous en avez ' + data.vs_points),
+				data.vs_points >= req.min_vs_points
+			));
+		}
+		if (req.min_account_age_days) {
+			var age = data.account_age_days;
+			list.appendChild(requirementRow(
+				toLanguage(
+					'an account at least ' + req.min_account_age_days + ' days old',
+					'un compte d\'au moins ' + req.min_account_age_days + ' jours'
+				),
+				age === null ? '' : toLanguage(age + ' days', age + ' jours'),
+				(age === null) || (age >= req.min_account_age_days)
+			));
+		}
+		box.appendChild(list);
+
+		if (data.access_error === 'site_banned') {
+			var banned = document.createElement('p');
+			banned.className = 'lounge-access-note';
+			banned.textContent = toLanguage('Your account is banned.', 'Votre compte est banni.');
+			box.appendChild(banned);
+		}
+		container.appendChild(box);
+	}
+
+	function requirementRow(what, have, met) {
+		var li = document.createElement('li');
+		li.className = met ? 'is-met' : 'is-unmet';
+		li.textContent = what + (have ? ' — ' + have : '');
+		return li;
+	}
+
+	function renderTiers(tiers) {
+		var container = $('lounge-tiers');
+		if (!container) return;
+		container.innerHTML = '';
+
+		for (var i = 0; i < tiers.length; i++) {
+			var tier = tiers[i];
+			var card = document.createElement('div');
+			card.className = 'lounge-tier' + (tier.eligible ? '' : ' is-locked');
+
+			var title = document.createElement('h3');
+			title.className = 'lounge-tier-title';
+			title.textContent = tierLabel(tier);
+			card.appendChild(title);
+
+			var range = document.createElement('p');
+			range.className = 'lounge-tier-range';
+			range.textContent = tierRangeLabel(tier);
+			card.appendChild(range);
+
+			var count = document.createElement('p');
+			count.className = 'lounge-tier-count';
+			count.textContent = tier.queue_count + ' / 8 ' + toLanguage('in queue', 'en file')
+				+ ' · ' + toLanguage(
+					tier.min_players + ' needed to start',
+					tier.min_players + ' requis pour lancer'
+				);
+			card.appendChild(count);
+
+			var btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'lounge-tier-join';
+			btn.setAttribute('data-tier', tier.id);
+			if (!tier.eligible) {
+				btn.disabled = true;
+				btn.textContent = toLanguage('Locked', 'Verrouillé');
+			} else {
+				btn.textContent = toLanguage('Join', 'Rejoindre');
+				btn.addEventListener('click', onJoinClick);
+			}
+			card.appendChild(btn);
+
+			container.appendChild(card);
+		}
+	}
+
+	function onJoinClick() {
+		if (actionInFlight) return;
+		var tierId = this.getAttribute('data-tier');
+		actionInFlight = true;
+		this.disabled = true;
+		var body = 'tier=' + encodeURIComponent(tierId);
+		if (mPerso)
+			body += '&perso=' + encodeURIComponent(mPerso);
+		requestAlertPermission();
+		postJSON('lounge/join.php', body, function(data) {
+			actionInFlight = false;
+			if (data.error) {
+				alert(joinErrorMessage(data));
+				return;
+			}
+			currentQueue = data.queue;
+			switchView('waiting');
+		});
+	}
+
+	function joinErrorMessage(data) {
+		switch (data.error) {
+			case 'not_eligible': return toLanguage('Your MMR is not in this tier\'s range.', 'Votre MMR n\'est pas dans la plage de ce tier.');
+			case 'already_queued': return toLanguage('You are already in a queue.', 'Vous êtes déjà dans une file.');
+			case 'banned': return toLanguage('You are banned from ranked until ', 'Vous êtes banni du classé jusqu\'au ') + (data.banned_until || '');
+			case 'tier_not_found': return toLanguage('That tier no longer exists.', 'Ce tier n\'existe plus.');
+			case 'site_banned': return toLanguage('Your account is banned.', 'Votre compte est banni.');
+			case 'account_too_new': return toLanguage('Your account is too new for ranked.', 'Votre compte est trop récent pour le classé.');
+			case 'not_enough_points': return toLanguage('You do not have enough online VS points for ranked.', 'Vous n\'avez pas assez de points en ligne VS pour le classé.');
+			case 'rules_not_accepted': return toLanguage('You must accept the lounge rules first.', 'Vous devez d\'abord accepter les règles du lounge.');
+			default: return toLanguage('Could not join queue.', 'Impossible de rejoindre la file.');
+		}
+	}
+
+	// Closing the tab mid-queue leaves a ghost in the lineup, so warn on the way out. The
+	// handler goes on the game page too: this runs in an overlay iframe, and Chrome only
+	// raises the dialog for a frame the player has actually interacted with.
+	function unloadGuardTargets() {
+		var targets = [window];
+		try {
+			if (window.top !== window && window.top.document) targets.push(window.top);
+		}
+		catch (e) {}
+		return targets;
+	}
+
+	function onBeforeUnload(e) {
+		var message = toLanguage(
+			'You are queued for a ranked mogi. Leaving now will drop you from the lineup.',
+			'Vous êtes en file pour un mogi classé. Partir maintenant vous retirera de la partie.'
+		);
+		e.preventDefault();
+		e.returnValue = message;
+		return message;
+	}
+
+	function setUnloadGuard(on) {
+		if (on === unloadGuarded) return;
+		unloadGuarded = on;
+		var targets = unloadGuardTargets();
+		for (var i = 0; i < targets.length; i++) {
+			if (on) targets[i].addEventListener('beforeunload', onBeforeUnload);
+			else targets[i].removeEventListener('beforeunload', onBeforeUnload);
+		}
+	}
+
+	// the overlay can be closed without unloading the game page, which would strand the
+	// handler we put on it
+	window.addEventListener('pagehide', function() { setUnloadGuard(false); });
+
+	function alertsEnabled() {
+		try { return localStorage.getItem(ALERT_STORAGE_KEY) !== '0'; }
+		catch (e) { return true; }
+	}
+
+	function setAlertsEnabled(on) {
+		try { localStorage.setItem(ALERT_STORAGE_KEY, on ? '1' : '0'); } catch (e) {}
+	}
+
+	function alertVolume() {
+		try {
+			var settings = JSON.parse(localStorage.getItem('settings.vol'));
+			if (settings && settings.sfx != null) return settings.sfx;
+		} catch (e) {}
+		return 1;
+	}
+
+	var STATUS_ALERTS = {
+		locked: {
+			title: ['Lineup complete', 'File complète'],
+			body: ['Everyone is here — the mode vote is about to open.', 'Tout le monde est là — le vote du mode va s\'ouvrir.']
+		},
+		voting: {
+			title: ['Time to vote!', 'À vous de voter !'],
+			body: ['Pick the game mode before the timer runs out.', 'Choisissez le mode de jeu avant la fin du chrono.']
+		},
+		confirm: {
+			title: ['Still there?', 'Toujours là ?'],
+			body: ['Confirm you are still queuing, or you will be taken out of the list.', 'Confirmez que vous êtes toujours en file, sinon vous en serez retiré.']
+		},
+		launched: {
+			title: ['The race is starting!', 'La course commence !'],
+			body: ['Your mogi is launching — get back to the game.', 'Votre mogi se lance — revenez sur le jeu.']
+		}
+	};
+
+	function announceStatus(status) {
+		if (announcedStatus === status) return;
+		var wasKnown = (announcedStatus !== null);
+		announcedStatus = status;
+		// the start is announced off the recap rather than off the status, so it lands when
+		// the lineup is told what it is playing rather than a beat later
+		if (!wasKnown || (status === 'launched') || !STATUS_ALERTS[status] || !alertsEnabled()) return;
+		fireAlert(status);
+	}
+
+	// The recap is where a waiting player finds out the mogi is on, so it carries the alert the
+	// launch used to. A player who was not waiting gets no alert, the way they never did.
+	function announceStart(queue, wasWatching) {
+		if (announcedStart) return;
+		var settled = (queue.status === 'launched')
+			|| ((queue.status === 'drafting') && queue.draft && !queue.draft.available.length);
+		if (!settled) return;
+		announcedStart = true;
+		sawRecap = (queue.status !== 'launched');
+		if (wasWatching && alertsEnabled())
+			fireAlert('launched');
+	}
+
+	function fireAlert(key) {
+		var alertData = STATUS_ALERTS[key];
+		if (!alertData) return;
+		mkNotify.fire({
+			title: 'CT Lounge — ' + toLanguage(alertData.title[0], alertData.title[1]),
+			body: toLanguage(alertData.body[0], alertData.body[1]),
+			flash: '\u25B6 ' + toLanguage(alertData.title[0], alertData.title[1]),
+			tag: 'lounge-queue',
+			sound: ALERT_SOUND,
+			volume: alertVolume()
+		});
+	}
+
+	// "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
+	// queue": polling alone cannot tell a player apart from a tab they walked away from.
+	function renderConfirmPrompt(queue) {
+		var box = document.createElement('div');
+		box.className = 'lounge-confirm';
+		var text = document.createElement('p');
+		text.className = 'lounge-confirm-text';
+		var left = queue.confirm_seconds_left;
+		text.textContent = toLanguage(
+			'Still here? Please confirm before ' + formatCountdown(left) + ' or you\'ll be dropped',
+			'Toujours là ? Confirmez sous ' + formatCountdown(left) + ' ou vous serez retiré de la liste'
+		);
+		box.appendChild(text);
+
+		var btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'lounge-confirm-btn';
+		btn.textContent = toLanguage('Keep me in', 'Je reste !');
+		btn.addEventListener('click', onConfirmClick);
+		box.appendChild(btn);
+		return box;
+	}
+
+	function onConfirmClick() {
+		if (actionInFlight) return;
+		actionInFlight = true;
+		this.disabled = true;
+		postJSON('lounge/confirm.php', '', function(data) {
+			actionInFlight = false;
+			announcedConfirm = false;
+			mkNotify.clear();
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+			}
+		});
+	}
+
+	function announceConfirm(queue) {
+		if (!queue.confirm_due) {
+			announcedConfirm = false;
+			return;
+		}
+		if (announcedConfirm || !alertsEnabled()) return;
+		announcedConfirm = true;
+		fireAlert('confirm');
+	}
+
+	function renderAlertControls() {
+		var controls = document.createDocumentFragment();
+		var toggle = document.createElement('button');
+		var on = alertsEnabled();
+		toggle.type = 'button';
+		toggle.className = 'lounge-alerts-toggle' + (on ? ' is-on' : '');
+		toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+		toggle.title = toLanguage(
+			'Plays a sound, shows a notification and flashes the tab title when the queue moves on.',
+			'Joue un son, affiche une notification et fait clignoter le titre de l\'onglet quand la file avance.'
+		);
+		toggle.innerHTML = '<span class="lounge-alerts-icon" aria-hidden="true"></span>'
+			+ '<span class="lounge-alerts-label"></span>'
+			+ '<span class="lounge-alerts-state"></span>'
+			+ '<span class="lounge-alerts-switch" aria-hidden="true"></span>';
+		toggle.querySelector('.lounge-alerts-label').textContent = toLanguage('Match alerts', 'Notifications');
+		toggle.querySelector('.lounge-alerts-state').textContent = alertStateLabel(on);
+		toggle.addEventListener('click', onAlertToggle);
+		controls.appendChild(toggle);
+
+		if (on && mkNotify.permission() === 'denied') {
+			var warn = document.createElement('span');
+			warn.className = 'lounge-alerts-hint';
+			warn.textContent = toLanguage(
+				'Notifications are blocked for this site — only the sound and the tab title will alert you.',
+				'Les notifications sont bloquées pour ce site — seuls le son et le titre de l\'onglet vous alerteront.'
+			);
+			controls.appendChild(warn);
+		}
+		return controls;
+	}
+
+	function alertStateLabel(on) {
+		if (on) return toLanguage('On', 'Activées');
+		return toLanguage('Off', 'Désactivées');
+	}
+
+	function onAlertToggle() {
+		var on = !alertsEnabled();
+		setAlertsEnabled(on);
+		// synchronously, while the click still counts as the user gesture a prompt needs
+		if (on) requestAlertPermission();
+		else mkNotify.clear();
+		// rebuilt rather than patched, so the "blocked" hint follows the new state too
+		if (currentQueue) renderWaiting(currentQueue);
+	}
+
+	function requestAlertPermission() {
+		if (!alertsEnabled()) return;
+		mkNotify.request(function() {
+			if (currentQueue) renderWaiting(currentQueue);
+		});
+	}
+
+	function renderWaiting(queue) {
+		var container = $('lounge-queueup');
+		if (!container) return;
+
+		var wasWatching = (announcedStatus !== null);
+		announceStatus(queue.status);
+		announceStart(queue, wasWatching);
+		setUnloadGuard(queue.status !== 'launched');
+
+		if (queue.status === 'launched' && queue.privgame_key) {
+			// the recap is already on screen and says all of this, so it stays there until the
+			// room takes over rather than blinking through a second announcement
+			if (sawRecap)
+				goToRoom(queue);
+			else
+				renderLaunching(container, queue);
+			return;
+		}
+
+		container.innerHTML = '';
+
+		var header = document.createElement('div');
+		header.className = 'lounge-waiting-header';
+		var label = queue.tier_label;
+		header.innerHTML = '<h2>' + label + '</h2>'
+			+ '<p class="lounge-waiting-count">' + queue.members.length + ' / ' + queue.ready_threshold + ' ' + toLanguage('players', 'joueurs') + '</p>';
+		container.appendChild(header);
+
+		var status = document.createElement('div');
+		status.className = 'lounge-waiting-status';
+		var statusText = document.createElement('p');
+		statusText.className = 'lounge-waiting-text';
+		status.appendChild(statusText);
+		if (queue.status === 'open') {
+			statusText.textContent = toLanguage(
+				'Waiting for more players… you can still drop.',
+				'En attente d\'autres joueurs… vous pouvez encore quitter.'
+			);
+		} else if (queue.status === 'locked') {
+			// a lineup that divides into nothing has FFA as its only option, so there is no
+			// vote to announce - it starts as soon as the wait is over
+			var onlyMode = (queue.allowed_modes.length === 1) ? queue.allowed_modes[0] : null;
+			var lockLeft = queue.lock_seconds_left;
+			if (lockLeft === null) {
+				statusText.textContent = onlyMode
+					? toLanguage(
+						'Queue locked. ' + onlyMode + ' starts soon.',
+						'File verrouillée. ' + onlyMode + ' commence bientôt.'
+					)
+					: toLanguage(
+						'Queue locked. Voting starts soon.',
+						'File verrouillée. Le vote commence bientôt.'
+					);
+			} else if (onlyMode) {
+				statusText.textContent = toLanguage(
+					'Queue locked. ' + onlyMode + ' starts in ' + formatCountdown(lockLeft) + '.',
+					'File verrouillée. ' + onlyMode + ' commence dans ' + formatCountdown(lockLeft) + '.'
+				);
+			} else {
+				statusText.textContent = toLanguage(
+					'Queue locked. Voting starts in ' + formatCountdown(lockLeft) + '.',
+					'File verrouillée. Le vote commence dans ' + formatCountdown(lockLeft) + '.'
+				);
+			}
+		} else if (queue.status === 'voting') {
+			var voteLeft = queue.vote_seconds_left;
+			statusText.textContent = toLanguage(
+				'Vote the game mode (' + formatCountdown(voteLeft) + ' left)',
+				'Votez pour le mode de jeu (' + formatCountdown(voteLeft) + ' restant)'
+			);
+		} else if (queue.status === 'drafting') {
+			// what was settled is announced below, in the size it deserves; this line is only
+			// what happens next
+			statusText.textContent = (queue.draft && queue.draft.current_captain)
+				? toLanguage(
+					'The captains are picking their teams.',
+					'Les capitaines composent leurs équipes.'
+				)
+				: toLanguage('The race is about to start.', 'La course va commencer.');
+		}
+		announceConfirm(queue);
+		// above the status card: missing this one drops you from the lineup
+		if (queue.confirm_due)
+			container.appendChild(renderConfirmPrompt(queue));
+		status.appendChild(renderAlertControls());
+		container.appendChild(status);
+		if (queue.status === 'drafting')
+			container.appendChild(renderModeVerdict(queue));
+
+		// the team columns already account for everyone; an FFA recap has none, so it keeps the
+		// lineup it was already showing
+		var showLineup = (queue.status !== 'drafting') || !queue.draft || !queue.draft.teams.length;
+		var list = document.createElement('ol');
+		list.className = 'lounge-member-list';
+		for (var i = 0; showLineup && (i < queue.members.length); i++) {
+			var m = queue.members[i];
+			var li = document.createElement('li');
+			li.className = 'lounge-member' + (m.id === mId ? ' is-self' : '');
+			li.innerHTML = '<span class="lounge-member-name"></span> <span class="lounge-member-mmr">MMR ' + m.mmr + '</span>';
+			li.querySelector('.lounge-member-name').textContent = m.name;
+			list.appendChild(li);
+		}
+		// the empty seats say what the lineup is still waiting for, rather than the count alone
+		for (var j = queue.members.length; showLineup && (queue.status === 'open') && (j < queue.lock_threshold); j++) {
+			var slot = document.createElement('li');
+			slot.className = 'lounge-slot';
+			slot.textContent = toLanguage('Waiting for a player…', 'En attente d\'un joueur…');
+			list.appendChild(slot);
+		}
+		if (showLineup)
+			container.appendChild(list);
+
+		if (queue.status === 'voting') {
+			container.appendChild(renderVoteSection(queue));
+		} else if (queue.status === 'drafting') {
+			if (queue.draft && queue.draft.teams.length)
+				container.appendChild(renderDraft(queue.draft));
+		} else {
+			container.appendChild(renderQueueActions(queue));
+		}
+	}
+
+	// "2v2" is the ladder's name for pairs, however many pairs that makes, so a lineup of eight
+	// is told it is playing 2v2v2v2 rather than left to count the columns.
+	function modeShape(queue) {
+		var teamCount = (queue.draft && queue.draft.teams.length) ? queue.draft.teams.length : 0;
+		var teamSize = parseInt(queue.mode, 10);
+		if (!teamCount || !teamSize) return queue.mode;
+		var parts = [];
+		for (var i = 0; i < teamCount; i++) parts.push(teamSize);
+		return parts.join('v');
+	}
+
+	// The vote's answer, at the size of an answer. It used to be half of a sentence in the
+	// status line, which is not where anyone looks to find out what they are about to play.
+	function renderModeVerdict(queue) {
+		var box = document.createElement('div');
+		box.className = 'lounge-verdict';
+		var mode = document.createElement('p');
+		mode.className = 'lounge-verdict-mode';
+		mode.textContent = modeShape(queue);
+		box.appendChild(mode);
+
+		var note = '';
+		if (queue.draft && !queue.draft.current_captain) {
+			if (!queue.draft.teams.length)
+				note = toLanguage('Everyone for themselves.', 'Chacun pour soi.');
+			else if (queue.draft.captains.length)
+				note = toLanguage('The captains have picked.', 'Les capitaines ont choisi.');
+			else
+				note = toLanguage('Teams drawn at random.', 'Équipes tirées au sort.');
+		}
+		if (note) {
+			var line = document.createElement('p');
+			line.className = 'lounge-verdict-note';
+			line.textContent = note;
+			box.appendChild(line);
+		}
+		return box;
+	}
+
+	// A drafted side is named after its captain; a drawn one has no captain to name it after.
+	function renderDraftTeam(captain, members, index) {
+		var col = document.createElement('section');
+		col.className = 'lounge-draft-team';
+		var title = document.createElement('h3');
+		title.textContent = captain
+			? toLanguage('Team ' + captain.name, 'Équipe ' + captain.name)
+			: toLanguage('Team ' + (index + 1), 'Équipe ' + (index + 1));
+		col.appendChild(title);
+		var list = document.createElement('ol');
+		for (var i = 0; i < members.length; i++) {
+			var li = document.createElement('li');
+			li.className = (captain && (members[i].id === captain.id)) ? 'is-captain' : '';
+			li.textContent = members[i].name;
+			list.appendChild(li);
+		}
+		col.appendChild(list);
+		return col;
+	}
+
+	function renderDraft(draft) {
+		var section = document.createElement('div');
+		section.className = 'lounge-draft';
+
+		var myTurn = draft.current_captain && (draft.current_captain.id === mId);
+		var turn = document.createElement('p');
+		turn.className = 'lounge-draft-turn' + (myTurn ? ' is-mine' : '');
+		if (!draft.current_captain) {
+			// the verdict above already says the teams are settled and how
+			turn = null;
+		} else if (myTurn) {
+			turn.textContent = toLanguage(
+				'Your pick — ' + formatCountdown(draft.seconds_left) + ' left',
+				'À vous de choisir — ' + formatCountdown(draft.seconds_left) + ' restant'
+			);
+		} else {
+			turn.textContent = toLanguage(
+				draft.current_captain.name + ' is picking (' + formatCountdown(draft.seconds_left) + ' left)',
+				draft.current_captain.name + ' choisit (' + formatCountdown(draft.seconds_left) + ' restant)'
+			);
+		}
+		if (turn)
+			section.appendChild(turn);
+
+		var teams = document.createElement('div');
+		teams.className = 'lounge-draft-teams';
+		for (var t = 0; t < draft.teams.length; t++)
+			teams.appendChild(renderDraftTeam(draft.captains[t], draft.teams[t], t));
+		section.appendChild(teams);
+
+		if (draft.available.length) {
+			var pool = document.createElement('div');
+			pool.className = 'lounge-draft-pool';
+			for (var i = 0; i < draft.available.length; i++) {
+				var m = draft.available[i];
+				var btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'lounge-draft-pick';
+				btn.setAttribute('data-player', m.id);
+				btn.disabled = !myTurn;
+				btn.innerHTML = '<span class="lounge-draft-pick-name"></span>'
+					+ '<span class="lounge-draft-pick-mmr">MMR ' + m.mmr + '</span>';
+				btn.querySelector('.lounge-draft-pick-name').textContent = m.name;
+				btn.addEventListener('click', onDraftPickClick);
+				pool.appendChild(btn);
+			}
+			section.appendChild(pool);
+
+			var hint = document.createElement('p');
+			hint.className = 'lounge-draft-hint';
+			hint.textContent = toLanguage(
+				'A captain who runs out of time gets the highest-rated player left.',
+				'Un capitaine à court de temps reçoit le joueur le mieux classé restant.'
+			);
+			section.appendChild(hint);
+		}
+		return section;
+	}
+
+	function onDraftPickClick(e) {
+		if (actionInFlight) return;
+		var target = e.currentTarget.getAttribute('data-player');
+		actionInFlight = true;
+		var buttons = document.querySelectorAll('.lounge-draft-pick');
+		for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+		postJSON('lounge/draft.php', 'player=' + encodeURIComponent(target), function(data) {
+			actionInFlight = false;
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+			}
+		});
+	}
+
+	function renderQueueActions(queue) {
+		var actions = document.createElement('div');
+		actions.className = 'lounge-waiting-actions';
+		if (queue.status === 'open') {
+			var dropBtn = document.createElement('button');
+			dropBtn.type = 'button';
+			dropBtn.className = 'lounge-drop';
+			// rule 3a: no flickering in and out of a gathering list
+			var dropWait = queue.drop_seconds_left || 0;
+			dropBtn.disabled = dropWait > 0;
+			dropBtn.textContent = dropWait
+				? toLanguage('Drop (' + dropWait + 's)', 'Quitter (' + dropWait + 's)')
+				: toLanguage('Drop', 'Quitter');
+			dropBtn.addEventListener('click', onDropClick);
+			actions.appendChild(dropBtn);
+		} else {
+			var note = document.createElement('p');
+			note.className = 'lounge-waiting-note';
+			note.textContent = toLanguage(
+				'You can no longer drop. Leaving now will count as a strike.',
+				'Vous ne pouvez plus quitter. Partir maintenant comptera comme un strike.'
+			);
+			actions.appendChild(note);
+		}
+		return actions;
+	}
+
+	function renderVoteSection(queue) {
+		var section = document.createElement('div');
+		section.className = 'lounge-vote';
+		var hint = document.createElement('p');
+		hint.className = 'lounge-vote-hint';
+		hint.textContent = toLanguage(
+			'If the timer runs out, the mode with the most votes wins. A tie is drawn at random,'
+				+ ' and so is Random.',
+			'À l\'expiration du chrono, le mode le plus voté l\'emporte. Une égalité est tirée au sort,'
+				+ ' comme le vote Random.'
+		);
+		section.appendChild(hint);
+		section.appendChild(renderModeVote(queue));
+		return section;
+	}
+
+	function voteGroup(titleEn, titleFr) {
+		var group = document.createElement('section');
+		group.className = 'lounge-vote-group';
+		var title = document.createElement('h3');
+		title.className = 'lounge-vote-group-title';
+		title.textContent = toLanguage(titleEn, titleFr);
+		group.appendChild(title);
+		return group;
+	}
+
+	function renderModeVote(queue) {
+		var group = voteGroup('Game mode', 'Mode de jeu');
+		var btns = document.createElement('div');
+		btns.className = 'lounge-vote-buttons';
+		var modes = queue.allowed_modes.concat(['Random']);
+		for (var i = 0; i < modes.length; i++) {
+			var mode = modes[i];
+			var voteCount = queue.votes && queue.votes[mode] ? queue.votes[mode] : 0;
+			var btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'lounge-vote-btn'
+				+ (queue.my_vote === mode ? ' is-selected' : '');
+			btn.setAttribute('data-mode', mode);
+			btn.innerHTML = '<span class="lounge-vote-label"></span>'
+				+ '<span class="lounge-vote-count"></span>';
+			btn.querySelector('.lounge-vote-label').textContent = mode;
+			btn.querySelector('.lounge-vote-count').textContent = voteCount + ' '
+				+ (voteCount === 1 ? toLanguage('vote', 'vote') : toLanguage('votes', 'votes'));
+			btn.addEventListener('click', onVoteClick);
+			btns.appendChild(btn);
+		}
+		group.appendChild(btns);
+		return group;
+	}
+
+	// Only for a player who never saw the recap: they have walked in on a mogi that is already
+	// running, so they are told it is on and taken there without a countdown.
+	function renderLaunching(container, queue) {
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-launching';
+		box.innerHTML = '<h2></h2><p></p>';
+		box.querySelector('h2').textContent = toLanguage('Match found!', 'Partie trouvée !');
+		box.querySelector('p').textContent = toLanguage(
+			'Launching the game…',
+			'Lancement de la partie…'
+		);
+		container.appendChild(box);
+		goToRoom(queue, 1200);
+	}
+
+	function goToRoom(queue, delay) {
+		if (leavingForRoom) return;
+		leavingForRoom = true;
+		var url = 'online.php?mid=' + queue.multicup_id + '&ranked&key=' + queue.privgame_key;
+		setTimeout(function() {
+			if (window.parent && window.parent !== window) {
+				window.parent.location.href = url;
+			} else {
+				window.location.href = url;
+			}
+		}, delay || 0);
+	}
+
+	function formatCountdown(seconds) {
+		if (seconds === null || seconds === undefined) return '–';
+		if (seconds < 60) return seconds + 's';
+		var m = Math.floor(seconds / 60);
+		var s = seconds % 60;
+		return m + ':' + (s < 10 ? '0' : '') + s;
+	}
+
+	function onVoteClick() {
+		sendVote(this.getAttribute('data-mode'));
+	}
+
+	function sendVote(mode) {
+		if (actionInFlight) return;
+		actionInFlight = true;
+		var buttons = document.querySelectorAll('.lounge-vote-btn');
+		for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+		var body = 'mode=' + encodeURIComponent(mode);
+		postJSON('lounge/vote.php', body, function(data) {
+			actionInFlight = false;
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+			}
+		});
+	}
+
+	function onDropClick() {
+		if (actionInFlight) return;
+		actionInFlight = true;
+		this.disabled = true;
+		postJSON('lounge/leave.php', '', function(data) {
+			actionInFlight = false;
+			if (data.error === 'queue_locked') {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+				return;
+			}
+			if (data.error === 'drop_too_soon') {
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+				return;
+			}
+			leaveQueueState();
+			switchView('tiers');
+		});
+	}
+
+	function leaveQueueState() {
+		currentQueue = null;
+		announcedStatus = null;
+		announcedConfirm = false;
+		announcedStart = false;
+		sawRecap = false;
+		setUnloadGuard(false);
+		mkNotify.clear();
+	}
+
+	function renderResults(match) {
+		var container = $('lounge-results');
+		if (!container) return;
+		container.innerHTML = '';
+
+		var header = document.createElement('div');
+		header.className = 'lounge-results-header';
+		var label = match.tier_label;
+		header.innerHTML = '<h2></h2><p class="lounge-results-sub"></p>';
+		header.querySelector('h2').textContent = toLanguage('Mogi results', 'Résultats du mogi');
+		header.querySelector('.lounge-results-sub').textContent =
+			label + ' — ' + match.mode + ' — ' + match.races + ' ' + toLanguage('races', 'courses');
+		container.appendChild(header);
+
+		var table = document.createElement('table');
+		table.className = 'lounge-results-table';
+		var head = document.createElement('tr');
+		head.innerHTML = '<th></th><th></th><th></th><th></th><th></th>';
+		var headCells = head.querySelectorAll('th');
+		headCells[0].textContent = toLanguage('Place', 'Place');
+		headCells[1].textContent = toLanguage('Player', 'Joueur');
+		headCells[2].textContent = toLanguage('Score', 'Score');
+		headCells[3].textContent = toLanguage('Races', 'Courses');
+		headCells[4].textContent = 'MMR';
+		table.appendChild(head);
+
+		for (var i = 0; i < match.players.length; i++) {
+			var p = match.players[i];
+			var row = document.createElement('tr');
+			row.className = 'lounge-results-row' + (p.id === mId ? ' is-self' : '');
+			row.innerHTML = '<td class="lounge-results-place"></td><td class="lounge-results-name"></td>'
+				+ '<td class="lounge-results-score"></td><td class="lounge-results-races"></td>'
+				+ '<td class="lounge-results-mmr"></td>';
+			row.querySelector('.lounge-results-place').textContent = (p.position === null) ? '–' : p.position;
+			row.querySelector('.lounge-results-name').textContent = p.name;
+			row.querySelector('.lounge-results-score').textContent = (p.score === null) ? '–' : p.score;
+			var races = row.querySelector('.lounge-results-races');
+			// Zero is "no attendance was recorded", not "raced none of it" - a mogi played
+			// before attendance was tracked has it for everyone.
+			races.textContent = p.races_played ? (p.races_played + '/' + match.races) : '–';
+			if (p.races_played && (p.races_played < match.races)) {
+				races.className += ' is-short';
+				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
+			}
+			var mmr = row.querySelector('.lounge-results-mmr');
+			mmr.textContent = formatMmrChange(p);
+			if (p.mmr_penalty) {
+				var penalty = document.createElement('div');
+				penalty.className = 'lounge-results-penalty';
+				penalty.textContent = p.mmr_penalty + ' ' + toLanguage('absent', 'absent');
+				mmr.appendChild(penalty);
+			}
+			table.appendChild(row);
+		}
+		container.appendChild(table);
+
+		var actions = document.createElement('div');
+		actions.className = 'lounge-results-actions';
+
+		var back = document.createElement('button');
+		back.type = 'button';
+		back.className = 'lounge-results-back';
+		back.textContent = toLanguage('Back to the lounge', 'Retour au lounge');
+		back.addEventListener('click', function() {
+			// re-enter through the ranked flow so the character gets picked again
+			(window.top || window).location.href = 'ranked.php';
+		});
+		actions.appendChild(back);
+
+		var discord = discordLink();
+		if (discord)
+			actions.appendChild(discord);
+		container.appendChild(actions);
+	}
+
+	// The results are where a mogi ends, which is where the Discord has something to offer:
+	// the post-match talk happens there. Cloned off the rules panel so the invite and the logo
+	// are spelled once.
+	function discordLink() {
+		var source = document.querySelector('.lounge-rules .lounge-discord');
+		if (!source) return null;
+		var link = source.cloneNode(false);
+		var logo = source.querySelector('svg');
+		if (logo) link.appendChild(logo.cloneNode(true));
+		link.appendChild(document.createTextNode(
+			toLanguage('Continue on Discord', 'Continuer sur Discord')
+		));
+		return link;
+	}
+
+	function formatMmrChange(player) {
+		if (player.mmr_delta === null || player.mmr_after === null)
+			return toLanguage('pending', 'en attente');
+		return player.mmr_after + ' (' + (player.mmr_delta >= 0 ? '+' : '') + player.mmr_delta + ')';
+	}
+
+	function switchView(next) {
+		view = next;
+		var queueUp = $('lounge-queueup');
+		var tiers = $('lounge-tiers');
+		var results = $('lounge-results');
+		if (!queueUp || !tiers) return;
+		if (view === 'results') {
+			queueUp.style.display = 'none';
+			tiers.style.display = 'none';
+			if (results) results.style.display = '';
+			return;
+		}
+		if (results) results.style.display = 'none';
+		if (view === 'tiers') {
+			queueUp.style.display = 'none';
+			tiers.style.display = '';
+		} else {
+			tiers.style.display = 'none';
+			queueUp.style.display = '';
+		}
+		scheduleNextPoll(0);
+	}
+
+	function scheduleNextPoll(delay) {
+		if (pollTimer) clearTimeout(pollTimer);
+		if (delay <= 0) {
+			pollOnce();
+		} else {
+			pollTimer = setTimeout(pollOnce, delay);
+		}
+	}
+
+	function pollOnce() {
+		if (view === 'tiers') {
+			postJSON('lounge/tiers.php', '', function(data) {
+				if (!data || data.error) {
+					pollTimer = setTimeout(pollOnce, POLL_INTERVAL_TIERS);
+					return;
+				}
+				lastPlayerState = data.player;
+				renderPlayerStrip(data.player);
+				renderTierScreen(data);
+				pollTimer = setTimeout(pollOnce, POLL_INTERVAL_TIERS);
+			});
+		} else {
+			postJSON('lounge/poll.php', '', function(data) {
+				if (!data || data.error) {
+					pollTimer = setTimeout(pollOnce, POLL_INTERVAL_WAITING);
+					return;
+				}
+				if (data.player) renderPlayerStrip(data.player);
+				if (!data.queue) {
+					leaveQueueState();
+					switchView('tiers');
+					return;
+				}
+				currentQueue = data.queue;
+				renderWaiting(currentQueue);
+				pollTimer = setTimeout(pollOnce, POLL_INTERVAL_WAITING);
+			});
+		}
+	}
+
+	function init() {
+		setupTabs();
+		if (mResultKey) {
+			postJSON('lounge/result.php', 'key=' + encodeURIComponent(mResultKey), function(data) {
+				if (data && data.player) renderPlayerStrip(data.player);
+				if (data && data.match) {
+					renderResults(data.match);
+					switchView('results');
+				} else {
+					mResultKey = null;
+					initQueueView();
+				}
+			});
+			return;
+		}
+		initQueueView();
+	}
+
+	function initQueueView() {
+		postJSON('lounge/poll.php', '', function(data) {
+			if (data && data.player) renderPlayerStrip(data.player);
+			if (data && data.queue) {
+				currentQueue = data.queue;
+				switchView('waiting');
+			} else {
+				switchView('tiers');
+			}
+		});
+	}
+
+	if (document.readyState === 'loading')
+		document.addEventListener('DOMContentLoaded', init);
+	else
+		init();
+})();

@@ -36,10 +36,14 @@ if ($id) {
 			addLog("switchCourse $switchCourse");
 		}
 	}
-	if (!$course && !$linkOptions->public) {
+	// A private link has exactly one room, so whoever opens it belongs in that one. A player
+	// still carrying the course of an earlier race used to skip this and keep the old room:
+	// they then waited there alone, counted themselves into a lineup they had never joined,
+	// and only got out when something else cleared them.
+	if (!$linkOptions->public && (!$course || !$spectatorId)) {
 		// private race, force race ID if already existing
 		$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
-		if ($alreadyCreated) {
+		if ($alreadyCreated && ($course != $alreadyCreated['id'])) {
 			$course = $alreadyCreated['id'];
 			$switchCourse = true;
 		}
@@ -77,8 +81,15 @@ if ($id) {
 		mysql_query('UPDATE `mkplayers` SET team=-1 WHERE id='. $id);
 	}
 	function return_success($remainingTtime) {
-		global $newSpectatorId, $newSpectatorState;
+		global $newSpectatorId, $newSpectatorState, $nlink, $linkOptions;
 		echo '{"found":true,"time":'.max($remainingTtime,12);
+		// The course history has to be here rather than only in setMap.php: the track
+		// selection screen comes first, so a player joining mid-game would otherwise pick
+		// before ever being told which courses are used up.
+		if ($nlink && !empty($linkOptions->rules->localScore)) {
+			require_once('../includes/onlineStateUtils.php');
+			echo ',"tracks":'. json_encode(getCourseTracks(getCourseState($nlink)));
+		}
 		if ($newSpectatorId) {
 			echo ',"spectator":'.$newSpectatorId;
 			if ($newSpectatorState)
@@ -127,6 +138,18 @@ if ($id) {
 			$pendingPlayers = $nbPlayers;
 			$pendingCourse = $newCourse;
 		}
+	}
+	// A lounge room pins minPlayers to the exact lineup, so one member who never opens the link
+	// leaves the rest waiting for ever. The lounge has a join timeout for exactly that, but
+	// nothing ticks it before the first race, and by then everyone has left the lounge page - so
+	// it gets its chance here, where the waiting is. Called once the caller has been placed in
+	// the room, so the first player to arrive is not mistaken for nobody having turned up.
+	function resolve_lounge_join_timeout() {
+		global $nlink, $linkOptions;
+		if (empty($linkOptions->rules->lounge))
+			return;
+		require_once(__DIR__ .'/../includes/lounge/common.php');
+		lounge_resolve_join_timeout($nlink);
 	}
 	function check_for_active_games($course=0) {
 		global $id, $spectatorId, $time, $cupSQL, $noJoin, $newSpectatorId, $newSpectatorState, $linkOptions;
@@ -334,6 +357,7 @@ if ($id) {
 				addLog("course updated $course");
 				switchCourseIfNeeded();
 			}
+			resolve_lounge_join_timeout();
 			return_failure();
 		}
 	}

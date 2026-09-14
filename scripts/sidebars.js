@@ -1,10 +1,13 @@
-var onlineModeIds = ["vs","battle","clm150","clm200"];
+var onlineModeIds = ["vs","battle","clm150","clm200","ranked"];
 var currenttabcc = 2;
 
 function dispRankTab(mode) {
-    if (mode >= 2)
-        currenttabcc = mode;
     var onlineModeId = onlineModeIds[mode];
+    // The Time Trial tab reopens whichever cc you last looked at, so only the cc tabs may
+    // move that memory - tested on the id rather than on the index, which is what broke when
+    // a fifth mode was added after them.
+    if (onlineModeId.indexOf("clm") === 0)
+        currenttabcc = mode;
     document.getElementById("rankings_section").className = "subsection rank_" + onlineModeId;
     document.querySelectorAll(".ranking_tab.tab_"+onlineModeId+" .ranking_badge").forEach(function(badge) {
         badge.style.display = "none";
@@ -29,31 +32,50 @@ document.querySelectorAll(".flag_counter img").forEach(function(img) {
 	});
 });
 
-document.querySelectorAll(".ranking_activeplayernb").forEach(function(elt) {
-	var title = elt.getAttribute("title");
-	title = title.replace(/, /g, "<br />");
+document.querySelectorAll(".ranking_activeplayernb, .ranking_fancytitle").forEach(function(elt) {
+	var lines = elt.getAttribute("title").split(", ");
 	elt.setAttribute("title", "");
-	var fancyTitle;
-	elt.addEventListener('mouseover', function() {
-		if (fancyTitle) return;
-		fancyTitle = document.createElement("div");
-		fancyTitle.className = "ranking_activeplayertitle";
-		fancyTitle.innerHTML = title;
-		fancyTitle.style.opacity = 0;
-		document.body.appendChild(fancyTitle);
+	var fancyTitle, hideTimer;
+	function placeFancyTitle() {
 		var eltPos = elt.getBoundingClientRect();
 		fancyTitle.style.left = Math.round(eltPos.left + (elt.offsetWidth-fancyTitle.offsetWidth)/2) - 3 + "px";
 		fancyTitle.style.top = eltPos.top-fancyTitle.offsetHeight-2 + "px";
+	}
+	elt.addEventListener('mouseover', function() {
+		// Coming back before the last one finished fading: keep the node and fade it back in.
+		// Letting its removal go ahead would take this one away instead, which is what made a
+		// second hover show nothing at all.
+		if (hideTimer) {
+			clearTimeout(hideTimer);
+			hideTimer = undefined;
+		}
+		if (fancyTitle) {
+			placeFancyTitle();
+			fancyTitle.style.opacity = 1;
+			return;
+		}
+		fancyTitle = document.createElement("div");
+		fancyTitle.className = "ranking_activeplayertitle";
+		// one node per name rather than one blob of markup: these are member-supplied
+		lines.forEach(function(line, i) {
+			if (i) fancyTitle.appendChild(document.createElement("br"));
+			fancyTitle.appendChild(document.createTextNode(line));
+		});
+		fancyTitle.style.opacity = 0;
+		document.body.appendChild(fancyTitle);
+		placeFancyTitle();
 		fancyTitle.style.opacity = 1;
 	});
 	elt.addEventListener('mouseout', function() {
 		if (!fancyTitle) return;
 		fancyTitle.style.opacity = 0;
-		setTimeout(function() {
-			if (fancyTitle) {
-				document.body.removeChild(fancyTitle);
+		// the node this timer was started for, so it can never remove a later one
+		var fading = fancyTitle;
+		hideTimer = setTimeout(function() {
+			document.body.removeChild(fading);
+			if (fancyTitle === fading)
 				fancyTitle = undefined;
-			}
+			hideTimer = undefined;
 		}, 200);
 	});
 });

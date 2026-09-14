@@ -641,6 +641,21 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				return 0;
 			}
+			// Gathering ranked lineups, shown under the Ranked tab below. Only advertised to
+			// someone who could join one: past the entry criteria, and inside that tier's MMR band.
+			$loungeQueues = array();
+			$loungeMulticup = 0;
+			$loungeEligible = false;
+			if ($id) {
+				require_once('../includes/lounge/common.php');
+				$loungeMulticup = lounge_get_season_multicup();
+				if ($loungeMulticup) {
+					$loungeQueues = lounge_open_queues_for($id);
+					// The ranked Top 10 is one more query on the busiest page of the site, so it
+					// is built only for the players who have a ladder to be in.
+					$loungeEligible = lounge_is_eligible($id);
+				}
+			}
 			$activePlayersByLink = array();
 			foreach ($activePlayers as $game=>$players) {
 				$playersWithLink = array();
@@ -755,6 +770,44 @@ $placeholderPath = 'images/pages/pixel.png';
 						$url .= '?'.implode('&',$urlParams);
 					echo '<a class="action_button" href="'. $url .'">'. _('Join') .'</a>';
 				}
+				function print_lounge_line($loungeQueue) {
+					global $loungeMulticup;
+					echo '<li>';
+					$loungeNames = array();
+					foreach ($loungeQueue['members'] as $loungeMember)
+						$loungeNames[] = $loungeMember['name'] .' (MMR '. $loungeMember['mmr'] .')';
+					echo '<span class="ranking_activeplayernb" title="'. htmlspecialchars(implode(', ', $loungeNames)) .'">';
+					echo FN_("{count} member", "{count} members", count: $loungeQueue['players']);
+					echo '</span> ';
+					echo P_("circuit", "in ");
+					echo '<strong>'. htmlspecialchars($loungeQueue['label']) .'</strong>';
+					// online.php is where a character gets picked, and the lounge opens over it
+					// once one has been
+					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. _('Join') .'</a>';
+					echo '</li>';
+				}
+				// A gathering ranked lineup lives under the Ranked tab, beside the ladder it
+				// belongs to, rather than in with the public games.
+				function print_lounge_queues() {
+					global $loungeQueues;
+					if (empty($loungeQueues))
+						return;
+					echo '<div class="ranking_current" id="ranking_current_ranked">';
+					echo _('Currently online:');
+					echo '<ul class="ranking_list_game ranking_list_lounge">';
+					foreach ($loungeQueues as $loungeQueue)
+						print_lounge_line($loungeQueue);
+					echo '</ul>';
+					echo '</div>';
+				}
+				function print_lounge_badge() {
+					global $loungeQueues;
+					$waiting = 0;
+					foreach ($loungeQueues as $loungeQueue)
+						$waiting += $loungeQueue['players'];
+					if ($waiting)
+						echo '<span class="ranking_badge"><span>'. $waiting .'</span></span>';
+				}
 				function print_active_players($game,$type) {
 					global $activePlayers, $activePlayersByLink;
 					if (!empty($activePlayers[$game])) {
@@ -792,12 +845,16 @@ $placeholderPath = 'images/pages/pixel.png';
 					<?php print_badge(1); ?>
 				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
 					<?= _('Time Trial') ?>
-				</a>
+				</a><?php if ($loungeEligible) { ?><a class="ranking_tab tab_ranked" href="javascript:dispRankTab(4)">
+					<?= _('Ranked') ?>
+					<?php print_lounge_badge(); ?>
+				</a><?php } ?>
 			</div>
 			<div id="currently_online">
 			<?php
 			print_active_players(0,'vs');
 			print_active_players(1,'battle');
+			print_lounge_queues();
 			?>
 			</div>
 			<div id="clm_cc">
@@ -807,20 +864,28 @@ $placeholderPath = 'images/pages/pixel.png';
 			<div id="top10" class="right_subsection">
 				<?php
 				$modeIds = array('vs','battle','clm150','clm200');
-				for ($i=0;$i<4;$i++) {
+				if ($loungeEligible)
+					$modeIds[] = 'ranked';
+				for ($i=0;$i<count($modeIds);$i++) {
 					$modeId = $modeIds[$i];
 					$isBattle = ($i===1);
-					$isClm = ($i>=2);
+					$isClm = (($i>=2) && ($i<=3));
+					$isRanked = ($modeId === 'ranked');
 					$pts_ = 'pts_'.$modeId;
 					?>
 					<table id="top_<?php echo $modeId; ?>">
 						<tr>
 							<th><?= _('Rank') ?></th>
 							<th><?= _('Nick') ?></th>
-							<th><?= _('Score') ?></th>
+							<th><?php echo $isRanked ? 'MMR' : _('Score'); ?></th>
 						</tr>
 						<?php
-						if ($isClm) {
+						if ($isRanked) {
+							// Aliased to the same id/nom/pts the other modes return, so the row
+							// loop below stays one loop.
+							$players = mysql_query('SELECT p.player AS id,j.nom,ROUND(p.mmr) AS pts FROM `mklounge_players` p INNER JOIN `mkjoueurs` j ON j.id=p.player WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0 ORDER BY p.mmr DESC, p.player LIMIT 10');
+						}
+						elseif ($isClm) {
 							$cc = ($i===3) ? 200 : 150;
 							$players = mysql_query('SELECT t.player AS id,j.nom,t.score AS pts FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id WHERE t.class="'.$cc.'" AND j.deleted=0 ORDER BY t.score DESC LIMIT 10');
 						}
@@ -845,6 +910,8 @@ $placeholderPath = 'images/pages/pixel.png';
 			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
+<?php if ($loungeEligible) { ?>			<a class="right_section_actions action_button action_gotoranked" href="lounge.php?tab=leaderboard"><?= _('Display all'); ?></a>
+<?php } ?>
 		</div>
 		<?php
 		if ($shouldShowAds) {
