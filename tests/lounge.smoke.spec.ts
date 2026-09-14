@@ -257,6 +257,44 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
 
+// The lineup notification is only ever sent to a player who could enter ranked, so the switch
+// for it is only offered to one.
+test('the notification settings carry the ranked lineup alert, for eligible players only', async ({ page }) => {
+	const short = 'e2e-lounge-notif-short';
+	const met = 'e2e-lounge-notif-met';
+	const shortId = await createEntryBot(short, 500);
+	const metId = await createEntryBot(met, 999999);
+	const box = page.locator('#lounge_queue');
+
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/notif-settings.php', { waitUntil: 'domcontentloaded' });
+	await expect(box).toHaveCount(0);
+
+	await login(page, met, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/notif-settings.php', { waitUntil: 'domcontentloaded' });
+	await expect(box).toBeChecked();
+	await box.uncheck();
+	await page.locator('input[type=submit]').click();
+	await expect(box).not.toBeChecked();
+	const [muted]: any = await sql(
+		`SELECT COUNT(*) n FROM mknotifmute WHERE user = ? AND type = 'lounge_queue'`, [metId]);
+	expect(Number(muted.n)).toBe(1);
+
+	// a save by someone who is not offered a type must not clear their setting for it
+	await sql(`INSERT IGNORE INTO mknotifmute VALUES(?, 'lounge_queue')`, [shortId]);
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/notif-settings.php', { waitUntil: 'domcontentloaded' });
+	await page.locator('input[type=submit]').click();
+	await page.waitForLoadState('domcontentloaded');
+	const [kept]: any = await sql(
+		`SELECT COUNT(*) n FROM mknotifmute WHERE user = ? AND type = 'lounge_queue'`, [shortId]);
+	expect(Number(kept.n)).toBe(1);
+
+	await sql(`DELETE FROM mknotifmute WHERE user IN (?, ?)`, [shortId, metId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
 // The home page builds every Top 10 table server-side on each load, so the ranked one is
 // built only for players who have a ladder to be in.
 test('the home page Top 10 gains a Ranked tab, for eligible players only', async ({ page }) => {
