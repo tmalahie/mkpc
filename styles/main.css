@@ -1366,18 +1366,6 @@ footer a {
 	font-size: 0.75em;
 }
 
-.ranking_current .ranking_list_game li.ranked_game {
-	list-style: none;
-	margin-left: -1.1em;
-}
-
-.ranked_game_icon img {
-	width: 15px;
-	vertical-align: -3px;
-	margin-left: -4px;
-	margin-right: 5px;
-}
-
 .ranking_activeplayernb {
 	font-weight: bold;
 	text-decoration: underline;
