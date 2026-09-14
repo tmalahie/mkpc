@@ -384,7 +384,7 @@ include('../includes/menu.php');
 						echo '<img src="images/cups/cup2.png" alt="CT Lounge" title="CT Lounge" />';
 						echo '<strong>'. $loungeState['mmr'] .' MMR</strong> ';
 						if ($loungeState['rank'])
-							echo '- <strong style="color:'. $loungeState['rank']['color'] .'">'. ($language ? $loungeState['rank']['label_en'] : $loungeState['rank']['label_fr']) .'</strong> ';
+							echo '- <strong style="color:'. $loungeState['rank']['color'] .'">'. $loungeState['rank']['label'] .'</strong> ';
 						echo '- <strong>'. $loungeState['games'] .' mogi'. plural($loungeState['games']) .'</strong>';
 						if (!is_null($loungeState['avg_score']))
 							echo ' - '. ($language ? 'avg. score' : 'score moyen') .' <strong>'. $loungeState['avg_score'] .'</strong>';
