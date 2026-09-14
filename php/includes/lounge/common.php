@@ -310,7 +310,7 @@ function lounge_get_season_multicup() {
 
 function lounge_rank_for_mmr($mmr) {
 	$row = mysql_fetch_array(mysql_query(
-		'SELECT code, label_en, label_fr, color FROM `mklounge_ranks`
+		'SELECT code, label, color FROM `mklounge_ranks`
 		WHERE min_mmr <= "'. lounge_mmr_sql($mmr) .'"
 		ORDER BY min_mmr DESC LIMIT 1'
 	));
@@ -318,8 +318,7 @@ function lounge_rank_for_mmr($mmr) {
 		return null;
 	return array(
 		'code' => $row['code'],
-		'label_en' => $row['label_en'],
-		'label_fr' => $row['label_fr'],
+		'label' => $row['label'],
 		'color' => $row['color']
 	);
 }
@@ -458,7 +457,7 @@ function lounge_open_queues_for($playerId) {
 	$state = lounge_get_player_state($playerId);
 	$queues = array();
 	$res = mysql_query(
-		'SELECT q.id, q.status, t.code, t.label_en, t.label_fr, t.min_mmr, t.max_mmr,
+		'SELECT q.id, q.status, t.code, t.label, t.min_mmr, t.max_mmr,
 			COUNT(m.player) AS players,
 			SUM(m.player="'. intval($playerId) .'") AS mine
 		FROM `mklounge_queues` q
@@ -477,8 +476,7 @@ function lounge_open_queues_for($playerId) {
 		$queues[] = array(
 			'id' => intval($row['id']),
 			'tier_code' => $row['code'],
-			'label_en' => $row['label_en'],
-			'label_fr' => $row['label_fr'],
+			'label' => $row['label'],
 			'status' => $row['status'],
 			'players' => intval($row['players']),
 			'members' => lounge_queue_members(intval($row['id']))
@@ -537,7 +535,7 @@ function lounge_tier_eligible($tier, $mmr) {
 
 function lounge_get_tier($tierId) {
 	return mysql_fetch_array(mysql_query(
-		'SELECT id, code, label_en, label_fr, min_mmr, max_mmr
+		'SELECT id, code, label, min_mmr, max_mmr
 		FROM `mklounge_tiers` WHERE id="'. intval($tierId) .'"'
 	));
 }
@@ -587,7 +585,7 @@ function lounge_queue_members($queueId) {
 
 function lounge_queue_state($queueId, $forPlayerId = null) {
 	$queue = mysql_fetch_array(mysql_query(
-		'SELECT q.*, t.code AS tier_code, t.label_en AS tier_label_en, t.label_fr AS tier_label_fr,
+		'SELECT q.*, t.code AS tier_code, t.label AS tier_label,
 			t.min_players,
 			GREATEST(0, UNIX_TIMESTAMP(q.locked_at) + '. intval(lounge_setting('lock_wait_seconds')) .' - UNIX_TIMESTAMP(NOW())) AS lock_seconds_left,
 			GREATEST(0, UNIX_TIMESTAMP(q.ready_at) + '. intval(lounge_setting('vote_wait_seconds')) .' - UNIX_TIMESTAMP(NOW())) AS vote_seconds_left
@@ -634,8 +632,7 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 		'id' => intval($queue['id']),
 		'tier' => intval($queue['tier']),
 		'tier_code' => $queue['tier_code'],
-		'tier_label_en' => $queue['tier_label_en'],
-		'tier_label_fr' => $queue['tier_label_fr'],
+		'tier_label' => $queue['tier_label'],
 		'multicup_id' => lounge_get_season_multicup(),
 		'status' => $queue['status'],
 		'opened_at' => $queue['opened_at'],
@@ -1405,7 +1402,7 @@ function lounge_finish_match($queueId) {
 function lounge_match_result($privgameKey, $forPlayerId) {
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT m.id, m.mode, m.ended_at,
-			t.label_en AS tier_label_en, t.label_fr AS tier_label_fr
+			t.label AS tier_label
 		FROM `mklounge_matches` m
 		INNER JOIN `mklounge_tiers` t ON t.id=m.tier
 		WHERE m.privgame_key="'. intval($privgameKey) .'"'
@@ -1444,8 +1441,7 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 	return array(
 		'id' => intval($match['id']),
 		'mode' => $match['mode'],
-		'tier_label_en' => $match['tier_label_en'],
-		'tier_label_fr' => $match['tier_label_fr'],
+		'tier_label' => $match['tier_label'],
 		'ended_at' => $match['ended_at'],
 		'races' => lounge_setting('races_per_match'),
 		'players' => $players
