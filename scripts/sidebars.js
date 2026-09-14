@@ -2,9 +2,12 @@ var onlineModeIds = ["vs","battle","clm150","clm200","ranked"];
 var currenttabcc = 2;
 
 function dispRankTab(mode) {
-    if (mode >= 2)
-        currenttabcc = mode;
     var onlineModeId = onlineModeIds[mode];
+    // The Time Trial tab reopens whichever cc you last looked at, so only the cc tabs may
+    // move that memory - tested on the id rather than on the index, which is what broke when
+    // a fifth mode was added after them.
+    if (onlineModeId.indexOf("clm") === 0)
+        currenttabcc = mode;
     document.getElementById("rankings_section").className = "subsection rank_" + onlineModeId;
     document.querySelectorAll(".ranking_tab.tab_"+onlineModeId+" .ranking_badge").forEach(function(badge) {
         badge.style.display = "none";
