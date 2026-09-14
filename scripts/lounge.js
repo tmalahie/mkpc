@@ -109,7 +109,7 @@
 
 	function rankLabel(rank) {
 		if (!rank) return '';
-		return language ? rank.label_en : rank.label_fr;
+		return rank.label;
 	}
 
 	// The ladder's own rank colours run from near-black (Master) to near-white (Silver), so
@@ -181,7 +181,7 @@
 	}
 
 	function tierLabel(tier) {
-		return language ? tier.label_en : tier.label_fr;
+		return tier.label;
 	}
 
 	function tierRangeLabel(tier) {
@@ -620,7 +620,7 @@
 
 		var header = document.createElement('div');
 		header.className = 'lounge-waiting-header';
-		var label = language ? queue.tier_label_en : queue.tier_label_fr;
+		var label = queue.tier_label;
 		header.innerHTML = '<h2>' + label + '</h2>'
 			+ '<p class="lounge-waiting-count">' + queue.members.length + ' / ' + queue.ready_threshold + ' ' + toLanguage('players', 'joueurs') + '</p>';
 		container.appendChild(header);
@@ -1024,7 +1024,7 @@
 
 		var header = document.createElement('div');
 		header.className = 'lounge-results-header';
-		var label = language ? match.tier_label_en : match.tier_label_fr;
+		var label = match.tier_label;
 		header.innerHTML = '<h2></h2><p class="lounge-results-sub"></p>';
 		header.querySelector('h2').textContent = toLanguage('Mogi results', 'Résultats du mogi');
 		header.querySelector('.lounge-results-sub').textContent =
