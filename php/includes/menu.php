@@ -409,7 +409,7 @@
 						$linkData = explode(',', $myNotif['link']);
 						require_once('lounge/common.php');
 						$loungeQueue = mysql_fetch_array(mysql_query(
-							'SELECT q.status, t.code, t.label_en, t.label_fr, t.min_mmr, t.max_mmr,
+							'SELECT q.status, t.code, t.label, t.min_mmr, t.max_mmr,
 								SUM(m.player="'. $linkData[1] .'") AS joiner_still_in
 							FROM `mklounge_queues` q
 							INNER JOIN `mklounge_tiers` t ON t.id=q.tier
@@ -424,7 +424,7 @@
 							&& lounge_is_eligible($id)
 							&& lounge_tier_eligible($loungeQueue, $loungeState['mmr'])) {
 							$notifData['sender'] = $linkData[1];
-							$notifData['title'] = $language ? $loungeQueue['label_en'] : $loungeQueue['label_fr'];
+							$notifData['title'] = $loungeQueue['label'];
 							$notifData['link'] = 'lounge.php#tier-'. $loungeQueue['code'];
 						}
 						else
