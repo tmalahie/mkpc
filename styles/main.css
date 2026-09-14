@@ -1272,6 +1272,8 @@ footer a {
 #rankings_section:not(.rank_battle) #top_battle,
 #rankings_section:not(.rank_clm150) #top_clm150,
 #rankings_section:not(.rank_clm200) #top_clm200,
+#rankings_section:not(.rank_ranked) #top_ranked,
+#rankings_section:not(.rank_ranked) .action_gotoranked,
 #rankings_section:not(.rank_vs) .action_gotovs,
 #rankings_section:not(.rank_battle) .action_gotobattle,
 #rankings_section:not(.rank_clm150) .action_gotoclm150,
@@ -1417,6 +1419,7 @@ footer a {
 
 #rankings_section:not(.rank_battle) .tab_battle,
 #rankings_section:not(.rank_vs) .tab_vs,
+#rankings_section:not(.rank_ranked) .tab_ranked,
 #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm {
 	background-color: #FED;
 	color: #C00;
@@ -1425,6 +1428,7 @@ footer a {
 
 #rankings_section:not(.rank_battle) .tab_battle:hover,
 #rankings_section:not(.rank_vs) .tab_vs:hover,
+#rankings_section:not(.rank_ranked) .tab_ranked:hover,
 #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm:hover {
 	background-color: #FFE7D5;
 	color: #C00;
@@ -1432,6 +1436,7 @@ footer a {
 
 #rankings_section.rank_battle .tab_battle,
 #rankings_section.rank_vs .tab_vs,
+#rankings_section.rank_ranked .tab_ranked,
 #rankings_section.rank_clm150 .tab_clm,
 #rankings_section.rank_clm200 .tab_clm {
 	background-color: #FDC;
@@ -1440,13 +1445,13 @@ footer a {
 	cursor: default;
 }
 
-#rankings_section .tab_vs {
+#rankings_section .ranking_tab:first-child {
 	border-left: solid 1px #820;
 	border-top-left-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
 
-#rankings_section .tab_clm {
+#rankings_section .ranking_tab:last-child {
 	border-right: solid 1px #820;
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
