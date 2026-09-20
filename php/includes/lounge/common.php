@@ -1656,9 +1656,11 @@ function lounge_match_payload($matchId) {
 	$res = mysql_query(
 		'SELECT mp.player, mp.team, mp.final_score, mp.final_position, mp.mmr_before,
 			mp.mmr_after, mp.mmr_delta, mp.mmr_penalty, mp.races_played,
-			mp.place_before, mp.place_after, j.nom
+			mp.place_before, mp.place_after, j.nom, c.code AS country
 		FROM `mklounge_match_players` mp
 		INNER JOIN `mkjoueurs` j ON j.id=mp.player
+		LEFT JOIN `mkprofiles` pr ON pr.id=mp.player
+		LEFT JOIN `mkcountries` c ON c.id=pr.country
 		WHERE mp.`match`="'. intval($match['id']) .'"
 		ORDER BY (mp.final_position IS NULL), mp.final_position, j.nom'
 	);
@@ -1669,6 +1671,7 @@ function lounge_match_payload($matchId) {
 		$players[] = array(
 			'id' => intval($row['player']),
 			'name' => $row['nom'],
+			'country' => $row['country'],
 			'team' => $team,
 			'score' => $score,
 			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
