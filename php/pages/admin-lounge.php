@@ -58,9 +58,19 @@ if ($target && isset($_POST['action'])) {
 		);
 		loungeLog('LoungeStrikes '. $playerId .' '. $strikes);
 		$notice = ($language ? 'Strikes set to ' : 'Strikes fix&eacute;s &agrave; ') . $strikes;
+		// A count set here means what an earned one means, so it closes ranked at the same
+		// threshold. Without this a player sat on any number of strikes and kept queueing.
+		if (lounge_apply_ban_threshold($playerId)) {
+			loungeLog('LoungeBan '. $playerId .' '. intval(lounge_setting('ban_minutes')));
+			$notice .= $language
+				? ', which reached the limit: banned from ranked and the count cleared.'
+				: ', ce qui atteint la limite&nbsp;: banni du class&eacute; et compteur remis &agrave; z&eacute;ro.';
+		}
 		break;
 	case 'ban':
-		$minutes = max(1, intval($_POST['ban_minutes']));
+		// A timestamp cannot go past 2038, and MariaDB answers an overflowing INTERVAL with
+		// NULL - which reads as "not banned". Staff hunted for a duration that worked; cap it.
+		$minutes = min(LOUNGE_BAN_MINUTES_MAX, max(1, intval($_POST['ban_minutes'])));
 		mysql_query(
 			'UPDATE `mklounge_players` SET banned_until=(NOW() + INTERVAL '. $minutes .' MINUTE)
 			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
