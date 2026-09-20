@@ -34,6 +34,10 @@ define('LOUNGE_BAN_MINUTES_MAX', 525600);
 define('LOUNGE_BAN_MINUTES', 60);
 // Rule 4da: 5 minutes to join the room past the designated join time.
 define('LOUNGE_JOIN_TIMEOUT_SECONDS', 300);
+// Rule 4da's five minutes decide when an absentee is *penalised*. They should not also decide
+// how long the players who did turn up stare at "waiting for more players": a bot takes the
+// empty seat this much sooner, and the latecomer can still take its kart over when they arrive.
+define('LOUNGE_ROOM_FILL_SECONDS', 45);
 // "tout les 10-15 min on reçoit un message d'alerte demandant si on est encore dans la
 // queue": a tab left open keeps polling for ever, so waiting on the heartbeat alone would
 // let a mogi gather around somebody who walked away.
@@ -133,6 +137,14 @@ function lounge_settings_schema() {
 			'label_fr' => 'Courses par mogi',
 			'help_en' => 'Changing this only affects new matches.',
 			'help_fr' => 'Ne change que les parties à venir.'
+		),
+		'room_fill_seconds' => array(
+			'default' => LOUNGE_ROOM_FILL_SECONDS, 'min' => 10, 'max' => 600,
+			'group' => 'match', 'unit_en' => 'seconds', 'unit_fr' => 'secondes',
+			'label_en' => 'Wait for a missing player before a bot takes the seat',
+			'label_fr' => 'Attente avant qu\'un bot prenne la place d\'un absent',
+			'help_en' => 'The race starts; the latecomer can still take their kart over.',
+			'help_fr' => 'La course démarre&nbsp;; le retardataire peut reprendre son kart.'
 		),
 		'join_timeout_seconds' => array(
 			'default' => LOUNGE_JOIN_TIMEOUT_SECONDS, 'min' => 30, 'max' => 3600,
@@ -1181,7 +1193,7 @@ function lounge_relax_room($privgameKey, $playersInRoom) {
 		INNER JOIN `mklounge_queues` q ON q.privgame_key=o.id
 		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
 		WHERE o.id="'. intval($privgameKey) .'" AND q.status="launched"
-		AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)'
+		AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('room_fill_seconds')) .' SECOND)'
 	));
 	if (!$row)
 		return false;
@@ -1547,16 +1559,28 @@ function lounge_handle_join_timeout($queueId) {
 // to resolve the timeout itself. The condition mirrors lounge_tick's.
 function lounge_resolve_join_timeout($privgameKey) {
 	$row = mysql_fetch_array(mysql_query(
-		'SELECT q.id FROM `mklounge_queues` q
+		'SELECT q.id,
+			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)) AS absent,
+			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('room_fill_seconds')) .' SECOND)) AS fillable
+		FROM `mklounge_queues` q
 		LEFT JOIN `mkgamedata` d ON d.game=q.privgame_key
 		WHERE q.privgame_key="'. intval($privgameKey) .'" AND q.status="launched"
 		AND IFNULL(d.raceCount, 0)=0
-		AND q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)
 		AND q.launched_at >= (NOW() - INTERVAL '. intval(lounge_setting('match_max_minutes')) .' MINUTE)'
 	));
 	if (!$row)
 		return false;
-	return lounge_handle_join_timeout(intval($row['id']));
+	if ($row['absent'])
+		return lounge_handle_join_timeout(intval($row['id']));
+	// Not absent yet as far as rule 4da is concerned, so no strike - but the players who did
+	// turn up have waited long enough. The room shrinks to them, bots take the empty seats and
+	// the mogi starts; whoever is late can still take their own kart over when they arrive.
+	if ($row['fillable']) {
+		$joined = lounge_match_joined_players($privgameKey);
+		if (count($joined) >= lounge_setting('min_race_players'))
+			return lounge_relax_room($privgameKey, count($joined));
+	}
+	return false;
 }
 
 // Rating model of the production ladder, which runs on Lorenzi's Game Boards under its
@@ -1799,6 +1823,7 @@ function lounge_tick() {
 	$launched = mysql_query(
 		'SELECT q.id, q.privgame_key, IFNULL(d.raceCount, 0) AS races,
 			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('join_timeout_seconds')) .' SECOND)) AS join_timed_out,
+			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('room_fill_seconds')) .' SECOND)) AS room_fillable,
 			(q.launched_at < (NOW() - INTERVAL '. intval(lounge_setting('match_max_minutes')) .' MINUTE)) AS match_timed_out,
 			EXISTS(SELECT 1 FROM `mariokart` c WHERE c.link=q.privgame_key) AS room_alive
 		FROM `mklounge_queues` q
@@ -1811,6 +1836,8 @@ function lounge_tick() {
 			lounge_finish_match(intval($row['id']));
 		elseif (!$races && $row['join_timed_out'] && !$row['match_timed_out'])
 			lounge_handle_join_timeout(intval($row['id']));
+		elseif (!$races && $row['room_fillable'] && !$row['match_timed_out'])
+			lounge_resolve_join_timeout(intval($row['privgame_key']));
 		// `mariokart` is a MEMORY table, so the room disappearing - swept by the online
 		// cleanup once it goes idle, or emptied by a MySQL restart - is the clearest signal
 		// that this mogi is not being played any more.
