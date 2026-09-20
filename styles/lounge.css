@@ -23,6 +23,7 @@
 	--lounge-danger-frame: #9C4444;
 	--lounge-warn: #F0B44A;
 	--lounge-bad: #FF8C78;
+	--lounge-good: #7BE38B;
 	--lounge-self: rgba(90, 90, 20, 0.42);
 	--lounge-hair: rgba(255, 255, 255, 0.07);
 	--lounge-stripe: rgba(255, 255, 255, 0.03);
@@ -72,7 +73,12 @@ a {
 .lounge-access-block,
 .lounge-alerts-toggle,
 .lounge-results-table,
-.lounge-leaderboard-table {
+.lounge-leaderboard-table,
+.lounge-lb-card,
+.lounge-matchlist,
+.lounge-ratings-table,
+.lounge-profile-grid,
+.lounge-profile-chartbox {
 	background: var(--lounge-panel);
 	border: outset 2px var(--lounge-frame);
 	border-radius: 5px;
@@ -89,6 +95,9 @@ a {
 .lounge-launching h2,
 .lounge-rules-body h2,
 .lounge-access-block h2,
+.lounge-lb-cardhead h3,
+.lounge-ratings-title,
+.lounge-profile-name,
 [data-panel="howitworks"] h2 {
 	font-weight: bold;
 	text-shadow: var(--lounge-outline);
@@ -989,4 +998,413 @@ a {
 	.lounge-alerts-switch::after {
 		transition: none;
 	}
+}
+
+/* ---- Leaderboard: the split overview, the stats table, a player, a mogi ---- */
+
+/* Two columns of equal weight, the way the ladder's own site reads: who is on top on the
+   left, what was just played on the right. One column as soon as either would be cramped. */
+.lounge-lb-split {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	align-items: start;
+	gap: 14px;
+}
+
+.lounge-lb-card {
+	padding: 8px 10px 10px;
+	overflow: hidden;
+}
+
+/* A card is already the panel, so the list inside it is only a table. */
+.lounge-lb-card .lounge-leaderboard-table,
+.lounge-lb-card .lounge-matchlist {
+	background: none;
+	border: 0;
+	border-radius: 0;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+
+.lounge-lb-cardhead {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 6px;
+}
+
+.lounge-lb-cardhead h3 {
+	margin: 0;
+	font-family: var(--lounge-mono);
+	font-size: 15px;
+	color: var(--lounge-legend);
+}
+
+.lounge-lb-viewall,
+.lounge-lb-back {
+	appearance: none;
+	background: none;
+	border: 0;
+	padding: 0;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--lounge-hot);
+	cursor: pointer;
+	text-shadow: 0 1px 2px #000;
+}
+
+.lounge-lb-viewall:hover,
+.lounge-lb-back:hover {
+	text-decoration: underline;
+}
+
+.lounge-lb-back {
+	display: inline-block;
+	margin-bottom: 10px;
+}
+
+.lounge-lb-playerlink {
+	color: inherit;
+	text-decoration: none;
+}
+
+.lounge-lb-playerlink:hover {
+	color: var(--lounge-hot);
+	text-decoration: underline;
+}
+
+.lounge-lb-pending {
+	color: var(--lounge-dim);
+	font-style: italic;
+}
+
+/* Up is green, down is red - on a delta, on the arrow beside it, and on the win and loss
+   columns that carry no sign of their own. */
+.lounge-delta.is-up,
+.lounge-arrow.is-up,
+.lounge-lb-num.is-up {
+	color: var(--lounge-good);
+}
+
+.lounge-delta.is-down,
+.lounge-arrow.is-down,
+.lounge-lb-num.is-down {
+	color: var(--lounge-bad);
+}
+
+.lounge-delta.is-flat,
+.lounge-arrow.is-flat {
+	color: var(--lounge-off);
+}
+
+.lounge-delta {
+	font-weight: bold;
+}
+
+.lounge-arrow {
+	font-size: 10px;
+}
+
+/* Seventeen columns do not fit a phone, and the ones that matter are the first few - so the
+   table keeps its width and scrolls inside its own box rather than squeezing every column. */
+.lounge-lb-scroll {
+	overflow-x: auto;
+}
+
+.lounge-lb-stats {
+	font-size: 12px;
+}
+
+.lounge-lb-stats th,
+.lounge-lb-stats td {
+	white-space: nowrap;
+}
+
+.lounge-lb-num {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.lounge-lb-mmr.is-strong {
+	font-weight: bold;
+}
+
+.lounge-lb-name {
+	text-align: left;
+}
+
+/* The recent-matches list: an id, who scored what, and how long ago. */
+.lounge-matchlist {
+	width: 100%;
+	border-collapse: collapse;
+	overflow: hidden;
+	font-variant-numeric: tabular-nums;
+}
+
+.lounge-match-row td {
+	padding: 5px 8px;
+	border-bottom: solid 1px var(--lounge-hair);
+}
+
+.lounge-match-row:nth-child(2n) td {
+	background: var(--lounge-stripe);
+}
+
+.lounge-match-row:hover td {
+	background: var(--lounge-panel-hi);
+	cursor: pointer;
+}
+
+.lounge-match-id {
+	width: 60px;
+	font-weight: bold;
+	color: var(--lounge-dim);
+}
+
+.lounge-match-ago,
+.lounge-match-mmr,
+.lounge-match-mine {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.lounge-match-ago {
+	width: 44px;
+	color: var(--lounge-dim);
+	font-size: 12px;
+}
+
+.lounge-matchchips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+
+/* Mode and score in one chip, as the results posts read them: "FFA 252". */
+.lounge-matchchip {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 5px;
+	max-width: 100%;
+	padding: 1px 7px;
+	border: solid 1px var(--lounge-frame);
+	border-radius: 3px;
+	background: rgba(40, 48, 90, 0.55);
+	font-size: 12px;
+}
+
+.lounge-matchchip-mode {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.lounge-matchchip-score {
+	font-weight: bold;
+	font-size: 13px;
+}
+
+/* A team mogi's standings: one header row per side carrying its colour and its total, its
+   members indented under it. */
+.lounge-results-teamhead td {
+	padding: 6px 8px 4px;
+	border-bottom: solid 1px var(--lounge-frame-off);
+	background: rgba(34, 34, 85, 0.35);
+	font-weight: bold;
+}
+
+.lounge-results-teamname {
+	text-align: left;
+}
+
+.lounge-teamswatch {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-right: 7px;
+	border: solid 1px rgba(0, 0, 0, 0.5);
+	border-radius: 2px;
+	vertical-align: baseline;
+}
+
+.lounge-results-row.is-teamed .lounge-results-name {
+	padding-left: 24px;
+	text-align: left;
+}
+
+.lounge-results-total td {
+	padding: 5px 8px;
+	font-family: var(--lounge-mono);
+	color: var(--lounge-legend);
+	background: rgba(34, 34, 85, 0.45);
+}
+
+.lounge-results-totallabel {
+	text-align: left;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	font-size: 11px;
+}
+
+/* The rating block under a mogi's table: where they stood, what moved, where it left them. */
+.lounge-ratings {
+	max-width: 620px;
+	margin: 16px auto 0;
+}
+
+.lounge-ratings-title {
+	margin: 0 0 6px;
+	font-family: var(--lounge-mono);
+	font-size: 15px;
+	color: var(--lounge-legend);
+}
+
+.lounge-ratings-table {
+	width: 100%;
+	border-collapse: collapse;
+	overflow: hidden;
+	font-variant-numeric: tabular-nums;
+}
+
+.lounge-ratings-row td {
+	padding: 5px 8px;
+	border-bottom: solid 1px var(--lounge-hair);
+}
+
+.lounge-ratings-row:nth-child(2n) td {
+	background: var(--lounge-stripe);
+}
+
+.lounge-ratings-row.is-self td {
+	background: var(--lounge-self);
+	font-weight: bold;
+}
+
+.lounge-ratings-name {
+	text-align: left;
+	width: 40%;
+}
+
+.lounge-ratings-before,
+.lounge-ratings-delta,
+.lounge-ratings-after {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.lounge-ratings-before {
+	color: var(--lounge-dim);
+}
+
+.lounge-ratings-after {
+	font-weight: bold;
+}
+
+.lounge-ratings-arrow,
+.lounge-ratings-rank {
+	text-align: center;
+	width: 1%;
+}
+
+.lounge-placemove {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 12px;
+	color: var(--lounge-dim);
+	white-space: nowrap;
+}
+
+.lounge-placemove-to {
+	color: var(--lounge-ink);
+}
+
+/* A player's own page: name and rank, then the season's figures, then the climb. */
+.lounge-profile-head {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-bottom: 12px;
+}
+
+.lounge-profile-name {
+	margin: 0;
+	font-size: 22px;
+	color: #FFF;
+}
+
+.lounge-profile-when {
+	color: var(--lounge-dim);
+	font-size: 12px;
+	text-shadow: 0 1px 2px #000;
+}
+
+.lounge-profile-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 2px 18px;
+	padding: 10px 12px;
+	margin-bottom: 14px;
+	font-variant-numeric: tabular-nums;
+}
+
+.lounge-profile-stat {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 2px 0;
+}
+
+.lounge-profile-statlabel {
+	font-size: 11px;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	color: var(--lounge-dim);
+}
+
+.lounge-profile-statvalue {
+	font-weight: bold;
+}
+
+.lounge-profile-chartbox {
+	position: relative;
+	padding: 10px 46px 10px 10px;
+	margin-bottom: 14px;
+}
+
+.lounge-profile-chart {
+	display: block;
+	width: 100%;
+	height: 150px;
+}
+
+.lounge-profile-charttop,
+.lounge-profile-chartbottom {
+	position: absolute;
+	right: 8px;
+	font-size: 11px;
+	color: var(--lounge-dim);
+	font-variant-numeric: tabular-nums;
+}
+
+.lounge-profile-charttop {
+	top: 6px;
+}
+
+.lounge-profile-chartbottom {
+	bottom: 6px;
+}
+
+.lounge-match-place {
+	text-align: right;
+	white-space: nowrap;
+	width: 44px;
+	color: var(--lounge-dim);
+	font-size: 12px;
 }
