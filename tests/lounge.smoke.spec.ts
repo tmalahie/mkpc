@@ -257,6 +257,46 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
 
+// Closing the overlay used to throw the lounge away - and goToRoom() navigates the parent
+// window, so a lineup would gather, launch, and race without the player who was still in it.
+test('closing the lounge while queued keeps it running, and says so', async ({ page }) => {
+	test.setTimeout(90000);
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php',
+		{ form: { tier: String(tier.id) } });
+
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	await page.waitForFunction(() => typeof window['openLoungeOverlay'] === 'function', null,
+		{ timeout: 30000 });
+	await page.evaluate(() => window['openLoungeOverlay']());
+	const overlay = page.locator('#lounge-overlay');
+	await expect(page.frameLocator('#lounge-overlay iframe').locator('.lounge-alerts-toggle'))
+		.toBeVisible({ timeout: 20000 });
+
+	// shut it: hidden rather than gone, so it can still take this window to the race
+	await overlay.locator('button').first().click();
+	await expect(overlay).toHaveCount(1);
+	expect(await overlay.evaluate((o: HTMLElement) => o.style.visibility)).toBe('hidden');
+	const chip = page.locator('#lounge-queued-chip');
+	await expect(chip).toHaveText(/Ranked lineup 1\/\d/);
+
+	// and the chip is the way back in, without starting a second lounge beside the first
+	await chip.click();
+	expect(await overlay.evaluate((o: HTMLElement) => o.style.visibility)).toBe('');
+	await expect(chip).toHaveCount(0);
+	await expect(page.locator('#lounge-overlay iframe')).toHaveCount(1);
+
+	// once the player is out of the queue there is nothing left to keep alive
+	await overlay.locator('button').first().click();
+	await expect(chip).toHaveCount(1);
+	await ageJoins();
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await expect(overlay).toHaveCount(0, { timeout: 20000 });
+	await expect(chip).toHaveCount(0);
+});
+
 // Ranked used to appear only after a character had been picked, two screens past the one where
 // the player actually chooses how to play online.
 test('the online mode screen offers ranked, for eligible players only', async ({ page }) => {
