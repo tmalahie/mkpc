@@ -1155,6 +1155,21 @@
 		}
 	}
 
+	// The overlay's close button lives in the parent window, which can see none of this. It
+	// needs to know whether the player is in a lineup, because goToRoom() navigates the parent
+	// - a lounge that has been thrown away can never take anyone to their race.
+	function reportStateToParent() {
+		if (!window.parent || (window.parent === window)) return;
+		window.parent.postMessage({
+			mkpcLounge: true,
+			queued: !!currentQueue,
+			status: currentQueue ? currentQueue.status : null,
+			players: currentQueue ? currentQueue.members.length : 0,
+			threshold: currentQueue ? currentQueue.lock_threshold : 0,
+			strikes: lastPlayerState ? (lastPlayerState.strikes || 0) : 0
+		}, location.origin);
+	}
+
 	function pollOnce() {
 		if (view === 'tiers') {
 			postJSON('lounge/tiers.php', '', function(data) {
@@ -1165,6 +1180,7 @@
 				lastPlayerState = data.player;
 				renderPlayerStrip(data.player);
 				renderTierScreen(data);
+				reportStateToParent();
 				pollTimer = setTimeout(pollOnce, POLL_INTERVAL_TIERS);
 			});
 		} else {
@@ -1173,14 +1189,19 @@
 					pollTimer = setTimeout(pollOnce, POLL_INTERVAL_WAITING);
 					return;
 				}
-				if (data.player) renderPlayerStrip(data.player);
+				if (data.player) {
+					lastPlayerState = data.player;
+					renderPlayerStrip(data.player);
+				}
 				if (!data.queue) {
 					leaveQueueState();
 					switchView('tiers');
+					reportStateToParent();
 					return;
 				}
 				currentQueue = data.queue;
 				renderWaiting(currentQueue);
+				reportStateToParent();
 				pollTimer = setTimeout(pollOnce, POLL_INTERVAL_WAITING);
 			});
 		}
