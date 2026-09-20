@@ -1641,6 +1641,70 @@ test('a room nobody fully joined is relaxed rather than left hanging', async ({ 
 	await cleanupLoungeQueues(loungeBotPattern('relax'));
 });
 
+// Rule 4da's five minutes decide when an absentee is penalised. They used to also decide how
+// long everyone else stared at "waiting for more players" - mudky's "ça fait attendre tlm",
+// and the voice note about a mogi stuck at three when four were required.
+test('a bot takes an empty seat long before the absentee is penalised', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const key = LOUNGE_KEY_MIN + 45;
+	const bots = await createLoungeBots(5, 'fill');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`DELETE FROM mkprivgame WHERE id = ?`, [key]);
+	await sql(`INSERT INTO mkprivgame (id, player) VALUES (?, ?)`, [key, bots[0]]);
+	await sql(
+		`INSERT INTO mkgameoptions (id, public, rules) VALUES (?, 0, ?)
+		 ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ minPlayers: 5, maxPlayers: 5, friendly: 1, localScore: 1, lounge: 1 })]
+	);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, launched_at, privgame_key, mode)
+		 VALUES (1, ?, 'launched', NOW(), ?, 'FFA')`, [tier.id, key]
+	);
+	for (const bot of bots)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, bot]);
+	// three of the five open the link; the other two are still elsewhere
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, UNIX_TIMESTAMP(NOW())+35, 0, 0, ?)`,
+		[key]
+	);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id IN (?)`, [room.insertId, bots.slice(0, 3)]);
+
+	// past the fill window, nowhere near rule 4da's
+	await sql(`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 90 SECOND WHERE id = ?`,
+		[q.insertId]);
+	await login(page, loungeBotName('fill', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+
+	const rules = async () =>
+		JSON.parse((await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]))[0].rules);
+	expect((await rules()).minPlayers).toBe(3);
+	expect((await rules()).cpuCount).toBe(5);
+	// the race goes ahead, and nobody has been penalised for being 90 seconds late
+	const struck = async () => (await sql(
+		`SELECT SUM(strikes) n FROM mklounge_players WHERE player IN (?)`, [bots]))[0].n;
+	expect(Number(await struck())).toBe(0);
+	const [mid]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [q.insertId]);
+	expect(mid.status).toBe('launched');
+
+	// Past the five minutes the two who never came take the strike. The room is put back to
+	// wanting five first: once it has been relaxed the race can start, so getCourse answers
+	// "found" and never reaches the resolver - which is the whole point of relaxing it.
+	await sql(`UPDATE mkgameoptions SET rules = ? WHERE id = ?`,
+		[JSON.stringify({ minPlayers: 5, maxPlayers: 5, friendly: 1, localScore: 1, lounge: 1 }), key]);
+	await sql(`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 6 MINUTE WHERE id = ?`,
+		[q.insertId]);
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+	expect(Number(await struck())).toBe(2);
+
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id IN (?)`, [bots]);
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('fill'));
+});
+
 // A gathering lineup has to be visible from outside the lounge, or nobody turns up: the home
 // page advertises it, and everyone who has queued before is notified.
 test('a gathering lineup is advertised on the home page, to those who could join it', async ({ page }) => {
