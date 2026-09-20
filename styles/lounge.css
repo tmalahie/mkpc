@@ -1408,3 +1408,8 @@ a {
 	color: var(--lounge-dim);
 	font-size: 12px;
 }
+
+.lounge-match-row:focus-visible {
+	outline: solid 2px var(--lounge-hot);
+	outline-offset: -2px;
+}

@@ -360,7 +360,10 @@
 			cells.push(lbCell('td', 'lounge-match-ago', timeAgo(match.ended_ago)));
 			var line = lbRow('lounge-match-row', cells);
 			line.setAttribute('data-match', match.id);
+			line.setAttribute('role', 'button');
+			line.setAttribute('tabindex', '0');
 			line.addEventListener('click', onMatchRowClick);
+			line.addEventListener('keydown', onMatchRowKey);
 			list.appendChild(line);
 		}
 		return list;
@@ -368,6 +371,12 @@
 
 	function onMatchRowClick() {
 		showLoungeMatch(parseInt(this.getAttribute('data-match'), 10));
+	}
+
+	function onMatchRowKey(e) {
+		if ((e.key !== 'Enter') && (e.key !== ' ')) return;
+		e.preventDefault();
+		onMatchRowClick.call(this);
 	}
 
 	function topPlayersTable(players, me) {
