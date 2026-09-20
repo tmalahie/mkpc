@@ -1076,10 +1076,28 @@ test('the lounge moderation page acts on a member and logs it', async ({ page, b
 	expect(lifted.banned_until).toBeNull();
 	expect(lifted.strikes).toBe(0);
 
+	// a count set by hand means what an earned one means: at the threshold it closes ranked
+	// and clears itself, rather than leaving the member on 82 strikes and still queueing
+	const threshold = 3;
+	await post({ player: nom, action: 'strikes', strikes: String(threshold) });
+	const [struck]: any = await sql(
+		`SELECT banned_until, strikes FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(struck.banned_until).not.toBeNull();
+	expect(struck.strikes).toBe(0);
+	await post({ player: nom, action: 'unban' });
+
+	// a duration past 2038 overflowed the timestamp to NULL, which read as no ban at all
+	await post({ player: nom, action: 'ban', ban_minutes: '18000000000' });
+	const [capped]: any = await sql(
+		`SELECT banned_until FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(capped.banned_until).not.toBeNull();
+	await post({ player: nom, action: 'unban' });
+
 	// every action is retraceable in the staff log
 	const logs: any = await sql(`SELECT log FROM mklogs WHERE ${mine} ORDER BY id`, [bot]);
 	expect(logs.map((r: any) => r.log.split(' ')[0]))
-		.toEqual(['LoungeMmr', 'LoungeBan', 'LoungeStrikes', 'LoungeUnban']);
+		.toEqual(['LoungeMmr', 'LoungeBan', 'LoungeStrikes', 'LoungeUnban',
+			'LoungeStrikes', 'LoungeBan', 'LoungeUnban', 'LoungeBan', 'LoungeUnban']);
 
 	// and someone without the right cannot reach it at all
 	const guest = await browser.newContext();

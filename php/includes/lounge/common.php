@@ -28,6 +28,9 @@ define('LOUNGE_TEAMS_REVEAL_SECONDS', 5);
 define('LOUNGE_FFA_REVEAL_SECONDS', 2);
 define('LOUNGE_RACES_PER_MATCH', 12);
 define('LOUNGE_STRIKES_BEFORE_BAN', 3);
+// banned_until is a TIMESTAMP, so anything past 2038 overflows to NULL and reads as no ban
+// at all. A year is already effectively permanent for a ranked restriction.
+define('LOUNGE_BAN_MINUTES_MAX', 525600);
 define('LOUNGE_BAN_MINUTES', 60);
 // Rule 4da: 5 minutes to join the room past the designated join time.
 define('LOUNGE_JOIN_TIMEOUT_SECONDS', 300);
@@ -1301,23 +1304,30 @@ function lounge_is_lounge_link($privgameKey) {
 	));
 }
 
+// Rule 2a: enough strikes closes ranked for a while, and serving it clears the counter. Kept
+// apart from lounge_add_strike() because strikes also arrive by hand from the moderation page,
+// and a count set there has to mean the same thing as a count earned.
+function lounge_apply_ban_threshold($playerId) {
+	$threshold = intval(lounge_setting('strikes_before_ban'));
+	if (!$threshold)
+		return false;
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_players`
+		SET strikes=0, banned_until=(NOW() + INTERVAL '. intval(lounge_setting('ban_minutes')) .' MINUTE)
+		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"
+		AND strikes >= '. $threshold
+	);
+	return (bool) mysql_affected_rows();
+}
+
 function lounge_add_strike($playerId, $reason) {
 	mysql_query(
 		'INSERT INTO `mklounge_players` (player, season, strikes)
 		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
 		ON DUPLICATE KEY UPDATE strikes=strikes+1'
 	);
-	if (!lounge_setting('strikes_before_ban'))
-		return false;
-
-	global $q;
-	$q = mysql_query(
-		'UPDATE `mklounge_players`
-		SET strikes=0, banned_until=(NOW() + INTERVAL '. intval(lounge_setting('ban_minutes')) .' MINUTE)
-		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"
-		AND strikes >= '. intval(lounge_setting('strikes_before_ban'))
-	);
-	return (bool) mysql_affected_rows();
+	return lounge_apply_ban_threshold($playerId);
 }
 
 function lounge_match_race_count($privgameKey) {
