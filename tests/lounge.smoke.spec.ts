@@ -555,6 +555,194 @@ test('leaderboard tab lists ranked players', async ({ page }) => {
 	}
 });
 
+// A mogi that is over and rated, staged directly. The leaderboard views only read finished
+// matches, and playing one out through the API takes a lineup, a vote and twelve races.
+async function stageFinishedMatch(key: number, tag: string, mode: string, rows: any[]) {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const ids = await createLoungeBots(rows.length, tag);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'finished', ?, NOW())`,
+		[tier.id, key]
+	);
+	const match: any = await sql(
+		`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode, ended_at)
+		 VALUES (?, 1, ?, ?, ?, NOW())`,
+		[queue.insertId, tier.id, key, mode]
+	);
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
+		await sql(
+			`INSERT INTO mklounge_match_players
+			  (\`match\`, player, team, final_score, final_position, mmr_before, mmr_after,
+			   mmr_delta, races_played, place_before, place_after)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 12, ?, ?)`,
+			[match.insertId, ids[i], row.team === undefined ? null : row.team, row.score, i + 1,
+			 row.before, row.after, row.after - row.before, row.placeBefore, row.placeAfter]
+		);
+		await sql(
+			`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, games, wins, total_score)
+			 VALUES (?, 1, ?, ?, 1, ?, ?)
+			 ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr),
+			  games = games + 1, wins = wins + VALUES(wins), total_score = total_score + VALUES(total_score)`,
+			[ids[i], row.after, row.after, i === 0 ? 1 : 0, row.score]
+		);
+	}
+	return { matchId: match.insertId, ids };
+}
+
+test('the leaderboard opens on the top players beside the last mogis', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 61, 'lbsplit', 'FFA', [
+		{ score: 40, before: 1000, after: 1040, placeBefore: 5, placeAfter: 3 },
+		{ score: 30, before: 900, after: 915, placeBefore: 6, placeAfter: 6 },
+		{ score: 20, before: 800, after: 785, placeBefore: 7, placeAfter: 7 },
+		{ score: 10, before: 700, after: 660, placeBefore: 8, placeAfter: 9 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard');
+
+	const cards = page.locator('.lounge-lb-card');
+	await expect(cards).toHaveCount(2);
+	await expect(cards.nth(0).locator('h3')).toHaveText('Top players');
+	await expect(cards.nth(1).locator('h3')).toHaveText('Recent matches');
+	// each side of the split gets its own way into the full list
+	await expect(cards.nth(0).locator('.lounge-lb-viewall')).toBeVisible();
+	await expect(cards.nth(1).locator('.lounge-lb-viewall')).toBeVisible();
+
+	// the overview is a shortlist rather than the ladder
+	const players = cards.nth(0).locator('.lounge-leaderboard-row');
+	await expect(players.first()).toBeVisible({ timeout: 5000 });
+	expect(await players.count()).toBeLessThanOrEqual(20);
+
+	// and the mogi just staged is the freshest one on the right, named by its mode and total
+	const latest = cards.nth(1).locator('.lounge-match-row').first();
+	await expect(latest.locator('.lounge-match-id')).toHaveText('#' + staged.matchId);
+	await expect(latest.locator('.lounge-matchchip-mode')).toHaveText('FFA');
+	await expect(latest.locator('.lounge-matchchip-score')).toHaveText('100');
+
+	// the right-hand "view all" opens the whole list, and the back link returns to the split
+	await cards.nth(1).locator('.lounge-lb-viewall').click();
+	await expect(page.locator('#lounge-lb-bar')).toHaveText('Recent matches');
+	await expect(page.locator('.lounge-match-row').first()).toBeVisible();
+	await page.locator('.lounge-lb-back').click();
+	await expect(page.locator('.lounge-lb-card')).toHaveCount(2);
+});
+
+test('the full standings carry every column but the two the staff struck out', async ({ page }) => {
+	await cleanupLoungeQueues();
+	await stageFinishedMatch(LOUNGE_KEY_MIN + 62, 'lbstats', 'FFA', [
+		{ score: 60, before: 1200, after: 1260, placeBefore: 4, placeAfter: 2 },
+		{ score: 20, before: 1100, after: 1040, placeBefore: 5, placeAfter: 6 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard');
+	await page.locator('.lounge-lb-card').first().locator('.lounge-lb-viewall').click();
+	await expect(page.locator('#lounge-lb-bar')).toHaveText('Season standings');
+
+	const headers = await page.locator('.lounge-lb-stats th').allTextContents();
+	expect(headers).toEqual([
+		'Ranking', 'Name', 'Rating', 'Tier', 'Matches Played', 'Wins', 'Losses', 'Win Ratio',
+		'Best Ranking', 'Worst Ranking', 'Max Rating', 'Min Rating', 'Max Rating Gain',
+		'Max Rating Loss', 'Max Points Gain', 'Avg Points Gain', 'Last Played',
+	]);
+	// the two they asked us to drop
+	expect(headers).not.toContain('Avg Rating Gain');
+	expect(headers).not.toContain('Total Points');
+
+	// the winner's row: a win counted, a loss not, and both coloured the way they asked
+	const row = page.locator('.lounge-leaderboard-row', { has: page.getByText(loungeBotName('lbstats', 1)) });
+	const cells = row.locator('td');
+	await expect(cells.nth(4)).toHaveText('1');
+	await expect(cells.nth(5)).toHaveText('1');
+	await expect(cells.nth(5)).toHaveClass(/is-up/);
+	await expect(cells.nth(6)).toHaveText('0');
+	await expect(cells.nth(6)).toHaveClass(/is-down/);
+	await expect(cells.nth(7)).toHaveText('100%');
+	// the ladder places the match recorded, which is where best and worst come from
+	await expect(cells.nth(8)).toHaveText('#2');
+	await expect(cells.nth(9)).toHaveText('#2');
+	await expect(cells.nth(12)).toHaveText('+60');
+	await expect(cells.nth(13)).toHaveText('0');
+});
+
+test('a mogi has a page of its own, saying what each rating moved from and to', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 63, 'lbmatch', 'FFA', [
+		{ score: 44, before: 1000, after: 1040, placeBefore: 5, placeAfter: 3 },
+		{ score: 33, before: 900, after: 915, placeBefore: 6, placeAfter: 6 },
+		{ score: 22, before: 800, after: 785, placeBefore: 7, placeAfter: 7 },
+		{ score: 11, before: 700, after: 660, placeBefore: 8, placeAfter: 9 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
+
+	await expect(page.locator('.lounge-profile-name')).toHaveText('Match #' + staged.matchId);
+	const standings = page.locator('.lounge-results-row');
+	await expect(standings).toHaveCount(4);
+	await expect(standings.first().locator('.lounge-results-place')).toHaveText('1');
+	await expect(standings.first().locator('.lounge-results-score')).toHaveText('44');
+	await expect(standings.first().locator('.lounge-results-races')).toHaveText('12/12');
+	await expect(page.locator('.lounge-results-total .lounge-results-score')).toHaveText('110');
+
+	// the before, which is what the staff could not read off the old screen
+	const updates = page.locator('.lounge-ratings-row');
+	await expect(updates).toHaveCount(4);
+	const top = updates.first();
+	await expect(top.locator('.lounge-ratings-before')).toHaveText('1000');
+	await expect(top.locator('.lounge-ratings-delta')).toHaveText('+40');
+	await expect(top.locator('.lounge-ratings-after')).toHaveText('1040');
+	await expect(top.locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-up/);
+	await expect(top.locator('.lounge-placemove-from')).toHaveText('#5');
+	await expect(top.locator('.lounge-placemove-to')).toHaveText('#3');
+	await expect(top.locator('.lounge-ratings-rank .lounge-rank')).toHaveText('Silver');
+	// and a rating that went down says so in red
+	await expect(updates.last().locator('.lounge-ratings-delta')).toHaveText('-40');
+	await expect(updates.last().locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-down/);
+
+	// a name in the table is the way to that player's own page
+	await standings.nth(1).locator('.lounge-lb-playerlink').click();
+	await expect(page.locator('.lounge-profile-name')).toHaveText(loungeBotName('lbmatch', 2));
+	await expect(page.locator('.lounge-profile-grid')).toContainText('915');
+});
+
+test('a team mogi groups its table by side, the way it was raced', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 64, 'lbteam', '2v2', [
+		{ score: 40, before: 1000, after: 1030, placeBefore: 3, placeAfter: 3, team: 0 },
+		{ score: 30, before: 990, after: 1020, placeBefore: 4, placeAfter: 4, team: 0 },
+		{ score: 20, before: 980, after: 950, placeBefore: 5, placeAfter: 5, team: 1 },
+		{ score: 10, before: 970, after: 940, placeBefore: 6, placeAfter: 6, team: 1 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
+
+	const sides = page.locator('.lounge-results-teamhead');
+	await expect(sides).toHaveCount(2);
+	// the winning side first, carrying its own total rather than a player's
+	await expect(sides.nth(0).locator('.lounge-results-place')).toHaveText('#1');
+	await expect(sides.nth(0).locator('.lounge-results-score')).toHaveText('70');
+	await expect(sides.nth(1).locator('.lounge-results-score')).toHaveText('30');
+	await expect(sides.nth(0).locator('.lounge-teamswatch')).toBeVisible();
+	await expect(sides.nth(0).locator('.lounge-results-teamname'))
+		.toContainText(loungeBotName('lbteam', 1));
+	await expect(sides.nth(0).locator('.lounge-results-teamname'))
+		.toContainText(loungeBotName('lbteam', 2));
+	// members sit under their side, indented, and every one of them is still rated
+	await expect(page.locator('.lounge-results-row.is-teamed')).toHaveCount(4);
+	await expect(page.locator('.lounge-ratings-row')).toHaveCount(4);
+
+	// the same mogi is one line on the recent list, named by its sides and not by a mode
+	await page.locator('.lounge-lb-back').click();
+	const line = page.locator('.lounge-match-row', { hasText: '#' + staged.matchId });
+	await expect(line.locator('.lounge-matchchip')).toHaveCount(2);
+	await expect(line.locator('.lounge-matchchip-score').first()).toHaveText('70');
+});
+
 async function joinAndStartVoting(page, tierCode: string) {
 	// a previous case may have launched a match, and leave.php cannot release that
 	await cleanupLoungeQueues();
