@@ -435,3 +435,62 @@ test('concurrent ticks finish a match exactly once', async ({ page, browser }) =
 	expect(rows.map(r => r.games)).toEqual([1, 1, 1, 1]);
 	expect(rows.map(r => Math.round(r.mmr))).toEqual([641, 614, 586, 559]);
 });
+
+// The ladder place either side of a mogi. Absolute places depend on the whole season's
+// table, so what is asserted is the relation: the same order the ratings are in, and a move
+// in the direction the rating went.
+test('a rated mogi records where it left every player on the ladder', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const key = LOUNGE_KEY_MIN + 9;
+	const players = await createLoungeBots(4, 'places');
+	// The top two sit close together on purpose. Every player who beats a higher-rated
+	// opponent gains, so in an FFA only the one who comes last can actually fall - and it can
+	// only fall past somebody if there is somebody just below it.
+	const ratings = [900, 930, 1150, 1160];
+	for (let i = 0; i < players.length; i++)
+		await sql(
+			`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, games) VALUES (?, 1, ?, ?, 4)
+			 ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr), games = VALUES(games)`,
+			[players[i], ratings[i], ratings[i]]);
+
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launching', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode) VALUES (?, 1, ?, ?, 'FFA')`,
+		[queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	// the lowest rated player wins it, which is the biggest climb the table can show
+	const scores = [120, 90, 60, 30];
+	for (let i = 0; i < players.length; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, players[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], scores[i]]);
+	}
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+	await publish(key);
+
+	await login(page);
+	await tick(page);
+
+	const rows: any[] = await sql(
+		`SELECT mp.place_before, mp.place_after, mp.mmr_before, mp.mmr_after
+		 FROM mklounge_match_players mp WHERE mp.\`match\` = ? ORDER BY mp.mmr_after DESC`,
+		[match.id]);
+	expect(rows).toHaveLength(4);
+	for (const row of rows) {
+		expect(row.place_before).toBeGreaterThan(0);
+		expect(row.place_after).toBeGreaterThan(0);
+	}
+	// ordered by rating, the places come out ordered too
+	const places = rows.map(r => r.place_after);
+	expect(places).toEqual([...places].sort((a, b) => a - b));
+	// the player who came last dropped behind the one they started just ahead of, and the
+	// winner gave up no ground
+	const [last]: any = await sql(
+		`SELECT place_before, place_after FROM mklounge_match_players
+		 WHERE \`match\` = ? AND player = ?`, [match.id, players[3]]);
+	expect(last.place_after).toBeGreaterThan(last.place_before);
+	const [winner]: any = await sql(
+		`SELECT place_before, place_after FROM mklounge_match_players
+		 WHERE \`match\` = ? AND player = ?`, [match.id, players[0]]);
+	expect(winner.place_after).toBeLessThanOrEqual(winner.place_before);
+});

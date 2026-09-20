@@ -1421,6 +1421,49 @@ function lounge_finish_match($queueId) {
 	return true;
 }
 
+// The ladder's placing rule, spelled once so the leaderboard, a player's page and the
+// before/after a match records all read the same: players sharing a rating share a place,
+// and the next rating down takes the place its row number gives it.
+function lounge_ladder_rows($limit = 0) {
+	$rows = array();
+	$place = 0;
+	$previousMmr = null;
+	$res = mysql_query(
+		'SELECT p.player, p.mmr, p.peak_mmr, p.games, p.wins, p.total_score, j.nom
+		FROM `mklounge_players` p
+		INNER JOIN `mkjoueurs` j ON j.id=p.player
+		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0
+		ORDER BY p.mmr DESC, p.player'
+		. ($limit ? (' LIMIT '. intval($limit)) : '')
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$mmr = floatval($row['mmr']);
+		if (is_null($previousMmr) || ($mmr < $previousMmr)) {
+			$place = count($rows) + 1;
+			$previousMmr = $mmr;
+		}
+		$row['place'] = $place;
+		$rows[] = $row;
+	}
+	return $rows;
+}
+
+function lounge_ladder_places() {
+	$places = array();
+	foreach (lounge_ladder_rows() as $row)
+		$places[intval($row['player'])] = $row['place'];
+	return $places;
+}
+
+function lounge_ladder_size() {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT COUNT(*) AS n FROM `mklounge_players` p
+		INNER JOIN `mkjoueurs` j ON j.id=p.player
+		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0'
+	));
+	return $row ? intval($row['n']) : 0;
+}
+
 function lounge_match_result($privgameKey, $forPlayerId) {
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT m.id, m.mode, m.ended_at,
@@ -1715,6 +1758,11 @@ function lounge_apply_mmr($matchId) {
 
 	$deltas = lounge_mmr_deltas(array_values($units), lounge_mmr_arity($match['mode']));
 
+	// Where each of them stood on the ladder before any of these ratings moved. Taken as one
+	// snapshot rather than per player, so a lineup that reshuffles itself still reads as a
+	// single before and a single after rather than eight overlapping ladders.
+	$placesBefore = lounge_ladder_places();
+
 	foreach ($participants as $participant) {
 		$playerId = $participant['player'];
 		$before = $participant['mmr'];
@@ -1732,6 +1780,17 @@ function lounge_apply_mmr($matchId) {
 			'UPDATE `mklounge_players`
 			SET mmr="'. lounge_mmr_sql($after) .'", peak_mmr=GREATEST(peak_mmr, "'. lounge_mmr_sql($after) .'")
 			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+	}
+
+	$placesAfter = lounge_ladder_places();
+	foreach ($participants as $participant) {
+		$playerId = $participant['player'];
+		mysql_query(
+			'UPDATE `mklounge_match_players`
+			SET place_before='. (isset($placesBefore[$playerId]) ? '"'. $placesBefore[$playerId] .'"' : 'NULL') .',
+				place_after='. (isset($placesAfter[$playerId]) ? '"'. $placesAfter[$playerId] .'"' : 'NULL') .'
+			WHERE `match`="'. intval($matchId) .'" AND player="'. $playerId .'"'
 		);
 	}
 	return true;
