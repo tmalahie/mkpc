@@ -257,6 +257,45 @@ test('Ranked button opens the lounge overlay from online.php', async ({ page }) 
 	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
 });
 
+// Ranked used to appear only after a character had been picked, two screens past the one where
+// the player actually chooses how to play online.
+test('the online mode screen offers ranked, for eligible players only', async ({ page }) => {
+	test.setTimeout(60000);
+	const short = 'e2e-lounge-mode-short';
+	const met = 'e2e-lounge-mode-met';
+	await createEntryBot(short, 500);
+	await createEntryBot(met, 999999);
+	const modes = async () => {
+		await page.goto('http://127.0.0.1:8080/mariokart.php', { waitUntil: 'domcontentloaded' });
+		await page.locator('input[value*="Online race"]:visible').first().click({ timeout: 30000 });
+		const buttons = page.locator('input[value$="mode"]:visible, input[value="Course VS"]:visible');
+		await expect(buttons.first()).toBeVisible();
+		return page.evaluate(() => [...document.querySelectorAll('input[type=button]')]
+			.filter(b => (b as HTMLElement).offsetParent && /mode|Course VS|ballons/.test((b as HTMLInputElement).value))
+			.map(b => ({ v: (b as HTMLInputElement).value, y: Math.round(b.getBoundingClientRect().y) })));
+	};
+
+	await login(page, met, LOUNGE_BOT_PASSWORD);
+	const withRanked = await modes();
+	expect(withRanked.map(b => b.v)).toEqual(['VS mode', 'Battle mode', 'Ranked mode']);
+	// evenly spaced, and the last one clear of the menu links along the bottom
+	const gaps = withRanked.slice(1).map((b, i) => b.y - withRanked[i].y);
+	expect(new Set(gaps).size).toBe(1);
+	const back = (await page.locator('input[value="Back"]:visible').first().boundingBox())!;
+	expect(withRanked[2].y).toBeLessThan(back.y);
+	await page.locator('input[value="Ranked mode"]:visible').first().click();
+	await expect(page).toHaveURL(/online\.php\?mid=\d+&ranked$/);
+
+	// short of the criteria: the two original modes, back in the places they have always had
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	const without = await modes();
+	expect(without.map(b => b.v)).toEqual(['VS mode', 'Battle mode']);
+	expect(without[0].y).toBeGreaterThan(withRanked[0].y);
+
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
 // The lineup notification is only ever sent to a player who could enter ranked, so the switch
 // for it is only offered to one.
 test('the notification settings carry the ranked lineup alert, for eligible players only', async ({ page }) => {
