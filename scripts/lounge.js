@@ -301,6 +301,25 @@
 		return link;
 	}
 
+	// Same convention as the site's other leaderboards: the file may not exist for every code,
+	// so a missing flag takes itself out rather than leaving a broken image beside a name.
+	function flagEl(country) {
+		var flag = document.createElement('img');
+		flag.className = 'lounge-flag';
+		flag.src = 'images/flags/' + country + '.png';
+		flag.alt = country;
+		flag.addEventListener('error', function() { this.style.display = 'none'; });
+		return flag;
+	}
+
+	function playerNameEl(player) {
+		var wrap = document.createElement('span');
+		wrap.className = 'lounge-playername';
+		if (player.country) wrap.appendChild(flagEl(player.country));
+		wrap.appendChild(playerLink(player));
+		return wrap;
+	}
+
 	function teamSwatch(team) {
 		var swatch = document.createElement('span');
 		swatch.className = 'lounge-teamswatch';
@@ -750,7 +769,7 @@
 					+ (match.teams.length ? ' is-teamed' : ''),
 				[
 					lbCell('td', 'lounge-results-place', p.position),
-					lbCell('td', 'lounge-results-name', playerLink(p)),
+					lbCell('td', 'lounge-results-name', playerNameEl(p)),
 					lbCell('td', 'lounge-results-score', p.score),
 					races
 				]
