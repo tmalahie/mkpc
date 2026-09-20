@@ -43,7 +43,6 @@
 
 	function setupTabs() {
 		var tabs = document.querySelectorAll('.lounge-tab');
-		var panels = document.querySelectorAll('.lounge-tabpanel');
 		// Joining needs a character, and the only place to pick one is the game itself. So on
 		// the standalone page - reached from the home page's leaderboard link - Queue Up is the
 		// way back into online.php rather than a tier list nobody could join from. Only when it
@@ -60,10 +59,7 @@
 				location.href = 'ranked.php';
 				return;
 			}
-			for (var i = 0; i < tabs.length; i++)
-				tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-tab') === target);
-			for (var j = 0; j < panels.length; j++)
-				panels[j].classList.toggle('is-active', panels[j].getAttribute('data-panel') === target);
+			activateLoungeTab(target);
 			if (target === 'leaderboard')
 				loadLeaderboard();
 		}
@@ -77,6 +73,15 @@
 				}
 			}
 		}
+	}
+
+	function activateLoungeTab(target) {
+		var tabs = document.querySelectorAll('.lounge-tab');
+		var panels = document.querySelectorAll('.lounge-tabpanel');
+		for (var i = 0; i < tabs.length; i++)
+			tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-tab') === target);
+		for (var j = 0; j < panels.length; j++)
+			panels[j].classList.toggle('is-active', panels[j].getAttribute('data-panel') === target);
 	}
 
 	function renderPlayerStrip(player) {
@@ -140,54 +145,669 @@
 		return chip;
 	}
 
-	function loadLeaderboard() {
-		var container = $('lounge-leaderboard');
+	var LB_TOP_PLAYERS = 20;
+	var LB_RECENT_MATCHES = 10;
+	var LB_ALL_PLAYERS = 500;
+	var LB_ALL_MATCHES = 100;
+
+	// The game's own team colours, so a table read after the mogi names the same sides the
+	// player just raced against. mk.js's light variants: the primaries are ink on a dark page.
+	var LB_TEAM_COLORS = ['#69f', '#f96', '#9f6', '#ff7', '#fa4', '#f8f'];
+
+	function lbContainer() {
+		return $('lounge-leaderboard');
+	}
+
+	function lbBar(en, fr) {
+		var bar = $('lounge-lb-bar');
+		if (bar) bar.textContent = toLanguage(en, fr);
+	}
+
+	function lbLoading() {
+		var container = lbContainer();
+		if (!container) return null;
+		container.innerHTML = '';
+		var loading = document.createElement('span');
+		loading.className = 'lounge-loading';
+		loading.textContent = toLanguage('Loading...', 'Chargement...');
+		container.appendChild(loading);
+		return container;
+	}
+
+	function lbEmpty(container, en, fr) {
+		var empty = document.createElement('p');
+		empty.className = 'lounge-empty';
+		empty.textContent = toLanguage(en, fr);
+		container.appendChild(empty);
+	}
+
+	function lbCell(tag, className, content) {
+		var el = document.createElement(tag);
+		if (className) el.className = className;
+		if (content === null || content === undefined) el.textContent = '–';
+		else if (typeof content === 'object') el.appendChild(content);
+		else el.textContent = content;
+		return el;
+	}
+
+	function lbRow(className, cells) {
+		var tr = document.createElement('tr');
+		if (className) tr.className = className;
+		for (var i = 0; i < cells.length; i++)
+			tr.appendChild(cells[i]);
+		return tr;
+	}
+
+	function lbTable(className, headings) {
+		var table = document.createElement('table');
+		table.className = className;
+		if (!headings) return table;
+		var head = document.createElement('tr');
+		for (var i = 0; i < headings.length; i++)
+			head.appendChild(lbCell('th', headings[i].className, headings[i].label));
+		table.appendChild(head);
+		return table;
+	}
+
+	function lbButton(className, label, onclick) {
+		var button = document.createElement('button');
+		button.type = 'button';
+		button.className = className;
+		button.textContent = label;
+		button.addEventListener('click', onclick);
+		return button;
+	}
+
+	function lbCard(titleEn, titleFr, viewAll) {
+		var card = document.createElement('div');
+		card.className = 'lounge-lb-card';
+		var head = document.createElement('div');
+		head.className = 'lounge-lb-cardhead';
+		var title = document.createElement('h3');
+		title.textContent = toLanguage(titleEn, titleFr);
+		head.appendChild(title);
+		if (viewAll)
+			head.appendChild(lbButton('lounge-lb-viewall', toLanguage('View all', 'Tout voir'), viewAll));
+		card.appendChild(head);
+		return card;
+	}
+
+	function lbBack(en, fr, onclick) {
+		var back = lbButton('lounge-lb-back', '‹ ' + toLanguage(en, fr), onclick);
+		return back;
+	}
+
+	// Coarse on purpose: these read "when was this", not "how long exactly". Seconds come from
+	// the server, so a clock that disagrees with it cannot turn a fresh mogi into a future one.
+	function timeAgo(seconds) {
+		if ((seconds === null) || (seconds === undefined)) return '';
+		if (seconds < 60) return toLanguage('now', 'à l\'instant');
+		var minutes = Math.floor(seconds / 60);
+		if (minutes < 60) return minutes + toLanguage('min', 'min');
+		var hours = Math.floor(minutes / 60);
+		if (hours < 24) return hours + toLanguage('h', 'h');
+		var days = Math.floor(hours / 24);
+		if (days < 31) return days + toLanguage('d', 'j');
+		var months = Math.floor(days / 30);
+		if (months < 12) return months + toLanguage('mo', 'mois');
+		return Math.floor(days / 365) + toLanguage('y', 'an');
+	}
+
+	function ratio(part, whole) {
+		if (!whole) return null;
+		return (Math.round(1000 * part / whole) / 10) + '%';
+	}
+
+	function signed(value) {
+		if ((value === null) || (value === undefined)) return null;
+		return (value > 0 ? '+' : '') + value;
+	}
+
+	// Green up, red down: the one piece of Lorenzi's colouring the staff asked for by name.
+	function deltaEl(value) {
+		var span = document.createElement('span');
+		if ((value === null) || (value === undefined)) {
+			span.className = 'lounge-lb-pending';
+			span.textContent = toLanguage('pending', 'en attente');
+			return span;
+		}
+		span.className = 'lounge-delta ' + ((value > 0) ? 'is-up' : ((value < 0) ? 'is-down' : 'is-flat'));
+		span.textContent = signed(value);
+		return span;
+	}
+
+	function arrowEl(value) {
+		var span = document.createElement('span');
+		span.className = 'lounge-arrow ' + ((value > 0) ? 'is-up' : ((value < 0) ? 'is-down' : 'is-flat'));
+		span.textContent = (value > 0) ? '▲' : ((value < 0) ? '▼' : '—');
+		return span;
+	}
+
+	function placeEl(place) {
+		return (place === null) ? '–' : ('#' + place);
+	}
+
+	function playerLink(player) {
+		var link = document.createElement('a');
+		link.className = 'lounge-lb-playerlink';
+		link.href = '#';
+		link.textContent = player.name;
+		link.addEventListener('click', function(e) {
+			e.preventDefault();
+			// A name clicked in a mogi's own table is on the queue panel, not this one.
+			activateLoungeTab('leaderboard');
+			showLoungePlayer(player.id);
+		});
+		return link;
+	}
+
+	function teamSwatch(team) {
+		var swatch = document.createElement('span');
+		swatch.className = 'lounge-teamswatch';
+		swatch.style.backgroundColor = LB_TEAM_COLORS[team % LB_TEAM_COLORS.length];
+		return swatch;
+	}
+
+	// A side is named by who was in it, the way the staff reads a results post. Past a pair the
+	// names stop fitting on a line, so the rest become a count.
+	function teamName(names) {
+		if (!names || !names.length) return '';
+		if (names.length <= 2) return names.join(' + ');
+		return names[0] + ' +' + (names.length - 1);
+	}
+
+	function matchScoreChips(match) {
+		var wrap = document.createElement('span');
+		wrap.className = 'lounge-matchchips';
+		if (!match.teams.length) {
+			var chip = document.createElement('span');
+			chip.className = 'lounge-matchchip';
+			chip.appendChild(lbCell('span', 'lounge-matchchip-mode', match.mode));
+			chip.appendChild(lbCell('span', 'lounge-matchchip-score', match.total));
+			wrap.appendChild(chip);
+			return wrap;
+		}
+		for (var i = 0; i < match.teams.length; i++) {
+			var team = match.teams[i];
+			var teamChip = document.createElement('span');
+			teamChip.className = 'lounge-matchchip is-team';
+			teamChip.style.borderColor = LB_TEAM_COLORS[team.team % LB_TEAM_COLORS.length];
+			teamChip.appendChild(lbCell('span', 'lounge-matchchip-mode', teamName(team.names)));
+			teamChip.appendChild(lbCell('span', 'lounge-matchchip-score', team.score));
+			wrap.appendChild(teamChip);
+		}
+		return wrap;
+	}
+
+	function matchListEl(matches, me, showMine) {
+		var list = document.createElement('table');
+		list.className = 'lounge-matchlist';
+		for (var i = 0; i < matches.length; i++) {
+			var match = matches[i];
+			var cells = [
+				lbCell('td', 'lounge-match-id', '#' + match.id),
+				lbCell('td', 'lounge-match-chips', matchScoreChips(match))
+			];
+			if (showMine) {
+				var mine = null;
+				for (var j = 0; j < match.players.length; j++) {
+					if (match.players[j].id === me) mine = match.players[j];
+				}
+				cells.push(lbCell('td', 'lounge-match-mine', mine ? deltaEl(mine.mmr_delta) : null));
+				cells.push(lbCell('td', 'lounge-match-mmr', mine ? mine.mmr_after : null));
+				cells.push(lbCell('td', 'lounge-match-place', mine ? placeEl(mine.place_after) : null));
+			}
+			cells.push(lbCell('td', 'lounge-match-ago', timeAgo(match.ended_ago)));
+			var line = lbRow('lounge-match-row', cells);
+			line.setAttribute('data-match', match.id);
+			line.addEventListener('click', onMatchRowClick);
+			list.appendChild(line);
+		}
+		return list;
+	}
+
+	function onMatchRowClick() {
+		showLoungeMatch(parseInt(this.getAttribute('data-match'), 10));
+	}
+
+	function topPlayersTable(players, me) {
+		var table = lbTable('lounge-leaderboard-table', [
+			{ className: 'lounge-lb-place', label: toLanguage('Place', 'Place') },
+			{ className: 'lounge-lb-name', label: toLanguage('Player', 'Joueur') },
+			{ className: 'lounge-lb-mmr', label: 'MMR' },
+			{ className: 'lounge-lb-rank', label: toLanguage('Rank', 'Rang') }
+		]);
+		for (var i = 0; i < players.length; i++) {
+			var p = players[i];
+			table.appendChild(lbRow(
+				'lounge-leaderboard-row' + ((p.id === me) ? ' is-self' : ''),
+				[
+					lbCell('td', 'lounge-lb-place', p.place),
+					lbCell('td', 'lounge-lb-name', playerLink(p)),
+					lbCell('td', 'lounge-lb-mmr', p.mmr),
+					lbCell('td', 'lounge-lb-rank', p.rank ? rankChip(p.rank) : null)
+				]
+			));
+		}
+		return table;
+	}
+
+	function showLoungeOverview() {
+		var container = lbLoading();
 		if (!container) return;
-		postJSON('lounge/leaderboard.php', '', function(data) {
+		lbBar('Season leaderboard', 'Classement de la saison');
+		var split = document.createElement('div');
+		split.className = 'lounge-lb-split';
+		var playersCard = lbCard('Top players', 'Meilleurs joueurs', showLoungePlayers);
+		var matchesCard = lbCard('Recent matches', 'Derniers mogis', showLoungeMatches);
+		split.appendChild(playersCard);
+		split.appendChild(matchesCard);
+		container.innerHTML = '';
+		container.appendChild(split);
+
+		postJSON('lounge/leaderboard.php', 'limit=' + LB_TOP_PLAYERS, function(data) {
 			if (!data || data.error || !data.players) return;
-			container.innerHTML = '';
 			if (!data.players.length) {
-				var empty = document.createElement('p');
-				empty.className = 'lounge-empty';
-				empty.textContent = toLanguage(
+				lbEmpty(playersCard,
 					'No mogi has been played yet this season.',
-					'Aucun mogi n\'a encore été joué cette saison.'
-				);
-				container.appendChild(empty);
+					'Aucun mogi n\'a encore été joué cette saison.');
 				return;
 			}
-
-			var table = document.createElement('table');
-			table.className = 'lounge-leaderboard-table';
-			var head = document.createElement('tr');
-			head.innerHTML = '<th></th><th></th><th></th><th></th><th></th><th></th>';
-			var cells = head.querySelectorAll('th');
-			cells[0].textContent = toLanguage('Place', 'Place');
-			cells[1].textContent = toLanguage('Player', 'Joueur');
-			cells[2].textContent = toLanguage('Rank', 'Rang');
-			cells[3].textContent = 'MMR';
-			cells[4].textContent = toLanguage('Mogis', 'Mogis');
-			cells[5].textContent = toLanguage('Avg. score', 'Score moyen');
-			table.appendChild(head);
-
-			for (var i = 0; i < data.players.length; i++) {
-				var p = data.players[i];
-				var row = document.createElement('tr');
-				row.className = 'lounge-leaderboard-row' + (p.id === data.me ? ' is-self' : '');
-				row.innerHTML = '<td class="lounge-lb-place"></td><td class="lounge-lb-name"></td>'
-					+ '<td class="lounge-lb-rank"></td><td class="lounge-lb-mmr"></td>'
-					+ '<td class="lounge-lb-games"></td><td class="lounge-lb-avg"></td>';
-				row.querySelector('.lounge-lb-place').textContent = p.place;
-				row.querySelector('.lounge-lb-name').textContent = p.name;
-				var rankCell = row.querySelector('.lounge-lb-rank');
-				if (p.rank) rankCell.appendChild(rankChip(p.rank));
-				row.querySelector('.lounge-lb-mmr').textContent = p.mmr;
-				row.querySelector('.lounge-lb-games').textContent = p.games + ' (' + p.wins + 'W)';
-				row.querySelector('.lounge-lb-avg').textContent = (p.avg_score === null) ? '–' : p.avg_score;
-				table.appendChild(row);
-			}
-			container.appendChild(table);
+			playersCard.appendChild(topPlayersTable(data.players, data.me));
 		});
+		postJSON('lounge/matches.php', 'limit=' + LB_RECENT_MATCHES, function(data) {
+			if (!data || data.error || !data.matches) return;
+			if (!data.matches.length) {
+				lbEmpty(matchesCard, 'No mogi yet.', 'Aucun mogi pour le moment.');
+				return;
+			}
+			matchesCard.appendChild(matchListEl(data.matches, data.me, false));
+		});
+	}
+
+	// Every column the staff kept off Lorenzi's table, in their order. "Avg Rating Gain" and
+	// "Total Points" are the two they struck out: they are not computed here either.
+	function statsColumns() {
+		return [
+			{ en: 'Ranking', fr: 'Rang', className: 'lounge-lb-place',
+				value: function(p) { return placeEl(p.place); } },
+			{ en: 'Name', fr: 'Nom', className: 'lounge-lb-name',
+				value: function(p) { return playerLink(p); } },
+			{ en: 'Rating', fr: 'MMR', className: 'lounge-lb-mmr is-strong',
+				value: function(p) { return p.mmr; } },
+			{ en: 'Tier', fr: 'Tier', className: 'lounge-lb-rank',
+				value: function(p) { return p.rank ? rankChip(p.rank) : null; } },
+			{ en: 'Matches Played', fr: 'Mogis joués', className: 'lounge-lb-num',
+				value: function(p) { return p.games; } },
+			{ en: 'Wins', fr: 'Victoires', className: 'lounge-lb-num is-up',
+				value: function(p) { return p.wins; } },
+			{ en: 'Losses', fr: 'Défaites', className: 'lounge-lb-num is-down',
+				value: function(p) { return p.games - p.wins; } },
+			{ en: 'Win Ratio', fr: 'Ratio', className: 'lounge-lb-num',
+				value: function(p) { return ratio(p.wins, p.games); } },
+			{ en: 'Best Ranking', fr: 'Meilleur rang', className: 'lounge-lb-num',
+				value: function(p) { return p.stats ? placeEl(p.stats.best_place) : null; } },
+			{ en: 'Worst Ranking', fr: 'Pire rang', className: 'lounge-lb-num',
+				value: function(p) { return p.stats ? placeEl(p.stats.worst_place) : null; } },
+			{ en: 'Max Rating', fr: 'MMR max', className: 'lounge-lb-num',
+				value: function(p) { return p.stats ? p.stats.max_mmr : p.peak_mmr; } },
+			{ en: 'Min Rating', fr: 'MMR min', className: 'lounge-lb-num',
+				value: function(p) { return p.stats ? p.stats.min_mmr : null; } },
+			{ en: 'Max Rating Gain', fr: 'Meilleur gain', className: 'lounge-lb-num is-up',
+				value: function(p) { return p.stats ? signed(p.stats.max_gain) : null; } },
+			{ en: 'Max Rating Loss', fr: 'Pire perte', className: 'lounge-lb-num is-down',
+				value: function(p) { return p.stats ? signed(p.stats.max_loss) : null; } },
+			{ en: 'Max Points Gain', fr: 'Meilleur score', className: 'lounge-lb-num',
+				value: function(p) { return p.stats ? p.stats.max_score : null; } },
+			{ en: 'Avg Points Gain', fr: 'Score moyen', className: 'lounge-lb-num',
+				value: function(p) { return p.avg_score; } },
+			{ en: 'Last Played', fr: 'Dernier mogi', className: 'lounge-lb-num',
+				value: function(p) { return p.stats ? timeAgo(p.stats.last_played_ago) : null; } }
+		];
+	}
+
+	function showLoungePlayers() {
+		var container = lbLoading();
+		if (!container) return;
+		lbBar('Season standings', 'Classement complet');
+		postJSON('lounge/leaderboard.php', 'limit=' + LB_ALL_PLAYERS + '&full=1', function(data) {
+			if (!data || data.error || !data.players) return;
+			container.innerHTML = '';
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			if (!data.players.length) {
+				lbEmpty(container,
+					'No mogi has been played yet this season.',
+					'Aucun mogi n\'a encore été joué cette saison.');
+				return;
+			}
+			var columns = statsColumns();
+			var headings = [];
+			for (var c = 0; c < columns.length; c++)
+				headings.push({ className: columns[c].className, label: toLanguage(columns[c].en, columns[c].fr) });
+			var table = lbTable('lounge-leaderboard-table lounge-lb-stats', headings);
+			for (var i = 0; i < data.players.length; i++) {
+				var cells = [];
+				for (var j = 0; j < columns.length; j++)
+					cells.push(lbCell('td', columns[j].className, columns[j].value(data.players[i])));
+				table.appendChild(lbRow(
+					'lounge-leaderboard-row' + ((data.players[i].id === data.me) ? ' is-self' : ''),
+					cells
+				));
+			}
+			var scroller = document.createElement('div');
+			scroller.className = 'lounge-lb-scroll';
+			scroller.appendChild(table);
+			container.appendChild(scroller);
+		});
+	}
+
+	function showLoungeMatches() {
+		var container = lbLoading();
+		if (!container) return;
+		lbBar('Recent matches', 'Derniers mogis');
+		postJSON('lounge/matches.php', 'limit=' + LB_ALL_MATCHES, function(data) {
+			if (!data || data.error || !data.matches) return;
+			container.innerHTML = '';
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			if (!data.matches.length) {
+				lbEmpty(container, 'No mogi yet.', 'Aucun mogi pour le moment.');
+				return;
+			}
+			container.appendChild(matchListEl(data.matches, data.me, false));
+		});
+	}
+
+	function statLine(labelEn, labelFr, value) {
+		var line = document.createElement('div');
+		line.className = 'lounge-profile-stat';
+		line.appendChild(lbCell('span', 'lounge-profile-statlabel', toLanguage(labelEn, labelFr)));
+		line.appendChild(lbCell('span', 'lounge-profile-statvalue', value));
+		return line;
+	}
+
+	// The rating history, drawn over the rank bands it crossed - which is what makes a climb
+	// read as a climb rather than as a line going up. Ranks come down highest-first.
+	function historyChart(history, ranks) {
+		var width = 600, height = 150;
+		var low = history[0], high = history[0];
+		for (var i = 1; i < history.length; i++) {
+			if (history[i] < low) low = history[i];
+			if (history[i] > high) high = history[i];
+		}
+		var pad = Math.max(40, Math.round((high - low) * 0.15));
+		low -= pad;
+		high += pad;
+		var span = (high - low) || 1;
+		function y(value) {
+			return Math.round(1000 * (height * (high - value) / span)) / 1000;
+		}
+
+		var svgNS = 'http://www.w3.org/2000/svg';
+		var svg = document.createElementNS(svgNS, 'svg');
+		svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+		svg.setAttribute('preserveAspectRatio', 'none');
+		svg.setAttribute('class', 'lounge-profile-chart');
+
+		for (var r = 0; r < ranks.length; r++) {
+			var top = (r === 0) ? high : ranks[r - 1].min_mmr;
+			var bottom = ranks[r].min_mmr;
+			if ((bottom >= high) || (top <= low)) continue;
+			var band = document.createElementNS(svgNS, 'rect');
+			band.setAttribute('x', 0);
+			band.setAttribute('width', width);
+			band.setAttribute('y', y(Math.min(top, high)));
+			band.setAttribute('height', Math.max(0, y(Math.max(bottom, low)) - y(Math.min(top, high))));
+			band.setAttribute('fill', ranks[r].color);
+			band.setAttribute('opacity', '0.35');
+			svg.appendChild(band);
+		}
+
+		var points = [];
+		for (var p = 0; p < history.length; p++) {
+			var x = (history.length > 1) ? Math.round(1000 * width * p / (history.length - 1)) / 1000 : 0;
+			points.push(x + ',' + y(history[p]));
+		}
+		var line = document.createElementNS(svgNS, 'polyline');
+		line.setAttribute('points', points.join(' '));
+		line.setAttribute('fill', 'none');
+		line.setAttribute('stroke', '#FFF');
+		line.setAttribute('stroke-width', '2');
+		line.setAttribute('vector-effect', 'non-scaling-stroke');
+		svg.appendChild(line);
+
+		var wrap = document.createElement('div');
+		wrap.className = 'lounge-profile-chartbox';
+		wrap.appendChild(svg);
+		wrap.appendChild(lbCell('span', 'lounge-profile-charttop', high - pad));
+		wrap.appendChild(lbCell('span', 'lounge-profile-chartbottom', low + pad));
+		return wrap;
+	}
+
+	function showLoungePlayer(playerId) {
+		var container = lbLoading();
+		if (!container) return;
+		postJSON('lounge/player.php', 'player=' + encodeURIComponent(playerId), function(data) {
+			if (!data || data.error) return;
+			container.innerHTML = '';
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			if (!data.player) {
+				lbBar('Player stats', 'Statistiques du joueur');
+				lbEmpty(container,
+					'This player has not played a ranked mogi this season.',
+					'Ce joueur n\'a pas joué de mogi classé cette saison.');
+				return;
+			}
+			var player = data.player;
+			lbBar('Player stats', 'Statistiques du joueur');
+
+			var head = document.createElement('div');
+			head.className = 'lounge-profile-head';
+			head.appendChild(lbCell('h2', 'lounge-profile-name', player.name));
+			if (player.rank) head.appendChild(rankChip(player.rank));
+			container.appendChild(head);
+
+			var stats = player.stats;
+			var grid = document.createElement('div');
+			grid.className = 'lounge-profile-grid';
+			grid.appendChild(statLine('Rating', 'MMR', player.mmr));
+			grid.appendChild(statLine('Ranking', 'Rang',
+				placeEl(player.place) + toLanguage(' of ', ' sur ') + player.ladder_size));
+			grid.appendChild(statLine('Best / worst', 'Meilleur / pire',
+				stats ? (placeEl(stats.best_place) + ' / ' + placeEl(stats.worst_place)) : null));
+			grid.appendChild(statLine('Max / min rating', 'MMR max / min',
+				stats ? (stats.max_mmr + ' / ' + stats.min_mmr) : null));
+			grid.appendChild(statLine('Initial rating', 'MMR de départ', player.initial_mmr));
+			grid.appendChild(statLine('Matches played', 'Mogis joués', player.games));
+			grid.appendChild(statLine('Wins / losses', 'Victoires / défaites',
+				player.wins + ' / ' + (player.games - player.wins)));
+			grid.appendChild(statLine('Win ratio', 'Ratio', ratio(player.wins, player.games)));
+			grid.appendChild(statLine('Max gain / loss', 'Gain / perte max',
+				stats ? (signed(stats.max_gain) + ' / ' + signed(stats.max_loss)) : null));
+			grid.appendChild(statLine('Points', 'Points', player.total_score));
+			grid.appendChild(statLine('Max points gain', 'Meilleur score', stats ? stats.max_score : null));
+			grid.appendChild(statLine('Avg points gain', 'Score moyen', player.avg_score));
+			grid.appendChild(statLine('Last played', 'Dernier mogi', stats ? timeAgo(stats.last_played_ago) : null));
+			grid.appendChild(statLine('First played', 'Premier mogi', stats ? timeAgo(stats.first_played_ago) : null));
+			container.appendChild(grid);
+
+			if (player.history.length > 1 && data.ranks)
+				container.appendChild(historyChart(player.history, data.ranks));
+
+			if (player.matches.length) {
+				var card = lbCard('Matches played', 'Mogis joués', null);
+				card.appendChild(matchListEl(player.matches, player.id, true));
+				container.appendChild(card);
+			}
+		});
+	}
+
+	function showLoungeMatch(matchId) {
+		var container = lbLoading();
+		if (!container) return;
+		postJSON('lounge/match.php', 'match=' + encodeURIComponent(matchId), function(data) {
+			if (!data || data.error) return;
+			container.innerHTML = '';
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			if (!data.match) {
+				lbBar('Mogi results', 'Résultats du mogi');
+				lbEmpty(container, 'This mogi does not exist.', 'Ce mogi n\'existe pas.');
+				return;
+			}
+			var match = data.match;
+			lbBar('Mogi results', 'Résultats du mogi');
+
+			var head = document.createElement('div');
+			head.className = 'lounge-profile-head';
+			head.appendChild(lbCell('h2', 'lounge-profile-name', toLanguage('Match #', 'Mogi n°') + match.id));
+			head.appendChild(lbCell('span', 'lounge-profile-when', timeAgo(match.ended_ago)));
+			container.appendChild(head);
+			container.appendChild(matchSummaryEl(match));
+			container.appendChild(matchTableEl(match, data.me));
+			container.appendChild(ratingUpdatesEl(match, data.me));
+		});
+	}
+
+	function matchSummaryEl(match) {
+		var sub = document.createElement('p');
+		sub.className = 'lounge-results-sub';
+		sub.textContent = match.tier_label + ' — ' + match.mode + ' — '
+			+ match.races + ' ' + toLanguage('races', 'courses');
+		// Otherwise a voided mogi is a table of ratings that never arrive, with nothing on the
+		// page to say they never will.
+		if (match.cancelled_reason) {
+			sub.appendChild(document.createElement('br'));
+			sub.appendChild(document.createTextNode((match.cancelled_reason === 'no_show')
+				? toLanguage('Voided: the lineup never turned up', 'Annulé : l\'effectif ne s\'est pas présenté')
+				: toLanguage('Voided: the mogi was abandoned', 'Annulé : le mogi a été abandonné')));
+		}
+		return sub;
+	}
+
+	// The standings, as one table whatever the mode: in a team mogi each side gets a header
+	// row carrying its colour and its total, and its members sit under it. That is the shape
+	// the staff asked for, and it is the same table the mogi ends on.
+	function matchTableEl(match, me) {
+		var table = lbTable('lounge-results-table', [
+			{ className: 'lounge-results-place', label: toLanguage('Place', 'Place') },
+			{ className: 'lounge-results-name', label: toLanguage('Player', 'Joueur') },
+			{ className: 'lounge-results-score', label: toLanguage('Score', 'Score') },
+			{ className: 'lounge-results-races', label: toLanguage('Races', 'Courses') }
+		]);
+		if (!match.teams.length) {
+			appendMatchPlayers(table, match, match.players, me);
+			var total = lbRow('lounge-results-total', [
+				lbCell('td', 'lounge-results-totallabel', toLanguage('Total', 'Total')),
+				lbCell('td', 'lounge-results-score', match.total)
+			]);
+			total.firstChild.colSpan = 2;
+			total.lastChild.colSpan = 2;
+			table.appendChild(total);
+			return table;
+		}
+		for (var i = 0; i < match.teams.length; i++) {
+			var team = match.teams[i];
+			var name = document.createElement('span');
+			name.appendChild(teamSwatch(team.team));
+			name.appendChild(document.createTextNode(team.names.join(' + ')));
+			var header = lbRow('lounge-results-teamhead', [
+				lbCell('td', 'lounge-results-place', '#' + (i + 1)),
+				lbCell('td', 'lounge-results-teamname', name),
+				lbCell('td', 'lounge-results-score', team.score)
+			]);
+			header.childNodes[1].colSpan = 2;
+			table.appendChild(header);
+			var members = [];
+			for (var j = 0; j < match.players.length; j++) {
+				if (match.players[j].team === team.team) members.push(match.players[j]);
+			}
+			appendMatchPlayers(table, match, members, me);
+		}
+		return table;
+	}
+
+	function appendMatchPlayers(table, match, players, me) {
+		for (var i = 0; i < players.length; i++) {
+			var p = players[i];
+			var races = lbCell('td', 'lounge-results-races',
+				// Zero is "no attendance was recorded", not "raced none of it" - a mogi played
+				// before attendance was tracked has it for everyone.
+				p.races_played ? (p.races_played + '/' + match.races) : null);
+			if (p.races_played && (p.races_played < match.races)) {
+				races.className += ' is-short';
+				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
+			}
+			table.appendChild(lbRow(
+				'lounge-results-row' + ((p.id === me) ? ' is-self' : '')
+					+ (match.teams.length ? ' is-teamed' : ''),
+				[
+					lbCell('td', 'lounge-results-place', p.position),
+					lbCell('td', 'lounge-results-name', playerLink(p)),
+					lbCell('td', 'lounge-results-score', p.score),
+					races
+				]
+			));
+		}
+	}
+
+	// Lorenzi's "Rating Updates" block: where each player stood, what the mogi moved, and
+	// where that left them. The before was the whole point of the staff's request - a delta
+	// on its own never says what it was applied to.
+	function ratingUpdatesEl(match, me) {
+		var box = document.createElement('div');
+		box.className = 'lounge-ratings';
+		box.appendChild(lbCell('h3', 'lounge-ratings-title', toLanguage('Rating updates', 'Évolution du MMR')));
+		var table = document.createElement('table');
+		table.className = 'lounge-ratings-table';
+		for (var i = 0; i < match.players.length; i++) {
+			var p = match.players[i];
+			var move = document.createElement('span');
+			move.className = 'lounge-placemove';
+			move.appendChild(lbCell('span', 'lounge-placemove-from', placeEl(p.place_before)));
+			move.appendChild(arrowEl((p.place_before === null || p.place_after === null)
+				? 0 : (p.place_before - p.place_after)));
+			move.appendChild(lbCell('span', 'lounge-placemove-to', placeEl(p.place_after)));
+
+			var delta = lbCell('td', 'lounge-ratings-delta', deltaEl(p.mmr_delta));
+			if (p.mmr_penalty) {
+				var penalty = document.createElement('div');
+				penalty.className = 'lounge-results-penalty';
+				penalty.textContent = '(' + p.mmr_penalty + ')';
+				penalty.title = toLanguage('Absence penalty', 'Pénalité d\'absence');
+				delta.appendChild(penalty);
+			}
+			table.appendChild(lbRow(
+				'lounge-ratings-row' + ((p.id === me) ? ' is-self' : ''),
+				[
+					lbCell('td', 'lounge-ratings-move', move),
+					lbCell('td', 'lounge-ratings-name', playerLink(p)),
+					lbCell('td', 'lounge-ratings-before', p.mmr_before),
+					delta,
+					lbCell('td', 'lounge-ratings-arrow', arrowEl(p.mmr_delta)),
+					lbCell('td', 'lounge-ratings-after', p.mmr_after),
+					lbCell('td', 'lounge-ratings-rank', p.rank ? rankChip(p.rank) : null)
+				]
+			));
+		}
+		box.appendChild(table);
+		return box;
+	}
+
+	// A link straight to a player or a mogi, so a result can be pasted into the Discord and
+	// open on the thing being talked about rather than on the leaderboard.
+	var lbRouted = false;
+
+	function loadLeaderboard() {
+		if (!lbRouted) {
+			lbRouted = true;
+			var match = location.search.match(/[?&]match=(\d+)/);
+			if (match) return showLoungeMatch(parseInt(match[1], 10));
+			var player = location.search.match(/[?&]player=(\d+)/);
+			if (player) return showLoungePlayer(parseInt(player[1], 10));
+			var requested = location.search.match(/[?&]view=(players|matches)/);
+			if (requested)
+				return (requested[1] === 'players') ? showLoungePlayers() : showLoungeMatches();
+		}
+		showLoungeOverview();
 	}
 
 	function tierLabel(tier) {
@@ -1034,54 +1654,14 @@
 
 		var header = document.createElement('div');
 		header.className = 'lounge-results-header';
-		var label = match.tier_label;
-		header.innerHTML = '<h2></h2><p class="lounge-results-sub"></p>';
-		header.querySelector('h2').textContent = toLanguage('Mogi results', 'Résultats du mogi');
-		header.querySelector('.lounge-results-sub').textContent =
-			label + ' — ' + match.mode + ' — ' + match.races + ' ' + toLanguage('races', 'courses');
+		header.appendChild(lbCell('h2', null, toLanguage('Mogi results', 'Résultats du mogi')));
+		header.appendChild(matchSummaryEl(match));
 		container.appendChild(header);
 
-		var table = document.createElement('table');
-		table.className = 'lounge-results-table';
-		var head = document.createElement('tr');
-		head.innerHTML = '<th></th><th></th><th></th><th></th><th></th>';
-		var headCells = head.querySelectorAll('th');
-		headCells[0].textContent = toLanguage('Place', 'Place');
-		headCells[1].textContent = toLanguage('Player', 'Joueur');
-		headCells[2].textContent = toLanguage('Score', 'Score');
-		headCells[3].textContent = toLanguage('Races', 'Courses');
-		headCells[4].textContent = 'MMR';
-		table.appendChild(head);
-
-		for (var i = 0; i < match.players.length; i++) {
-			var p = match.players[i];
-			var row = document.createElement('tr');
-			row.className = 'lounge-results-row' + (p.id === mId ? ' is-self' : '');
-			row.innerHTML = '<td class="lounge-results-place"></td><td class="lounge-results-name"></td>'
-				+ '<td class="lounge-results-score"></td><td class="lounge-results-races"></td>'
-				+ '<td class="lounge-results-mmr"></td>';
-			row.querySelector('.lounge-results-place').textContent = (p.position === null) ? '–' : p.position;
-			row.querySelector('.lounge-results-name').textContent = p.name;
-			row.querySelector('.lounge-results-score').textContent = (p.score === null) ? '–' : p.score;
-			var races = row.querySelector('.lounge-results-races');
-			// Zero is "no attendance was recorded", not "raced none of it" - a mogi played
-			// before attendance was tracked has it for everyone.
-			races.textContent = p.races_played ? (p.races_played + '/' + match.races) : '–';
-			if (p.races_played && (p.races_played < match.races)) {
-				races.className += ' is-short';
-				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
-			}
-			var mmr = row.querySelector('.lounge-results-mmr');
-			mmr.textContent = formatMmrChange(p);
-			if (p.mmr_penalty) {
-				var penalty = document.createElement('div');
-				penalty.className = 'lounge-results-penalty';
-				penalty.textContent = p.mmr_penalty + ' ' + toLanguage('absent', 'absent');
-				mmr.appendChild(penalty);
-			}
-			table.appendChild(row);
-		}
-		container.appendChild(table);
+		// The same table and rating block the match page draws, so a result read on the way out
+		// of a mogi and the same result looked up a week later are one screen.
+		container.appendChild(matchTableEl(match, mId));
+		container.appendChild(ratingUpdatesEl(match, mId));
 
 		var actions = document.createElement('div');
 		actions.className = 'lounge-results-actions';
@@ -1115,12 +1695,6 @@
 			toLanguage('Continue on Discord', 'Continuer sur Discord')
 		));
 		return link;
-	}
-
-	function formatMmrChange(player) {
-		if (player.mmr_delta === null || player.mmr_after === null)
-			return toLanguage('pending', 'en attente');
-		return player.mmr_after + ' (' + (player.mmr_delta >= 0 ? '+' : '') + player.mmr_delta + ')';
 	}
 
 	function switchView(next) {

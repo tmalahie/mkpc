@@ -323,19 +323,37 @@ function lounge_get_season_multicup() {
 	return $row ? intval($row['multicup_id']) : 0;
 }
 
-function lounge_rank_for_mmr($mmr) {
-	$row = mysql_fetch_array(mysql_query(
-		'SELECT code, label, color FROM `mklounge_ranks`
-		WHERE min_mmr <= "'. lounge_mmr_sql($mmr) .'"
-		ORDER BY min_mmr DESC LIMIT 1'
-	));
-	if (!$row)
-		return null;
-	return array(
-		'code' => $row['code'],
-		'label' => $row['label'],
-		'color' => $row['color']
+// Held for the request: the leaderboard resolves a rank per row, and a hundred rows is a
+// hundred queries otherwise.
+function lounge_ranks() {
+	global $loungeRanksCache;
+	if (isset($loungeRanksCache))
+		return $loungeRanksCache;
+	$loungeRanksCache = array();
+	$res = mysql_query(
+		'SELECT code, label, color, min_mmr FROM `mklounge_ranks` ORDER BY min_mmr DESC'
 	);
+	while ($row = mysql_fetch_array($res)) {
+		$loungeRanksCache[] = array(
+			'code' => $row['code'],
+			'label' => $row['label'],
+			'color' => $row['color'],
+			'min_mmr' => intval($row['min_mmr'])
+		);
+	}
+	return $loungeRanksCache;
+}
+
+function lounge_rank_for_mmr($mmr) {
+	foreach (lounge_ranks() as $rank) {
+		if ($mmr >= $rank['min_mmr'])
+			return array(
+				'code' => $rank['code'],
+				'label' => $rank['label'],
+				'color' => $rank['color']
+			);
+	}
+	return null;
 }
 
 function lounge_get_player_state($playerId) {
@@ -1464,13 +1482,233 @@ function lounge_ladder_size() {
 	return $row ? intval($row['n']) : 0;
 }
 
-function lounge_match_result($privgameKey, $forPlayerId) {
+// Everything the full stats table shows that the season row does not carry. It all comes off
+// the match rows, which are the only record of how a rating actually moved.
+function lounge_player_match_stats($playerIds = null) {
+	$filter = '';
+	if (is_array($playerIds)) {
+		if (!count($playerIds))
+			return array();
+		$filter = ' AND mp.player IN ('. implode(',', array_map('intval', $playerIds)) .')';
+	}
+	$stats = array();
+	$res = mysql_query(
+		'SELECT mp.player,
+			MIN(mp.place_after) AS best_place,
+			MAX(mp.place_after) AS worst_place,
+			GREATEST(MAX(mp.mmr_after), MAX(mp.mmr_before)) AS max_mmr,
+			LEAST(MIN(mp.mmr_after), MIN(mp.mmr_before)) AS min_mmr,
+			GREATEST(0, MAX(mp.mmr_delta)) AS max_gain,
+			LEAST(0, MIN(mp.mmr_delta)) AS max_loss,
+			MAX(mp.final_score) AS max_score,
+			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(MAX(m.started_at)) AS last_played_ago,
+			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(MIN(m.started_at)) AS first_played_ago
+		FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+		WHERE m.season="'. LOUNGE_CURRENT_SEASON .'" AND mp.mmr_after IS NOT NULL'. $filter .'
+		GROUP BY mp.player'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$stats[intval($row['player'])] = array(
+			'best_place' => is_null($row['best_place']) ? null : intval($row['best_place']),
+			'worst_place' => is_null($row['worst_place']) ? null : intval($row['worst_place']),
+			'max_mmr' => (int) round($row['max_mmr']),
+			'min_mmr' => (int) round($row['min_mmr']),
+			'max_gain' => (int) round($row['max_gain']),
+			'max_loss' => (int) round($row['max_loss']),
+			'max_score' => is_null($row['max_score']) ? null : intval($row['max_score']),
+			'last_played_ago' => intval($row['last_played_ago']),
+			'first_played_ago' => intval($row['first_played_ago'])
+		);
+	}
+	return $stats;
+}
+
+function lounge_leaderboard($limit = 0, $withStats = false) {
+	$rows = lounge_ladder_rows($limit);
+	$stats = array();
+	if ($withStats) {
+		$ids = array();
+		foreach ($rows as $row)
+			$ids[] = intval($row['player']);
+		$stats = lounge_player_match_stats($ids);
+	}
+	$players = array();
+	foreach ($rows as $row) {
+		$playerId = intval($row['player']);
+		$mmr = floatval($row['mmr']);
+		$games = intval($row['games']);
+		$player = array(
+			'place' => $row['place'],
+			'id' => $playerId,
+			'name' => $row['nom'],
+			'mmr' => (int) round($mmr),
+			'peak_mmr' => (int) round($row['peak_mmr']),
+			'games' => $games,
+			'wins' => intval($row['wins']),
+			'total_score' => intval($row['total_score']),
+			'avg_score' => $games ? round(intval($row['total_score']) / $games, 1) : null,
+			'rank' => lounge_rank_for_mmr($mmr)
+		);
+		if ($withStats)
+			$player['stats'] = isset($stats[$playerId]) ? $stats[$playerId] : null;
+		$players[] = $player;
+	}
+	return $players;
+}
+
+// One row per match for the listings: who was in it and what the sides scored, which is all
+// a recent-matches line shows. The per-player detail is left to lounge_match_payload().
+function lounge_recent_matches($limit = 10, $offset = 0, $forPlayerId = null) {
+	$join = '';
+	if ($forPlayerId)
+		$join = 'INNER JOIN `mklounge_match_players` me
+			ON me.`match`=m.id AND me.player="'. intval($forPlayerId) .'"';
+	$matches = array();
+	$byId = array();
+	$res = mysql_query(
+		'SELECT m.id, m.mode, m.ended_at, t.label AS tier_label,
+			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(m.ended_at) AS ended_ago
+		FROM `mklounge_matches` m
+		INNER JOIN `mklounge_tiers` t ON t.id=m.tier
+		'. $join .'
+		WHERE m.season="'. LOUNGE_CURRENT_SEASON .'" AND m.ended_at IS NOT NULL
+			AND m.cancelled_reason IS NULL
+		ORDER BY m.ended_at DESC, m.id DESC
+		LIMIT '. intval($offset) .','. intval($limit)
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$matches[] = array(
+			'id' => intval($row['id']),
+			'mode' => $row['mode'],
+			'tier_label' => $row['tier_label'],
+			'ended_at' => $row['ended_at'],
+			'ended_ago' => intval($row['ended_ago']),
+			'total' => 0,
+			'teams' => array(),
+			'players' => array()
+		);
+		$byId[intval($row['id'])] = count($matches) - 1;
+	}
+	if (!count($matches))
+		return $matches;
+
+	$res = mysql_query(
+		'SELECT mp.`match`, mp.player, mp.team, mp.final_score, mp.final_position,
+			mp.mmr_delta, mp.mmr_after, mp.place_after, j.nom
+		FROM `mklounge_match_players` mp
+		INNER JOIN `mkjoueurs` j ON j.id=mp.player
+		WHERE mp.`match` IN ('. implode(',', array_keys($byId)) .')
+		ORDER BY (mp.final_position IS NULL), mp.final_position, j.nom'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$index = $byId[intval($row['match'])];
+		$score = is_null($row['final_score']) ? 0 : intval($row['final_score']);
+		$matches[$index]['total'] += $score;
+		$matches[$index]['players'][] = array(
+			'id' => intval($row['player']),
+			'name' => $row['nom'],
+			'score' => $score,
+			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
+			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
+			'mmr_after' => is_null($row['mmr_after']) ? null : (int) round($row['mmr_after']),
+			'place_after' => is_null($row['place_after']) ? null : intval($row['place_after'])
+		);
+		$team = (is_null($row['team']) || (intval($row['team']) < 0)) ? null : intval($row['team']);
+		if (is_null($team))
+			continue;
+		if (!isset($matches[$index]['teams'][$team]))
+			$matches[$index]['teams'][$team] = array('team' => $team, 'score' => 0, 'names' => array());
+		$matches[$index]['teams'][$team]['score'] += $score;
+		$matches[$index]['teams'][$team]['names'][] = $row['nom'];
+	}
+	foreach ($matches as $i => $match) {
+		$teams = array_values($match['teams']);
+		usort($teams, 'lounge_compare_team_score');
+		$matches[$i]['teams'] = $teams;
+	}
+	return $matches;
+}
+
+function lounge_compare_team_score($a, $b) {
+	if ($a['score'] === $b['score'])
+		return $a['team'] - $b['team'];
+	return $b['score'] - $a['score'];
+}
+
+// One match in full: the standings table the mogi screen and the match page both draw, with
+// the rating move each player's row carries.
+function lounge_match_payload($matchId) {
 	$match = mysql_fetch_array(mysql_query(
-		'SELECT m.id, m.mode, m.ended_at,
+		'SELECT m.id, m.mode, m.started_at, m.ended_at, m.cancelled_reason,
+			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(m.ended_at) AS ended_ago,
 			t.label AS tier_label
 		FROM `mklounge_matches` m
 		INNER JOIN `mklounge_tiers` t ON t.id=m.tier
-		WHERE m.privgame_key="'. intval($privgameKey) .'"'
+		WHERE m.id="'. intval($matchId) .'"'
+	));
+	if (!$match)
+		return null;
+
+	$players = array();
+	$teams = array();
+	$total = 0;
+	$res = mysql_query(
+		'SELECT mp.player, mp.team, mp.final_score, mp.final_position, mp.mmr_before,
+			mp.mmr_after, mp.mmr_delta, mp.mmr_penalty, mp.races_played,
+			mp.place_before, mp.place_after, j.nom
+		FROM `mklounge_match_players` mp
+		INNER JOIN `mkjoueurs` j ON j.id=mp.player
+		WHERE mp.`match`="'. intval($match['id']) .'"
+		ORDER BY (mp.final_position IS NULL), mp.final_position, j.nom'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$team = (is_null($row['team']) || (intval($row['team']) < 0)) ? null : intval($row['team']);
+		$score = is_null($row['final_score']) ? null : intval($row['final_score']);
+		$total += intval($score);
+		$players[] = array(
+			'id' => intval($row['player']),
+			'name' => $row['nom'],
+			'team' => $team,
+			'score' => $score,
+			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
+			'mmr_before' => is_null($row['mmr_before']) ? null : (int) round($row['mmr_before']),
+			'mmr_after' => is_null($row['mmr_after']) ? null : (int) round($row['mmr_after']),
+			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
+			'mmr_penalty' => is_null($row['mmr_penalty']) ? null : (int) round($row['mmr_penalty']),
+			'races_played' => intval($row['races_played']),
+			'place_before' => is_null($row['place_before']) ? null : intval($row['place_before']),
+			'place_after' => is_null($row['place_after']) ? null : intval($row['place_after']),
+			'rank' => is_null($row['mmr_after']) ? null : lounge_rank_for_mmr(floatval($row['mmr_after']))
+		);
+		if (is_null($team))
+			continue;
+		if (!isset($teams[$team]))
+			$teams[$team] = array('team' => $team, 'score' => 0, 'names' => array());
+		$teams[$team]['score'] += intval($score);
+		$teams[$team]['names'][] = $row['nom'];
+	}
+	$teams = array_values($teams);
+	usort($teams, 'lounge_compare_team_score');
+
+	return array(
+		'id' => intval($match['id']),
+		'mode' => $match['mode'],
+		'tier_label' => $match['tier_label'],
+		'started_at' => $match['started_at'],
+		'ended_at' => $match['ended_at'],
+		'ended_ago' => is_null($match['ended_at']) ? null : intval($match['ended_ago']),
+		'cancelled_reason' => $match['cancelled_reason'],
+		'races' => lounge_setting('races_per_match'),
+		'total' => $total,
+		'teams' => $teams,
+		'players' => $players
+	);
+}
+
+function lounge_match_result($privgameKey, $forPlayerId) {
+	$match = mysql_fetch_array(mysql_query(
+		'SELECT id FROM `mklounge_matches` WHERE privgame_key="'. intval($privgameKey) .'"'
 	));
 	if (!$match)
 		return null;
@@ -1480,36 +1718,57 @@ function lounge_match_result($privgameKey, $forPlayerId) {
 	));
 	if (!$participant)
 		return null;
+	return lounge_match_payload(intval($match['id']));
+}
 
-	$players = array();
+// A player's own page: the season row, the stats read off their matches, and the matches
+// themselves - which double as the rating history the graph is drawn from.
+function lounge_player_profile($playerId, $matchLimit = 50) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT p.player, p.mmr, p.peak_mmr, p.games, p.wins, p.total_score, j.nom
+		FROM `mklounge_players` p
+		INNER JOIN `mkjoueurs` j ON j.id=p.player
+		WHERE p.player="'. intval($playerId) .'" AND p.season="'. LOUNGE_CURRENT_SEASON .'"
+			AND j.deleted=0'
+	));
+	if (!$row)
+		return null;
+
+	$places = lounge_ladder_places();
+	$stats = lounge_player_match_stats(array(intval($playerId)));
+	$mmr = floatval($row['mmr']);
+	$games = intval($row['games']);
+
+	$history = array();
 	$res = mysql_query(
-		'SELECT mp.player, mp.final_score, mp.final_position, mp.mmr_before, mp.mmr_after,
-			mp.mmr_delta, mp.mmr_penalty, mp.races_played, j.nom
+		'SELECT mp.`match`, mp.mmr_before, mp.mmr_after, mp.place_after
 		FROM `mklounge_match_players` mp
-		INNER JOIN `mkjoueurs` j ON j.id=mp.player
-		WHERE mp.`match`="'. intval($match['id']) .'"
-		ORDER BY (mp.final_position IS NULL), mp.final_position, j.nom'
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+		WHERE mp.player="'. intval($playerId) .'" AND m.season="'. LOUNGE_CURRENT_SEASON .'"
+			AND mp.mmr_after IS NOT NULL
+		ORDER BY m.started_at, m.id'
 	);
-	while ($row = mysql_fetch_array($res)) {
-		$players[] = array(
-			'id' => intval($row['player']),
-			'name' => $row['nom'],
-			'score' => is_null($row['final_score']) ? null : intval($row['final_score']),
-			'position' => is_null($row['final_position']) ? null : intval($row['final_position']),
-			'mmr_before' => is_null($row['mmr_before']) ? null : (int) round($row['mmr_before']),
-			'mmr_after' => is_null($row['mmr_after']) ? null : (int) round($row['mmr_after']),
-			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
-			'mmr_penalty' => is_null($row['mmr_penalty']) ? null : (int) round($row['mmr_penalty']),
-			'races_played' => intval($row['races_played'])
-		);
+	while ($point = mysql_fetch_array($res)) {
+		if (!count($history))
+			$history[] = (int) round($point['mmr_before']);
+		$history[] = (int) round($point['mmr_after']);
 	}
+
 	return array(
-		'id' => intval($match['id']),
-		'mode' => $match['mode'],
-		'tier_label' => $match['tier_label'],
-		'ended_at' => $match['ended_at'],
-		'races' => lounge_setting('races_per_match'),
-		'players' => $players
+		'id' => intval($row['player']),
+		'name' => $row['nom'],
+		'mmr' => (int) round($mmr),
+		'rank' => lounge_rank_for_mmr($mmr),
+		'place' => isset($places[intval($playerId)]) ? $places[intval($playerId)] : null,
+		'ladder_size' => count($places),
+		'games' => $games,
+		'wins' => intval($row['wins']),
+		'total_score' => intval($row['total_score']),
+		'avg_score' => $games ? round(intval($row['total_score']) / $games, 1) : null,
+		'initial_mmr' => count($history) ? $history[0] : (int) round($mmr),
+		'stats' => isset($stats[intval($playerId)]) ? $stats[intval($playerId)] : null,
+		'history' => $history,
+		'matches' => lounge_recent_matches($matchLimit, 0, intval($playerId))
 	);
 }
 
