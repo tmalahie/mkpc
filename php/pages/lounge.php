@@ -16,7 +16,7 @@ if ($id) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CT Lounge - Mario Kart PC</title>
-<link rel="stylesheet" type="text/css" href="styles/lounge.css?reload=5" />
+<link rel="stylesheet" type="text/css" href="styles/lounge.css?reload=6" />
 <script type="text/javascript">
 var language = <?php echo $language ? 'true':'false'; ?>;
 var mId = <?php echo $id ? intval($id) : 'null'; ?>;
@@ -25,7 +25,7 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 </script>
 <script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript" src="scripts/notify.js"></script>
-<script type="text/javascript" src="scripts/lounge.js?reload=2" defer></script>
+<script type="text/javascript" src="scripts/lounge.js?reload=3" defer></script>
 </head>
 <body>
 <?php if (!$id) { ?>
@@ -61,7 +61,7 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 	</section>
 
 	<section class="lounge-tabpanel" data-panel="leaderboard">
-		<div class="lounge-bar"><?php echo $language ? 'Season leaderboard':'Classement de la saison'; ?></div>
+		<div class="lounge-bar" id="lounge-lb-bar"><?php echo $language ? 'Season leaderboard':'Classement de la saison'; ?></div>
 		<div id="lounge-leaderboard">
 			<span class="lounge-loading"><?php echo $language ? 'Loading...':'Chargement...'; ?></span>
 		</div>
