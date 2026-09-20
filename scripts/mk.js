@@ -25594,10 +25594,60 @@ function selectOnlineScreen(options) {
 	updateMenuMusic(0);
 }
 
+// A lineup the player is still in outlives the overlay being shut: the lounge keeps polling
+// behind the scenes, because it is what navigates this window when the mogi starts. This chip
+// is what says so - closing used to leave no trace, and a mogi would run without its player.
+var loungeQueuedChip = null;
+function showLoungeQueuedChip(state, reopen) {
+	if (!loungeQueuedChip) {
+		loungeQueuedChip = document.createElement("button");
+		loungeQueuedChip.type = "button";
+		loungeQueuedChip.id = "lounge-queued-chip";
+		loungeQueuedChip.style.position = "fixed";
+		loungeQueuedChip.style.right = "16px";
+		loungeQueuedChip.style.bottom = "16px";
+		loungeQueuedChip.style.zIndex = "20099";
+		loungeQueuedChip.style.padding = "8px 14px";
+		loungeQueuedChip.style.font = "bold 14px Tahoma, Verdana, sans-serif";
+		loungeQueuedChip.style.background = "#2B3150";
+		loungeQueuedChip.style.color = "#FEFF3F";
+		loungeQueuedChip.style.border = "outset 2px #5A6088";
+		loungeQueuedChip.style.borderRadius = "5px";
+		loungeQueuedChip.style.cursor = "pointer";
+		loungeQueuedChip.style.boxShadow = "0 2px 12px rgba(0,0,0,0.6)";
+		document.body.appendChild(loungeQueuedChip);
+	}
+	loungeQueuedChip.onclick = reopen;
+	var label = toLanguage("Ranked lineup", "Effectif classé");
+	if (state.threshold && (state.players < state.threshold))
+		label += " " + state.players + "/" + state.threshold;
+	else
+		label += " – " + toLanguage("starting", "démarre");
+	if (state.strikes)
+		label += " · " + state.strikes + " strike" + ((state.strikes > 1) ? "s":"");
+	loungeQueuedChip.textContent = label;
+	loungeQueuedChip.title = toLanguage(
+		"You are still in a ranked lineup. Click to go back to it.",
+		"Vous êtes toujours dans un effectif classé. Cliquez pour y retourner."
+	);
+}
+function hideLoungeQueuedChip() {
+	if (loungeQueuedChip && loungeQueuedChip.parentNode)
+		loungeQueuedChip.parentNode.removeChild(loungeQueuedChip);
+	loungeQueuedChip = null;
+}
+
 window.openLoungeOverlay = openLoungeOverlay;
 function openLoungeOverlay(opts) {
-	if (document.getElementById("lounge-overlay"))
+	var oExisting = document.getElementById("lounge-overlay");
+	if (oExisting) {
+		// shut earlier while queued, so it is still in there polling: show it again rather
+		// than start a second lounge beside the first
+		oExisting.style.visibility = "";
+		oExisting.style.pointerEvents = "";
+		hideLoungeQueuedChip();
 		return;
+	}
 	if (!opts) opts = {};
 	var oOverlay = document.createElement("div");
 	oOverlay.id = "lounge-overlay";
@@ -25648,15 +25698,45 @@ function openLoungeOverlay(opts) {
 	function onKey(e) {
 		if (e.key === "Escape") closeLoungeOverlay();
 	}
-	function closeLoungeOverlay() {
+	var oLoungeState = { queued: false };
+	function isLoungeOverlayHidden() {
+		return (oOverlay.style.visibility === "hidden");
+	}
+	function onLoungeMessage(e) {
+		if ((e.source !== oFrame.contentWindow) || !e.data || !e.data.mkpcLounge)
+			return;
+		oLoungeState = e.data;
+		// dropped out, or the mogi ended, while the overlay was shut
+		if (!oLoungeState.queued && isLoungeOverlayHidden())
+			destroyLoungeOverlay();
+		else if (oLoungeState.queued && isLoungeOverlayHidden())
+			showLoungeQueuedChip(oLoungeState, function() { openLoungeOverlay(); });
+	}
+	function destroyLoungeOverlay() {
 		document.removeEventListener("keydown", onKey);
+		window.removeEventListener("message", onLoungeMessage);
+		hideLoungeQueuedChip();
 		if (oOverlay.parentNode)
 			oOverlay.parentNode.removeChild(oOverlay);
+	}
+	function closeLoungeOverlay() {
+		// Still in a lineup: keep the lounge running out of sight, so it can still take this
+		// window to the race, and leave the chip behind as the way back.
+		if (oLoungeState.queued) {
+			// visibility rather than display: display:none takes the frame out of the tree and
+			// its timers with it, and this lounge still has a race to send the player to.
+			oOverlay.style.visibility = "hidden";
+			oOverlay.style.pointerEvents = "none";
+			showLoungeQueuedChip(oLoungeState, function() { openLoungeOverlay(); });
+			return;
+		}
+		destroyLoungeOverlay();
 		// the ranked flow replaces the game screen, so there is nothing to go back to
 		if (opts.perso)
 			document.location.reload();
 	}
 	document.addEventListener("keydown", onKey);
+	window.addEventListener("message", onLoungeMessage);
 
 	document.body.appendChild(oOverlay);
 }
