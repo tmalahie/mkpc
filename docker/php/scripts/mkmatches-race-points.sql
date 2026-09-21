@@ -5,11 +5,14 @@
 -- `link` is the private game the race belonged to (0 for a public one). `mkmatches`.`course`
 -- is the room, and rooms live in a MEMORY table - the id is gone, and reusable, the moment
 -- the game ends. The link is what a custom game's races can still be grouped by a week later.
+-- `race` is which race of that game it was, so a mogi's races can be banded without counting
+-- rows and without assuming nobody is missing one. Public races have no game to count within.
 --
 -- On a table this size (~3.3M rows in production) the ALTER rebuilds it, so expect it to
 -- take a minute and to need the room for a second copy.
 ALTER TABLE `mkmatches`
   ADD COLUMN IF NOT EXISTS `link` int(10) unsigned NOT NULL DEFAULT 0 AFTER `course`,
+  ADD COLUMN IF NOT EXISTS `race` smallint(5) unsigned NOT NULL DEFAULT 0 AFTER `link`,
   ADD COLUMN IF NOT EXISTS `pts_before` int(11) DEFAULT NULL AFTER `rank`,
   ADD COLUMN IF NOT EXISTS `pts_inc` smallint(6) DEFAULT NULL AFTER `pts_before`,
   ADD KEY IF NOT EXISTS `link` (`link`);
