@@ -768,12 +768,16 @@
 
 		if (!match.teams.length) {
 			appendMatchPlayers(table, match, match.players, me, bands);
+			// A cell per column rather than a pair of spans: the mogi's total belongs under the
+			// Score heading, and a span wide enough to reach it puts the number somewhere else.
 			var total = lbRow('lounge-results-total', [
 				lbCell('td', 'lounge-results-totallabel', toLanguage('Total', 'Total')),
-				lbCell('td', 'lounge-results-score', match.total)
+				lbCell('td', null, '')
 			]);
-			total.firstChild.colSpan = 2 + bands.length;
-			total.lastChild.colSpan = 2;
+			for (var b2 = 0; b2 < bands.length; b2++)
+				total.appendChild(lbCell('td', null, ''));
+			total.appendChild(lbCell('td', 'lounge-results-score', match.total));
+			total.appendChild(lbCell('td', null, ''));
 			table.appendChild(total);
 			return table;
 		}
@@ -785,10 +789,12 @@
 			var header = lbRow('lounge-results-teamhead', [
 				lbCell('td', 'lounge-results-place', '#' + (i + 1)),
 				lbCell('td', 'lounge-results-teamname', name),
-				lbCell('td', 'lounge-results-score', team.score)
+				lbCell('td', 'lounge-results-score', team.score),
+				lbCell('td', null, '')
 			]);
+			// the name takes the room the bands leave it; the side's total stays in the score
+			// column, over the scores it is the sum of
 			header.childNodes[1].colSpan = 1 + bands.length;
-			header.childNodes[2].colSpan = 2;
 			table.appendChild(header);
 			var members = [];
 			for (var j = 0; j < match.players.length; j++) {
