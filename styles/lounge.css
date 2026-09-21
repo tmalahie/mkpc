@@ -1409,9 +1409,13 @@ a {
 	font-size: 12px;
 }
 
-.lounge-match-row:focus-visible {
+/* the row follows a real link now, so the focus ring belongs on what is focusable */
+.lounge-match-link:focus-visible,
+.lounge-lb-playerlink:focus-visible,
+.lounge-lb-viewall:focus-visible,
+.lounge-lb-back:focus-visible {
 	outline: solid 2px var(--lounge-hot);
-	outline-offset: -2px;
+	outline-offset: 2px;
 }
 
 .lounge-playername {
@@ -1424,4 +1428,13 @@ a {
 	width: 16px;
 	height: 11px;
 	border: solid 1px rgba(0, 0, 0, 0.4);
+}
+
+.lounge-match-link {
+	color: inherit;
+	text-decoration: none;
+}
+
+.lounge-match-row:hover .lounge-match-link {
+	text-decoration: underline;
 }

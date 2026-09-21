@@ -209,13 +209,34 @@
 		return table;
 	}
 
-	function lbButton(className, label, onclick) {
-		var button = document.createElement('button');
-		button.type = 'button';
-		button.className = className;
-		button.textContent = label;
-		button.addEventListener('click', onclick);
-		return button;
+	// Every view has an address of its own. A page rather than a redraw: a mogi can be pasted
+	// into the Discord, and the browser's own Back button steps through the leaderboard
+	// instead of leaving the lounge altogether.
+	function lbUrl(params) {
+		var kept = [];
+		var query = location.search.replace(/^\?/, '');
+		var parts = query ? query.split('&') : [];
+		for (var i = 0; i < parts.length; i++) {
+			var name = parts[i].split('=')[0];
+			// which view is open is what this link sets; perso and key belong to the player's
+			// own session in here and have to survive the trip
+			if ((name !== 'tab') && (name !== 'view') && (name !== 'player') && (name !== 'match'))
+				kept.push(parts[i]);
+		}
+		kept.push('tab=leaderboard');
+		for (var key in params) {
+			if (params.hasOwnProperty(key))
+				kept.push(key + '=' + encodeURIComponent(params[key]));
+		}
+		return 'lounge.php?' + kept.join('&');
+	}
+
+	function lbLink(className, label, href) {
+		var link = document.createElement('a');
+		link.className = className;
+		link.href = href;
+		link.textContent = label;
+		return link;
 	}
 
 	function lbCard(titleEn, titleFr, viewAll) {
@@ -227,14 +248,13 @@
 		title.textContent = toLanguage(titleEn, titleFr);
 		head.appendChild(title);
 		if (viewAll)
-			head.appendChild(lbButton('lounge-lb-viewall', toLanguage('View all', 'Tout voir'), viewAll));
+			head.appendChild(lbLink('lounge-lb-viewall', toLanguage('View all', 'Tout voir'), viewAll));
 		card.appendChild(head);
 		return card;
 	}
 
-	function lbBack(en, fr, onclick) {
-		var back = lbButton('lounge-lb-back', '‹ ' + toLanguage(en, fr), onclick);
-		return back;
+	function lbBack(en, fr) {
+		return lbLink('lounge-lb-back', '‹ ' + toLanguage(en, fr), lbUrl({}));
 	}
 
 	// Coarse on purpose: these read "when was this", not "how long exactly". Seconds come from
@@ -288,17 +308,7 @@
 	}
 
 	function playerLink(player) {
-		var link = document.createElement('a');
-		link.className = 'lounge-lb-playerlink';
-		link.href = '#';
-		link.textContent = player.name;
-		link.addEventListener('click', function(e) {
-			e.preventDefault();
-			// A name clicked in a mogi's own table is on the queue panel, not this one.
-			activateLoungeTab('leaderboard');
-			showLoungePlayer(player.id);
-		});
-		return link;
+		return lbLink('lounge-lb-playerlink', player.name, lbUrl({ player: player.id }));
 	}
 
 	// Same convention as the site's other leaderboards: the file may not exist for every code,
@@ -363,8 +373,9 @@
 		list.className = 'lounge-matchlist';
 		for (var i = 0; i < matches.length; i++) {
 			var match = matches[i];
+			var href = lbUrl({ match: match.id });
 			var cells = [
-				lbCell('td', 'lounge-match-id', '#' + match.id),
+				lbCell('td', 'lounge-match-id', lbLink('lounge-match-link', '#' + match.id, href)),
 				lbCell('td', 'lounge-match-chips', matchScoreChips(match))
 			];
 			if (showMine) {
@@ -378,24 +389,18 @@
 			}
 			cells.push(lbCell('td', 'lounge-match-ago', timeAgo(match.ended_ago)));
 			var line = lbRow('lounge-match-row', cells);
-			line.setAttribute('data-match', match.id);
-			line.setAttribute('role', 'button');
-			line.setAttribute('tabindex', '0');
+			// the whole line follows its own link, so the id does not have to be hit exactly
+			line.setAttribute('data-href', href);
 			line.addEventListener('click', onMatchRowClick);
-			line.addEventListener('keydown', onMatchRowKey);
 			list.appendChild(line);
 		}
 		return list;
 	}
 
-	function onMatchRowClick() {
-		showLoungeMatch(parseInt(this.getAttribute('data-match'), 10));
-	}
-
-	function onMatchRowKey(e) {
-		if ((e.key !== 'Enter') && (e.key !== ' ')) return;
-		e.preventDefault();
-		onMatchRowClick.call(this);
+	function onMatchRowClick(e) {
+		// the link in the row does its own navigating, modifier clicks included
+		if (e.target.tagName.toLowerCase() === 'a') return;
+		location.href = this.getAttribute('data-href');
 	}
 
 	function topPlayersTable(players, me) {
@@ -426,8 +431,8 @@
 		lbBar('Season leaderboard', 'Classement de la saison');
 		var split = document.createElement('div');
 		split.className = 'lounge-lb-split';
-		var playersCard = lbCard('Top players', 'Meilleurs joueurs', showLoungePlayers);
-		var matchesCard = lbCard('Recent matches', 'Derniers mogis', showLoungeMatches);
+		var playersCard = lbCard('Top players', 'Meilleurs joueurs', lbUrl({ view: 'players' }));
+		var matchesCard = lbCard('Recent matches', 'Derniers mogis', lbUrl({ view: 'matches' }));
 		split.appendChild(playersCard);
 		split.appendChild(matchesCard);
 		container.innerHTML = '';
@@ -501,7 +506,7 @@
 		postJSON('lounge/leaderboard.php', 'limit=' + LB_ALL_PLAYERS + '&full=1', function(data) {
 			if (!data || data.error || !data.players) return;
 			container.innerHTML = '';
-			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement'));
 			if (!data.players.length) {
 				lbEmpty(container,
 					'No mogi has been played yet this season.',
@@ -536,7 +541,7 @@
 		postJSON('lounge/matches.php', 'limit=' + LB_ALL_MATCHES, function(data) {
 			if (!data || data.error || !data.matches) return;
 			container.innerHTML = '';
-			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement'));
 			if (!data.matches.length) {
 				lbEmpty(container, 'No mogi yet.', 'Aucun mogi pour le moment.');
 				return;
@@ -617,7 +622,7 @@
 		postJSON('lounge/player.php', 'player=' + encodeURIComponent(playerId), function(data) {
 			if (!data || data.error) return;
 			container.innerHTML = '';
-			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement'));
 			if (!data.player) {
 				lbBar('Player stats', 'Statistiques du joueur');
 				lbEmpty(container,
@@ -675,7 +680,7 @@
 		postJSON('lounge/match.php', 'match=' + encodeURIComponent(matchId), function(data) {
 			if (!data || data.error) return;
 			container.innerHTML = '';
-			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement', showLoungeOverview));
+			container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement'));
 			if (!data.match) {
 				lbBar('Mogi results', 'Résultats du mogi');
 				lbEmpty(container, 'This mogi does not exist.', 'Ce mogi n\'existe pas.');
@@ -820,8 +825,8 @@
 		return box;
 	}
 
-	// A link straight to a player or a mogi, so a result can be pasted into the Discord and
-	// open on the thing being talked about rather than on the leaderboard.
+	// Which view the address asks for, once: clicking the Leaderboard tab afterwards is a
+	// request for the leaderboard itself, not for whatever was last looked up.
 	var lbRouted = false;
 
 	function loadLeaderboard() {
