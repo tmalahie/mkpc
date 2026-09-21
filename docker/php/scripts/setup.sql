@@ -1006,6 +1006,7 @@ CREATE TABLE `mkmatches` (
   `player` int(11) NOT NULL,
   `course` int(11) NOT NULL,
   `link` int(10) unsigned NOT NULL DEFAULT 0,
+  `race` smallint(5) unsigned NOT NULL DEFAULT 0,
   `rank` tinyint(4) NOT NULL,
   `pts_before` int(11) DEFAULT NULL,
   `pts_inc` smallint(6) DEFAULT NULL,

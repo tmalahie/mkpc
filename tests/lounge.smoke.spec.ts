@@ -684,6 +684,9 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
 
 	await expect(page.locator('.lounge-profile-name')).toHaveText('Match #' + staged.matchId);
+	// nothing recorded per race for this one, so the table stays as it was
+	expect(await page.locator('.lounge-results-table th').allTextContents())
+		.toEqual(['Place', 'Player', 'Score', 'Races']);
 	const standings = page.locator('.lounge-results-row');
 	await expect(standings).toHaveCount(4);
 	await expect(standings.first().locator('.lounge-results-place')).toHaveText('1');
@@ -710,6 +713,45 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 	await standings.nth(1).locator('.lounge-lb-playerlink').click();
 	await expect(page.locator('.lounge-profile-name')).toHaveText(loungeBotName('lbmatch', 2));
 	await expect(page.locator('.lounge-profile-grid')).toContainText('915');
+});
+
+// The ladder splits a mogi's score into runs of four races - 27 | 33 | 26 beside the 86 they
+// add up to - which needs the per-race points `mkmatches` now carries.
+test('a mogi with its races recorded shows what each run of four was worth', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 65;
+	const staged = await stageFinishedMatch(key, 'lbband', 'FFA', [
+		{ score: 24, before: 1000, after: 1020, placeBefore: 3, placeAfter: 3 },
+		{ score: 12, before: 900, after: 880, placeBefore: 4, placeAfter: 4 },
+	]);
+	// twelve races, the winner taking two points a race and the other one
+	for (let race = 1; race <= 12; race++) {
+		for (let i = 0; i < staged.ids.length; i++)
+			await sql(
+				`INSERT INTO mkmatches SET player = ?, course = 0, link = ?, race = ?,
+				 \`rank\` = ?, pts_before = ?, pts_inc = ?`,
+				[staged.ids[i], key, race, i + 1, (race - 1) * (2 - i), 2 - i]
+			);
+	}
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
+
+	expect(await page.locator('.lounge-results-table th').allTextContents())
+		.toEqual(['Place', 'Player', '1\u20134', '5\u20138', '9\u201312', 'Score', 'Races']);
+	const bands = page.locator('.lounge-results-row').first().locator('.lounge-results-band');
+	await expect(bands).toHaveCount(3);
+	// four races at two points each, three times over, and the score they add up to
+	expect(await bands.allTextContents()).toEqual(['8', '8', '8']);
+	await expect(page.locator('.lounge-results-row').first().locator('.lounge-results-score'))
+		.toHaveText('24');
+	expect(await page.locator('.lounge-results-row').nth(1).locator('.lounge-results-band')
+		.allTextContents()).toEqual(['4', '4', '4']);
+
+	// the total row still spans the table it sits under
+	const total = page.locator('.lounge-results-total td');
+	expect(await total.first().getAttribute('colspan')).toBe('5');
+	await expect(total.last()).toHaveText('36');
 });
 
 test('a team mogi groups its table by side, the way it was raced', async ({ page }) => {
