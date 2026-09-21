@@ -116,6 +116,9 @@ export async function cleanupLoungeFixtures() {
     await sql('DELETE FROM mklounge_queue_members WHERE player IN (?)', [ids]);
     await sql('DELETE FROM mklounge_players WHERE player IN (?)', [ids]);
     await sql('DELETE FROM mkgamerank WHERE player IN (?)', [ids]);
+    // one row per race per player, and it feeds the site's activity counters - a spec that
+    // drives a race to its end has to take its own rows back out
+    await sql('DELETE FROM mkmatches WHERE player IN (?)', [ids]);
     await sql('DELETE FROM mkjoueurs WHERE id IN (?)', [ids]);
   }
   if (ids.length) await sql('DELETE FROM mkplayers WHERE id IN (?)', [ids]);
@@ -137,6 +140,7 @@ export async function cleanupLoungeFixtures() {
   await sql('DELETE FROM mkprivgame WHERE id BETWEEN ? AND ?', range);
   await sql('DELETE FROM mkgamedata WHERE game BETWEEN ? AND ?', range);
   await sql('DELETE FROM mkgamerank WHERE game BETWEEN ? AND ?', range);
+  await sql('DELETE FROM mkmatches WHERE link BETWEEN ? AND ?', range);
 }
 
 // Entry to ranked needs online VS points, an account past a minimum age and a one-off
