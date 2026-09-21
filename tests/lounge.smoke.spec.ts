@@ -297,6 +297,39 @@ test('closing the lounge while queued keeps it running, and says so', async ({ p
 	await expect(chip).toHaveCount(0);
 });
 
+// The ranked flow replaced the game screen to get here, so hiding the overlay would leave a
+// dark screen and a chip on it. The cross says why it will not close instead.
+test('the lounge will not close onto a dark screen while the player is in a lineup', async ({ page }) => {
+	test.setTimeout(90000);
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php',
+		{ form: { tier: String(tier.id) } });
+
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	await page.waitForFunction(() => typeof window['openLoungeOverlay'] === 'function', null,
+		{ timeout: 30000 });
+	// perso is what the ranked flow passes, and what says there is no screen underneath
+	await page.evaluate(() => window['openLoungeOverlay']({ perso: 'mario' }));
+	const overlay = page.locator('#lounge-overlay');
+	await expect(page.frameLocator('#lounge-overlay iframe').locator('.lounge-alerts-toggle'))
+		.toBeVisible({ timeout: 20000 });
+
+	const close = overlay.locator('button').first();
+	await expect(close).toHaveAttribute('title', 'You are in a ranked lineup');
+	await close.click();
+	await expect(page.locator('#lounge-notice')).toHaveText(/leave it below before closing/);
+	// still there, still shown, and no chip pretending to be the way back
+	expect(await overlay.evaluate((o: HTMLElement) => o.style.visibility)).toBe('');
+	await expect(page.locator('#lounge-queued-chip')).toHaveCount(0);
+
+	// out of the lineup, the cross is a cross again
+	await ageJoins();
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await expect(close).toHaveAttribute('title', 'Close', { timeout: 20000 });
+});
+
 // The lineup notification is only ever sent to a player who could enter ranked, so the switch
 // for it is only offered to one.
 test('the notification settings carry the ranked lineup alert, for eligible players only', async ({ page }) => {
