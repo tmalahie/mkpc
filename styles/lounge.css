@@ -755,6 +755,9 @@ a {
 	font-variant-numeric: tabular-nums;
 }
 
+/* Alignment for these two tables is set here and on their cells below, never per column:
+   `.lounge-results-table td` outranks a lone column class, so a column that aligned itself
+   moved its own heading and left the cells centred under it. */
 .lounge-results-table th,
 .lounge-leaderboard-table th {
 	font-family: var(--lounge-mono);
@@ -762,6 +765,7 @@ a {
 	font-weight: normal;
 	letter-spacing: 0.07em;
 	text-transform: uppercase;
+	text-align: center;
 	color: var(--lounge-legend);
 	background: rgba(34, 34, 85, 0.55);
 	padding: 5px 8px;
@@ -799,11 +803,7 @@ a {
 
 .lounge-results-score,
 .lounge-results-races,
-.lounge-results-mmr,
-.lounge-lb-mmr,
-.lounge-lb-games,
-.lounge-lb-avg {
-	text-align: right;
+.lounge-lb-mmr {
 	white-space: nowrap;
 }
 
@@ -1125,16 +1125,11 @@ a {
 }
 
 .lounge-lb-num {
-	text-align: right;
 	white-space: nowrap;
 }
 
 .lounge-lb-mmr.is-strong {
 	font-weight: bold;
-}
-
-.lounge-lb-name {
-	text-align: left;
 }
 
 /* The recent-matches list: an id, who scored what, and how long ago. */
@@ -1217,10 +1212,6 @@ a {
 	font-weight: bold;
 }
 
-.lounge-results-teamname {
-	text-align: left;
-}
-
 .lounge-teamswatch {
 	display: inline-block;
 	width: 10px;
@@ -1244,7 +1235,7 @@ a {
 }
 
 .lounge-results-totallabel {
-	text-align: left;
+	white-space: nowrap;
 	letter-spacing: 0.07em;
 	text-transform: uppercase;
 	font-size: 11px;
@@ -1441,7 +1432,6 @@ a {
 
 /* Each column is a run of races, the way the ladder splits a mogi's score up. */
 .lounge-results-band {
-	text-align: right;
 	white-space: nowrap;
 	color: var(--lounge-dim);
 }
