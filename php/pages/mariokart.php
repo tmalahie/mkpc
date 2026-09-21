@@ -1,12 +1,6 @@
 <?php
 include('../includes/language.php');
-include('../includes/session.php');
 include('../includes/initdb.php');
-// The online menu inside mk.js offers ranked, and this is the page that menu is reached from.
-// online.php works out the same flag for itself; the criteria are checked server-side either
-// way, so a player short of them gets no button rather than one that turns them away.
-require_once('../includes/lounge/common.php');
-$loungeEligible = lounge_is_eligible($id);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -33,7 +27,6 @@ var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkpla
 var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
 var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? $_COOKIE['mkdifficulty']:1); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
-var loungeEligible = <?php echo $loungeEligible ? 'true':'false'; ?>;
 var lCircuits = <?php
 include_once('circuitNames.php');
 echo json_encode($circuitNames);
