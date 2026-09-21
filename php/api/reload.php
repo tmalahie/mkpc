@@ -390,7 +390,11 @@ if ($id) {
 					echo ($v ? ',':'') .'['.$player['id'].','.json_encode($playerName).','.$player['aPts'].','.$inc.','.$player['team'].','.$player['finaltime'].']';
 					$nPts = $player['aPts']+$inc;
 					if ($finishing) {
-						$shouldLog = $isFriendly && !$player['cpu'];
+						// A kart with an account behind it raced for that member even when a bot
+						// drove it: a custom game keeps scoring it, and the lounge substitutes
+						// one for an absent player without taking the points away from them.
+						$isMemberRace = !$player['cpu'] || ($isLocal && !is_null($player['nom']));
+						$shouldLog = $isFriendly && $isMemberRace;
 						if (($nPts != $player['aPts']) || $isLocal) {
 							if ($isLocal)
 								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $player['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
@@ -401,8 +405,17 @@ if ($id) {
 							else
 								$shouldLog = false;
 						}
+						// What the race was worth, next to the place it was finished in: the
+						// points held before it and what it moved them by. The total after is
+						// the two added up, so it is not stored twice - and either number on
+						// its own says nothing.
 						if ($shouldLog)
-							mysql_query('INSERT INTO `mkmatches` SET player='. $player['id'] .',course='. $course .',`rank`='. $i);
+							mysql_query('INSERT INTO `mkmatches` SET player='. $player['id']
+								.',course='. $course
+								.',link='. ($courseOptions ? intval($courseOptions['id']) : 0)
+								.',`rank`='. $i
+								.',pts_before='. intval($player['aPts'])
+								.',pts_inc='. intval($inc));
 					}
 				}
 				echo '],'.($mkState['time']-$time);
