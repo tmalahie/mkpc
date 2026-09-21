@@ -1636,11 +1636,42 @@ function lounge_compare_team_score($a, $b) {
 	return $b['score'] - $a['score'];
 }
 
+// What each race of a mogi was worth, per player. `mkmatches` carries one row per player per
+// race with the points that race moved, keyed on the private game rather than on the room -
+// which is what makes it still readable once the room is long gone.
+function lounge_match_race_points($privgameKey) {
+	$points = array('races' => 0, 'players' => array());
+	if (!$privgameKey)
+		return $points;
+	$res = mysql_query(
+		'SELECT player, race, pts_inc FROM `mkmatches`
+		WHERE link="'. intval($privgameKey) .'" AND race>0'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$race = intval($row['race']);
+		$points['players'][intval($row['player'])][$race] = intval($row['pts_inc']);
+		$points['races'] = max($points['races'], $race);
+	}
+	return $points;
+}
+
+// Dense, in race order, so the client can band it without knowing which races exist. A race
+// nobody logged for this player is null rather than a zero it did not score.
+function lounge_race_points_for($points, $playerId) {
+	if (!$points['races'] || !isset($points['players'][$playerId]))
+		return array();
+	$own = $points['players'][$playerId];
+	$dense = array();
+	for ($race = 1; $race <= $points['races']; $race++)
+		$dense[] = isset($own[$race]) ? $own[$race] : null;
+	return $dense;
+}
+
 // One match in full: the standings table the mogi screen and the match page both draw, with
 // the rating move each player's row carries.
 function lounge_match_payload($matchId) {
 	$match = mysql_fetch_array(mysql_query(
-		'SELECT m.id, m.mode, m.started_at, m.ended_at, m.cancelled_reason,
+		'SELECT m.id, m.mode, m.privgame_key, m.started_at, m.ended_at, m.cancelled_reason,
 			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(m.ended_at) AS ended_ago,
 			t.label AS tier_label
 		FROM `mklounge_matches` m
@@ -1649,6 +1680,7 @@ function lounge_match_payload($matchId) {
 	));
 	if (!$match)
 		return null;
+	$racePoints = lounge_match_race_points(intval($match['privgame_key']));
 
 	$players = array();
 	$teams = array();
@@ -1680,6 +1712,7 @@ function lounge_match_payload($matchId) {
 			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
 			'mmr_penalty' => is_null($row['mmr_penalty']) ? null : (int) round($row['mmr_penalty']),
 			'races_played' => intval($row['races_played']),
+			'race_points' => lounge_race_points_for($racePoints, intval($row['player'])),
 			'place_before' => is_null($row['place_before']) ? null : intval($row['place_before']),
 			'place_after' => is_null($row['place_after']) ? null : intval($row['place_after']),
 			'rank' => is_null($row['mmr_after']) ? null : lounge_rank_for_mmr(floatval($row['mmr_after']))
