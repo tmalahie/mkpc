@@ -1438,3 +1438,14 @@ a {
 .lounge-match-row:hover .lounge-match-link {
 	text-decoration: underline;
 }
+
+/* Each column is a run of races, the way the ladder splits a mogi's score up. */
+.lounge-results-band {
+	text-align: right;
+	white-space: nowrap;
+	color: var(--lounge-dim);
+}
+
+.lounge-results-row.is-self .lounge-results-band {
+	color: inherit;
+}
