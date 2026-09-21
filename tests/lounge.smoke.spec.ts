@@ -618,9 +618,18 @@ test('the leaderboard opens on the top players beside the last mogis', async ({ 
 
 	// the right-hand "view all" opens the whole list, and the back link returns to the split
 	await cards.nth(1).locator('.lounge-lb-viewall').click();
+	await expect(page).toHaveURL(/tab=leaderboard&view=matches/);
 	await expect(page.locator('#lounge-lb-bar')).toHaveText('Recent matches');
 	await expect(page.locator('.lounge-match-row').first()).toBeVisible();
 	await page.locator('.lounge-lb-back').click();
+	await expect(page.locator('.lounge-lb-card')).toHaveCount(2);
+
+	// each view is an address, so a mogi can be linked to and the browser's Back button
+	// steps through the leaderboard rather than out of the lounge
+	await latest.click();
+	await expect(page).toHaveURL(new RegExp('match=' + staged.matchId + '$'));
+	await expect(page.locator('.lounge-profile-name')).toHaveText('Match #' + staged.matchId);
+	await page.goBack();
 	await expect(page.locator('.lounge-lb-card')).toHaveCount(2);
 });
 
