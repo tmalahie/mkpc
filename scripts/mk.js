@@ -25686,6 +25686,49 @@ function openLoungeOverlay(opts) {
 	oClose.onclick = closeLoungeOverlay;
 	oOverlay.appendChild(oClose);
 
+	// Opened over the ranked flow there is no game screen underneath - it was replaced to get
+	// here - so closing has nowhere to put the player. Not somewhere the cross can be obeyed.
+	function canCloseWhileQueued() {
+		return !opts.perso;
+	}
+	function syncCloseButton() {
+		var refuses = (oLoungeState.queued && !canCloseWhileQueued());
+		oClose.style.opacity = refuses ? "0.45":"";
+		oClose.style.cursor = refuses ? "default":"pointer";
+		oClose.title = refuses
+			? toLanguage("You are in a ranked lineup", "Vous êtes dans un effectif classé")
+			: toLanguage("Close", "Fermer");
+	}
+	var oNotice = null, noticeTimer = null;
+	function showLoungeNotice(text) {
+		if (!oNotice) {
+			oNotice = document.createElement("div");
+			oNotice.id = "lounge-notice";
+			oNotice.style.position = "absolute";
+			oNotice.style.left = "50%";
+			// clear of the cross it is explaining, which sits in the corner at 16px
+			oNotice.style.top = "62px";
+			oNotice.style.transform = "translateX(-50%)";
+			oNotice.style.maxWidth = "min(520px, 80vw)";
+			oNotice.style.padding = "9px 15px";
+			oNotice.style.font = "bold 14px Tahoma, Verdana, sans-serif";
+			oNotice.style.textAlign = "center";
+			oNotice.style.background = "#6A1A1A";
+			oNotice.style.color = "#FFD9CF";
+			oNotice.style.border = "outset 2px #9C4444";
+			oNotice.style.borderRadius = "5px";
+			oNotice.style.boxShadow = "0 2px 12px rgba(0,0,0,0.6)";
+			oOverlay.appendChild(oNotice);
+		}
+		oNotice.textContent = text;
+		if (noticeTimer) clearTimeout(noticeTimer);
+		noticeTimer = setTimeout(function() {
+			if (oNotice.parentNode)
+				oNotice.parentNode.removeChild(oNotice);
+			oNotice = null;
+		}, 5000);
+	}
+
 	function onKey(e) {
 		if (e.key === "Escape") closeLoungeOverlay();
 	}
@@ -25697,6 +25740,7 @@ function openLoungeOverlay(opts) {
 		if ((e.source !== oFrame.contentWindow) || !e.data || !e.data.mkpcLounge)
 			return;
 		oLoungeState = e.data;
+		syncCloseButton();
 		// dropped out, or the mogi ended, while the overlay was shut
 		if (!oLoungeState.queued && isLoungeOverlayHidden())
 			destroyLoungeOverlay();
@@ -25711,9 +25755,19 @@ function openLoungeOverlay(opts) {
 			oOverlay.parentNode.removeChild(oOverlay);
 	}
 	function closeLoungeOverlay() {
-		// Still in a lineup: keep the lounge running out of sight, so it can still take this
-		// window to the race, and leave the chip behind as the way back.
 		if (oLoungeState.queued) {
+			// Nowhere to go: hiding the overlay would leave a dark screen and a chip, which is
+			// no use to anybody. Say why it will not close instead - the lounge has to stay
+			// put, because it is what takes this window to the race.
+			if (!canCloseWhileQueued()) {
+				showLoungeNotice(toLanguage(
+					"You are in a ranked lineup - leave it below before closing the lounge.",
+					"Vous êtes dans un effectif classé : quittez-le ci-dessous avant de fermer le lounge."
+				));
+				return;
+			}
+			// Still in a lineup, and there is a screen to go back to: keep the lounge running
+			// out of sight, and leave the chip behind as the way back in.
 			// visibility rather than display: display:none takes the frame out of the tree and
 			// its timers with it, and this lounge still has a race to send the player to.
 			oOverlay.style.visibility = "hidden";
