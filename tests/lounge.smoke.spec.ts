@@ -748,10 +748,21 @@ test('a mogi with its races recorded shows what each run of four was worth', asy
 	expect(await page.locator('.lounge-results-row').nth(1).locator('.lounge-results-band')
 		.allTextContents()).toEqual(['4', '4', '4']);
 
-	// the total row still spans the table it sits under
-	const total = page.locator('.lounge-results-total td');
-	expect(await total.first().getAttribute('colspan')).toBe('5');
-	await expect(total.last()).toHaveText('36');
+	// and the mogi's total sits in the score column with the scores it is the sum of, on a
+	// row as wide as the table: a heading that does not sit over its own cells is the bug
+	// this table had before.
+	const columns = await page.locator('.lounge-results-table th').count();
+	await expect(page.locator('.lounge-results-total td')).toHaveCount(columns);
+	await expect(page.locator('.lounge-results-total td.lounge-results-score')).toHaveText('36');
+	const centres = await page.evaluate(() => {
+		const mid = (sel) => {
+			const box = document.querySelector(sel).getBoundingClientRect();
+			return Math.round(box.left + box.width / 2);
+		};
+		return [mid('th.lounge-results-score'), mid('.lounge-results-row td.lounge-results-score'),
+			mid('.lounge-results-total td.lounge-results-score')];
+	});
+	expect(new Set(centres).size).toBe(1);
 });
 
 test('a team mogi groups its table by side, the way it was raced', async ({ page }) => {
