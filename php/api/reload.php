@@ -261,6 +261,8 @@ if ($id) {
 					if ($isLocal) {
 						require_once('../includes/onlineStateUtils.php');
 						incCourseState($courseOptions['id']);
+						// which race of this game just ended, for the rows logged below
+						$raceNumber = intval(getCourseState($courseOptions['id'])['raceCount']);
 						// nobody sits on the lounge page during a mogi, so the lounge tick
 						// never runs while one is being played: this is its only heartbeat
 						if (!empty($courseRules->lounge)) {
@@ -413,6 +415,7 @@ if ($id) {
 							mysql_query('INSERT INTO `mkmatches` SET player='. $player['id']
 								.',course='. $course
 								.',link='. ($courseOptions ? intval($courseOptions['id']) : 0)
+								.',race='. (isset($raceNumber) ? $raceNumber : 0)
 								.',`rank`='. $i
 								.',pts_before='. intval($player['aPts'])
 								.',pts_inc='. intval($inc));
