@@ -1005,12 +1005,16 @@ CREATE TABLE `mkmatches` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
   `course` int(11) NOT NULL,
+  `link` int(10) unsigned NOT NULL DEFAULT 0,
   `rank` tinyint(4) NOT NULL,
+  `pts_before` int(11) DEFAULT NULL,
+  `pts_inc` smallint(6) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `player` (`player`),
-  KEY `course` (`course`)
+  KEY `course` (`course`),
+  KEY `link` (`link`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
