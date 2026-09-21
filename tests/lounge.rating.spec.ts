@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { sql } from './helpers/db';
-import { LOUNGE_KEY_MIN, createLoungeBots, loungeBotPattern } from './helpers/lounge';
+import { LOUNGE_KEY_MIN, createLoungeBots, loungeBotName, loungeBotPattern, LOUNGE_BOT_PASSWORD } from './helpers/lounge';
 
 // lounge_tick() only runs for a logged-in caller, so the tick that finishes the match has
 // to come from a real session.
@@ -493,4 +493,101 @@ test('a rated mogi records where it left every player on the ladder', async ({ p
 		`SELECT place_before, place_after FROM mklounge_match_players
 		 WHERE \`match\` = ? AND player = ?`, [match.id, players[0]]);
 	expect(winner.place_after).toBeLessThanOrEqual(winner.place_before);
+});
+
+// The points a single race was worth, which nothing recorded before: `mkmatches` held the
+// finishing position and nothing else, so a mogi's score could only ever be read as one
+// number. reload.php is the only place that knows them, so the race is driven through it.
+test('a finished race records what it was worth, and which game it belonged to', async ({ page }) => {
+	const key = LOUNGE_KEY_MIN + 11;
+	const players = await createLoungeBots(2, 'racepts');
+	// a custom game with a point distribution of its own, the shape a lounge room uses
+	await sql(
+		`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)`,
+		[key, JSON.stringify({
+			friendly: 1, localScore: 1, minPlayers: 2, maxPlayers: 2, raceLimit: 12,
+			ptDistrib: { value: [10, 4], name: '2p' },
+		})]
+	);
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000), key]
+	);
+	// both karts over the line, so the race is finished and reload.php scores it
+	for (let i = 0; i < players.length; i++)
+		await sql(
+			`INSERT INTO mkplayers (id, course, team, controller, tours, place, aPts, connecte, finaltime, finalts)
+			 VALUES (?, ?, -1, 0, 4, ?, ?, 0, 0, 0)`,
+			[players[i], room.insertId, i + 1, i === 0 ? 25 : 8]
+		);
+
+	// reload.php reads the caller's room off their own account
+	await login(page, loungeBotName('racepts', 1), LOUNGE_BOT_PASSWORD);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, players[0]]);
+	const res = await page.request.post('http://127.0.0.1:8080/api/reload.php', {
+		data: { laps: 3 },
+	});
+	expect(res.ok()).toBeTruthy();
+
+	const rows: any[] = await sql(
+		`SELECT player, \`rank\`, link, pts_before, pts_inc FROM mkmatches
+		 WHERE link = ? AND player IN (?) ORDER BY \`rank\``, [key, players]);
+	expect(rows).toHaveLength(2);
+	// the distribution decided the points, the room's running totals were the before
+	expect(rows.map(r => r.pts_inc)).toEqual([10, 4]);
+	expect(rows.map(r => r.pts_before)).toEqual([25, 8]);
+	expect(rows.map(r => r.player)).toEqual(players);
+	// the link, not the room: rooms live in a MEMORY table and this one is already gone
+	expect(rows.every(r => r.link === key)).toBeTruthy();
+
+	// and the running total the mogi is scored on moved by exactly that much
+	const scores: any[] = await sql(
+		`SELECT player, pts FROM mkgamerank WHERE game = ? ORDER BY pts DESC`, [key]);
+	expect(scores.map(s => s.pts)).toEqual([35, 12]);
+
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id = ?`, [players[0]]);
+});
+
+// The other half of it: a public race, where the points are the player's own VS total rather
+// than a room's running score. Same two columns, and no link, because there is no link.
+test('a public race records the points it moved, against no game in particular', async ({ page }) => {
+	const players = await createLoungeBots(2, 'pubpts');
+	const before = [10000, 8000];
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (1, ?, 0, 0, 0)`,
+		[Math.floor(Date.now() / 1000)]
+	);
+	for (let i = 0; i < players.length; i++) {
+		// the optimistic update only lands when the two agree, so they are set together
+		await sql(`UPDATE mkjoueurs SET pts_vs = ? WHERE id = ?`, [before[i], players[i]]);
+		await sql(
+			`INSERT INTO mkplayers (id, course, team, controller, tours, place, aPts, connecte, finaltime, finalts)
+			 VALUES (?, ?, -1, 0, 4, ?, ?, 0, 0, 0)`,
+			[players[i], room.insertId, i + 1, before[i]]
+		);
+	}
+
+	await login(page, loungeBotName('pubpts', 1), LOUNGE_BOT_PASSWORD);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, players[0]]);
+	const res = await page.request.post('http://127.0.0.1:8080/api/reload.php', { data: { laps: 3 } });
+	expect(res.ok()).toBeTruthy();
+
+	const rows: any[] = await sql(
+		`SELECT m.player, m.link, m.pts_before, m.pts_inc, j.pts_vs FROM mkmatches m
+		 JOIN mkjoueurs j ON j.id = m.player
+		 WHERE m.player IN (?) ORDER BY m.\`rank\``, [players]);
+	expect(rows).toHaveLength(2);
+	expect(rows.map(r => r.link)).toEqual([0, 0]);
+	expect(rows.map(r => r.pts_before)).toEqual(before);
+	// the winner gained, the other lost, and the account carries exactly the sum of the two
+	expect(rows[0].pts_inc).toBeGreaterThan(0);
+	expect(rows[1].pts_inc).toBeLessThan(0);
+	for (const row of rows)
+		expect(row.pts_vs).toBe(row.pts_before + row.pts_inc);
+
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id = ?`, [players[0]]);
 });
