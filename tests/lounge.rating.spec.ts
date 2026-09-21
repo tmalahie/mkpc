@@ -509,6 +509,8 @@ test('a finished race records what it was worth, and which game it belonged to',
 			ptDistrib: { value: [10, 4], name: '2p' },
 		})]
 	);
+	// the race counter a game carries, created when it starts and bumped as each race ends
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 0, 0)`, [key]);
 	const room: any = await sql(
 		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (1, ?, 0, 0, ?)`,
 		[Math.floor(Date.now() / 1000), key]
@@ -530,7 +532,7 @@ test('a finished race records what it was worth, and which game it belonged to',
 	expect(res.ok()).toBeTruthy();
 
 	const rows: any[] = await sql(
-		`SELECT player, \`rank\`, link, pts_before, pts_inc FROM mkmatches
+		`SELECT player, \`rank\`, link, race, pts_before, pts_inc FROM mkmatches
 		 WHERE link = ? AND player IN (?) ORDER BY \`rank\``, [key, players]);
 	expect(rows).toHaveLength(2);
 	// the distribution decided the points, the room's running totals were the before
@@ -539,6 +541,8 @@ test('a finished race records what it was worth, and which game it belonged to',
 	expect(rows.map(r => r.player)).toEqual(players);
 	// the link, not the room: rooms live in a MEMORY table and this one is already gone
 	expect(rows.every(r => r.link === key)).toBeTruthy();
+	// and which race of the mogi it was, so the points can be banded without counting rows
+	expect(rows.map(r => r.race)).toEqual([1, 1]);
 
 	// and the running total the mogi is scored on moved by exactly that much
 	const scores: any[] = await sql(

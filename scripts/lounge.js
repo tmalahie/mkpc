@@ -716,23 +716,63 @@
 		return sub;
 	}
 
+	// How a mogi's races are grouped across the table: four to a column, the way the ladder
+	// reads them - 12 races become 27 | 33 | 26 beside the 86 they add up to.
+	var LB_RACE_BAND = 4;
+
+	// A band per group of races, but only where they say something a single total does not:
+	// one band is the total again, and a mogi played before the per-race points were recorded
+	// has none of them.
+	function raceBands(match) {
+		var races = 0;
+		for (var i = 0; i < match.players.length; i++) {
+			if (match.players[i].race_points)
+				races = Math.max(races, match.players[i].race_points.length);
+		}
+		if (races <= LB_RACE_BAND) return [];
+		var bands = [];
+		for (var from = 0; from < races; from += LB_RACE_BAND)
+			bands.push({ from: from, to: Math.min(from + LB_RACE_BAND, races) });
+		return bands;
+	}
+
+	function bandTotal(player, band) {
+		var points = player.race_points;
+		if (!points) return null;
+		var total = null;
+		for (var race = band.from; race < band.to; race++) {
+			if ((race >= points.length) || (points[race] === null)) continue;
+			total = (total === null) ? points[race] : (total + points[race]);
+		}
+		return total;
+	}
+
 	// The standings, as one table whatever the mode: in a team mogi each side gets a header
 	// row carrying its colour and its total, and its members sit under it. That is the shape
 	// the staff asked for, and it is the same table the mogi ends on.
 	function matchTableEl(match, me) {
-		var table = lbTable('lounge-results-table', [
+		var bands = raceBands(match);
+		var headings = [
 			{ className: 'lounge-results-place', label: toLanguage('Place', 'Place') },
-			{ className: 'lounge-results-name', label: toLanguage('Player', 'Joueur') },
-			{ className: 'lounge-results-score', label: toLanguage('Score', 'Score') },
-			{ className: 'lounge-results-races', label: toLanguage('Races', 'Courses') }
-		]);
+			{ className: 'lounge-results-name', label: toLanguage('Player', 'Joueur') }
+		];
+		for (var b = 0; b < bands.length; b++) {
+			headings.push({
+				className: 'lounge-results-band',
+				label: (bands[b].from + 1) + '–' + bands[b].to
+			});
+		}
+		headings.push({ className: 'lounge-results-score', label: toLanguage('Score', 'Score') });
+		headings.push({ className: 'lounge-results-races', label: toLanguage('Races', 'Courses') });
+		var table = lbTable('lounge-results-table', headings);
+
 		if (!match.teams.length) {
-			appendMatchPlayers(table, match, match.players, me);
+			appendMatchPlayers(table, match, match.players, me, bands);
 			var total = lbRow('lounge-results-total', [
 				lbCell('td', 'lounge-results-totallabel', toLanguage('Total', 'Total')),
 				lbCell('td', 'lounge-results-score', match.total)
 			]);
-			total.firstChild.colSpan = 2;
+			total.firstChild.colSpan = 2 + bands.length;
 			total.lastChild.colSpan = 2;
 			table.appendChild(total);
 			return table;
@@ -747,18 +787,19 @@
 				lbCell('td', 'lounge-results-teamname', name),
 				lbCell('td', 'lounge-results-score', team.score)
 			]);
-			header.childNodes[1].colSpan = 2;
+			header.childNodes[1].colSpan = 1 + bands.length;
+			header.childNodes[2].colSpan = 2;
 			table.appendChild(header);
 			var members = [];
 			for (var j = 0; j < match.players.length; j++) {
 				if (match.players[j].team === team.team) members.push(match.players[j]);
 			}
-			appendMatchPlayers(table, match, members, me);
+			appendMatchPlayers(table, match, members, me, bands);
 		}
 		return table;
 	}
 
-	function appendMatchPlayers(table, match, players, me) {
+	function appendMatchPlayers(table, match, players, me, bands) {
 		for (var i = 0; i < players.length; i++) {
 			var p = players[i];
 			var races = lbCell('td', 'lounge-results-races',
@@ -769,15 +810,18 @@
 				races.className += ' is-short';
 				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
 			}
+			var cells = [
+				lbCell('td', 'lounge-results-place', p.position),
+				lbCell('td', 'lounge-results-name', playerNameEl(p))
+			];
+			for (var b = 0; b < bands.length; b++)
+				cells.push(lbCell('td', 'lounge-results-band', bandTotal(p, bands[b])));
+			cells.push(lbCell('td', 'lounge-results-score', p.score));
+			cells.push(races);
 			table.appendChild(lbRow(
 				'lounge-results-row' + ((p.id === me) ? ' is-self' : '')
 					+ (match.teams.length ? ' is-teamed' : ''),
-				[
-					lbCell('td', 'lounge-results-place', p.position),
-					lbCell('td', 'lounge-results-name', playerNameEl(p)),
-					lbCell('td', 'lounge-results-score', p.score),
-					races
-				]
+				cells
 			));
 		}
 	}
