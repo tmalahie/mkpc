@@ -451,10 +451,11 @@ test('the home page Top 10 gains a Ranked view under VS, for eligible players on
 	const ranks: any[] = await sql(`SELECT color, min_mmr FROM mklounge_ranks ORDER BY min_mmr DESC`);
 	const rgb = (hex: string) => {
 		const n = parseInt(hex.replace('#', ''), 16);
-		return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+		return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 	};
+	// the colour's channels only: how see-through the row is is a design choice, not the rank
 	const painted = await page.locator('#top_ranked tr.top10_rank')
-		.evaluateAll(rows => rows.map(r => getComputedStyle(r).backgroundColor));
+		.evaluateAll(rows => rows.map(r => getComputedStyle(r).backgroundColor.replace(/^rgba?\((\d+, \d+, \d+).*$/, '$1')));
 	expect(painted).toEqual(numbers.map(mmr => rgb(ranks.find(r => mmr >= r.min_mmr).color)));
 
 	// Time Trial reopens the cc you last looked at, and Ranked must not become that memory
@@ -491,6 +492,18 @@ test('the home page Top 10 gains a Ranked view under VS, for eligible players on
 	await page.locator('.vs_sub_ranked').click();
 	await expect(page.locator('#ranking_current_ranked li')).toHaveCount(1);
 	await expect(badge).toBeHidden();
+
+	// a lineup whose members have all closed the lounge is not advertised, even before anything
+	// has come along to drop them - and it is left alone: dropping them, with the strike that
+	// goes with it, is the lounge's job
+	await sql(`UPDATE mklounge_queue_members SET last_heartbeat = NOW() - INTERVAL 1 HOUR WHERE queue = ?`,
+		[queue.insertId]);
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	await expect(badge).toHaveCount(0);
+	await page.locator('.vs_sub_ranked').click();
+	await expect(page.locator('#ranking_current_ranked')).toHaveCount(0);
+	const [stale]: any = await sql(`SELECT dropped_at FROM mklounge_queue_members WHERE queue = ?`, [queue.insertId]);
+	expect(stale.dropped_at).toBeNull();
 
 	// "Display all" opens the leaderboard itself, and Queue Up on that standalone page is the
 	// way back into the game, where a character can be picked
