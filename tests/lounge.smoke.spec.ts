@@ -330,6 +330,59 @@ test('the lounge will not close onto a dark screen while the player is in a line
 	await expect(close).toHaveAttribute('title', 'Close', { timeout: 20000 });
 });
 
+// The online mode screen is where most players pick how to play, so ranked is only offered
+// there to the ones who have already shown they want it - a player who has never queued keeps
+// the two modes they have always had, and finds ranked through its own entry points.
+test('the online mode screen offers ranked to players who have queued before', async ({ page }) => {
+	test.setTimeout(60000);
+	const short = 'e2e-lounge-mode-short';
+	const fresh = 'e2e-lounge-mode-fresh';
+	const regular = 'e2e-lounge-mode-regular';
+	await createEntryBot(short, 500);
+	await createEntryBot(fresh, 999999);
+	const regularId = await createEntryBot(regular, 999999);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const past: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'cancelled')`, [tier.id]);
+	await sql(
+		`INSERT INTO mklounge_queue_members (queue, player, joined_at, last_heartbeat, confirmed_at, dropped_at)
+		 VALUES (?, ?, NOW(), NOW(), NOW(), NOW())`, [past.insertId, regularId]);
+	const modes = async () => {
+		await page.goto('http://127.0.0.1:8080/mariokart.php', { waitUntil: 'domcontentloaded' });
+		await page.locator('input[value*="Online race"]:visible').first().click({ timeout: 30000 });
+		const buttons = page.locator('input[value$="mode"]:visible, input[value="Course VS"]:visible');
+		await expect(buttons.first()).toBeVisible();
+		return page.evaluate(() => [...document.querySelectorAll('input[type=button]')]
+			.filter(b => (b as HTMLElement).offsetParent && /mode|Course VS|ballons/.test((b as HTMLInputElement).value))
+			.map(b => ({ v: (b as HTMLInputElement).value, y: Math.round(b.getBoundingClientRect().y) })));
+	};
+
+	await login(page, regular, LOUNGE_BOT_PASSWORD);
+	const withRanked = await modes();
+	expect(withRanked.map(b => b.v)).toEqual(['VS mode', 'Battle mode', 'Ranked mode']);
+	// evenly spaced, and the last one clear of the menu links along the bottom
+	const gaps = withRanked.slice(1).map((b, i) => b.y - withRanked[i].y);
+	expect(new Set(gaps).size).toBe(1);
+	const back = (await page.locator('input[value="Back"]:visible').first().boundingBox())!;
+	expect(withRanked[2].y).toBeLessThan(back.y);
+	await page.locator('input[value="Ranked mode"]:visible').first().click();
+	await expect(page).toHaveURL(/online\.php\?mid=\d+&ranked$/);
+
+	// eligible but never queued, and short of the criteria: the two original modes, in the
+	// places they have always had
+	for (const name of [fresh, short]) {
+		await login(page, name, LOUNGE_BOT_PASSWORD);
+		const without = await modes();
+		expect(without.map(b => b.v)).toEqual(['VS mode', 'Battle mode']);
+		expect(without[0].y).toBeGreaterThan(withRanked[0].y);
+	}
+
+	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [past.insertId]);
+	await sql(`DELETE FROM mklounge_queues WHERE id = ?`, [past.insertId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?, ?)`, [short, fresh, regular]);
+	await login(page);
+});
+
 // The lineup notification is only ever sent to a player who could enter ranked, so the switch
 // for it is only offered to one.
 test('the notification settings carry the ranked lineup alert, for eligible players only', async ({ page }) => {
