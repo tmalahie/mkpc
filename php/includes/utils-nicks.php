@@ -3,16 +3,16 @@ require_once('utils-blacklist.php');
 function getNickPatternGroups() {
     static $groups = null;
     if ($groups === null) {
-        $blacklist = array();
-        $getBlacklist = mysql_query('SELECT word FROM `mkbadnicks`');
+        $patterns = array();
+        $getBlacklist = mysql_query('SELECT word,ignore_separators FROM `mkbadnicks`');
         while ($badNick = mysql_fetch_array($getBlacklist))
-            $blacklist[] = $badNick['word'];
-        $groups = blacklistPatternGroups($blacklist, NICK_SEPARATORS);
+            $patterns[$badNick['word']] = nickExpressionPattern($badNick['word'], $badNick['ignore_separators']);
+        $groups = blacklistPatternGroups($patterns);
     }
     return $groups;
 }
 function matchNickBlacklist($nick) {
-    return findBlacklistedWord(stripWhitelistedWords($nick, NICK_SEPARATORS), getNickPatternGroups(), false);
+    return findBlacklistedWord(stripWhitelistedWords($nick), getNickPatternGroups(), false);
 }
 function isNickBlacklisted($nick) {
     return matchNickBlacklist($nick) !== null;

@@ -112,12 +112,6 @@ include('../includes/menu.php');
 				<div class="action-desc"><?= _("Members can no longer register nor rename themselves with a username containing one of these words") ?></div>
 			</a>
 		</li>
-		<li>
-			<a class="action-ctn" href="word-whitelist.php">
-				<div class="action-title"><?= _("Manage <strong>allowed words</strong>") ?></div>
-				<div class="action-desc"><?= _("Innocent words that contain a forbidden one, and must be accepted anyway in usernames and in the online chat") ?></div>
-			</a>
-		</li>
 			<?php
 		}
 		if (hasRight('organizer')) {

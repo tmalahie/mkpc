@@ -1,6 +1,7 @@
 <?php
 define('NICK_SEPARATORS', '\-_');
 define('CHAT_SEPARATORS', '^a-zA-Z0-9\x80-\xff');
+define('NICK_EXPRESSION_SYNTAX', '#^(?:(?:[a-z0-9_\-]|\[[a-z0-9_]+\])\+?)+$#');
 define('WHITELIST_PLACEHOLDER', "\x01");
 define('MAX_PATTERN_LENGTH', 4000);
 
@@ -15,17 +16,34 @@ function fuzzyWordPattern($word, $separators) {
 	}
 	return implode('['. $separators .']*', $parts);
 }
+function isValidNickExpression($expression) {
+	return (bool) preg_match(NICK_EXPRESSION_SYNTAX, $expression);
+}
+function nickExpressionPattern($expression, $ignoreSeparators) {
+	if (!isValidNickExpression($expression))
+		return preg_quote($expression, '#');
+	preg_match_all('#(\[[a-z0-9_]+\]|[a-z0-9_\-])(\+?)#', $expression, $tokens, PREG_SET_ORDER);
+	$parts = array();
+	foreach ($tokens as $token)
+		$parts[] = ($token[1][0] === '[' ? $token[1] : preg_quote($token[1], '#')) . $token[2];
+	return implode($ignoreSeparators ? '['. NICK_SEPARATORS .']*' : '', $parts);
+}
+function chatWordPatterns($words) {
+	$patterns = array();
+	foreach ($words as $word)
+		$patterns[$word] = fuzzyWordPattern($word, CHAT_SEPARATORS);
+	return $patterns;
+}
 function blacklistRegex($pattern, $wholeWords) {
 	return '#'. ($wholeWords ? '\b('. $pattern .')\b':'('. $pattern .')') .'#i';
 }
-function blacklistPatternGroups($words, $separators) {
+function blacklistPatternGroups($patterns) {
 	$groups = array();
 	$group = array();
 	$length = 0;
-	foreach ($words as $word) {
-		if ($word === '')
+	foreach ($patterns as $word => $pattern) {
+		if ($pattern === '')
 			continue;
-		$pattern = fuzzyWordPattern($word, $separators);
 		if ($length && $length + strlen($pattern) > MAX_PATTERN_LENGTH) {
 			$groups[] = $group;
 			$group = array();
@@ -49,12 +67,9 @@ function getWhitelistedWords() {
 	}
 	return $whitelist;
 }
-function stripWhitelistedWords($text, $separators) {
-	foreach (getWhitelistedWords() as $word) {
-		$stripped = preg_replace('#'. fuzzyWordPattern($word, $separators) .'#i', WHITELIST_PLACEHOLDER, $text);
-		if ($stripped !== null)
-			$text = $stripped;
-	}
+function stripWhitelistedWords($text) {
+	foreach (getWhitelistedWords() as $word)
+		$text = str_ireplace($word, WHITELIST_PLACEHOLDER, $text);
 	return $text;
 }
 function findBlacklistedWord($text, $groups, $wholeWords) {

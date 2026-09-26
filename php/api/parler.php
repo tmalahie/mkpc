@@ -44,9 +44,9 @@ if (isset($_POST['msg'])) {
 				);
 				while ($blacklist = mysql_fetch_array($getBlacklist))
 					$blackListWords[$blacklist['action']][] = $blacklist['word'];
-				$checkedMsg = stripWhitelistedWords($msg, CHAT_SEPARATORS);
+				$checkedMsg = stripWhitelistedWords($msg);
 				foreach ($blackListWords as $action => $actionWords) {
-					if (!findBlacklistedWord($checkedMsg, blacklistPatternGroups($actionWords, CHAT_SEPARATORS), true))
+					if (!findBlacklistedWord($checkedMsg, blacklistPatternGroups(chatWordPatterns($actionWords)), true))
 						continue;
 					switch ($action) {
 					case 'mute':

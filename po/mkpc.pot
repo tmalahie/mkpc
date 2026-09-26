@@ -608,16 +608,6 @@ msgid ""
 msgstr ""
 
 #: php/pages/admin.php
-msgid "Manage <strong>allowed words</strong>"
-msgstr ""
-
-#: php/pages/admin.php
-msgid ""
-"Innocent words that contain a forbidden one, and must be accepted anyway in "
-"usernames and in the online chat"
-msgstr ""
-
-#: php/pages/admin.php
 msgid "Give / Remove <strong>points</strong> in <strong>online mode</strong>"
 msgstr ""
 

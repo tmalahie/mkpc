@@ -87,7 +87,7 @@ include('../includes/menu.php');
         This page allows you to manage a words blacklist in online mode chat.<br />
         If a user sends a text containing one of these words, you will see it in the <a href="blacklist-logs.php"><strong>message logs</strong></a>.<br />
         Depending on the word, you can decide to just log, block the message, or even mute the member.<br />
-        A word is detected as a whole word, but separators and repeated letters are ignored, so <em>fumier</em> also catches <em>fu-mier</em> and <em>fuuumier</em>. If a watched word is hidden inside an innocent one, add the innocent one to the <a href="word-whitelist.php"><strong>allowed words</strong></a>.<br />
+        A word is detected as a whole word, but separators and repeated letters are ignored, so <em>fumier</em> also catches <em>fu-mier</em> and <em>fuuumier</em>. If a watched word is hidden inside an innocent one, add the innocent one to the <a href="nick-blacklist.php#allowed-words"><strong>allowed words</strong></a>.<br />
         Note that this blacklist does not apply to private games.
         <?php
     }
@@ -96,7 +96,7 @@ include('../includes/menu.php');
         Cette page vous permet de gérer une blacklist de mots dans le chat du mode en ligne.<br />
         Si un utilisateur envoie un texte contenant un de ces mots, vous pourrez le voir dans les <a href="blacklist-logs.php"><strong>logs des messages</strong></a>.<br />
         En fonction du mot, vous pouvez décider de juste logguer, bloquer le message, ou carrément muter le membre.<br />
-        Un mot est détecté en tant que mot entier, mais les séparateurs et les lettres doublées sont ignorés, donc <em>fumier</em> détecte aussi <em>fu-mier</em> et <em>fuuumier</em>. Si un mot surveillé se cache dans un mot innocent, ajoutez ce dernier aux <a href="word-whitelist.php"><strong>mots autorisés</strong></a>.<br />
+        Un mot est détecté en tant que mot entier, mais les séparateurs et les lettres doublées sont ignorés, donc <em>fumier</em> détecte aussi <em>fu-mier</em> et <em>fuuumier</em>. Si un mot surveillé se cache dans un mot innocent, ajoutez ce dernier aux <a href="nick-blacklist.php#allowed-words"><strong>mots autorisés</strong></a>.<br />
         Notez que cette blacklist ne s'applique pas aux parties privées.
         <?php
     }
@@ -131,10 +131,10 @@ include('../includes/menu.php');
         $getWatched = mysql_query('SELECT word,action FROM mkbadwords');
         while ($watched = mysql_fetch_array($getWatched))
             $testWords[$watched['action']][] = $watched['word'];
-        $checkedMsg = stripWhitelistedWords($testMsg, CHAT_SEPARATORS);
+        $checkedMsg = stripWhitelistedWords($testMsg);
         $testMatch = null;
         foreach ($testWords as $action => $actionWords) {
-            $testMatch = findBlacklistedWord($checkedMsg, blacklistPatternGroups($actionWords, CHAT_SEPARATORS), true);
+            $testMatch = findBlacklistedWord($checkedMsg, blacklistPatternGroups(chatWordPatterns($actionWords)), true);
             if ($testMatch) break;
         }
         if ($testMatch) {
