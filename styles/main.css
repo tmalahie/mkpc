@@ -925,6 +925,16 @@ a img {
 	color: #800000;
 }
 
+/* The orange clashes with the rank colours the ranked rows are painted in. */
+#rankings_section.rank_ranked #top10 {
+	border-color: #008;
+}
+
+#top10 #top_ranked tr:nth-child(1) {
+	background-color: #348;
+	color: #EEF;
+}
+
 #top10 tr:nth-child(2) {
 	background-color: #FD9;
 }
