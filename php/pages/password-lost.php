@@ -89,9 +89,29 @@ Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien ci-dessous 
 
 				// Execute the POST request
 				$result = curl_exec($ch);
+				$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 				// Close cURL resource
 				curl_close($ch);
+
+				if ($httpCode < 200 || $httpCode >= 300)
+					error_log('Mailjet send failed (HTTP '.$httpCode.'): '.$result);
+				else {
+					// Mailjet stores every recipient as a contact, and the free plan stops sending past 1000 contacts
+					$ch = curl_init('https://api.mailjet.com/v3/REST/contact/'.rawurlencode($email));
+					curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					$contact = json_decode(curl_exec($ch), true);
+					curl_close($ch);
+					if (isset($contact['Data'][0]['ID'])) {
+						$ch = curl_init('https://api.mailjet.com/v4/contacts/'.$contact['Data'][0]['ID']);
+						curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+						curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+						curl_exec($ch);
+						curl_close($ch);
+					}
+				}
 			}
 		}
 		else
