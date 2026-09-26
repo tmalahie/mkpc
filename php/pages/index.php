@@ -883,7 +883,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						if ($isRanked) {
 							// Aliased to the same id/nom/pts the other modes return, so the row
 							// loop below stays one loop.
-							$players = mysql_query('SELECT p.player AS id,j.nom,ROUND(p.mmr) AS pts FROM `mklounge_players` p INNER JOIN `mkjoueurs` j ON j.id=p.player WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0 ORDER BY p.mmr DESC, p.player LIMIT 10');
+							$players = mysql_query('SELECT p.player AS id,j.nom,ROUND(p.mmr) AS pts,p.mmr FROM `mklounge_players` p INNER JOIN `mkjoueurs` j ON j.id=p.player WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0 ORDER BY p.mmr DESC, p.player LIMIT 10');
 						}
 						elseif ($isClm) {
 							$cc = ($i===3) ? 200 : 150;
@@ -898,7 +898,10 @@ $placeholderPath = 'images/pages/pixel.png';
 								$place = $j;
 								$lastScore = $player['pts'];
 							}
-							echo '<tr><td class="top10position">'. $place .'</td><td><a href="profil.php?id='. $player['id'] .'">'. controlLength($player['nom'],20) .'</a></td><td>'. $player['pts'] .'</td></tr>';
+							$rowAttrs = '';
+							if ($isRanked && ($rank = lounge_rank_for_mmr($player['mmr'])) && $rank['color'])
+								$rowAttrs = ' class="top10_rank" title="'. htmlspecialchars($rank['label']) .'" style="--rank-bg:'. $rank['color'] .';--rank-ink:'. lounge_rank_ink($rank['color']) .'"';
+							echo '<tr'. $rowAttrs .'><td class="top10position">'. $place .'</td><td><a href="profil.php?id='. $player['id'] .'">'. controlLength($player['nom'],20) .'</a></td><td>'. $player['pts'] .'</td></tr>';
 						}
 						?>
 					</table>
