@@ -1,6 +1,7 @@
 /.project
 .user.ini
 .htaccess
+!/php/cron/.htaccess
 .vscode
 .DS_Store
 ads.txt
