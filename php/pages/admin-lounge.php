@@ -94,7 +94,7 @@ if (isset($_POST['release'])) {
 	$queue = mysql_fetch_array(mysql_query('SELECT status FROM `mklounge_queues` WHERE id="'. $queueId .'"'));
 	if ($queue) {
 		if ($queue['status'] === 'launched')
-			lounge_abandon_match($queueId);
+			lounge_abandon_match($queueId, 'staff');
 		else {
 			mysql_query('UPDATE `mklounge_queues` SET status="cancelled" WHERE id="'. $queueId .'"');
 			mysql_query(
