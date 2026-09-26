@@ -1,0 +1,14 @@
+# MKPC's scheduled jobs, replacing the MySQL events of the same purpose.
+#
+# Install:  sudo cp php/cron/mkpc.crontab /etc/cron.d/mkpc
+#           (cron.d skips file names containing a dot, hence the rename)
+# Then, once each job has run and logged "done" (journalctl -t mkpc-cron), turn the events off
+# with disable-events.sql. Running both for a while does no harm: every job is idempotent.
+#
+# Times match the events', which ran on the server's clock (Europe/Paris) like cron does.
+
+# m     h  dom mon dow  user      command
+*/15    *  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/clean-online.php 2>&1 | logger -t mkpc-cron
+3-59/15 *  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/empty-trash.php 2>&1 | logger -t mkpc-cron
+0       0  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/unban.php 2>&1 | logger -t mkpc-cron
+0       0  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/recompute-rating.php 2>&1 | logger -t mkpc-cron
