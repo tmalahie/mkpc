@@ -94,6 +94,16 @@ if ($id) {
 			$courseState = getCourseState($nlink);
 			echo ',"tracks":'. json_encode(getCourseTracks($courseState));
 			echo ',"raceCount":'. intval($courseState['raceCount']);
+			if (!empty($linkOptions->rules->lounge)) {
+				require_once(__DIR__ .'/../includes/lounge/common.php');
+				global $id;
+				$room = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'. intval($id) .'"'));
+				lounge_log('room_joined', array('player' => $id, 'key' => $nlink), array(
+					'course' => $room ? intval($room['course']) : 0,
+					'race_count' => intval($courseState['raceCount']),
+					'spectator' => $newSpectatorId ? intval($newSpectatorId) : null
+				));
+			}
 		}
 		if ($newSpectatorId) {
 			echo ',"spectator":'.$newSpectatorId;

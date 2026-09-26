@@ -24,6 +24,7 @@ if (!$tier) {
 
 $accessError = lounge_access_error($id);
 if ($accessError) {
+	lounge_log('join_refused', array('player' => $id), array('tier' => $tierId, 'error' => $accessError));
 	echo json_encode(array('error' => $accessError));
 	mysql_close();
 	exit;
@@ -31,18 +32,21 @@ if ($accessError) {
 
 $playerState = lounge_get_player_state($id);
 if ($playerState['banned_until']) {
+	lounge_log('join_refused', array('player' => $id), array('tier' => $tierId, 'error' => 'banned'));
 	echo json_encode(array('error' => 'banned', 'banned_until' => $playerState['banned_until']));
 	mysql_close();
 	exit;
 }
 
 if (!lounge_tier_eligible($tier, $playerState['mmr'])) {
+	lounge_log('join_refused', array('player' => $id), array('tier' => $tierId, 'error' => 'not_eligible', 'mmr' => $playerState['mmr']));
 	echo json_encode(array('error' => 'not_eligible'));
 	mysql_close();
 	exit;
 }
 
 if (lounge_get_active_queue_for_player($id)) {
+	lounge_log('join_refused', array('player' => $id), array('tier' => $tierId, 'error' => 'already_queued'));
 	echo json_encode(array('error' => 'already_queued'));
 	mysql_close();
 	exit;
@@ -86,13 +90,14 @@ mysql_query(
 
 mysql_query('COMMIT');
 
-$wasBelowMin = (lounge_active_member_count($queueId) - 1) < lounge_queue_min_players($queueId);
+$count = lounge_active_member_count($queueId);
+lounge_log('queue_joined', array('player' => $id, 'queue' => $queueId), array('tier' => $tierId, 'players' => $count));
+$wasBelowMin = ($count - 1) < lounge_queue_min_players($queueId);
 lounge_update_queue_status($queueId);
 
 lounge_notify_queue_join($queueId, $id);
 
 require_once('../../includes/lounge/discord.php');
-$count = lounge_active_member_count($queueId);
 $name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. intval($id) .'"'));
 lounge_discord_announce(
 	$queueId,
