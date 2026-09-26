@@ -1175,10 +1175,16 @@ test('the played course is recorded server-side and handed back to the room', as
 	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7, choice_rand = 0 WHERE id = ?`,
 		[room.insertId, playerId]);
 
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
 	const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
 	const body = await res.text();
 	// the same expression the client uses to pick the course: choixJoueurs[rCode[1]][2]
 	expect(body).toContain('tracks:[7]');
+	const started: any[] = await sql(
+		`SELECT data FROM mklounge_events WHERE id > ? AND privgame_key = ? AND event = 'race_started'`,
+		[since, key]);
+	expect(started).toHaveLength(1);
+	expect(JSON.parse(started[0].data)).toMatchObject({ race: 1, course: room.insertId, track: 7, players: [playerId] });
 	const [state]: any = await sql(`SELECT tracks FROM mkgamedata WHERE game = ?`, [key]);
 	expect(state.tracks).toBe('7');
 
@@ -1213,6 +1219,7 @@ test('a player rejoining a finished mogi is told how many races it ran', async (
 	await cleanupLoungeQueues();
 	const key = LOUNGE_KEY_MIN + 43;
 	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
 
 	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
 	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
@@ -1238,6 +1245,13 @@ test('a player rejoining a finished mogi is told how many races it ran', async (
 	// getRaceLimit() is 2, so this is what sends the client to the mogi results instead of the
 	// track selection screen
 	expect(body.raceCount).toBe(2);
+	// and the log says so, which is how the original report was pieced together
+	const joins: any[] = await sql(
+		`SELECT player, data FROM mklounge_events WHERE id > ? AND privgame_key = ? AND event = 'room_joined'`,
+		[since, key]);
+	expect(joins).toHaveLength(1);
+	expect(joins[0].player).toBe(playerId);
+	expect(JSON.parse(joins[0].data)).toMatchObject({ course: room.insertId, race_count: 2 });
 
 	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?)`, [playerId, mate]);
 	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
@@ -1646,6 +1660,37 @@ test('a player cannot drop out of a list they just joined', async ({ page }) => 
 	expect(left.ok).toBe(true);
 });
 
+// A mogi reported as having gone wrong is investigated from mklounge_events, so what a player
+// did and what they were refused both have to be in it, in the order it happened.
+test('joining, a refused drop and leaving are all in the event log, in order', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
+
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = NOW() - INTERVAL 1 MINUTE WHERE queue = ?`,
+		[joined.queue.id]
+	);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+
+	const events: any[] = await sql(
+		`SELECT event, player, actor, source, data FROM mklounge_events
+		 WHERE id > ? AND queue = ? ORDER BY id`, [since, joined.queue.id]);
+	expect(events.map(e => e.event)).toEqual(['queue_joined', 'leave_refused', 'queue_left', 'queue_cancelled']);
+	expect(events[0].player).toBe(playerId);
+	expect(events[0].actor).toBe(playerId);
+	expect(events[0].source).toBe('join.php');
+	expect(JSON.parse(events[1].data).seconds_left).toBeGreaterThan(0);
+	// the last one out empties the queue, and the row says which request did it
+	expect(events[3].source).toBe('leave.php');
+	expect(events[3].player).toBeNull();
+});
+
 // Both of these were set low for the test suite and never raised, so they contradicted the
 // rules their own help text quotes.
 test('the queue timers default to what the rules say', async ({ page }) => {
@@ -1906,11 +1951,22 @@ test('a room nobody fully joined is relaxed rather than left hanging', async ({ 
 		`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]
 	);
 	await login(page, loungeBotName('relax', 1), LOUNGE_BOT_PASSWORD);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
 	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
 
 	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [q.insertId]);
 	// the mogi survives: three is enough to race
 	expect(queue.status).toBe('launched');
+
+	// the timeline a moderator would read if one of the two absentees disputed their strike
+	const events: any[] = await sql(
+		`SELECT event, player, data FROM mklounge_events
+		 WHERE id > ? AND (privgame_key = ? OR queue = ?) ORDER BY id`, [since, key, q.insertId]);
+	expect(events.map(e => e.event)).toEqual(['join_timeout', 'room_relaxed']);
+	const timeout = JSON.parse(events[0].data);
+	expect(timeout.outcome).toBe('relaxed');
+	expect([...timeout.joined].sort()).toEqual([...bots].sort());
+	expect(JSON.parse(events[1].data)).toMatchObject({ min_players: 3, cpu_count: 5 });
 
 	const [options]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
 	const rules = JSON.parse(options.rules);

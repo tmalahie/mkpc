@@ -229,6 +229,17 @@ if ($course) {
 			require_once('onlineStateUtils.php');
 			initCourseState($getMap['link']);
 		}
+		if (!empty($courseRules->lounge)) {
+			require_once('lounge/common.php');
+			$courseState = getCourseState($getMap['link']);
+			lounge_log('race_started', array('key' => $getMap['link']), array(
+				'race' => intval($courseState['raceCount']) + 1,
+				'course' => intval($course),
+				'track' => isset($joueursData[$map]) ? intval($joueursData[$map]['choice_map']) : null,
+				'players' => array_map('intval', $playerIds),
+				'subs' => $subIds
+			));
+		}
 	}
 	if ($spectatorId && ($nbPlayers > $minPlayers))
 		mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id="'.$id.'" AND course="'.$course.'"');
