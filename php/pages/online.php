@@ -81,6 +81,7 @@ if ($id && isset($privateLink)) {
 	}
 }
 if ($isRanked && $id && isset($privateLink)) {
+	lounge_log('game_opened', array('player' => $id, 'key' => $privateLink));
 	if ($getRankedPerso = mysql_fetch_array(mysql_query(
 		'SELECT mp.perso FROM `mklounge_match_players` mp
 		INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
