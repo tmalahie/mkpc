@@ -7,6 +7,8 @@ if ($id) {
 	require_once('../includes/getRights.php');
 	require_once('../includes/lounge/common.php');
 	$isLoungeMod = hasRight('lounge');
+	if (isset($_GET['key']))
+		lounge_log('results_opened', array('player' => $id, 'key' => intval($_GET['key'])));
 	mysql_close();
 }
 ?>

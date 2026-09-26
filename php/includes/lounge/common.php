@@ -60,6 +60,61 @@ define('LOUNGE_MIN_RACE_PLAYERS', 2);
 define('LOUNGE_ABSENCE_PENALTY_MAJOR', 25);
 define('LOUNGE_ABSENCE_PENALTY_MINOR', 10);
 define('LOUNGE_ABSENCE_MAJOR_MISSED', 4);
+// How long the event log keeps a mogi's history: long enough for a strike to be disputed
+// with staff, short enough that the table stays small.
+define('LOUNGE_EVENT_RETENTION_DAYS', 90);
+
+// One row per decision the lounge takes - a queue changing state, a race starting, a strike -
+// with the ids it was about, so a mogi can be replayed in order when someone reports it went
+// wrong. `request` groups the rows one HTTP call produced, and `source` says which call it was:
+// most decisions are taken by whoever's poll happened to tick the lounge, not by the player
+// they are about.
+//
+// It goes through PDO directly, for two reasons: a failed write must never break or clutter
+// the request it is describing, and the polyfill's mysql_insert_id() reads the connection's
+// last insert - so call this after a caller has read theirs, never between.
+function lounge_log($event, $refs = array(), $data = null) {
+	static $request = null;
+	global $dbh, $id;
+	if (!($dbh instanceof PDO))
+		return;
+	if (is_null($request))
+		$request = bin2hex(random_bytes(4));
+	$columns = array(
+		'event' => $event,
+		'request' => $request,
+		'source' => isset($_SERVER['SCRIPT_NAME']) ? basename($_SERVER['SCRIPT_NAME']) : 'cli',
+		'actor' => empty($id) ? null : intval($id),
+		'player' => isset($refs['player']) ? intval($refs['player']) : null,
+		'queue' => isset($refs['queue']) ? intval($refs['queue']) : null,
+		'privgame_key' => isset($refs['key']) ? intval($refs['key']) : null,
+		'data' => is_null($data) ? null : json_encode($data)
+	);
+	try {
+		$stmt = $dbh->prepare(
+			'INSERT INTO `mklounge_events` (`'. implode('`,`', array_keys($columns)) .'`)
+			VALUES ('. implode(',', array_fill(0, count($columns), '?')) .')'
+		);
+		$stmt->execute(array_values($columns));
+	}
+	catch (PDOException $e) {
+	}
+}
+
+function lounge_prune_events() {
+	global $dbh;
+	if (!($dbh instanceof PDO))
+		return;
+	try {
+		$dbh->exec(
+			'DELETE FROM `mklounge_events`
+			WHERE created_at < (NOW() - INTERVAL '. LOUNGE_EVENT_RETENTION_DAYS .' DAY)
+			LIMIT 5000'
+		);
+	}
+	catch (PDOException $e) {
+	}
+}
 
 // Everything below is staff-tunable from admin-lounge.php: the ladder is still finding its
 // settings, and a deploy per timer is not a workable way to run it. The constants above stay
@@ -943,6 +998,9 @@ function lounge_start_draft($queueId, $mode) {
 			WHERE queue="'. intval($queueId) .'" AND player="'. intval($playerId) .'"'
 		);
 	}
+	lounge_log('draft_started', array('queue' => $queueId), array(
+		'mode' => $mode, 'captains' => array($first['id'], $second['id'])
+	));
 	return true;
 }
 
@@ -955,6 +1013,7 @@ function lounge_draft_assign($queueId, $playerId, $side) {
 	);
 	if (!mysql_affected_rows())
 		return false;
+	lounge_log('draft_assigned', array('queue' => $queueId, 'player' => $playerId), array('side' => intval($side)));
 	// Every captain gets their own full clock, so the turn restarts here rather than running
 	// one deadline for the whole draft.
 	mysql_query(
@@ -1014,6 +1073,7 @@ function lounge_close_vote($queueId) {
 			$votes[$v['voted_mode']] = (isset($votes[$v['voted_mode']]) ? $votes[$v['voted_mode']] : 0) + 1;
 	}
 	$mode = lounge_tally_vote($votes, lounge_allowed_modes(count($members)));
+	lounge_log('vote_closed', array('queue' => $queueId), array('votes' => $votes, 'mode' => $mode));
 	if (lounge_draft_applies($mode, count($members)) && lounge_start_draft($queueId, $mode))
 		return null;
 	// The recap screen: the lineup is told what it settled on, and the room opens from there.
@@ -1041,11 +1101,15 @@ function lounge_start_voting($queueId) {
 	);
 	if (!mysql_affected_rows())
 		return;
+	$lineup = lounge_active_member_count($queueId);
+	lounge_log('vote_started', array('queue' => $queueId), array(
+		'players' => $lineup, 'modes' => lounge_allowed_modes($lineup)
+	));
 	// A lineup of five or seven divides into nothing, so FFA is the only thing on the ballot
 	// and there is nothing to decide. MogiBot never puts a one-option poll to a room either -
 	// it tailors the ballot to the lineup and skips the vote when the format is forced. The
 	// lineup is final by now: joins only reach an open or locked queue.
-	if (count(lounge_allowed_modes(lounge_active_member_count($queueId))) < 2)
+	if (count(lounge_allowed_modes($lineup)) < 2)
 		lounge_close_vote($queueId);
 }
 
@@ -1119,6 +1183,11 @@ function lounge_launch_match($queueId, $mode = null) {
 			(is_null($m['team']) ? 'NULL' : intval($m['team'])) .')'
 		);
 	}
+	lounge_log('match_launched', array('queue' => $queueId, 'key' => $key), array(
+		'match' => intval($matchId), 'mode' => $mode, 'tier' => $queueRow['tier_code'],
+		'owner' => intval($owner), 'lineup' => array_map('intval', array_column($members, 'id')),
+		'teams' => $fixedTeams
+	));
 
 	return array('mode' => $mode, 'key' => $key, 'multicup_id' => lounge_get_season_multicup());
 }
@@ -1236,6 +1305,9 @@ function lounge_relax_room($privgameKey, $playersInRoom) {
 		'UPDATE `mkgameoptions` SET rules="'. mysql_real_escape_string(json_encode($rules)) .'"
 		WHERE id="'. intval($privgameKey) .'"'
 	);
+	lounge_log('room_relaxed', array('key' => $privgameKey), array(
+		'min_players' => $playersInRoom, 'cpu_count' => $rules['cpuCount']
+	));
 	return true;
 }
 
@@ -1279,7 +1351,7 @@ function lounge_strike_dropouts($privgameKey, $course = 0) {
 			WHERE mp.player="'. $playerId .'" AND mp.strike_reason IS NULL'
 		);
 		if (mysql_affected_rows())
-			lounge_add_strike($playerId, 'disconnect');
+			lounge_add_strike($playerId, 'disconnect', array('key' => $privgameKey));
 	}
 }
 
@@ -1298,6 +1370,13 @@ function lounge_maintain_match($privgameKey, $course = 0, $playersInRoom = null)
 // endpoints, and nobody is sitting on the lounge page while a mogi is being played, so this
 // is the heartbeat a match in trouble depends on.
 function lounge_race_finished($privgameKey, $course) {
+	$present = array();
+	$res = mysql_query('SELECT id FROM `mkplayers` WHERE course="'. intval($course) .'" AND controller=0');
+	while ($row = mysql_fetch_array($res))
+		$present[] = intval($row['id']);
+	lounge_log('race_finished', array('key' => $privgameKey), array(
+		'race' => lounge_match_race_count($privgameKey), 'course' => intval($course), 'present' => $present
+	));
 	lounge_record_race_attendance($privgameKey, $course);
 	lounge_maintain_match($privgameKey, $course);
 }
@@ -1308,7 +1387,7 @@ function lounge_race_finished($privgameKey, $course) {
 //
 // The match is voided rather than rated on its partial standings: the points distribution
 // assumes a full mogi, and rating half of one is a decision for staff, not a default.
-function lounge_abandon_match($queueId) {
+function lounge_abandon_match($queueId, $reason) {
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_queues` SET status="cancelled"
@@ -1316,6 +1395,7 @@ function lounge_abandon_match($queueId) {
 	);
 	if (!mysql_affected_rows())
 		return false;
+	lounge_log('match_abandoned', array('queue' => $queueId), array('reason' => $reason));
 	mysql_query(
 		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="abandoned"
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
@@ -1348,15 +1428,19 @@ function lounge_apply_ban_threshold($playerId) {
 		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"
 		AND strikes >= '. $threshold
 	);
-	return (bool) mysql_affected_rows();
+	if (!mysql_affected_rows())
+		return false;
+	lounge_log('banned', array('player' => $playerId), array('minutes' => intval(lounge_setting('ban_minutes'))));
+	return true;
 }
 
-function lounge_add_strike($playerId, $reason) {
+function lounge_add_strike($playerId, $reason, $refs = array()) {
 	mysql_query(
 		'INSERT INTO `mklounge_players` (player, season, strikes)
 		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
 		ON DUPLICATE KEY UPDATE strikes=strikes+1'
 	);
+	lounge_log('strike', array_merge($refs, array('player' => $playerId)), array('reason' => $reason));
 	return lounge_apply_ban_threshold($playerId);
 }
 
@@ -1432,6 +1516,9 @@ function lounge_finish_match($queueId) {
 	lounge_apply_mmr($matchId);
 
 	mysql_query('UPDATE `mklounge_matches` SET ended_at=NOW() WHERE id="'. $matchId .'"');
+	lounge_log('match_finished', array('queue' => $queueId, 'key' => $queue['privgame_key']), array(
+		'match' => $matchId, 'standings' => $standings
+	));
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
@@ -1842,7 +1929,7 @@ function lounge_strike_no_shows($queueId, $joined) {
 		);
 		if (!mysql_affected_rows())
 			continue;
-		lounge_add_strike($member['id'], 'no_show');
+		lounge_add_strike($member['id'], 'no_show', array('queue' => $queueId));
 		mysql_query(
 			'UPDATE `mklounge_match_players` mp
 			INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
@@ -1864,7 +1951,11 @@ function lounge_handle_join_timeout($queueId) {
 		return false;
 
 	$joined = lounge_match_joined_players($queue['privgame_key']);
-	if (count($joined) >= lounge_setting('min_race_players')) {
+	$enough = count($joined) >= lounge_setting('min_race_players');
+	lounge_log('join_timeout', array('queue' => $queueId, 'key' => $queue['privgame_key']), array(
+		'joined' => array_keys($joined), 'outcome' => $enough ? 'relaxed' : 'cancelled'
+	));
+	if ($enough) {
 		lounge_strike_no_shows($queueId, $joined);
 		lounge_relax_room($queue['privgame_key'], count($joined));
 		return true;
@@ -2111,27 +2202,36 @@ function lounge_update_queue_status($queueId) {
 	$status = $queue['status'];
 	$minPlayers = lounge_queue_min_players($queueId);
 
+	global $q;
 	if ($status === 'open' && $count >= $minPlayers) {
-		mysql_query(
+		$q = mysql_query(
 			'UPDATE `mklounge_queues` SET status="locked", locked_at=NOW()
 			WHERE id="'. intval($queueId) .'" AND status="open"'
 		);
+		if (mysql_affected_rows())
+			lounge_log('queue_locked', array('queue' => $queueId), array('players' => $count));
 	}
 	elseif ($status === 'locked' && $count < $minPlayers) {
-		mysql_query(
+		$q = mysql_query(
 			'UPDATE `mklounge_queues` SET status="open", locked_at=NULL
 			WHERE id="'. intval($queueId) .'" AND status="locked"'
 		);
+		if (mysql_affected_rows())
+			lounge_log('queue_reopened', array('queue' => $queueId), array('players' => $count));
 	}
 	if ($count === 0 && ($status === 'open' || $status === 'locked')) {
-		mysql_query(
+		$q = mysql_query(
 			'UPDATE `mklounge_queues` SET status="cancelled"
 			WHERE id="'. intval($queueId) .'" AND status IN ("open","locked")'
 		);
+		if (mysql_affected_rows())
+			lounge_log('queue_cancelled', array('queue' => $queueId));
 	}
 }
 
 function lounge_tick() {
+	if (mt_rand(1, 1000) === 1)
+		lounge_prune_events();
 	$cutoff = intval(lounge_setting('afk_seconds'));
 	$afkRes = mysql_query(
 		'SELECT m.queue, m.player FROM `mklounge_queue_members` m
@@ -2156,6 +2256,7 @@ function lounge_tick() {
 			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
 			AND dropped_at IS NULL'
 		);
+		lounge_log('queue_dropped', array('queue' => $row['queue'], 'player' => $row['player']), array('reason' => 'unconfirmed'));
 	}
 	foreach ($stale as $queueId => $_)
 		lounge_update_queue_status($queueId);
@@ -2168,7 +2269,8 @@ function lounge_tick() {
 			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
 			AND dropped_at IS NULL'
 		);
-		lounge_add_strike($row['player'], 'afk');
+		lounge_log('queue_dropped', array('queue' => $row['queue'], 'player' => $row['player']), array('reason' => 'afk'));
+		lounge_add_strike($row['player'], 'afk', array('queue' => $row['queue']));
 	}
 	foreach ($affected as $queueId => $_) {
 		lounge_update_queue_status($queueId);
@@ -2196,7 +2298,7 @@ function lounge_tick() {
 		// cleanup once it goes idle, or emptied by a MySQL restart - is the clearest signal
 		// that this mogi is not being played any more.
 		elseif ($row['match_timed_out'] || ($races && !$row['room_alive']))
-			lounge_abandon_match(intval($row['id']));
+			lounge_abandon_match(intval($row['id']), $row['match_timed_out'] ? 'timed_out' : 'room_gone');
 		elseif ($races)
 			lounge_maintain_match(intval($row['privgame_key']));
 	}

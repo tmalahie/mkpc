@@ -16,6 +16,7 @@ if (!$queue) {
 }
 
 if ($queue['status'] !== 'open') {
+	lounge_log('leave_refused', array('player' => $id, 'queue' => $queue['id']), array('status' => $queue['status']));
 	echo json_encode(array('error' => 'queue_locked', 'queue' => lounge_queue_state($queue['id'], $id)));
 	mysql_close();
 	exit;
@@ -30,6 +31,7 @@ $member = mysql_fetch_array(mysql_query(
 	WHERE queue="'. intval($queue['id']) .'" AND player="'. intval($id) .'" AND dropped_at IS NULL'
 ));
 if ($member && intval($member['wait']) > 0) {
+	lounge_log('leave_refused', array('player' => $id, 'queue' => $queue['id']), array('seconds_left' => intval($member['wait'])));
 	echo json_encode(array(
 		'error' => 'drop_too_soon',
 		'seconds_left' => intval($member['wait']),
@@ -44,11 +46,12 @@ mysql_query(
 	WHERE queue="'. intval($queue['id']) .'" AND player="'. intval($id) .'"
 	AND dropped_at IS NULL'
 );
+$count = lounge_active_member_count($queue['id']);
+lounge_log('queue_left', array('player' => $id, 'queue' => $queue['id']), array('players' => $count));
 
 lounge_update_queue_status($queue['id']);
 
 require_once('../../includes/lounge/discord.php');
-$count = lounge_active_member_count($queue['id']);
 $name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. intval($id) .'"'));
 lounge_discord_announce(
 	$queue['id'],

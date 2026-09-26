@@ -41,6 +41,7 @@ mysql_query(
 	SET voted_mode="'. mysql_real_escape_string($mode) .'"
 	WHERE queue="'. intval($queue['id']) .'" AND player="'. intval($id) .'" AND dropped_at IS NULL'
 );
+lounge_log('vote_cast', array('player' => $id, 'queue' => $queue['id']), array('mode' => $mode));
 
 $missing = mysql_fetch_array(mysql_query(
 	'SELECT COUNT(*) AS n FROM `mklounge_queue_members`
