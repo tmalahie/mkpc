@@ -565,7 +565,7 @@ a img {
 }
 
 #news_section {
-	border: groove 2px #080;
+	border: groove 2px #008;
 	margin-bottom: 10px;
 	height: 135px;
 }
@@ -733,7 +733,7 @@ a img {
 
 #challenges_section {
 	height: 180px;
-	border: groove 2px #080;
+	border: groove 2px #008;
 	margin-bottom: 10px;
 }
 
@@ -808,7 +808,7 @@ a img {
 
 #comments_section {
 	height: 180px;
-	border: groove 2px #080;
+	border: groove 2px #008;
 	margin-bottom: 10px;
 }
 
