@@ -1,6 +1,13 @@
 <?php
 include('../includes/language.php');
+include('../includes/session.php');
 include('../includes/initdb.php');
+// The online menu inside mk.js is where most players choose how to play, so ranked is only
+// offered there to those who have already queued for it: it must not crowd out normal online
+// for everyone else. The entry criteria still apply, so a player who has since fallen short of
+// them gets no button rather than one that turns them away.
+require_once('../includes/lounge/common.php');
+$loungeRegular = lounge_is_eligible($id) && lounge_has_ever_queued($id);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -27,6 +34,7 @@ var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkpla
 var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
 var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? $_COOKIE['mkdifficulty']:1); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
+var loungeRegular = <?php echo $loungeRegular ? 'true':'false'; ?>;
 var lCircuits = <?php
 include_once('circuitNames.php');
 echo json_encode($circuitNames);

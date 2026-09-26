@@ -25550,35 +25550,44 @@ function selectOnlineScreen(options) {
 	}
 	oScr.appendChild(oPInput);
 
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = language ? "VS mode":"Course VS";
-	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (17*iScreenScale)+"px";
-	oPInput.style.width = (36*iScreenScale)+"px";
-	oPInput.onclick = function() {
+	// Ranked is a third way to play online, but only for players who have already queued for
+	// it: this screen is where most people pick how to play, and it must not crowd out normal
+	// online for everyone else. Three buttons sit a row higher so the spacing stays even and
+	// the last one clears the menu links; on their own the original two keep their places.
+	var showRanked = ((typeof loungeRegular !== "undefined") && loungeRegular);
+	var modeTop = showRanked ? 14:17;
+	function onlineModeButton(labelEn, labelFr, row, onclick) {
+		var button = document.createElement("input");
+		button.type = "button";
+		button.value = toLanguage(labelEn, labelFr);
+		button.style.fontSize = Math.round(3.5*iScreenScale)+"px";
+		button.style.position = "absolute";
+		button.style.left = (22*iScreenScale)+"px";
+		button.style.top = ((modeTop + row*8)*iScreenScale)+"px";
+		button.style.width = (36*iScreenScale)+"px";
+		button.onclick = onclick;
+		oScr.appendChild(button);
+		return button;
+	}
+
+	onlineModeButton("VS mode", "Course VS", 0, function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		openOnlineMode(false, options);
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = language ? "Battle mode":"Bataille de ballons";
-	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = (25*iScreenScale)+"px";
-	oPInput.style.width = (36*iScreenScale)+"px";
-	oPInput.onclick = function() {
+	});
+	onlineModeButton("Battle mode", "Bataille de ballons", 1, function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		openOnlineMode(true, options);
-	};
-	oScr.appendChild(oPInput);
+	});
+	if (showRanked) {
+		onlineModeButton("Ranked mode", "Mode classé", 2, function() {
+			document.location.href = "ranked.php";
+		}).title = toLanguage(
+			"Play ranked mogis: you are matched with players of your level, and every race moves your MMR on the CT Lounge ladder.",
+			"Jouez des mogis classés : vous êtes placé face à des joueurs de votre niveau, et chaque course fait bouger votre MMR au classement du CT Lounge."
+		);
+	}
 
 	oContainers[0].appendChild(oScr);
 
