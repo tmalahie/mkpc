@@ -930,8 +930,11 @@ a img {
 	border-color: #008;
 }
 
+#top10 #top_ranked {
+	background-color: #cef;
+}
 #top10 #top_ranked tr:nth-child(1) {
-	background-color: #348;
+	background-color: #312d;
 	color: #EEF;
 }
 
