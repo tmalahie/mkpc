@@ -1483,6 +1483,10 @@ msgid "Battle"
 msgstr "Bataille"
 
 #: php/pages/index.php
+msgid "Worldwide"
+msgstr "Mondial"
+
+#: php/pages/index.php
 msgid "Time Trial"
 msgstr "CLM"
 

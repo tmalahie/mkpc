@@ -838,18 +838,27 @@ $placeholderPath = 'images/pages/pixel.png';
 					}
 				}
 				?>
-				<a class="ranking_tab tab_vs" href="javascript:dispRankTab(0)">
+				<a class="ranking_tab tab_vs" href="javascript:dispRankTab(currenttabvs)">
 					<?= _('VS mode') ?>
 				</a><a class="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
 					<?= _('Battle') ?>
 					<?php print_badge(1); ?>
 				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
 					<?= _('Time Trial') ?>
-				</a><?php if ($loungeEligible) { ?><a class="ranking_tab tab_ranked" href="javascript:dispRankTab(4)">
-					<?= _('Ranked') ?>
-					<?php print_lounge_badge(); ?>
-				</a><?php } ?>
+				</a>
 			</div>
+			<?php
+			// Ranked is a way of playing VS, so its ladder sits under the VS tab the way the two
+			// cc's sit under Time Trial, rather than as a tab of its own beside the modes.
+			if ($loungeEligible) {
+				?>
+			<div id="vs_sub">
+			<a class="vs_sub_worldwide" href="javascript:dispRankTab(0)"><?= _('Worldwide') ?></a> <span>|</span>
+			<a class="vs_sub_ranked" href="javascript:dispRankTab(4)"><?= _('Ranked') ?><?php print_lounge_badge(); ?></a>
+			</div>
+				<?php
+			}
+			?>
 			<div id="currently_online">
 			<?php
 			print_active_players(0,'vs');
