@@ -1205,6 +1205,47 @@ test('the played course is recorded server-side and handed back to the room', as
 	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
 });
 
+// A client counts the races it has played itself, so one that arrives after the mogi is over -
+// a reload, a step back in the browser - started again from zero and was offered a thirteenth
+// race in a room everybody else had left. Matchmaking hands the count over so it knows.
+test('a player rejoining a finished mogi is told how many races it ran', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 43;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 4, raceLimit: 2, lounge: 1 })]);
+	// the room in the seconds after the last race: reload.php has put it back to map=-1, and the
+	// others are still in it because their clients have not reached the results page yet
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 500, key]);
+	const [mate] = await createLoungeBots(1, 'rejoin');
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount, tracks) VALUES (?, 1, 2, '3,1')
+	           ON DUPLICATE KEY UPDATE aRaceCount = VALUES(aRaceCount), raceCount = VALUES(raceCount),
+	           tracks = VALUES(tracks)`, [key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 0 WHERE id IN (?, ?)`,
+		[room.insertId, playerId, mate]);
+
+	const rejoining = await page.request.post('http://127.0.0.1:8080/api/getCourse.php', {
+		form: { key: String(key) },
+	});
+	const body = JSON.parse(await rejoining.text());
+	expect(body.found).toBe(true);
+	// getRaceLimit() is 2, so this is what sends the client to the mogi results instead of the
+	// track selection screen
+	expect(body.raceCount).toBe(2);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?)`, [playerId, mate]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
+});
+
 // A whole lineup opening one private link has to land in one room. Anyone still carrying the
 // course of an earlier race used to keep it, wait there alone, and report the lineup's size as
 // if they were in it - so a mogi of five showed up as three waiting for two next to two waiting
