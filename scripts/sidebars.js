@@ -1,5 +1,6 @@
 var onlineModeIds = ["vs","battle","clm150","clm200","ranked"];
 var currenttabcc = 2;
+var currenttabvs = 0;
 
 function dispRankTab(mode) {
     var onlineModeId = onlineModeIds[mode];
@@ -8,8 +9,11 @@ function dispRankTab(mode) {
     // a fifth mode was added after them.
     if (onlineModeId.indexOf("clm") === 0)
         currenttabcc = mode;
+    // the VS tab does the same for Worldwide and Ranked
+    if ((onlineModeId === "vs") || (onlineModeId === "ranked"))
+        currenttabvs = mode;
     document.getElementById("rankings_section").className = "subsection rank_" + onlineModeId;
-    document.querySelectorAll(".ranking_tab.tab_"+onlineModeId+" .ranking_badge").forEach(function(badge) {
+    document.querySelectorAll(".ranking_tab.tab_"+onlineModeId+" .ranking_badge, .vs_sub_"+onlineModeId+" .ranking_badge").forEach(function(badge) {
         badge.style.display = "none";
     });
 }
