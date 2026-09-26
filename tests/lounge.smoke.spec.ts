@@ -422,8 +422,9 @@ test('the notification settings carry the ranked lineup alert, for eligible play
 });
 
 // The home page builds every Top 10 table server-side on each load, so the ranked one is
-// built only for players who have a ladder to be in.
-test('the home page Top 10 gains a Ranked tab, for eligible players only', async ({ page }) => {
+// built only for players who have a ladder to be in. Ranked is a way of playing VS, so it sits
+// under the VS tab beside Worldwide, the way the two cc's sit under Time Trial.
+test('the home page Top 10 gains a Ranked view under VS, for eligible players only', async ({ page }) => {
 	const short = 'e2e-lounge-top10-short';
 	const met = 'e2e-lounge-top10-met';
 	const shortId = await createEntryBot(short, 500);
@@ -432,10 +433,15 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 
 	await login(page, met, LOUNGE_BOT_PASSWORD);
 	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
-	await expect(tabs()).toHaveCount(4);
-	await expect(tabs().last()).toHaveText(/Ranked|Class/);
-	await page.locator('.tab_ranked').click();
+	await expect(tabs()).toHaveCount(3);
+	await expect(page.locator('#vs_sub')).toBeVisible();
+	await expect(page.locator('#top_vs')).toBeVisible();
+	await page.locator('.vs_sub_ranked').click();
 	await expect(page.locator('#top_ranked')).toBeVisible();
+	await expect(page.locator('#top_vs')).toBeHidden();
+	// still the VS tab, the way either cc is still the Time Trial tab
+	await expect(page.locator('#rankings_section')).toHaveClass(/rank_ranked/);
+	expect(await page.locator('.tab_vs').evaluate(t => getComputedStyle(t).fontWeight)).toBe('700');
 	// ordered by MMR, and only players who have actually raced
 	const mmrs = await page.locator('#top_ranked tr td:nth-child(3)').allTextContents();
 	expect(mmrs.length).toBeGreaterThan(0);
@@ -456,13 +462,17 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 	await expect(page.locator('#top_clm150')).toBeVisible();
 	await expect(page.locator('#top_ranked')).toBeHidden();
 	await page.locator('.clm_cc_200').click();
-	await page.locator('.tab_ranked').click();
+	await page.locator('.tab_vs').click();
+	// and the VS tab reopens the view you left it on, which was Ranked
+	await expect(page.locator('#top_ranked')).toBeVisible();
+	await expect(page.locator('#vs_sub')).toBeVisible();
 	await page.locator('.tab_clm').click();
 	await expect(page.locator('#top_clm200')).toBeVisible();
 	await expect(page.locator('#top_ranked')).toBeHidden();
+	await expect(page.locator('#vs_sub')).toBeHidden();
 
 	// A gathering lineup belongs beside the ladder, not in with the public VS games, and the
-	// tab wears a badge so it is noticed from whichever tab you happen to be on.
+	// Ranked view wears a badge so it is noticed from Worldwide, where VS opens.
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	// the badge counts every player waiting, so the count is only knowable from a clean slate
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE status NOT IN ('cancelled', 'finished')`);
@@ -472,13 +482,13 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 		[queue.insertId, shortId]);
 
 	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
-	const badge = page.locator('.tab_ranked .ranking_badge');
+	const badge = page.locator('.vs_sub_ranked .ranking_badge');
 	await expect(badge).toHaveText('1');
 	await expect(badge).toBeVisible();
 	await expect(page.locator('#ranking_current_vs a[href*="ranked"]')).toHaveCount(0);
 	await expect(page.locator('#ranking_current_ranked')).toBeHidden();
 
-	await page.locator('.tab_ranked').click();
+	await page.locator('.vs_sub_ranked').click();
 	await expect(page.locator('#ranking_current_ranked li')).toHaveCount(1);
 	await expect(badge).toBeHidden();
 
@@ -497,6 +507,7 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 	await login(page, short, LOUNGE_BOT_PASSWORD);
 	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
 	await expect(tabs()).toHaveCount(3);
+	await expect(page.locator('#vs_sub')).toHaveCount(0);
 	await expect(page.locator('#top_ranked')).toHaveCount(0);
 
 	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [queue.insertId]);
@@ -2119,11 +2130,11 @@ test('a gathering lineup is advertised on the home page, to those who could join
 	await login(page, loungeBotName('advert', 1), LOUNGE_BOT_PASSWORD);
 	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
 
-	// the seeded account is past the criteria, so it is invited - under the Ranked tab, beside
+	// the seeded account is past the criteria, so it is invited - under the Ranked view, beside
 	// the ladder it belongs to rather than in with the public VS games
 	await login(page);
 	await page.goto('http://127.0.0.1:8080/index.php');
-	await page.locator('.tab_ranked').click();
+	await page.locator('.vs_sub_ranked').click();
 	const gathering = page.locator('#ranking_current_ranked li');
 	await expect(gathering).toHaveCount(1);
 	await expect(gathering).toContainText('1 member');
@@ -2160,13 +2171,13 @@ test('a gathering lineup is advertised on the home page, to those who could join
 	await expect(gathering.locator('.action_button'))
 		.toHaveAttribute('href', /^online\.php\?mid=\d+&ranked$/);
 
-	// a player short of the criteria is not shown a lineup they could not join - the tab it
+	// a player short of the criteria is not shown a lineup they could not join - the view it
 	// would live under is not built for them at all
 	const shortName = 'e2e-lounge-advert-short';
 	await createEntryBot(shortName, 500);
 	await login(page, shortName, LOUNGE_BOT_PASSWORD);
 	await page.goto('http://127.0.0.1:8080/index.php');
-	await expect(page.locator('.tab_ranked')).toHaveCount(0);
+	await expect(page.locator('.vs_sub_ranked')).toHaveCount(0);
 	await expect(page.locator('#ranking_current_ranked')).toHaveCount(0);
 
 	await sql(`DELETE FROM mkjoueurs WHERE nom = ?`, [shortName]);
