@@ -909,7 +909,7 @@ $placeholderPath = 'images/pages/pixel.png';
 							}
 							$rowAttrs = '';
 							if ($isRanked && ($rank = lounge_rank_for_mmr($player['mmr'])) && $rank['color'])
-								$rowAttrs = ' class="top10_rank" title="'. htmlspecialchars($rank['label']) .'" style="--rank-bg:'. $rank['color'] .';--rank-ink:'. lounge_rank_ink($rank['color']) .'"';
+								$rowAttrs = ' class="top10_rank" title="'. htmlspecialchars($rank['label']) .'" style="--rank-bg:'. $rank['color'] .'bb;--rank-ink:'. lounge_rank_ink($rank['color']) .'"';
 							echo '<tr'. $rowAttrs .'><td class="top10position">'. $place .'</td><td><a href="profil.php?id='. $player['id'] .'">'. controlLength($player['nom'],20) .'</a></td><td>'. $player['pts'] .'</td></tr>';
 						}
 						?>
