@@ -25556,6 +25556,7 @@ function selectOnlineScreen(options) {
 	// the last one clears the menu links; on their own the original two keep their places.
 	var showRanked = ((typeof loungeRegular !== "undefined") && loungeRegular);
 	var modeTop = showRanked ? 14:17;
+	var modeGap = showRanked ? 7 : 8;
 	function onlineModeButton(labelEn, labelFr, row, onclick) {
 		var button = document.createElement("input");
 		button.type = "button";
@@ -25563,7 +25564,7 @@ function selectOnlineScreen(options) {
 		button.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 		button.style.position = "absolute";
 		button.style.left = (22*iScreenScale)+"px";
-		button.style.top = ((modeTop + row*8)*iScreenScale)+"px";
+		button.style.top = ((modeTop + row*modeGap)*iScreenScale)+"px";
 		button.style.width = (36*iScreenScale)+"px";
 		button.onclick = onclick;
 		oScr.appendChild(button);
@@ -25581,12 +25582,14 @@ function selectOnlineScreen(options) {
 		openOnlineMode(true, options);
 	});
 	if (showRanked) {
-		onlineModeButton("Ranked mode", "Mode classé", 2, function() {
+		var rankedBtn = onlineModeButton("Ranked mode", "Mode classé", 2, function() {
 			document.location.href = "ranked.php";
-		}).title = toLanguage(
+		});
+		rankedBtn.title = toLanguage(
 			"Play ranked mogis: you are matched with players of your level, and every race moves your MMR on the CT Lounge ladder.",
 			"Jouez des mogis classés : vous êtes placé face à des joueurs de votre niveau, et chaque course fait bouger votre MMR au classement du CT Lounge."
 		);
+		rankedBtn.style.color = "white";
 	}
 
 	oContainers[0].appendChild(oScr);
