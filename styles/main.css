@@ -1287,7 +1287,8 @@ footer a {
 #rankings_section:not(.rank_battle) .action_gotobattle,
 #rankings_section:not(.rank_clm150) .action_gotoclm150,
 #rankings_section:not(.rank_clm200) .action_gotoclm200,
-#rankings_section:not(.rank_clm150):not(.rank_clm200) #clm_cc {
+#rankings_section:not(.rank_clm150):not(.rank_clm200) #clm_cc,
+#rankings_section:not(.rank_vs):not(.rank_ranked) #vs_sub {
 	display: none;
 }
 
@@ -1409,7 +1410,7 @@ footer a {
 }
 
 #rankings_section.rank_battle .tab_battle .ranking_badge,
-#rankings_section.rank_ranked .tab_ranked .ranking_badge {
+#rankings_section.rank_ranked .vs_sub_ranked .ranking_badge {
 	display: none;
 }
 
@@ -1421,8 +1422,7 @@ footer a {
 }
 
 #rankings_section:not(.rank_battle) .tab_battle,
-#rankings_section:not(.rank_vs) .tab_vs,
-#rankings_section:not(.rank_ranked) .tab_ranked,
+#rankings_section:not(.rank_vs):not(.rank_ranked) .tab_vs,
 #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm {
 	background-color: #FED;
 	color: #C00;
@@ -1430,8 +1430,7 @@ footer a {
 }
 
 #rankings_section:not(.rank_battle) .tab_battle:hover,
-#rankings_section:not(.rank_vs) .tab_vs:hover,
-#rankings_section:not(.rank_ranked) .tab_ranked:hover,
+#rankings_section:not(.rank_vs):not(.rank_ranked) .tab_vs:hover,
 #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm:hover {
 	background-color: #FFE7D5;
 	color: #C00;
@@ -1439,7 +1438,7 @@ footer a {
 
 #rankings_section.rank_battle .tab_battle,
 #rankings_section.rank_vs .tab_vs,
-#rankings_section.rank_ranked .tab_ranked,
+#rankings_section.rank_ranked .tab_vs,
 #rankings_section.rank_clm150 .tab_clm,
 #rankings_section.rank_clm200 .tab_clm {
 	background-color: #FDC;
@@ -1489,6 +1488,59 @@ footer a {
 	color: #820;
 	font-weight: bold;
 	text-decoration: none;
+}
+
+/* #clm_cc gets its distance from the tabs from #currently_online above it, and this sits
+   above it instead. Padding, because a margin would collapse into the tabs' own. */
+#vs_sub {
+	text-align: center;
+	position: relative;
+	top: -3px;
+	padding-top: 4px;
+}
+
+/* that spacer is only there for #clm_cc, and would push the table away from this one */
+#rankings_section.rank_vs #vs_sub ~ #currently_online,
+#rankings_section.rank_ranked #vs_sub ~ #currently_online {
+	min-height: 0;
+}
+
+#vs_sub a {
+	color: #F60;
+}
+
+#vs_sub a:hover {
+	color: #FB0;
+}
+
+#vs_sub span {
+	color: #C99;
+}
+
+#rankings_section.rank_vs #vs_sub a.vs_sub_worldwide,
+#rankings_section.rank_ranked #vs_sub a.vs_sub_ranked {
+	cursor: default;
+	color: #820;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+/* inline beside the label: the tab's corner badge would sit on the row of tabs above */
+#vs_sub .ranking_badge {
+	position: relative;
+	top: -5px;
+	left: -1px;
+	font-size: 10px;
+	width: 15px;
+	height: 15px;
+	display: inline-flex;
+	margin-left: 4px;
+	vertical-align: 1px;
+	font-weight: bold;
+}
+
+#vs_sub .ranking_badge span {
+	color: white;
 }
 
 #final_call_to_action {
