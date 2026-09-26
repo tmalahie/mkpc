@@ -399,6 +399,17 @@ function lounge_ranks() {
 	return $loungeRanksCache;
 }
 
+// The rank colours run from near-black (Master) to near-white (Silver), so text set on one is
+// black or white depending on how dark it is - the same rule as the lounge's rank chips.
+function lounge_rank_ink($color) {
+	$hex = ltrim($color, '#');
+	if (strlen($hex) === 3)
+		$hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+	$rgb = hexdec($hex);
+	$luma = 0.299 * (($rgb >> 16) & 255) + 0.587 * (($rgb >> 8) & 255) + 0.114 * ($rgb & 255);
+	return ($luma > 150) ? '#000' : '#fff';
+}
+
 function lounge_rank_for_mmr($mmr) {
 	foreach (lounge_ranks() as $rank) {
 		if ($mmr >= $rank['min_mmr'])
