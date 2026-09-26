@@ -550,6 +550,9 @@ function lounge_access_requirements() {
 // Lineups a given player could actually walk into: the entry criteria, then the tier's own
 // MMR band. Tier All has no band, so it shows to every eligible player including one who has
 // never queued. A lineup the player is already standing in is not an invitation.
+// Read as-is, without ticking the lounge, so a member is only counted while their lounge page is
+// still sending heartbeats: once everyone has closed it, nothing may come along to drop them,
+// and the home page would go on advertising a lineup nobody is in.
 function lounge_open_queues_for($playerId) {
 	if (!lounge_is_eligible($playerId))
 		return array();
@@ -562,6 +565,7 @@ function lounge_open_queues_for($playerId) {
 		FROM `mklounge_queues` q
 		INNER JOIN `mklounge_tiers` t ON t.id=q.tier
 		INNER JOIN `mklounge_queue_members` m ON m.queue=q.id AND m.dropped_at IS NULL
+			AND m.last_heartbeat > (NOW() - INTERVAL '. intval(lounge_setting('afk_seconds')) .' SECOND)
 		WHERE q.season="'. LOUNGE_CURRENT_SEASON .'"
 		AND q.status IN ("open","locked","voting","drafting")
 		GROUP BY q.id
