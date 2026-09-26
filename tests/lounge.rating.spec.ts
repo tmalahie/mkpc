@@ -554,6 +554,51 @@ test('a finished race records what it was worth, and which game it belonged to',
 	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id = ?`, [players[0]]);
 });
 
+// The race end is the lounge's only heartbeat during a mogi, and the moment a player is
+// counted as having played - so the log records which race it was and who was still there.
+test('the end of a lounge race is in the event log, with who was still racing', async ({ page }) => {
+	const key = LOUNGE_KEY_MIN + 12;
+	const players = await createLoungeBots(2, 'raceend');
+	await sql(
+		`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)`,
+		[key, JSON.stringify({
+			friendly: 1, localScore: 1, minPlayers: 2, maxPlayers: 2, raceLimit: 12, lounge: 1,
+			ptDistrib: { value: [10, 4], name: '2p' },
+		})]
+	);
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 0, 0)`, [key]);
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000), key]
+	);
+	for (let i = 0; i < players.length; i++)
+		await sql(
+			`INSERT INTO mkplayers (id, course, team, controller, tours, place, aPts, connecte, finaltime, finalts)
+			 VALUES (?, ?, -1, 0, 4, ?, 0, 0, 0, 0)`,
+			[players[i], room.insertId, i + 1]
+		);
+
+	await login(page, loungeBotName('raceend', 1), LOUNGE_BOT_PASSWORD);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, players[0]]);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
+	const res = await page.request.post('http://127.0.0.1:8080/api/reload.php', { data: { laps: 3 } });
+	expect(res.ok()).toBeTruthy();
+
+	const events: any[] = await sql(
+		`SELECT source, actor, data FROM mklounge_events
+		 WHERE id > ? AND privgame_key = ? AND event = 'race_finished'`, [since, key]);
+	expect(events).toHaveLength(1);
+	expect(events[0].source).toBe('reload.php');
+	expect(events[0].actor).toBe(players[0]);
+	const data = JSON.parse(events[0].data);
+	expect(data).toMatchObject({ race: 1, course: room.insertId });
+	expect([...data.present].sort()).toEqual([...players].sort());
+
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id = ?`, [players[0]]);
+});
+
 // The other half of it: a public race, where the points are the player's own VS total rather
 // than a room's running score. Same two columns, and no link, because there is no link.
 test('a public race records the points it moved, against no game in particular', async ({ page }) => {
