@@ -29775,9 +29775,13 @@ function handleMatchmakingSuccess(reponse) {
 			onlineSpectatorState = reponse.spectatorState;
 	}
 	// seeded before the selection screen, so a player joining mid-game sees which courses
-	// are already used up on their very first pick
+	// are already used up on their very first pick, and counts the races already run rather
+	// than from zero - which is what would hand a whole extra race to anyone reloading the
+	// page once the mogi is over.
 	if (reponse.tracks)
 		aTracksHist = reponse.tracks.slice();
+	if (reponse.raceCount >= 0)
+		iRaceCount = reponse.raceCount;
 	selectMapScreen({ racecountdown: reponse.time-5 });
 	dRest();
 	setTimeout(setChat, 1);

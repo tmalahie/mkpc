@@ -85,10 +85,15 @@ if ($id) {
 		echo '{"found":true,"time":'.max($remainingTtime,12);
 		// The course history has to be here rather than only in setMap.php: the track
 		// selection screen comes first, so a player joining mid-game would otherwise pick
-		// before ever being told which courses are used up.
+		// before ever being told which courses are used up. The race count comes along for
+		// the same reason and one more: a client counts the races it has played itself, so
+		// one that arrives after the last one - a reload, a step back in the browser - would
+		// start again from zero and be offered a race the game is already over for.
 		if ($nlink && !empty($linkOptions->rules->localScore)) {
 			require_once('../includes/onlineStateUtils.php');
-			echo ',"tracks":'. json_encode(getCourseTracks(getCourseState($nlink)));
+			$courseState = getCourseState($nlink);
+			echo ',"tracks":'. json_encode(getCourseTracks($courseState));
+			echo ',"raceCount":'. intval($courseState['raceCount']);
 		}
 		if ($newSpectatorId) {
 			echo ',"spectator":'.$newSpectatorId;
