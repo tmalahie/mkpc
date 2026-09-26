@@ -394,7 +394,7 @@ if ($id) {
 								$shouldLog = false;
 						}
 						if ($shouldLog)
-							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $player['id'] .','. $course .','. $i .',NULL)');
+							mysql_query('INSERT INTO `mkmatches` SET player='. $player['id'] .',course='. $course .',`rank`='. $i);
 					}
 				}
 				echo '],'.($mkState['time']-$time);
