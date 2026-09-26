@@ -441,6 +441,15 @@ test('the home page Top 10 gains a Ranked tab, for eligible players only', async
 	expect(mmrs.length).toBeGreaterThan(0);
 	const numbers = mmrs.map(Number);
 	expect(numbers).toEqual([...numbers].sort((a, b) => b - a));
+	// each row painted in its player's rank colour, the way the ladder is read on Discord
+	const ranks: any[] = await sql(`SELECT color, min_mmr FROM mklounge_ranks ORDER BY min_mmr DESC`);
+	const rgb = (hex: string) => {
+		const n = parseInt(hex.replace('#', ''), 16);
+		return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+	};
+	const painted = await page.locator('#top_ranked tr.top10_rank')
+		.evaluateAll(rows => rows.map(r => getComputedStyle(r).backgroundColor));
+	expect(painted).toEqual(numbers.map(mmr => rgb(ranks.find(r => mmr >= r.min_mmr).color)));
 
 	// Time Trial reopens the cc you last looked at, and Ranked must not become that memory
 	await page.locator('.tab_clm').click();

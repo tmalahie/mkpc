@@ -967,6 +967,15 @@ a img {
 	background-color: #FDC;
 }
 
+/* The ranked ladder paints each row in the player's rank colour instead of the striping. */
+#top10 tr.top10_rank:nth-child(n) {
+	background-color: var(--rank-bg);
+}
+
+#top10 tr.top10_rank:nth-child(n) * {
+	color: var(--rank-ink);
+}
+
 #top10 tr a {
 	text-decoration: none;
 	display: block;
