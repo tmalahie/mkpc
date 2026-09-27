@@ -113,6 +113,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 				}
 				require_once('../includes/cache_creations.php');
 				@unlink(cachePath("mappreview$circuitId.png"));
+				require_once('../includes/utils-publishers.php');
+				recordPublisher('mkcircuits', $circuitId);
 				include('../includes/postCircuitUpdate.php');
 				postCircuitUpdate('mkcircuits', $circuitId, $isBattle);
 				echo $circuitId;

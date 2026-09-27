@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { sql } from './helpers/db';
-import { login, SIMPLE_CIRCUIT_PIECES } from './helpers/mkpc';
+import { login, createCircuit, SIMPLE_CIRCUIT_PIECES } from './helpers/mkpc';
 
 const AUTHOR = 'e2e-logged-out';
 
@@ -45,4 +45,17 @@ test('the share button opens the share form once logged in', async ({ page }) =>
   await page.goto('/circuit.php?' + simpleCircuitQuery());
   await page.locator('#shareRace').click();
   await expect(page.locator('#cSave')).toBeVisible();
+});
+
+test('publishing records the account that published, and deleting forgets it', async ({ page }) => {
+  await login(page);
+  const [{ id: playerId }]: any = await sql('SELECT id FROM mkjoueurs WHERE nom = ?', ['wargor']);
+  const circuitId = await createCircuit(page.request, { author: 'e2e-publisher' });
+  const publishers = () =>
+    sql('SELECT publisher, last_editor FROM mkpublishers WHERE type = "mkcircuits" AND creation_id = ?', [circuitId]);
+
+  expect(await publishers()).toEqual([{ publisher: playerId, last_editor: playerId }]);
+
+  await page.request.post('/api/supprCreation.php', { form: { id: String(circuitId), collab: '' } });
+  expect(await publishers()).toEqual([]);
 });

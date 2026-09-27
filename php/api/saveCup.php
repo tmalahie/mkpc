@@ -85,6 +85,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 				include('../includes/challenge-associate.php');
 				challengeAssociate('mkcups',$cupId,$_POST['cl']);
 			}
+			require_once('../includes/utils-publishers.php');
+			recordPublisher('mkcups', $cupId);
 			include('../includes/postCircuitUpdate.php');
 			postCircuitUpdate('mkcups', $cupId);
 		}

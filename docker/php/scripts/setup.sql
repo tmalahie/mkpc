@@ -1388,6 +1388,20 @@ SET character_set_client = utf8mb4;
 SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mkpublishers` (
+  `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups','mkchars') NOT NULL,
+  `creation_id` int(11) NOT NULL,
+  `publisher` int(11) NOT NULL,
+  `last_editor` int(11) NOT NULL,
+  `published_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`type`,`creation_id`),
+  KEY `publisher` (`publisher`),
+  KEY `last_editor` (`last_editor`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkr` (
   `id` int(10) NOT NULL,
   `circuit` int(10) NOT NULL,

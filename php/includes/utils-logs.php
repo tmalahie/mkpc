@@ -83,8 +83,19 @@ function snapshotTrack($type, $id) {
 			if ($track[$field] !== null)
 				$res[$field] = $track[$field];
 		}
+		$res = array_merge($res, snapshotPublishers($type, $id));
 	}
 	return $res;
+}
+
+function snapshotPublishers($type, $creationId) {
+	require_once('utils-publishers.php');
+	$publishers = getPublishers($type, intval($creationId));
+	if (!$publishers) return array();
+	return array(
+		'publisher' => intval($publishers['publisher']),
+		'last_editor' => intval($publishers['last_editor'])
+	);
 }
 
 function decodeSnapshotJson($json) {

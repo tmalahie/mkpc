@@ -85,6 +85,10 @@ export async function cleanupCreations(baseURL: string) {
   await sql('DELETE t FROM mkmcups_tracks t JOIN mkmcups m ON m.id = t.mcup WHERE m.auteur LIKE ?', [p]);
   await sql('DELETE FROM mkmcups WHERE auteur LIKE ?', [p]);
   await sql('DELETE FROM mkcups WHERE auteur LIKE ?', [p]);
+  // Cups and multicups removed by the circuit cascade keep their publisher row,
+  // which is harmless in production (ids are never reused) but litters the dev DB.
+  if (cups.length) await sql('DELETE FROM mkpublishers WHERE type = "mkcups" AND creation_id IN (?)', [cups]);
+  if (mcups.length) await sql('DELETE FROM mkpublishers WHERE type = "mkmcups" AND creation_id IN (?)', [mcups]);
   await deleteFollowerNotifs('circuits', circuits);
   await deleteFollowerNotifs('cups', cups);
   await deleteFollowerNotifs('mcups', mcups);

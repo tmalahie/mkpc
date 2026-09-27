@@ -10,6 +10,8 @@ if (isset($_POST['id']) && isset($_POST['pseudo'])) {
 			include('../includes/ip_banned.php');
 			if (canPublishCreations()) {
 				mysql_query('UPDATE `mkchars` SET author="'. $_POST['pseudo'] .'",publication_date=IFNULL(publication_date,CURRENT_TIMESTAMP()) WHERE id="'. $persoId .'"');
+				require_once('../includes/utils-publishers.php');
+				recordPublisher('mkchars', $persoId);
 				if (!$perso['publication_date']) {
 					$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 					while ($follower = mysql_fetch_array($getFollowers))

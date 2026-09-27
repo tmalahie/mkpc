@@ -28,6 +28,8 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 			while ($follower = mysql_fetch_array($getFollowers))
 				mysql_query('INSERT INTO `mknotifs` SET type="follower_circuit", user="'. $follower['follower'] .'", link="2,'.$trackId.'"');
 		}
+		require_once('../includes/utils-publishers.php');
+		recordPublisher('arenes', $trackId);
 		include('../includes/postCircuitUpdate.php');
 		postCircuitUpdate('arenes', $trackId);
 	}

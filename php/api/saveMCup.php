@@ -86,6 +86,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		}
 		require_once('../includes/cache_creations.php');
 		@unlink(cachePath("mcuppreview$cupId.png"));
+		require_once('../includes/utils-publishers.php');
+		recordPublisher('mkmcups', $cupId);
 		include('../includes/postCircuitUpdate.php');
 		postCircuitUpdate('mkmcups', $cupId);
 		echo $cupId;
