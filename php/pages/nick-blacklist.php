@@ -17,16 +17,39 @@ if (!hasRight('moderator')) {
 $checkWord = null;
 $checkSeparators = false;
 $justAdded = false;
-$wordError = false;
+$justEdited = false;
+$wordError = null;
+$editedValue = null;
+$editedWord = null;
+$wordIdParam = isset($_POST['word_id']) ? $_POST['word_id'] : (isset($_GET['word_id']) ? $_GET['word_id'] : (isset($_GET['edit']) ? $_GET['edit'] : null));
+if ($wordIdParam)
+    $editedWord = mysql_fetch_array(mysql_query('SELECT id,word,ignore_separators FROM mkbadnicks WHERE id="'. $wordIdParam .'"'));
+$editedSeparators = $editedWord ? (bool)$editedWord['ignore_separators'] : false;
 if (!empty($_POST['word'])) {
     $checkWord = strtolower($_POST['word']);
     $checkSeparators = !empty($_POST['ignore_separators']);
-    if (!isValidNickExpression($checkWord)) {
-        $wordError = true;
+    $listed = isValidNickExpression($checkWord) ? mysql_fetch_array(mysql_query('SELECT id,ignore_separators FROM mkbadnicks WHERE word="'. $checkWord .'"')) : null;
+    if (!isValidNickExpression($checkWord))
+        $wordError = 'invalid';
+    elseif ($editedWord && $listed && $listed['id'] != $editedWord['id'])
+        $wordError = 'duplicate';
+    if ($wordError) {
+        $editedValue = $checkWord;
         $checkWord = null;
     }
+    elseif ($editedWord) {
+        if ($editedWord['word'] !== $checkWord || $editedSeparators !== $checkSeparators) {
+            mysql_query('UPDATE mkbadnicks SET word="'. $checkWord .'",ignore_separators='. ($checkSeparators ? 1:0) .' WHERE id='. $editedWord['id']);
+            insertLog($id, 'NBlacklist '. $editedWord['id'], array_merge(
+                array('type' => 'nick_word', 'id' => intval($editedWord['id'])),
+                snapshotWord('mkbadnicks', $editedWord['id'], 'word,ignore_separators')
+            ));
+            $justAdded = true;
+            $justEdited = true;
+        }
+        $editedWord = null;
+    }
     else {
-        $listed = mysql_fetch_array(mysql_query('SELECT id,ignore_separators FROM mkbadnicks WHERE word="'. $checkWord .'"'));
         if (!$listed) {
             mysql_query('INSERT INTO mkbadnicks SET word="'. $checkWord .'",ignore_separators='. ($checkSeparators ? 1:0));
             $wordId = mysql_insert_id();
@@ -61,8 +84,12 @@ elseif (!empty($_POST['good_word'])) {
 elseif (!empty($_GET['word'])) {
     $checkWord = strtolower($_GET['word']);
     $checkSeparators = !empty($_GET['ignore_separators']);
-    if (!isValidNickExpression($checkWord)) {
-        $wordError = true;
+    if (!isValidNickExpression($checkWord))
+        $wordError = 'invalid';
+    elseif ($editedWord && ($listed = mysql_fetch_array(mysql_query('SELECT id FROM mkbadnicks WHERE word="'. $checkWord .'"'))) && $listed['id'] != $editedWord['id'])
+        $wordError = 'duplicate';
+    if ($wordError) {
+        $editedValue = $checkWord;
         $checkWord = null;
     }
 }
@@ -84,7 +111,11 @@ elseif (isset($_GET['del_good'])) {
 }
 $testNick = isset($_GET['test']) ? stripslashes($_GET['test']) : '';
 $listedWord = ($checkWord !== null) ? mysql_fetch_array(mysql_query('SELECT id,ignore_separators FROM mkbadnicks WHERE word="'. $checkWord .'"')) : null;
-$isListed = $listedWord && ((bool)$listedWord['ignore_separators'] === $checkSeparators);
+if ($editedWord && $checkWord !== null)
+    $isListed = ($editedWord['word'] === $checkWord) && ($editedSeparators === $checkSeparators);
+else
+    $isListed = $listedWord && ((bool)$listedWord['ignore_separators'] === $checkSeparators);
+$isEditing = $editedWord && ($checkWord !== null) && !$isListed;
 $maxMatches = 200;
 $maxScanned = 5000;
 $trimmedRows = 10;
@@ -93,6 +124,32 @@ function separatorsLabel($ignoreSeparators) {
     if ($ignoreSeparators)
         return $language ? 'ignoring - and _':'en ignorant - et _';
     return $language ? 'not ignoring - and _':'sans ignorer - et _';
+}
+function separatorsCheckboxLabel() {
+    global $language;
+    if ($language)
+        return 'Also ignore <strong>-</strong> and <strong>_</strong> between letters (<em>hit-ler</em>, <em>h_i_t_l_e_r</em>)';
+    return 'Ignorer aussi les <strong>-</strong> et <strong>_</strong> entre les lettres (<em>hit-ler</em>, <em>h_i_t_l_e_r</em>)';
+}
+function expressionHint() {
+    global $language;
+    if ($language)
+        return 'Matches anywhere in the username.<br /><code>[il1]</code> means any of <em>i</em>, <em>l</em> or <em>1</em>, and <code>e+</code> means one or more <em>e</em>.<br />Letters, digits, <code>-</code> and <code>_</code> are allowed besides.';
+    return 'Détecté n\'importe où dans le pseudo.<br /><code>[il1]</code> signifie <em>i</em>, <em>l</em> ou <em>1</em>, et <code>e+</code> signifie un ou plusieurs <em>e</em>.<br />Les lettres, chiffres, <code>-</code> et <code>_</code> sont autorisés en plus.';
+}
+function wordErrorMessage($wordError) {
+    global $language;
+    switch ($wordError) {
+    case 'invalid':
+        if ($language)
+            return '<p class="word-error">This word is not valid: only letters, digits, <code>-</code>, <code>_</code>, <code>[...]</code> and <code>+</code> are allowed.</p>';
+        return '<p class="word-error">Ce mot n\'est pas valide : seuls les lettres, chiffres, <code>-</code>, <code>_</code>, <code>[...]</code> et <code>+</code> sont autorisés.</p>';
+    case 'duplicate':
+        if ($language)
+            return '<p class="word-error">This word is already in the list.</p>';
+        return '<p class="word-error">Ce mot est déjà dans la liste.</p>';
+    }
+    return '';
 }
 ?>
 <!DOCTYPE html>
@@ -107,8 +164,11 @@ include('../includes/heads.php');
 main tr.clair a.action_button, main tr.fonce a.action_button {
     color: white;
 }
-form label {
+.blacklist-form label {
     display: block;
+}
+.whitelist-form {
+    margin-bottom: 5px;
 }
 form input[type="submit"], form button {
     margin-top: 5px;
@@ -230,11 +290,24 @@ if ($checkWord !== null) {
     ?>
 <main>
     <?php
-    if ($justAdded) {
+    if ($justEdited) {
+        if ($language)
+            echo '<p class="word-added">Changes saved: '. $quotedWord .' is blacklisted, '. separatorsLabel($checkSeparators) .'.</p>';
+        else
+            echo '<p class="word-added">Modifications enregistrées : '. $quotedWord .' est blacklisté, '. separatorsLabel($checkSeparators) .'.</p>';
+    }
+    elseif ($justAdded) {
         if ($language)
             echo '<p class="word-added">'. $quotedWord .' is now blacklisted, '. separatorsLabel($checkSeparators) .'.</p>';
         else
             echo '<p class="word-added">'. $quotedWord .' est maintenant blacklisté, '. separatorsLabel($checkSeparators) .'.</p>';
+    }
+    elseif ($isEditing) {
+        $quotedOld = '&laquo;&nbsp;<strong>'. htmlspecialchars($editedWord['word']) .'</strong>&nbsp;&raquo;';
+        if ($language)
+            echo '<p class="word-pending">You are changing <strong>'. $quotedOld .'</strong> ('. separatorsLabel($editedSeparators) .') into '. $quotedWord .'</strong> ('. separatorsLabel($checkSeparators) .'). Check the members below, then save.</p>';
+        else
+            echo '<p class="word-pending">Vous modifiez <strong>'. $quotedOld .'</strong> ('. separatorsLabel($editedSeparators) .') en <strong>'. $quotedWord .'</strong> ('. separatorsLabel($checkSeparators) .'). Vérifiez les membres ci-dessous, puis enregistrez.</p>';
     }
     elseif ($listedWord && !$isListed) {
         if ($language)
@@ -258,14 +331,24 @@ if ($checkWord !== null) {
                 <?php
                 if ($checkSeparators)
                     echo '<input type="hidden" name="ignore_separators" value="1" />';
+                if ($isEditing) {
+                    echo '<input type="hidden" name="word_id" value="'. $editedWord['id'] .'" />';
+                    echo '<input type="submit" class="action_button action_main" value="'. ($language ? 'Save changes' : 'Enregistrer') .'" />';
+                    echo '<a href="?edit='. $editedWord['id'] .'" onclick="history.back();return false">'. ($language ? 'Back':'Retour') .'</a>';
+                }
+                else {
+                    echo '<input type="submit" class="action_button action_main" value="'. ($language ? 'Add to blacklist' : 'Blacklister') .'" />';
+                    echo '<a href="nick-blacklist.php">'. ($language ? 'Back':'Retour') .'</a>';
+                }
                 ?>
-                <input type="submit" class="action_button action_main" value="<?php echo $language ? 'Add to blacklist' : 'Blacklister'; ?>" />
-                <a href="nick-blacklist.php"><?php echo $language ? 'Back':'Retour'; ?></a>
             </form>
             <?php
         }
-        else
+        else {
+            if ($listedWord)
+                echo '<a class="action_button action_warning" href="?edit='. $listedWord['id'] .'">'. ($language ? 'Edit':'Modifier') .'</a>';
             echo '<a href="nick-blacklist.php">'. ($language ? 'Back':'Retour') .'</a>';
+        }
         ?>
     </div>
     <h1><?php
@@ -355,6 +438,33 @@ if ($checkWord !== null) {
 </main>
     <?php
 }
+elseif ($editedWord) {
+    $formValue = ($editedValue !== null) ? $editedValue : $editedWord['word'];
+    $formSeparators = ($editedValue !== null) ? $checkSeparators : $editedSeparators;
+    ?>
+<main>
+    <h1><?php echo ($language ? 'Edit forbidden word ':'Modifier le mot interdit ') .'&laquo;&nbsp;'. htmlspecialchars($editedWord['word']) .'&nbsp;&raquo;'; ?></h1>
+	<form class="blacklist-form" method="post" action="nick-blacklist.php">
+        <input type="hidden" name="word_id" value="<?php echo $editedWord['id']; ?>" />
+        <label>
+            <?php echo $language ? 'Word:' : 'Mot :'; ?>
+            <input type="text" name="word" required="required" value="<?php echo htmlspecialchars($formValue); ?>" />
+        </label>
+        <label class="inline-check">
+            <input type="checkbox" name="ignore_separators" value="1"<?php if ($formSeparators) echo ' checked="checked"'; ?> />
+            <?php echo separatorsCheckboxLabel(); ?>
+        </label>
+        <button type="submit" formmethod="get" class="action_button"><?php echo $language ? 'Preview matching members' : 'Voir les membres concernés'; ?></button>
+        <input type="submit" class="action_button action_warning" value="<?php echo $language ? 'Save' : 'Enregistrer'; ?>" />
+	</form>
+    <p class="section-hint"><?php echo expressionHint(); ?></p>
+    <?php
+    echo wordErrorMessage($wordError);
+    ?>
+    <p><a href="nick-blacklist.php#forbidden-words"><?php echo $language ? 'Back to the username blacklist':'Retour à la blacklist des pseudos'; ?></a></p>
+</main>
+    <?php
+}
 else {
     $nbForbidden = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkbadnicks'));
     $nbAllowed = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkgoodwords'));
@@ -363,9 +473,9 @@ else {
     <h1><?php echo $language ? 'Username blacklist':'Blacklist des pseudos'; ?></h1>
     <p class="section-hint"><?php
     if ($language)
-        echo 'Members cannot register or rename themselves with a username matching a forbidden word. Existing accounts keep their username.';
+        echo 'Members cannot register or rename themselves with a username matching a forbidden word.<br />Existing accounts keep their username.';
     else
-        echo 'Les membres ne peuvent pas s\'inscrire ou se renommer avec un pseudo correspondant à un mot interdit. Les comptes existants gardent leur pseudo.';
+        echo 'Les membres ne peuvent pas s\'inscrire ou se renommer avec un pseudo correspondant à un mot interdit.<br />Les comptes existants gardent leur pseudo.';
     ?></p>
 
     <h2><?php echo $language ? 'Test a username' : 'Tester un pseudo'; ?></h2>
@@ -396,31 +506,21 @@ else {
     ?>
 
     <h2 id="forbidden-words"><?php echo ($language ? 'Forbidden words' : 'Mots interdits') .' ('. $nbForbidden['nb'] .')'; ?></h2>
-	<form method="post" action="nick-blacklist.php">
+	<form class="blacklist-form" method="post" action="nick-blacklist.php">
         <label>
             <?php echo $language ? 'Add a word:' : 'Ajouter un mot :'; ?>
             <input type="text" name="word" placeholder="h+i+t+l+e+r+" required="required" />
         </label>
         <label class="inline-check">
             <input type="checkbox" name="ignore_separators" value="1" />
-            <?php echo $language ? 'Also ignore <strong>-</strong> and <strong>_</strong> between letters (<em>hit-ler</em>, <em>h_i_t_l_e_r</em>)' : 'Ignorer aussi les <strong>-</strong> et <strong>_</strong> entre les lettres (<em>hit-ler</em>, <em>h_i_t_l_e_r</em>)'; ?>
+            <?php echo separatorsCheckboxLabel(); ?>
         </label>
         <button type="submit" formmethod="get" class="action_button"><?php echo $language ? 'Preview matching members' : 'Voir les membres concernés'; ?></button>
         <input type="submit" class="action_button action_warning" value="<?php echo $language ? 'Add to blacklist' : 'Blacklister'; ?>" />
 	</form>
-    <p class="section-hint"><?php
-    if ($language)
-        echo 'Matches anywhere in the username. <code>[il1]</code> means any of <em>i</em>, <em>l</em> or <em>1</em>, and <code>e+</code> means one or more <em>e</em>. Letters, digits, <code>-</code> and <code>_</code> are allowed besides.';
-    else
-        echo 'Détecté n\'importe où dans le pseudo. <code>[il1]</code> signifie <em>i</em>, <em>l</em> ou <em>1</em>, et <code>e+</code> signifie un ou plusieurs <em>e</em>. Les lettres, chiffres, <code>-</code> et <code>_</code> sont autorisés en plus.';
-    ?></p>
+    <p class="section-hint"><?php echo expressionHint(); ?></p>
     <?php
-    if ($wordError) {
-        if ($language)
-            echo '<p class="word-error">This word is not valid: only letters, digits, <code>-</code>, <code>_</code>, <code>[...]</code> and <code>+</code> are allowed.</p>';
-        else
-            echo '<p class="word-error">Ce mot n\'est pas valide : seuls les lettres, chiffres, <code>-</code>, <code>_</code>, <code>[...]</code> et <code>+</code> sont autorisés.</p>';
-    }
+    echo wordErrorMessage($wordError);
     ?>
     <table id="forbidden-list" class="trimmed">
         <tr id="titres">
@@ -433,8 +533,8 @@ else {
         while ($blacklist = mysql_fetch_array($getBlacklist)) {
             $previewUrl = '?word='. urlencode($blacklist['word']) . ($blacklist['ignore_separators'] ? '&amp;ignore_separators=1':'');
             echo '<tr class="'. ($i%2 ? 'fonce':'clair') . ($i >= $trimmedRows ? ' extra-row':'') .'">
-                <td class="word-cell"><code>'.htmlspecialchars($blacklist['word']).'</code>'. ($blacklist['ignore_separators'] ? '<span class="word-flag">'. separatorsLabel(true) .'</span>':'') .'</td>
-                <td class="options-cell"><a class="action_button" href="'. $previewUrl .'">'. ($language ? 'See members':'Voir les membres') .'</a><a class="action_button action_delete" href="?del='. $blacklist['id'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
+                <td class="word-cell"><code>'.htmlspecialchars($blacklist['word']).'</code>'. ($blacklist['ignore_separators'] ? '<br /><span class="word-flag">'. separatorsLabel(true) .'</span>':'') .'</td>
+                <td class="options-cell"><a class="action_button" href="'. $previewUrl .'">'. ($language ? 'See members':'Voir les membres') .'</a><a class="action_button action_warning" href="?edit='. $blacklist['id'] .'">'. ($language ? 'Edit':'Modifier') .'</a><a class="action_button action_delete" href="?del='. $blacklist['id'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
             </tr>';
             $i++;
         }
@@ -448,11 +548,11 @@ else {
     <h2 id="allowed-words"><?php echo ($language ? 'Allowed words' : 'Mots autorisés') .' ('. $nbAllowed['nb'] .')'; ?></h2>
     <p class="section-hint"><?php
     if ($language)
-        echo 'Innocent words that contain a forbidden one. They are ignored before checking, in usernames and in the <a href="chat-blacklist.php">online chat</a>: allowing <em>cucumber</em> stops <em>cum</em> from blocking it, while <em>cucumbercum</em> stays forbidden.';
+        echo 'Innocent words that contain a forbidden one.<br />They are ignored before checking, in usernames and in the <a href="chat-blacklist.php">online chat</a>:<br />allowing <em>cucumber</em> stops <em>cum</em> from blocking it, while <em>cucumbercum</em> stays forbidden.';
     else
-        echo 'Les mots innocents qui contiennent un mot interdit. Ils sont ignorés avant la vérification, dans les pseudos et dans le <a href="chat-blacklist.php">chat en ligne</a> : autoriser <em>cucumber</em> empêche <em>cum</em> de le bloquer, alors que <em>cucumbercum</em> reste interdit.';
+        echo 'Les mots innocents qui contiennent un mot interdit.<br />Ils sont ignorés avant la vérification, dans les pseudos et dans le <a href="chat-blacklist.php">chat en ligne</a> :<br />autoriser <em>cucumber</em> empêche <em>cum</em> de le bloquer, alors que <em>cucumbercum</em> reste interdit.';
     ?></p>
-	<form method="post" action="nick-blacklist.php#allowed-words">
+	<form class="whitelist-form" method="post" action="nick-blacklist.php#allowed-words">
         <label>
             <?php echo $language ? 'Add a word:' : 'Ajouter un mot :'; ?>
             <input type="text" name="good_word" placeholder="cucumber" required="required" />
