@@ -3,8 +3,10 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
-if ($getProfile = mysql_fetch_array(mysql_query('SELECT j.nom,p.nick_color FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE j.id="'. $id .'"'))) {
-	if (isset($_POST['message'])) {
+if ($getProfile = mysql_fetch_array(mysql_query('SELECT j.nom,j.banned,p.nick_color FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE j.id="'. $id .'"'))) {
+	if (isset($_POST['message']) && $getProfile['banned'])
+		$message = $language ? 'You have been banned, you cannot edit your username color.':'Vous avez été banni, vous ne pouvez pas modifier la couleur de votre pseudo.';
+	elseif (isset($_POST['message'])) {
 		$nickColor = $_POST['message'];
 		$nickUntagged = preg_replace('#\[color=(\#[a-f0-9]{3}(?:[a-f0-9]{3})?|[a-z]+)\](.*)\[/color\]#isU', '$2', $nickColor);
 		if ($nickUntagged == $getProfile['nom']) {
@@ -142,6 +144,8 @@ include('../includes/menu.php');
 <?php
 if (isset($success))
 	echo '<div class="success">'. $success .'</div>';
+if (isset($message))
+	echo '<p style="color: red; text-align: center">'. $message .'</p>';
 ?>
 <p class="nick-color-explain">
 	<?php

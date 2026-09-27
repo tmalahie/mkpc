@@ -192,6 +192,10 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 #perso-share-popup form {
 	margin-bottom: 8px;
 }
+#perso-share-popup .perso-share-restricted {
+	margin: 0 0 8px 0;
+	max-width: 280px;
+}
 #delete-share-link {
 	display: none;
 	margin-bottom: 3px;

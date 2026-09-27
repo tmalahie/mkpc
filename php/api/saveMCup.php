@@ -4,9 +4,10 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	include('../includes/getId.php');
 	include('../includes/initdb.php');
 	include('../includes/ip_banned.php');
+	include('../includes/session.php');
 	require_once('../includes/collabUtils.php');
 	$mode = $_POST['mode'];
-	if (isBanned()) {
+	if (!canPublishCreations($id)) {
 		mysql_close();
 		exit;
 	}
@@ -86,6 +87,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		}
 		require_once('../includes/cache_creations.php');
 		@unlink(cachePath("mcuppreview$cupId.png"));
+		require_once('../includes/utils-publishers.php');
+		recordPublisher('mkmcups', $cupId, $id);
 		include('../includes/postCircuitUpdate.php');
 		postCircuitUpdate('mkmcups', $cupId);
 		echo $cupId;
