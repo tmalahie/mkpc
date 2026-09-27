@@ -211,6 +211,7 @@ function includeShareLib() {
             if (show) {
                 $modal.style.display = "flex";
                 document.addEventListener("keydown", closeAccountRequiredFormOnEscape);
+                checkPublishRestriction();
             }
             else {
                 $modal.style.display = "none";
@@ -226,6 +227,30 @@ function includeShareLib() {
                 e.stopPropagation();
                 toggleAccountRequiredForm(false);
             }
+        }
+        function openLoginTab() {
+            window.open("forum.php");
+            window.addEventListener("focus", checkPublishRestriction);
+        }
+        function checkPublishRestriction() {
+            fetch("api/getPublishRestriction.php", {credentials: "same-origin"}).then(function(res) {
+                return res.text();
+            }).then(function(restriction) {
+                if (restriction === "logged_out")
+                    return;
+                window.removeEventListener("focus", checkPublishRestriction);
+                document.getElementById("accountRequiredLoggedOut").style.display = "none";
+                document.getElementById(restriction ? "accountRequiredBanned" : "accountRequiredLoggedIn").style.display = "";
+                document.getElementById("shareRace").onclick = restriction ? function() {
+                    toggleAccountRequiredForm(true);
+                } : function() {
+                    toggleShareForm(true);
+                };
+            });
+        }
+        function shareAfterLogin() {
+            toggleAccountRequiredForm(false);
+            toggleShareForm(true);
         }
         function toggleShareForm(show) {
             var $form = document.getElementById("cSave");
@@ -388,14 +413,29 @@ function printCircuitShareUI() {
         ?>
     <div id="accountRequired" onclick="handleAccountRequiredBackdropClick(event)">
         <div class="accountRequiredDialog">
-            <p><?php echo $language ?
-                'You need to be logged in to share your creations.<br />' :
-                'Vous devez être connecté pour partager vos créations.<br />';
-            ?></p>
-            <p class="accountRequiredButtons">
-                <a href="javascript:toggleAccountRequiredForm(false)"><?php echo $language ? 'Cancel':'Annuler'; ?></a>
-                <input type="button" value="<?php echo $language ? '&nbsp;Log in / Register&nbsp; &gt;':'&nbsp;Connexion / Inscription&nbsp; &gt;'; ?>" id="aLogin" onclick="window.open('forum.php');toggleAccountRequiredForm(false)" />
-            </p>
+            <div id="accountRequiredLoggedOut">
+                <p><?php echo $language ?
+                    'You need to be logged in to share your creations.<br />' :
+                    'Vous devez être connecté pour partager vos créations.<br />';
+                ?></p>
+                <p class="accountRequiredButtons">
+                    <a href="javascript:toggleAccountRequiredForm(false)"><?php echo $language ? 'Cancel':'Annuler'; ?></a>
+                    <input type="button" value="<?php echo $language ? '&nbsp;Log in / Register&nbsp; &gt;':'&nbsp;Connexion / Inscription&nbsp; &gt;'; ?>" id="aLogin" onclick="openLoginTab()" />
+                </p>
+            </div>
+            <div id="accountRequiredLoggedIn" style="display:none">
+                <p style="color:#CF9">✅&nbsp; <?php echo $language ? 'You are now logged in, you can share your creation!' : 'Vous êtes maintenant connecté, vous pouvez partager votre création !'; ?></p>
+                <p class="accountRequiredButtons">
+                    <a href="javascript:toggleAccountRequiredForm(false)"><?php echo $language ? 'Cancel':'Annuler'; ?></a>
+                    <input type="button" value="<?php echo $language ? '&nbsp;Share now&nbsp; &gt;':'&nbsp;Partager maintenant&nbsp; &gt;'; ?>" id="aShare" onclick="shareAfterLogin()" />
+                </p>
+            </div>
+            <div id="accountRequiredBanned" style="display:none">
+                <p><?php echo $language ? 'You have been banned, you cannot share creations.' : 'Vous avez été banni, vous ne pouvez pas partager de créations.'; ?></p>
+                <p class="accountRequiredButtons">
+                    <a href="javascript:toggleAccountRequiredForm(false)"><?php echo $language ? 'Close':'Fermer'; ?></a>
+                </p>
+            </div>
         </div>
     </div>
         <?php

@@ -90,6 +90,17 @@ function sharePersoWithId(id) {
 function collabPerso() {
     showCollabPopup("mkchars", persoId, "getPersoCollabPopup.php");
 }
+function checkPublishRestriction() {
+	fetch("api/getPublishRestriction.php", {credentials: "same-origin"}).then(function(res) {
+		return res.text();
+	}).then(function(restriction) {
+		if (restriction === "logged_out")
+			return;
+		window.removeEventListener("focus", checkPublishRestriction);
+		document.getElementById("perso-share-logged-out").style.display = "none";
+		document.getElementById("perso-share-logged-in").style.display = "";
+	});
+}
 function toggleHelp() {
 	document.getElementById("perso-instructions").style.display = (document.getElementById("perso-instructions").style.display =="block") ? "none":"block";
 }
@@ -181,8 +192,10 @@ if ($arePersos) {
 		<?php
 		if ('logged_out' === $publishRestriction) {
 			?>
-		<p class="perso-share-restricted"><?php echo $language ? 'You need to be logged in to share your characters.':'Vous devez être connecté pour partager vos persos.'; ?><br />
-		<a href="forum.php" target="_blank"><?php echo $language ? 'Log in or create an account':'Se connecter ou créer un compte'; ?></a></p>
+		<p class="perso-share-restricted" id="perso-share-logged-out"><?php echo $language ? 'You need to be logged in to share your characters.':'Vous devez être connecté pour partager vos persos.'; ?><br />
+		<a href="forum.php" target="_blank" onclick="window.addEventListener('focus', checkPublishRestriction)"><?php echo $language ? 'Log in or create an account':'Se connecter ou créer un compte'; ?></a></p>
+		<p class="perso-share-restricted" id="perso-share-logged-in" style="display:none"><?php echo $language ? 'You are now logged in!':'Vous êtes maintenant connecté !'; ?><br />
+		<a href="persoEditor.php"><?php echo $language ? 'Reload the page to share your character':'Rechargez la page pour partager votre perso'; ?></a></p>
 			<?php
 		}
 		elseif ($publishRestriction) {
