@@ -8,10 +8,10 @@ if (isset($_POST['id']) && isset($_POST['pseudo'])) {
 		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
 			setcookie('mkauteur', $_POST['pseudo'], 4294967295,'/');
 			include('../includes/ip_banned.php');
-			if (canPublishCreations()) {
+			if (canPublishCreations($id)) {
 				mysql_query('UPDATE `mkchars` SET author="'. $_POST['pseudo'] .'",publication_date=IFNULL(publication_date,CURRENT_TIMESTAMP()) WHERE id="'. $persoId .'"');
 				require_once('../includes/utils-publishers.php');
-				recordPublisher('mkchars', $persoId);
+				recordPublisher('mkchars', $persoId, $id);
 				if (!$perso['publication_date']) {
 					$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 					while ($follower = mysql_fetch_array($getFollowers))

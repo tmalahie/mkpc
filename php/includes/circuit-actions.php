@@ -343,7 +343,7 @@ function printCircuitActions() {
             <br />
             <?php
         }
-        $publishRestriction = getPublishRestriction();
+        $publishRestriction = getPublishRestriction(isset($_SESSION['mkid']) ? $_SESSION['mkid'] : null);
         if ($canShare && ($publishRestriction !== 'banned')) {
             ?>
         <input type="button" id="shareRace" onclick="<?php echo $publishRestriction ? 'toggleAccountRequiredForm(true)' : 'toggleShareForm(true)'; ?>" value="<?php

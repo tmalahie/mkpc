@@ -7,8 +7,9 @@ assign_token();
 require_once('../includes/persos.php');
 include('../includes/initdb.php');
 include('../includes/file-quotas.php');
+include('../includes/session.php');
 include('../includes/ip_banned.php');
-$publishRestriction = getPublishRestriction();
+$publishRestriction = getPublishRestriction($id);
 if (isset($_FILES['sprites'])) {
 	$upload = handle_upload($_FILES['sprites']);
 	if (isset($upload['id']))

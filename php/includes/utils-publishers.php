@@ -1,10 +1,6 @@
 <?php
-function recordPublisher($type, $creationId) {
-	global $dbh;
-	include('session.php');
-	if (!$id)
-		return;
-	mysql_query('INSERT INTO `mkpublishers` SET type="'. $type .'",creation_id="'. $creationId .'",publisher="'. $id .'",last_editor="'. $id .'" ON DUPLICATE KEY UPDATE last_editor=VALUES(last_editor),updated_at=CURRENT_TIMESTAMP()');
+function recordPublisher($type, $creationId, $playerId) {
+	mysql_query('INSERT INTO `mkpublishers` SET type="'. $type .'",creation_id="'. $creationId .'",publisher="'. $playerId .'",last_editor="'. $playerId .'" ON DUPLICATE KEY UPDATE last_editor=VALUES(last_editor),updated_at=CURRENT_TIMESTAMP()');
 }
 function forgetPublisher($type, $creationId) {
 	mysql_query('DELETE FROM `mkpublishers` WHERE type="'. $type .'" AND creation_id="'. $creationId .'"');

@@ -4,7 +4,8 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 	include('../includes/initdb.php');
 	include('../includes/getId.php');
 	include('../includes/ip_banned.php');
- 	if (!canPublishCreations()) {
+	include('../includes/session.php');
+ 	if (!canPublishCreations($id)) {
 		mysql_close();
 	  	exit;
 	}
@@ -22,14 +23,13 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 			exit;
 		}
 		mysql_query('UPDATE `arenes` SET nom="'.$_POST['nom'].'",auteur="'.$_POST['auteur'].'",publication_date=IFNULL(publication_date,CURRENT_TIMESTAMP()) WHERE id="'.$trackId.'"');
-		include('../includes/session.php');
 		if ($id && !$getCircuit['publication_date']) {
 			$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 			while ($follower = mysql_fetch_array($getFollowers))
 				mysql_query('INSERT INTO `mknotifs` SET type="follower_circuit", user="'. $follower['follower'] .'", link="2,'.$trackId.'"');
 		}
 		require_once('../includes/utils-publishers.php');
-		recordPublisher('arenes', $trackId);
+		recordPublisher('arenes', $trackId, $id);
 		include('../includes/postCircuitUpdate.php');
 		postCircuitUpdate('arenes', $trackId);
 	}

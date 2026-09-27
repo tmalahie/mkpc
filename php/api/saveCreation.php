@@ -30,7 +30,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 			include('../includes/initdb.php');
 			include('../includes/getId.php');
 			include('../includes/ip_banned.php');
-			if (!canPublishCreations()) {
+			include('../includes/session.php');
+			if (!canPublishCreations($id)) {
 				mysql_close();
 				exit;
 			}
@@ -81,7 +82,6 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 					mysql_close();
 					exit;
 				}
-				include('../includes/session.php');
 				if ($id) {
 					$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 					while ($follower = mysql_fetch_array($getFollowers))
@@ -114,7 +114,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 				require_once('../includes/cache_creations.php');
 				@unlink(cachePath("mappreview$circuitId.png"));
 				require_once('../includes/utils-publishers.php');
-				recordPublisher('mkcircuits', $circuitId);
+				recordPublisher('mkcircuits', $circuitId, $id);
 				include('../includes/postCircuitUpdate.php');
 				postCircuitUpdate('mkcircuits', $circuitId, $isBattle);
 				echo $circuitId;
