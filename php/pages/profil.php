@@ -46,7 +46,7 @@ if (isset($profileId)) {
 		$isModerator = hasRight('moderator');
 		if ($me) {
 			mysql_query('DELETE FROM `mknotifs` WHERE type="award" AND user="'. $profileId .'"');
-			if (isset($_FILES['avatar'])) {
+			if (isset($_FILES['avatar']) && !$getInfos['banned']) {
 				if (!$_FILES['avatar']['error']) {
 					$avatar_size = $_FILES['avatar']['size'];
 					if ($avatar_size < 2000000) {
@@ -258,7 +258,7 @@ include('../includes/menu.php');
 				<?php
 				$avatarSrc = get_avatar_img($profileId);
 				if ($me || $isModerator) {
-					if ($me) {
+					if ($me && !$getInfos['banned']) {
 						echo '<form method="post" enctype="multipart/form-data" action="profil.php?id='. $id .'" class="avatar-edit'. ($avatarSrc ? ' preview-avatar':'') .'"'. ($avatarSrc ? ' onclick="apercu(\''. AVATAR_DIR.$avatarSrc['hd'] .'\')"':'') .'>';
 						echo '<label for="editAvatar" class="edit" onclick="event.stopPropagation()">
 						'. ($language ? 'Edit':'Modifier') .'

@@ -5,7 +5,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	include('../includes/initdb.php');
 	include('../includes/ip_banned.php');
 	$mode = $_POST['mode'];
-	if (isBanned()) {
+	if (!canPublishCreations()) {
 		mysql_close();
 		exit;
 	}

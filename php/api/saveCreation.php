@@ -30,7 +30,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 			include('../includes/initdb.php');
 			include('../includes/getId.php');
 			include('../includes/ip_banned.php');
-			if (isBanned()) {
+			if (!canPublishCreations()) {
 				mysql_close();
 				exit;
 			}

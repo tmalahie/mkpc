@@ -7,6 +7,8 @@ assign_token();
 require_once('../includes/persos.php');
 include('../includes/initdb.php');
 include('../includes/file-quotas.php');
+include('../includes/ip_banned.php');
+$publishRestriction = getPublishRestriction();
 if (isset($_FILES['sprites'])) {
 	$upload = handle_upload($_FILES['sprites']);
 	if (isset($upload['id']))
@@ -22,7 +24,7 @@ if (isset($_FILES['sprites'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/collabs.css" />
-<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
+<link rel="stylesheet" href="styles/perso-editor.css?reload=2" />
 <?php
 include('../includes/o_online.php');
 ?>
@@ -63,17 +65,19 @@ function delPerso() {
 }
 function sharePerso() {
 	document.getElementById("perso-share-mask").style.display = "block";
-	var form = document.forms["perso-share-form"];
-	form.elements["id"].value = persoId;
 	var persoVal = document.getElementById("myperso-"+persoId).dataset.author;
-	form.elements["pseudo"].value = (persoVal == undefined) ? author:persoVal;
-	form.elements["pseudo"].focus();
 	if (persoVal != undefined) {
 		document.getElementById("delete-share-link").href = "unsharePerso.php?id="+persoId;
 		document.getElementById("delete-share-link").style.display = "block";
 	}
 	else
 		document.getElementById("delete-share-link").style.display = "none";
+	var form = document.forms["perso-share-form"];
+	if (!form)
+		return;
+	form.elements["id"].value = persoId;
+	form.elements["pseudo"].value = (persoVal == undefined) ? author:persoVal;
+	form.elements["pseudo"].focus();
 	setTimeout(function() {
 		form.elements["pseudo"].selectionStart = form.elements["pseudo"].selectionEnd = form.elements["pseudo"].value.length;
 	}, 1);
@@ -173,12 +177,29 @@ if ($arePersos) {
 	<div id="perso-share-popup" onclick="event.stopPropagation()">
 		<a class="close-perso-popup" href="javascript:document.getElementById('perso-share-mask').style.display='none';void(0)">&times;</a>
 		<h2><?php echo $language ? 'Share character':'Partager le perso'; ?></h2>
+		<?php
+		if ('logged_out' === $publishRestriction) {
+			?>
+		<p class="perso-share-restricted"><?php echo $language ? 'You need to be logged in to share your characters.':'Vous devez être connecté pour partager vos persos.'; ?><br />
+		<a href="forum.php" target="_blank"><?php echo $language ? 'Log in or create an account':'Se connecter ou créer un compte'; ?></a></p>
+			<?php
+		}
+		elseif ($publishRestriction) {
+			?>
+		<p class="perso-share-restricted"><?php echo $language ? 'You have been banned, you cannot share characters.':'Vous avez été banni, vous ne pouvez pas partager de persos.'; ?></p>
+			<?php
+		}
+		else {
+			?>
 		<form method="post" name="perso-share-form" action="sharePerso.php">
 			<input type="hidden" name="id" />
 			<?php echo ($language ? 'Your username:':'Votre pseudo :') ?>
 			<input type="text" name="pseudo" maxlength="30" />
 			<input type="submit" value="Ok" />
 		</form>
+			<?php
+		}
+		?>
 		<a id="delete-share-link" href="unsharePerso.php"><?php echo $language ? 'Delete share':'Supprimer partage'; ?></a>
 	</div>
 </div>

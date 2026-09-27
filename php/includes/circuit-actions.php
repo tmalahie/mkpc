@@ -206,6 +206,27 @@ function includeShareLib() {
         function showPrefixHelp() {
             alert(language ? "Will appear before the circuit name, this allows to disambiguate 2 circuits of the same name in a different series (Ex: SNES Rainbow Road / DS Rainbow Road)" : "Apparaitra avant le nom du circuit, permet de lever l'ambiguité entre 2 circuits du même nom mais d'une série différente (Ex : SNES Route Arc-en-Ciel / DS Route Arc-en-Ciel)");
         }
+        function toggleAccountRequiredForm(show) {
+            var $modal = document.getElementById("accountRequired");
+            if (show) {
+                $modal.style.display = "flex";
+                document.addEventListener("keydown", closeAccountRequiredFormOnEscape);
+            }
+            else {
+                $modal.style.display = "none";
+                document.removeEventListener("keydown", closeAccountRequiredFormOnEscape);
+            }
+        }
+        function handleAccountRequiredBackdropClick(e) {
+            if (e.target.id === "accountRequired")
+                toggleAccountRequiredForm(false);
+        }
+        function closeAccountRequiredFormOnEscape(e) {
+            if (e.keyCode === 27) {
+                e.stopPropagation();
+                toggleAccountRequiredForm(false);
+            }
+        }
         function toggleShareForm(show) {
             var $form = document.getElementById("cSave");
             if (show) {
@@ -302,7 +323,7 @@ function getCTActions() {
 }
 
 function printCircuitActions() {
-    global $language, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $creationMode, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg, $ctActions;
+    global $publishRestriction, $language, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $creationMode, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg, $ctActions;
     $complete = ($creationMode%2);
     switch ($ctActions) {
     case 'edit':
@@ -322,9 +343,10 @@ function printCircuitActions() {
             <br />
             <?php
         }
-        if ($canShare && !isBanned()) {
+        $publishRestriction = getPublishRestriction();
+        if ($canShare && ($publishRestriction !== 'banned')) {
             ?>
-        <input type="button" id="shareRace" onclick="toggleShareForm(true)" value="<?php
+        <input type="button" id="shareRace" onclick="<?php echo $publishRestriction ? 'toggleAccountRequiredForm(true)' : 'toggleShareForm(true)'; ?>" value="<?php
         if ($cShared)
             echo $language ? 'Edit sharing':'Modifier partage';
         else
@@ -345,7 +367,7 @@ function printCircuitActions() {
     }
 }
 function printCircuitShareUI() {
-    global $language, $isCup, $isMCup, $isBattle, $cName0, $cPseudo, $creationType, $nid;
+    global $publishRestriction, $language, $isCup, $isMCup, $isBattle, $cName0, $cPseudo, $creationType, $nid;
     $softDeleted = in_array($creationType, array('circuits', 'arenes'));
     ?>
     <div id="confirmSuppr" onclick="handleUnshareBackdropClick(event)">
@@ -362,6 +384,22 @@ function printCircuitShareUI() {
         </div>
     </div>
     <?php
+    if ('logged_out' === $publishRestriction) {
+        ?>
+    <div id="accountRequired" onclick="handleAccountRequiredBackdropClick(event)">
+        <div class="accountRequiredDialog">
+            <p><?php echo $language ?
+                'You need to be logged in to share your creations.<br />' :
+                'Vous devez être connecté pour partager vos créations.<br />';
+            ?></p>
+            <p class="accountRequiredButtons">
+                <a href="javascript:toggleAccountRequiredForm(false)"><?php echo $language ? 'Cancel':'Annuler'; ?></a>
+                <input type="button" value="<?php echo $language ? '&nbsp;Log in / Register&nbsp; &gt;':'&nbsp;Connexion / Inscription&nbsp; &gt;'; ?>" id="aLogin" onclick="window.open('forum.php');toggleAccountRequiredForm(false)" />
+            </p>
+        </div>
+    </div>
+        <?php
+    }
     if (!isset($cannotChange)) {
         if (isset($nid))
             $getTrackSettings = mysql_fetch_array(mysql_query('SELECT * FROM mktracksettings WHERE type="'. $creationType .'" AND circuit="'. $nid .'"'));

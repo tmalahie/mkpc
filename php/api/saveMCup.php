@@ -6,7 +6,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	include('../includes/ip_banned.php');
 	require_once('../includes/collabUtils.php');
 	$mode = $_POST['mode'];
-	if (isBanned()) {
+	if (!canPublishCreations()) {
 		mysql_close();
 		exit;
 	}

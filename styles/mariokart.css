@@ -703,6 +703,48 @@ form[name="modes"] {
 #supprButtons {
 	padding:5px;
 }
+#accountRequired {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 20003;
+	display: none;
+	background-color: rgba(0,0,0, 0.5);
+}
+#accountRequired .accountRequiredDialog {
+	background-color: #4A3320;
+	border: double 3px #DCA;
+	border-radius: 4px;
+	margin: auto auto 150px auto;
+	padding: 6px 10px 2px 10px;
+}
+@media screen and (min-width: 600px) {
+	#accountRequired .accountRequiredDialog {
+		margin-left: 140px;
+		margin-right: auto;
+	}
+}
+#accountRequired p {
+	text-align: center;
+}
+.accountRequiredButtons {
+	margin-top: 5px;
+	padding: 5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1em;
+}
+.accountRequiredButtons a {
+	color: white;
+	font-weight: normal;
+}
+.accountRequiredButtons input {
+	font-size: 0.9em;
+	padding: 5px 8px;
+}
 #cSave {
 	position: fixed;
 	z-index: 20003;
