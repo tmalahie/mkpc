@@ -226,6 +226,7 @@ CREATE TABLE `mkbadwords` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `word` varchar(255) NOT NULL,
   `action` enum('none','block','mute') NOT NULL DEFAULT 'none',
+  `ignore_separators` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `word` (`word`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

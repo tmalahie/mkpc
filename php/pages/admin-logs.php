@@ -319,6 +319,10 @@ $logMapping = array(
         'render' => _('added ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the forbidden words list'),
         'role' => 'moderator'
     ),
+    'BlacklistEdit' => array(
+        'render' => _('edited ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' in the forbidden words list'),
+        'role' => 'moderator'
+    ),
     'Unblacklist' => array(
         'render' => _('removed word #$1 from list of forbidden words'),
         'role' => 'moderator'

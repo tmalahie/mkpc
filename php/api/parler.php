@@ -36,19 +36,8 @@ if (isset($_POST['msg'])) {
 			if (!$courseOptions || $courseOptions['public']) {
 				if (strlen($msg) > 255)
 					return_failure(-3);
-				$getBlacklist = mysql_query('SELECT word,action FROM mkbadwords');
-				$blackListWords = array(
-					'mute' => array(),
-					'block' => array(),
-					'none' => array()
-				);
-				while ($blacklist = mysql_fetch_array($getBlacklist))
-					$blackListWords[$blacklist['action']][] = $blacklist['word'];
-				$checkedMsg = stripWhitelistedWords($msg);
-				foreach ($blackListWords as $action => $actionWords) {
-					if (!findBlacklistedWord($checkedMsg, blacklistPatternGroups(chatWordPatterns($actionWords)), true))
-						continue;
-					switch ($action) {
+				if ($badWord = matchChatBlacklist($msg)) {
+					switch ($badWord['action']) {
 					case 'mute':
 						mute_member();
 						return_failure(-1);
