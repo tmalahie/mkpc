@@ -145,10 +145,62 @@ export async function cleanupLoungeFixtures() {
   await sql('DELETE FROM mklounge_events WHERE privgame_key BETWEEN ? AND ?', range);
 }
 
+// A fresh database - the one CI builds - is short of two things every lounge spec takes for
+// granted. setup.sql seeds no multicup at all, so the season points at one that does not
+// exist and ranked.php rightly refuses to send anyone there; and it gives the seeded account
+// fewer VS points than ranked asks for (LOUNGE_MIN_VS_POINTS). A dev database usually has both
+// already, so each is only filled in where it is missing, and the stand-in multicup is taken
+// back out by the teardown.
+const SEASON_STAND_IN = 'e2e-season-multicup';
+const MIN_VS_POINTS = 10000;
+
+// The Discord config is never committed - it holds the bot token - and with none the module
+// records nothing at all, so the specs asserting on what it would send need one. The stand-in
+// has made-up channel ids and no token, so even outside dry run nothing could be sent. It is
+// only written where there is no config, and only a file carrying the marker is removed.
+const DISCORD_CONFIG = join(__dirname, '..', '..', 'docker', 'php', 'config', 'discord.php');
+const DISCORD_STAND_IN_MARKER = '// e2e stand-in: no token, made-up channels';
+const DISCORD_STAND_IN = `<?php
+${DISCORD_STAND_IN_MARKER}
+$loungeDiscordMlluChannel = '100000000000000009';
+$loungeDiscordTierChannels = array(
+  'all' => '100000000000000001',
+  'C' => '100000000000000002',
+  'B' => '100000000000000003',
+  'A' => '100000000000000004',
+  'X' => '100000000000000005',
+);
+`;
+
+function isDiscordStandIn() {
+  return existsSync(DISCORD_CONFIG) && readFileSync(DISCORD_CONFIG, 'utf8').includes(DISCORD_STAND_IN_MARKER);
+}
+
+export async function ensureLoungeBasics() {
+  const [season]: any = await sql(`SELECT multicup_id FROM mklounge_seasons WHERE id = 1`);
+  if (season)
+    await sql(
+      `INSERT IGNORE INTO mkmcups
+         (id, identifiant, identifiant2, identifiant3, identifiant4, nbnotes, nbcomments, mode, nom, auteur)
+       VALUES (?, 0, 0, 0, 0, 0, 0, 0, ?, '')`,
+      [season.multicup_id, SEASON_STAND_IN]
+    );
+  await sql(`UPDATE mkjoueurs SET pts_vs = GREATEST(pts_vs, ?) WHERE nom = ?`,
+    [MIN_VS_POINTS, SEEDED_ACCOUNT]);
+  if (!existsSync(DISCORD_CONFIG))
+    writeFileSync(DISCORD_CONFIG, DISCORD_STAND_IN);
+}
+
+export async function removeLoungeBasics() {
+  await sql(`DELETE FROM mkmcups WHERE nom = ?`, [SEASON_STAND_IN]);
+  if (isDiscordStandIn())
+    unlinkSync(DISCORD_CONFIG);
+}
+
 // Entry to ranked needs online VS points, an account past a minimum age and a one-off
-// acceptance of the rules. The seeded account already has the points and no sub_date (so the
-// age check does not apply to it); the rules tick is the part every spec would otherwise have
-// to click through, so it is stamped here instead.
+// acceptance of the rules. ensureLoungeBasics() sees to the points, and the seeded account
+// has no sub_date (so the age check does not apply to it); the rules tick is the part every
+// spec would otherwise have to click through, so it is stamped here instead.
 export async function acceptLoungeRules(namePattern: string = SEEDED_ACCOUNT) {
   await sql(
     `INSERT INTO mklounge_players (player, season, rules_accepted_at)

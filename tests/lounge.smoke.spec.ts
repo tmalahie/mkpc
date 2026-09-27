@@ -557,7 +557,8 @@ test('a ranked room points at the Discord server, and nothing else does', async 
 
 test('ranked entry redirects to the season multicup', async ({ page }) => {
 	await login(page);
-	// follow no redirect: the seeded season multicup does not exist on a fresh database
+	// follow no redirect: on a fresh database the season's multicup is only a stand-in, with no
+	// tracks to load
 	const res = await page.request.get('http://127.0.0.1:8080/ranked.php', { maxRedirects: 0 });
 	expect(res.status()).toBe(302);
 	expect(res.headers()['location']).toMatch(/^online\.php\?mid=\d+&ranked$/);
