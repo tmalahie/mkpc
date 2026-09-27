@@ -459,6 +459,14 @@ msgid " to the forbidden usernames list"
 msgstr " à la liste des pseudos interdits"
 
 #: php/pages/admin-logs.php
+msgid "edited "
+msgstr "a modifié "
+
+#: php/pages/admin-logs.php
+msgid " in the forbidden usernames list"
+msgstr " dans la liste des pseudos interdits"
+
+#: php/pages/admin-logs.php
 msgid "removed word #$1 from list of forbidden usernames"
 msgstr "a retiré le mot #$1 de la liste des pseudos interdits"
 

@@ -39,10 +39,13 @@ if (!empty($_POST['word'])) {
     }
     elseif ($editedWord) {
         if ($editedWord['word'] !== $checkWord || $editedSeparators !== $checkSeparators) {
+            $wordBefore = snapshotWord('mkbadnicks', $editedWord['id'], 'word,ignore_separators');
             mysql_query('UPDATE mkbadnicks SET word="'. $checkWord .'",ignore_separators='. ($checkSeparators ? 1:0) .' WHERE id='. $editedWord['id']);
-            insertLog($id, 'NBlacklist '. $editedWord['id'], array_merge(
-                array('type' => 'nick_word', 'id' => intval($editedWord['id'])),
-                snapshotWord('mkbadnicks', $editedWord['id'], 'word,ignore_separators')
+            insertLog($id, 'NBlacklistEdit '. $editedWord['id'], array(
+                'type' => 'nick_word',
+                'id' => intval($editedWord['id']),
+                'before' => $wordBefore,
+                'after' => snapshotWord('mkbadnicks', $editedWord['id'], 'word,ignore_separators')
             ));
             $justAdded = true;
             $justEdited = true;
@@ -53,17 +56,20 @@ if (!empty($_POST['word'])) {
         if (!$listed) {
             mysql_query('INSERT INTO mkbadnicks SET word="'. $checkWord .'",ignore_separators='. ($checkSeparators ? 1:0));
             $wordId = mysql_insert_id();
-        }
-        elseif ((bool)$listed['ignore_separators'] !== $checkSeparators) {
-            mysql_query('UPDATE mkbadnicks SET ignore_separators='. ($checkSeparators ? 1:0) .' WHERE id='. $listed['id']);
-            $wordId = $listed['id'];
-        }
-        else
-            $wordId = null;
-        if ($wordId) {
             insertLog($id, 'NBlacklist '. $wordId, array_merge(
                 array('type' => 'nick_word', 'id' => intval($wordId)),
                 snapshotWord('mkbadnicks', $wordId, 'word,ignore_separators')
+            ));
+            $justAdded = true;
+        }
+        elseif ((bool)$listed['ignore_separators'] !== $checkSeparators) {
+            $wordBefore = snapshotWord('mkbadnicks', $listed['id'], 'word,ignore_separators');
+            mysql_query('UPDATE mkbadnicks SET ignore_separators='. ($checkSeparators ? 1:0) .' WHERE id='. $listed['id']);
+            insertLog($id, 'NBlacklistEdit '. $listed['id'], array(
+                'type' => 'nick_word',
+                'id' => intval($listed['id']),
+                'before' => $wordBefore,
+                'after' => snapshotWord('mkbadnicks', $listed['id'], 'word,ignore_separators')
             ));
             $justAdded = true;
         }

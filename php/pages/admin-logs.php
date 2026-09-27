@@ -327,6 +327,10 @@ $logMapping = array(
         'render' => _('added ') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the forbidden usernames list'),
         'role' => 'moderator'
     ),
+    'NBlacklistEdit' => array(
+        'render' => _('edited ') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' in the forbidden usernames list'),
+        'role' => 'moderator'
+    ),
     'NUnblacklist' => array(
         'render' => _('removed word #$1 from list of forbidden usernames'),
         'role' => 'moderator'
