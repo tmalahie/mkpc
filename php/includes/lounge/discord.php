@@ -55,17 +55,20 @@ function lounge_discord_record($channel, $content, $messageId, $action) {
 // gets a short leash and every failure is swallowed: a lounge that stops working because
 // Discord is down would be a worse outcome than a missing notification.
 function lounge_discord_call($method, $path, $payload = null) {
-	$config = lounge_discord_config();
-	if (empty($config['token']) || !lounge_setting('discord_enabled'))
+	if (!lounge_setting('discord_enabled'))
 		return null;
 	// Dry run still builds and records every message, it just never sends one. The tests run
 	// with it on - a suite that pinged @here in a staff channel on every run would be worse
-	// than no coverage - and staff can use it to rehearse without waking the server.
+	// than no coverage - and staff can use it to rehearse without waking the server. Sending
+	// nothing, it needs no token either, so a config holding only channel ids is enough for it.
 	if (lounge_setting('discord_dry_run')) {
 		return (($method === 'POST') || ($method === 'PATCH'))
 			? array('id' => (string) mt_rand(100000000, 999999999))
 			: null;
 	}
+	$config = lounge_discord_config();
+	if (empty($config['token']))
+		return null;
 	$ch = curl_init('https://discord.com/api/v10'. $path);
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
