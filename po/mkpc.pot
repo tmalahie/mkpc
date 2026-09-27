@@ -449,7 +449,23 @@ msgid " to the forbidden usernames list"
 msgstr ""
 
 #: php/pages/admin-logs.php
+msgid "edited "
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid " in the forbidden usernames list"
+msgstr ""
+
+#: php/pages/admin-logs.php
 msgid "removed word #$1 from list of forbidden usernames"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid " to the allowed words list"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "removed word #$1 from list of allowed words"
 msgstr ""
 
 #: php/pages/admin-logs.php
