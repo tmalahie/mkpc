@@ -514,12 +514,20 @@ function lounge_should_show_unlock_banner($playerId) {
 	return !lounge_has_ever_queued($playerId);
 }
 
-function lounge_dismiss_unlock_banner($playerId) {
+// Any of these can be the first to create a player's season row, so each one seeds the
+// starting rating from the setting rather than leaving the column default to it.
+function lounge_upsert_player($playerId, $values, $onDuplicate) {
+	$mmr = '"'. lounge_mmr_sql(lounge_setting('default_mmr')) .'"';
+	$values = array_merge(array('mmr' => $mmr, 'peak_mmr' => $mmr), $values);
 	mysql_query(
-		'INSERT INTO `mklounge_players` (player, season, unlock_dismissed_at)
-		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", NOW())
-		ON DUPLICATE KEY UPDATE unlock_dismissed_at=NOW()'
+		'INSERT INTO `mklounge_players` (player, season, '. implode(', ', array_keys($values)) .')
+		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", '. implode(', ', $values) .')
+		ON DUPLICATE KEY UPDATE '. $onDuplicate
 	);
+}
+
+function lounge_dismiss_unlock_banner($playerId) {
+	lounge_upsert_player($playerId, array('unlock_dismissed_at' => 'NOW()'), 'unlock_dismissed_at=NOW()');
 }
 
 // Staff want every player to have seen the rules once before their first queue, the way any
@@ -533,11 +541,7 @@ function lounge_has_accepted_rules($playerId) {
 }
 
 function lounge_accept_rules($playerId) {
-	mysql_query(
-		'INSERT INTO `mklounge_players` (player, season, rules_accepted_at)
-		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", NOW())
-		ON DUPLICATE KEY UPDATE rules_accepted_at=IFNULL(rules_accepted_at, NOW())'
-	);
+	lounge_upsert_player($playerId, array('rules_accepted_at' => 'NOW()'), 'rules_accepted_at=IFNULL(rules_accepted_at, NOW())');
 }
 
 function lounge_access_requirements() {
@@ -1236,6 +1240,9 @@ function lounge_cpu_level($tierCode) {
 // standings rather than a player and a bot, `mkgamerank` accumulating under their id, and a
 // rating computed as though they had raced the whole mogi. What the absence costs them is a
 // flat penalty, applied by lounge_apply_mmr().
+//
+// A member has one kart for the whole site, so one who is racing in another room is left out:
+// substituting them would pull that kart out of the game they are actually playing.
 function lounge_absent_members($privgameKey, $course) {
 	$members = array();
 	$res = mysql_query(
@@ -1243,9 +1250,10 @@ function lounge_absent_members($privgameKey, $course) {
 		FROM `mklounge_match_players` mp
 		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.ended_at IS NULL
 			AND m.privgame_key="'. intval($privgameKey) .'"
-		LEFT JOIN `mkjoueurs` j ON j.id=mp.player AND j.course="'. intval($course) .'"
+		INNER JOIN `mkjoueurs` j ON j.id=mp.player AND j.course=0
+		LEFT JOIN `mkplayers` gp ON gp.id=mp.player AND gp.course NOT IN (0,"'. intval($course) .'")
 		LEFT JOIN `mkgamerank` r ON r.game="'. intval($privgameKey) .'" AND r.player=mp.player
-		WHERE j.id IS NULL
+		WHERE gp.id IS NULL
 		ORDER BY mp.player'
 	);
 	while ($row = mysql_fetch_array($res))
@@ -1439,11 +1447,7 @@ function lounge_apply_ban_threshold($playerId) {
 }
 
 function lounge_add_strike($playerId, $reason, $refs = array()) {
-	mysql_query(
-		'INSERT INTO `mklounge_players` (player, season, strikes)
-		VALUES ("'. intval($playerId) .'", "'. LOUNGE_CURRENT_SEASON .'", 1)
-		ON DUPLICATE KEY UPDATE strikes=strikes+1'
-	);
+	lounge_upsert_player($playerId, array('strikes' => '1'), 'strikes=strikes+1');
 	lounge_log('strike', array_merge($refs, array('player' => $playerId)), array('reason' => $reason));
 	return lounge_apply_ban_threshold($playerId);
 }
@@ -1510,11 +1514,9 @@ function lounge_finish_match($queueId) {
 			SET final_score="'. $standing['pts'] .'", final_position="'. $position .'"
 			WHERE `match`="'. $matchId .'" AND player="'. $standing['player'] .'"'
 		);
-		mysql_query(
-			'INSERT INTO `mklounge_players` (player, season, games, wins, total_score)
-			VALUES ("'. $standing['player'] .'", "'. LOUNGE_CURRENT_SEASON .'", 1, "'. $isWin .'", "'. $standing['pts'] .'")
-			ON DUPLICATE KEY UPDATE games=games+1, wins=wins+'. $isWin .', total_score=total_score+'. $standing['pts']
-		);
+		lounge_upsert_player($standing['player'], array(
+			'games' => '1', 'wins' => '"'. $isWin .'"', 'total_score' => '"'. $standing['pts'] .'"'
+		), 'games=games+1, wins=wins+'. $isWin .', total_score=total_score+'. $standing['pts']);
 	}
 
 	lounge_apply_mmr($matchId);
