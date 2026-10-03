@@ -260,15 +260,8 @@ if ($id) {
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
 					if ($isLocal) {
 						require_once('../includes/onlineStateUtils.php');
-						incCourseState($courseOptions['id']);
 						// which race of this game just ended, for the rows logged below
-						$raceNumber = intval(getCourseState($courseOptions['id'])['raceCount']);
-						// nobody sits on the lounge page during a mogi, so the lounge tick
-						// never runs while one is being played: this is its only heartbeat
-						if (!empty($courseRules->lounge)) {
-							require_once('../includes/lounge/common.php');
-							lounge_race_finished($courseOptions['id'], $course);
-						}
+						$raceNumber = intval(getCourseState($courseOptions['id'])['aRaceCount']) + 1;
 					}
 				}
 				if ($spectatorId)
@@ -419,6 +412,17 @@ if ($id) {
 								.',`rank`='. $i
 								.',pts_before='. intval($player['aPts'])
 								.',pts_inc='. intval($inc));
+					}
+				}
+				// Counted only once its scores are in: the lounge finishes a match as soon as
+				// it sees the last race counted, and rates it on the scores it finds then.
+				if ($finishing && $isLocal) {
+					incCourseState($courseOptions['id']);
+					// nobody sits on the lounge page during a mogi, so the lounge tick
+					// never runs while one is being played: this is its only heartbeat
+					if (!empty($courseRules->lounge)) {
+						require_once('../includes/lounge/common.php');
+						lounge_race_finished($courseOptions['id'], $course);
 					}
 				}
 				echo '],'.($mkState['time']-$time);
