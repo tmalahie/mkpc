@@ -14,6 +14,16 @@ function getUserRights($playerId) {
 	}
 	return $res;
 }
+function getRoleNames() {
+	global $language;
+	return array(
+		'admin' => $language ? 'Administrator':'Administrateur',
+		'moderator' => $language ? 'Moderator':'Modérateur',
+		'organizer' => $language ? 'Event host':'Animateur',
+		'publisher' => $language ? 'News publisher':'Rédacteur de news',
+		'clvalidator' => $language ? 'Challenge validator':'Validateur de défis'
+	);
+}
 $hasRight = null;
 function hasRight($key) {
 	global $hasRight, $id;

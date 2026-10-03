@@ -390,8 +390,34 @@ $logMapping = array(
     'ULNews' => array(
         'render' => _('unlocked comments on news ') . $logTemplates['news']('$1'),
         'role' => 'moderator'
+    ),
+    'Role' => array(
+        'render' => F_(
+            'gave the <strong>{role}</strong> role to {member}',
+            role: '{{$2|local.roleName()}}',
+            member: $logTemplates['member']('$1'),
+        ),
+        'locals' => array(
+            'roleName' => 'roleNameOrKey'
+        ),
+        'role' => 'admin'
+    ),
+    'Unrole' => array(
+        'render' => F_(
+            'removed the <strong>{role}</strong> role from {member}',
+            role: '{{$2|local.roleName()}}',
+            member: $logTemplates['member']('$1'),
+        ),
+        'locals' => array(
+            'roleName' => 'roleNameOrKey'
+        ),
+        'role' => 'admin'
     )
 );
+function roleNameOrKey($role) {
+    $roleNames = getRoleNames();
+    return isset($roleNames[$role]) ? $roleNames[$role] : $role;
+}
 $logGlobals = array(
     'ifEmpty' => function($res, $fallback) {
         return empty($res) ? $fallback : $res;
