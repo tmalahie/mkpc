@@ -18,7 +18,7 @@ elseif (isset($_GET['cltype']) && isset($_GET['clrace'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
+<link rel="stylesheet" href="styles/perso-editor.css" />
 <style type="text/css">
 body {
     width: 96%;

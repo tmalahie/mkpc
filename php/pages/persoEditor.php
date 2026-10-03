@@ -25,7 +25,7 @@ if (isset($_FILES['sprites'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/collabs.css" />
-<link rel="stylesheet" href="styles/perso-editor.css?reload=2" />
+<link rel="stylesheet" href="styles/perso-editor.css" />
 <?php
 include('../includes/o_online.php');
 ?>
