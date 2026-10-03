@@ -988,24 +988,11 @@ function lounge_draft_state($queueId) {
 	);
 }
 
-function lounge_start_draft($queueId, $mode) {
-	$members = lounge_queue_members($queueId);
-	$captains = lounge_draft_captains($members);
-	if (count($captains) < 2)
-		return false;
+function lounge_start_draft($queueId, $mode, $captains) {
 	// "coin flip pour le 1er qui choisit": the winner is seeded onto side 0, which is the
 	// side the snake picks for first.
 	$first = $captains[rand(0, 1)];
 	$second = ($first['id'] === $captains[0]['id']) ? $captains[1] : $captains[0];
-
-	global $q;
-	$q = mysql_query(
-		'UPDATE `mklounge_queues`
-		SET status="drafting", mode="'. mysql_real_escape_string($mode) .'", draft_turn_at=NOW()
-		WHERE id="'. intval($queueId) .'" AND status="voting"'
-	);
-	if (!mysql_affected_rows())
-		return false;
 
 	foreach (array($first['id'] => 0, $second['id'] => 1) as $playerId => $team) {
 		mysql_query(
@@ -1016,7 +1003,6 @@ function lounge_start_draft($queueId, $mode) {
 	lounge_log('draft_started', array('queue' => $queueId), array(
 		'mode' => $mode, 'captains' => array($first['id'], $second['id'])
 	));
-	return true;
 }
 
 function lounge_draft_assign($queueId, $playerId, $side) {
@@ -1088,24 +1074,27 @@ function lounge_close_vote($queueId) {
 			$votes[$v['voted_mode']] = (isset($votes[$v['voted_mode']]) ? $votes[$v['voted_mode']] : 0) + 1;
 	}
 	$mode = lounge_tally_vote($votes, lounge_allowed_modes(count($members)));
-	lounge_log('vote_closed', array('queue' => $queueId), array('votes' => $votes, 'mode' => $mode));
-	if (lounge_draft_applies($mode, count($members)) && lounge_start_draft($queueId, $mode))
-		return null;
-	// The recap screen: the lineup is told what it settled on, and the room opens from there.
-	// A draft reaches it by its last pick instead, having been on it all along.
-	lounge_assign_random_teams($queueId, $mode);
+	$captains = lounge_draft_applies($mode, count($members)) ? lounge_draft_captains($members) : array();
+	// The last votes and the deadline can close the vote together, each breaking ties its own
+	// way, so only the caller that moves the queue out of voting gets to settle mode and teams.
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_queues`
 		SET status="drafting", mode="'. mysql_real_escape_string($mode) .'", draft_turn_at=NOW()
 		WHERE id="'. intval($queueId) .'" AND status="voting"'
 	);
-	if (mysql_affected_rows()) {
-		require_once(__DIR__ .'/discord.php');
-		lounge_discord_announce_teams($queueId);
-		return null;
+	if (!mysql_affected_rows())
+		return;
+	lounge_log('vote_closed', array('queue' => $queueId), array('votes' => $votes, 'mode' => $mode));
+	if (count($captains) >= 2) {
+		lounge_start_draft($queueId, $mode, $captains);
+		return;
 	}
-	return lounge_launch_match($queueId, $mode);
+	// The recap screen: the lineup is told what it settled on, and the room opens from there.
+	// A draft reaches it by its last pick instead, having been on it all along.
+	lounge_assign_random_teams($queueId, $mode);
+	require_once(__DIR__ .'/discord.php');
+	lounge_discord_announce_teams($queueId);
 }
 
 function lounge_start_voting($queueId) {
@@ -2245,6 +2234,7 @@ function lounge_update_queue_status($queueId) {
 }
 
 function lounge_tick() {
+	global $q;
 	if (mt_rand(1, 1000) === 1)
 		lounge_prune_events();
 	$cutoff = intval(lounge_setting('afk_seconds'));
@@ -2266,11 +2256,13 @@ function lounge_tick() {
 	while ($row = mysql_fetch_array($unconfirmed)) {
 		$stale[intval($row['queue'])] = true;
 		// left the queue rather than misbehaved, so no strike - the spec only removes them
-		mysql_query(
+		$q = mysql_query(
 			'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
 			AND dropped_at IS NULL'
 		);
+		if (!mysql_affected_rows())
+			continue;
 		lounge_log('queue_dropped', array('queue' => $row['queue'], 'player' => $row['player']), array('reason' => 'unconfirmed'));
 	}
 	foreach ($stale as $queueId => $_)
@@ -2279,11 +2271,15 @@ function lounge_tick() {
 	$affected = array();
 	while ($row = mysql_fetch_array($afkRes)) {
 		$affected[intval($row['queue'])] = true;
-		mysql_query(
+		// Dropping the member is the claim, as for no-shows: an overlapping tick, or the
+		// unconfirmed sweep above, may already have removed them.
+		$q = mysql_query(
 			'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
 			AND dropped_at IS NULL'
 		);
+		if (!mysql_affected_rows())
+			continue;
 		lounge_log('queue_dropped', array('queue' => $row['queue'], 'player' => $row['player']), array('reason' => 'afk'));
 		lounge_add_strike($row['player'], 'afk', array('queue' => $row['queue']));
 	}
