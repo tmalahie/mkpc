@@ -44,6 +44,40 @@ If everything is set up correctly, the site should be reachable at http://localh
 
 You can now start developing!
 
+# Database changes
+
+A schema change goes in two places, in the same commit:
+
+- `docker/php/scripts/setup.sql`, the full current schema, which new databases are built from;
+- a migration in `php/migrations/`, which brings existing databases (production, your own) up to date.
+
+A migration is a file named `YYYYMMDD-HHMM-description.sql` (or `.php`). Migrations run once each, in name order, and the `mkmigrations` table records which ones a database has run:
+
+```
+php php/migrations/migrate.php                       Applies the pending migrations.
+php php/migrations/migrate.php --status              Lists applied and pending migrations.
+php php/migrations/migrate.php --check               Compares the database with setup.sql.
+php php/migrations/migrate.php --mark-applied NAME   Records a migration applied by hand.
+```
+
+With Docker, run them in the container: `docker exec mkpc_web php php/migrations/migrate.php`.
+
+A few rules keep them painless:
+
+- **Add the migration's row to `setup.sql`** (`INSERT INTO mkmigrations SET name="…";` at the end). A database built from `setup.sql` already has the change, and the row stops the migration from running again on it.
+- **Make each statement safe to run twice**: `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `DROP COLUMN IF EXISTS`. MySQL commits schema changes immediately, so a migration that fails halfway has done part of its work, and running it again after the fix should just finish it.
+- **Keep the previous code working**: the deploy pulls the code a few seconds before the migrations run. Add before you remove, and remove a column only once no deployed code reads it.
+- **Use a `.php` migration for data changes that need logic**. It runs with the site's database connection (`$dbh`, `mysql_query()`), and any error stops it.
+- **Never edit a migration that has been deployed**: write a new one.
+
+# Deploying
+
+On the production server, `./deploy.sh` pulls the current branch, applies the pending migrations, then checks the database against `setup.sql`. From your machine:
+
+```
+ssh ovh /var/www/malahieude.net/mkpc/deploy.sh
+```
+
 # Tests
 
 A small test suite is provided with the project.

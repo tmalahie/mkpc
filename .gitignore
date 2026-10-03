@@ -2,6 +2,7 @@
 .user.ini
 .htaccess
 !/php/cron/.htaccess
+!/php/migrations/.htaccess
 .vscode
 .DS_Store
 ads.txt
