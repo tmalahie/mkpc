@@ -92,6 +92,16 @@ include('../includes/menu.php');
 	<h2><?= _("Member management") ?></h2>
 	<ul>
 		<?php
+		if (hasRight('admin')) {
+			?>
+		<li>
+			<a class="action-ctn" href="roles.php">
+				<div class="action-title"><?= _("Manage staff <strong>roles</strong>") ?></div>
+				<div class="action-desc"><?= _("See who is moderator, event host, etc. Give a role to a member or take it back") ?></div>
+			</a>
+		</li>
+			<?php
+		}
 		if (hasRight('moderator')) {
 			?>
 		<li>
