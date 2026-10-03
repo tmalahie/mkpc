@@ -34,9 +34,10 @@ function getCourseTracks($state) {
 	return array_map('intval', explode(',', $state['tracks']));
 }
 function getCourseState($key) {
-	if ($getState = mysql_fetch_array(mysql_query('SELECT raceCount,tracks FROM `mkgamedata` WHERE game="'. $key .'"')))
+	if ($getState = mysql_fetch_array(mysql_query('SELECT aRaceCount,raceCount,tracks FROM `mkgamedata` WHERE game="'. $key .'"')))
 		return $getState;
 	return array(
+		'aRaceCount' => 0,
 		'raceCount' => 0,
 		'tracks' => ''
 	);

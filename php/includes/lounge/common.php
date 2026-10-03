@@ -2325,14 +2325,11 @@ function lounge_tick() {
 	}
 
 	$readyToLaunch = mysql_query(
-		'SELECT id FROM `mklounge_queues`
-		WHERE status="locked"
-		AND id IN (
-			SELECT queue FROM `mklounge_queue_members`
-			WHERE dropped_at IS NULL
-			GROUP BY queue
-			HAVING COUNT(*) >= '. intval(lounge_setting('ready_threshold')) .'
-		)'
+		'SELECT q.id FROM `mklounge_queues` q
+		INNER JOIN `mklounge_queue_members` m ON m.queue=q.id AND m.dropped_at IS NULL
+		WHERE q.status="locked"
+		GROUP BY q.id
+		HAVING COUNT(*) >= '. intval(lounge_setting('ready_threshold'))
 	);
 	while ($row = mysql_fetch_array($readyToLaunch)) {
 		lounge_start_voting(intval($row['id']));
