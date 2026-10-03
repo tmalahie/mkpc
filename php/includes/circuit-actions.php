@@ -239,6 +239,10 @@ function includeShareLib() {
                 if (restriction === "logged_out")
                     return;
                 window.removeEventListener("focus", checkPublishRestriction);
+                var $pseudo = document.getElementById("cPseudo");
+                var authorCookie = document.cookie.match(/(?:^|; )mkauteur=([^;]*)/);
+                if ($pseudo && !$pseudo.value && authorCookie)
+                    $pseudo.value = decodeURIComponent(authorCookie[1]);
                 document.getElementById("accountRequiredLoggedOut").style.display = "none";
                 document.getElementById(restriction ? "accountRequiredBanned" : "accountRequiredLoggedIn").style.display = "";
                 document.getElementById("shareRace").onclick = restriction ? function() {
