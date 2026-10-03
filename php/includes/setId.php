@@ -19,4 +19,8 @@ if ($profile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,id
 		store_mkid();
 	}
 }
+if (empty($_COOKIE['mkauteur']) && ($getName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $id)))) {
+	$_COOKIE['mkauteur'] = $getName['nom'];
+	@setcookie('mkauteur', $getName['nom'], 4294967295,'/');
+}
 ?>
