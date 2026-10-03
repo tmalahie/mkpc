@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 21:17+0200\n"
+"POT-Creation-Date: 2026-09-26 21:56+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -217,6 +217,30 @@ msgstr "News supprimée"
 #: php/pages/admin-logs.php
 msgid "accepted challenge "
 msgstr "a accepté le défi "
+
+#: php/pages/admin-logs.php
+msgid "set the CT Lounge rating of {user} from $2 to $3"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "set the CT Lounge strikes of {user} to $2"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "banned {user} from the CT Lounge for $2 minutes"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "lifted the CT Lounge ban of {user}"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "released CT Lounge queue #$1"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "changed the CT Lounge setting <strong>$1</strong> from $2 to $3"
+msgstr "a modifié le pseudo de <strong>$2</strong> en "
 
 #: php/pages/admin-logs.php
 msgid "deleted complete track #$1"
@@ -818,6 +842,15 @@ msgstr "Voir les <strong>messages signalés</strong> sur le forum"
 #: php/pages/admin.php
 msgid "To quickly perform actions on what members reported"
 msgstr "Pour prendre des actions rapides sur ce que les membres ont remonté"
+
+#: php/pages/admin.php
+msgid "Moderate the <strong>CT Lounge</strong>"
+msgstr "Modérer un message sur le <strong>forum</strong>"
+
+#: php/pages/admin.php
+msgid ""
+"To adjust a rating, hand out or lift a ranked ban, or release a stuck queue"
+msgstr ""
 
 #: php/pages/admin.php
 msgid "See <strong>admin logs</strong>"
@@ -1466,6 +1499,8 @@ msgstr "sur "
 msgid " in {mode} mode"
 msgstr " en mode {mode}"
 
+#. online.php is where a character gets picked, and the lounge opens over it
+#. once one has been
 #: php/pages/index.php
 msgid "Join"
 msgstr "Rejoindre"
@@ -1485,6 +1520,14 @@ msgstr "Bataille"
 #: php/pages/index.php
 msgid "Time Trial"
 msgstr "CLM"
+
+#: php/pages/index.php
+msgid "Worldwide"
+msgstr "Worldwide"
+
+#: php/pages/index.php
+msgid "Ranked"
+msgstr "Ranked"
 
 #: php/pages/index.php
 msgid "Rank"

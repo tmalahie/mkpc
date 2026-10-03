@@ -778,6 +778,7 @@ CREATE TABLE `mkgamedata` (
   `game` int(11) NOT NULL,
   `aRaceCount` int(11) NOT NULL,
   `raceCount` int(11) NOT NULL,
+  `tracks` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`game`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1004,12 +1005,17 @@ CREATE TABLE `mkmatches` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
   `course` int(11) NOT NULL,
+  `link` int(10) unsigned NOT NULL DEFAULT 0,
+  `race` smallint(5) unsigned NOT NULL DEFAULT 0,
   `rank` tinyint(4) NOT NULL,
+  `pts_before` int(11) DEFAULT NULL,
+  `pts_inc` smallint(6) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `player` (`player`),
-  KEY `course` (`course`)
+  KEY `course` (`course`),
+  KEY `link` (`link`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
@@ -1184,7 +1190,7 @@ CREATE TABLE `mknotes` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotifmute` (
   `user` int(11) NOT NULL,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report','award') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report','award','lounge_queue') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`user`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1192,7 +1198,7 @@ CREATE TABLE `mknotifmute` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotifs` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award','lounge_queue') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `user` int(10) unsigned DEFAULT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
   `identifiant2` int(10) unsigned DEFAULT NULL,

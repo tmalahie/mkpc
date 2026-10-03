@@ -12,3 +12,4 @@
 3-59/15 *  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/empty-trash.php 2>&1 | logger -t mkpc-cron
 0       0  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/unban.php 2>&1 | logger -t mkpc-cron
 0       0  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/recompute-rating.php 2>&1 | logger -t mkpc-cron
+*       *  *   *   *    www-data  php /var/www/malahieude.net/mkpc/php/cron/lounge-tick.php 2>&1 | logger -t mkpc-cron

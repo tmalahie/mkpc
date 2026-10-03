@@ -260,7 +260,8 @@ if ($id) {
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
 					if ($isLocal) {
 						require_once('../includes/onlineStateUtils.php');
-						incCourseState($courseOptions['id']);
+						// which race of this game just ended, for the rows logged below
+						$raceNumber = intval(getCourseState($courseOptions['id'])['aRaceCount']) + 1;
 					}
 				}
 				if ($spectatorId)
@@ -331,14 +332,16 @@ if ($id) {
 				$i = 0;
 				$cpuIds = array();
 				foreach ($allPlayersData as $player) {
-					if ($player['cpu'])
+					// A bot standing in for an absent player keeps their name, and leaves the
+					// numbered CPU slots to the bots that really are nobody.
+					if ($player['cpu'] && is_null($player['nom']))
 						$cpuIds[] = intval($player['id']);
 				}
 				sort($cpuIds);
 				$cpuRankById = array_flip($cpuIds);
 				include('../includes/onlineRulesUtils.php');
 				foreach ($allPlayersData as $v=>$player) {
-					if ($player['cpu'])
+					if (isset($cpuRankById[$player['id']]))
 						$playerName = getCpuName($cpuRankById[$player['id']], $courseRules);
 					else
 						$playerName = $player['nom'];
@@ -382,7 +385,11 @@ if ($id) {
 					echo ($v ? ',':'') .'['.$player['id'].','.json_encode($playerName).','.$player['aPts'].','.$inc.','.$player['team'].','.$player['finaltime'].']';
 					$nPts = $player['aPts']+$inc;
 					if ($finishing) {
-						$shouldLog = $isFriendly && !$player['cpu'];
+						// A kart with an account behind it raced for that member even when a bot
+						// drove it: a custom game keeps scoring it, and the lounge substitutes
+						// one for an absent player without taking the points away from them.
+						$isMemberRace = !$player['cpu'] || ($isLocal && !is_null($player['nom']));
+						$shouldLog = $isFriendly && $isMemberRace;
 						if (($nPts != $player['aPts']) || $isLocal) {
 							if ($isLocal)
 								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $player['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
@@ -393,8 +400,29 @@ if ($id) {
 							else
 								$shouldLog = false;
 						}
+						// What the race was worth, next to the place it was finished in: the
+						// points held before it and what it moved them by. The total after is
+						// the two added up, so it is not stored twice - and either number on
+						// its own says nothing.
 						if ($shouldLog)
-							mysql_query('INSERT INTO `mkmatches` SET player='. $player['id'] .',course='. $course .',`rank`='. $i);
+							mysql_query('INSERT INTO `mkmatches` SET player='. $player['id']
+								.',course='. $course
+								.',link='. ($courseOptions ? intval($courseOptions['id']) : 0)
+								.',race='. (isset($raceNumber) ? $raceNumber : 0)
+								.',`rank`='. $i
+								.',pts_before='. intval($player['aPts'])
+								.',pts_inc='. intval($inc));
+					}
+				}
+				// Counted only once its scores are in: the lounge finishes a match as soon as
+				// it sees the last race counted, and rates it on the scores it finds then.
+				if ($finishing && $isLocal) {
+					incCourseState($courseOptions['id']);
+					// nobody sits on the lounge page during a mogi, so the lounge tick
+					// never runs while one is being played: this is its only heartbeat
+					if (!empty($courseRules->lounge)) {
+						require_once('../includes/lounge/common.php');
+						lounge_race_finished($courseOptions['id'], $course);
 					}
 				}
 				echo '],'.($mkState['time']-$time);
