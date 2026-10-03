@@ -106,7 +106,9 @@ CREATE TABLE IF NOT EXISTS `mklounge_queues` (
   `draft_turn_at` timestamp NULL DEFAULT NULL,
   `privgame_key` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `season_tier_status` (`season`,`tier`,`status`)
+  KEY `season_tier_status` (`season`,`tier`,`status`),
+  KEY `status` (`status`),
+  KEY `privgame_key` (`privgame_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
@@ -135,7 +137,8 @@ CREATE TABLE IF NOT EXISTS `mklounge_matches` (
   `cancelled_reason` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `queue` (`queue`),
-  KEY `season_started` (`season`,`started_at`)
+  KEY `season_started` (`season`,`started_at`),
+  KEY `privgame_key` (`privgame_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
@@ -154,7 +157,8 @@ CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
   `place_before` smallint(5) unsigned DEFAULT NULL,
   `place_after` smallint(5) unsigned DEFAULT NULL,
   `strike_reason` varchar(32) DEFAULT NULL,
-  PRIMARY KEY (`match`,`player`)
+  PRIMARY KEY (`match`,`player`),
+  KEY `player` (`player`,`match`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT IGNORE INTO `mklounge_seasons` (`id`,`name`,`multicup_id`) VALUES
