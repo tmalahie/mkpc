@@ -218,7 +218,11 @@ include('../includes/footer.php');
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js?reload=1"></script>
 <script type="text/javascript">
-autocompletePlayer('#grant');
+autocompletePlayer('#grant', {
+	onSelect: function(event, term, item) {
+		preventSubmit(event);
+	}
+});
 </script>
 <?php
 mysql_close();
