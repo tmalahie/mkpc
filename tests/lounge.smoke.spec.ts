@@ -1602,8 +1602,18 @@ test('only a lounge moderator can edit a lounge link', async ({ page, browser })
 	await guest.close();
 
 	// the seeded account is an admin, which carries the lounge right
+	const [stored]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	const fixedTeams = { '1': 0, '2': 1 };
+	await sql(`UPDATE mkgameoptions SET rules = ? WHERE id = ?`, [JSON.stringify({ ...JSON.parse(stored.rules), fixedTeams }), key]);
 	await edit(page.request);
 	expect(await minPlayers()).toBe(3);
+
+	// the form never sends what the lounge built the room with, and a save keeps it
+	const [saved]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	const rules = JSON.parse(saved.rules);
+	expect(rules.lounge).toBe(1);
+	expect(rules.raceLimit).toBe(JSON.parse(stored.rules).raceLimit);
+	expect(rules.fixedTeams).toEqual(fixedTeams);
 });
 
 // Several of the ladder's numbers are still guesses - the vote timer, how long a ban lasts -
