@@ -1399,7 +1399,7 @@ test('an absent member keeps their kart, under a bot, until they come back', asy
 	await cleanupLoungeQueues();
 	const key = LOUNGE_KEY_MIN + 41;
 	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
-	const [absent] = await createLoungeBots(1, 'sub');
+	const [absent, elsewhere] = await createLoungeBots(2, 'sub');
 	const [{ nom: absentName }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [absent]);
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 
@@ -1413,10 +1413,17 @@ test('an absent member keeps their kart, under a bot, until they come back', asy
 	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
 	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
 	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
-	for (const player of [playerId, absent])
+	for (const player of [playerId, absent, elsewhere])
 		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, player]);
 	// the points the absentee had already scored, which their bot has to carry on from
 	await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, 37)`, [key, absent]);
+	// a member racing in another room has their one kart there, and it is not the lounge's to take
+	const other: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (3, ?, 0, 0, 0)`,
+		[Math.floor(Date.now() / 1000) + 3600]);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [other.insertId, elsewhere]);
+	await sql(`INSERT INTO mkplayers (id, course, controller, place, finaltime, finalts) VALUES (?, ?, 0, 1, 0, 0)
+	           ON DUPLICATE KEY UPDATE course = VALUES(course), controller = 0`, [elsewhere, other.insertId]);
 
 	const room: any = await sql(
 		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
@@ -1434,6 +1441,8 @@ test('an absent member keeps their kart, under a bot, until they come back', asy
 	// it races under their name, not as a numbered CPU
 	expect(body).toContain(JSON.stringify(absentName));
 	expect(body).not.toContain('CPU 1');
+	const [elsewhereKart]: any = await sql(`SELECT course, controller FROM mkplayers WHERE id = ?`, [elsewhere]);
+	expect(elsewhereKart).toEqual({ course: other.insertId, controller: 0 });
 
 	// and it is handed straight back when they turn up
 	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7 WHERE id = ?`, [room.insertId, absent]);
@@ -1444,7 +1453,9 @@ test('an absent member keeps their kart, under a bot, until they come back', asy
 		[absent, room.insertId]);
 	expect(back.controller).toBe(0);
 
-	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?)`, [playerId, absent]);
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?, ?)`, [playerId, absent, elsewhere]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [other.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [other.insertId]);
 	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
 });
 
@@ -1839,6 +1850,24 @@ test('the rules have to be accepted once before a tier can be picked', async ({ 
 	const [row]: any = await sql(
 		`SELECT rules_accepted_at FROM mklounge_players WHERE player = ?`, [playerId]);
 	expect(row.rules_accepted_at).not.toBeNull();
+});
+
+// Accepting the rules is what first creates a player's season row, so that is where the
+// staff-tunable starting rating has to land - not the column default.
+test('a new player starts on the configured rating', async ({ page }) => {
+	const [newcomer] = await createLoungeBots(1, 'startmmr');
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [newcomer]);
+	await sql(`INSERT INTO mklounge_settings (name, value) VALUES ('default_mmr', 850)
+	           ON DUPLICATE KEY UPDATE value = VALUES(value)`);
+	try {
+		await login(page, loungeBotName('startmmr', 1), LOUNGE_BOT_PASSWORD);
+		await page.request.post('http://127.0.0.1:8080/api/lounge/accept-rules.php');
+		const [row]: any = await sql(`SELECT mmr, peak_mmr FROM mklounge_players WHERE player = ?`, [newcomer]);
+		expect(Number(row.mmr)).toBe(850);
+		expect(Number(row.peak_mmr)).toBe(850);
+	} finally {
+		await sql(`DELETE FROM mklounge_settings WHERE name = 'default_mmr'`);
+	}
 });
 
 // 10000 VS points and a 14-day-old account, agreed with staff. Both are settings, so the

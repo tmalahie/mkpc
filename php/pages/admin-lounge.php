@@ -33,11 +33,7 @@ if ($target && isset($_POST['action'])) {
 	$playerId = intval($target['id']);
 	$state = lounge_get_player_state($playerId);
 	// the row may not exist yet for a player who has never queued
-	mysql_query(
-		'INSERT IGNORE INTO `mklounge_players` (player, season, mmr, peak_mmr)
-		VALUES ("'. $playerId .'", "'. LOUNGE_CURRENT_SEASON .'",
-			"'. lounge_mmr_sql(lounge_setting('default_mmr')) .'", "'. lounge_mmr_sql(lounge_setting('default_mmr')) .'")'
-	);
+	lounge_upsert_player($playerId, array(), 'player=player');
 	switch ($_POST['action']) {
 	case 'mmr':
 		$delta = floatval($_POST['mmr_delta']);
