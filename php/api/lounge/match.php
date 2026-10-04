@@ -15,8 +15,10 @@ if (!isset($_POST['match'])) {
 }
 $match = lounge_match_payload(intval($_POST['match']));
 
+require_once('../../includes/getRights.php');
 echo json_encode(array(
 	'me' => intval($id),
+	'can_edit' => hasRight('lounge'),
 	'match' => $match
 ));
 mysql_close();

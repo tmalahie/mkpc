@@ -358,10 +358,25 @@ test('a mogi with no attendance recorded penalises nobody', async ({ page }) => 
 	expect(Math.round(row.mmr_penalty)).toBe(0);
 });
 
-test('a lineup too small to race is voided instead', async ({ page }) => {
+// Two bots at most: a lineup of four still races with two of them in the room.
+test('a lineup two players short still plays', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 26;
+	const { queueId } = await stageLaunchedMatch('twoshort', key, 4, 2, 0);
+
+	await tick(page);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+	expect((await rulesOf(key)).minPlayers).toBe(2);
+});
+
+// One more absentee and it is voided - and voiding it costs the absentees more than an
+// absence would have, since the rest of the lineup came for nothing. Nobody else is rated.
+test('a lineup too small to race is voided instead, at the absentees\' expense', async ({ page }) => {
 	await login(page);
 	const key = LOUNGE_KEY_MIN + 21;
-	const { queueId } = await stageLaunchedMatch('small', key, 4, 1, 0);
+	const { queueId, matchId, players } = await stageLaunchedMatch('small', key, 4, 1, 0);
 
 	await tick(page);
 
@@ -369,6 +384,137 @@ test('a lineup too small to race is voided instead', async ({ page }) => {
 	expect(queue.status).toBe('cancelled');
 	const [match]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE queue = ?`, [queueId]);
 	expect(match.cancelled_reason).toBe('no_show');
+
+	const rows: any = await sql(
+		`SELECT mp.player, mp.mmr_before, mp.mmr_after, mp.mmr_penalty, p.mmr
+		 FROM mklounge_match_players mp JOIN mklounge_players p ON p.player = mp.player AND p.season = 1
+		 WHERE mp.\`match\` = ? ORDER BY mp.player`, [matchId]);
+	const present = rows.find((r: any) => r.player === players[0]);
+	expect(present.mmr_after).toBeNull();
+	expect(Number(present.mmr)).toBe(600);
+	for (const absent of rows.filter((r: any) => r.player !== players[0])) {
+		expect(Number(absent.mmr_penalty)).toBe(-50);
+		expect(Number(absent.mmr_after)).toBe(Number(absent.mmr_before) - 50);
+		expect(Number(absent.mmr)).toBe(Number(absent.mmr_after));
+	}
+});
+
+// Staff fix a rating the way Lorenzi lets them: a player's starting rating, or a compensation
+// at one mogi - and every mogi played since is rated again from there, the other players'
+// moves included.
+test('editing a table recalculates every mogi played since', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [newcomer, rival] = await createLoungeBots(2, 'edit');
+	const rateMogi = async (key: number, scores: number[]) => {
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+			 VALUES (1, ?, 'launching', ?, NOW())`, [tier.id, key]);
+		await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode) VALUES (?, 1, ?, ?, 'FFA')`,
+			[q.insertId, tier.id, key]);
+		const [m]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+		for (let i = 0; i < 2; i++) {
+			await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [m.id, [newcomer, rival][i]]);
+			await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, [newcomer, rival][i], scores[i]]);
+		}
+		await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+		await publish(key);
+		await tick(page);
+		return m.id;
+	};
+	const row = async (matchId: number, player: number) => {
+		const [r]: any = await sql(
+			`SELECT mmr_before, mmr_after, mmr_delta, mmr_adjust FROM mklounge_match_players
+			 WHERE \`match\` = ? AND player = ?`, [matchId, player]);
+		return { before: Number(r.mmr_before), after: Number(r.mmr_after), delta: Number(r.mmr_delta), adjust: r.mmr_adjust };
+	};
+	const rating = async (player: number) => {
+		const [r]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ? AND season = 1`, [player]);
+		return Number(r.mmr);
+	};
+
+	await login(page);
+	const first = await rateMogi(LOUNGE_KEY_MIN + 27, [90, 30]);
+	const second = await rateMogi(LOUNGE_KEY_MIN + 28, [30, 90]);
+	const rivalSecondBefore = await row(second, rival);
+	expect((await row(first, newcomer)).before).toBe(600);
+
+	const api = async (request: any, form: Record<string, string>) => (await request.post(
+		'http://127.0.0.1:8080/api/lounge/edit-match.php', { form })).json();
+	const { text } = await api(page.request, { action: 'load', match: String(first) });
+	// the table comes back as the text staff paste on Lorenzi
+	expect(text).toBe(loungeBotName('edit', 1) + ' 90\n' + loungeBotName('edit', 2) + ' 30');
+	const edit = (form: Record<string, string>, action = 'save') =>
+		api(page.request, { action, match: String(first), text, ...form });
+
+	// a preview shows the outcome and writes nothing
+	const previewed = await edit({ ['placement_' + newcomer]: '800' }, 'preview');
+	expect(previewed.match.players.find((p: any) => p.id === newcomer).mmr_before).toBe(800);
+	expect((await row(first, newcomer)).before).toBe(600);
+
+	// placed at 800 rather than the default 600
+	expect((await edit({ ['placement_' + newcomer]: '800' })).saved).toBe(true);
+	const firstAfter = await row(first, newcomer);
+	expect(firstAfter.before).toBe(800);
+	const secondAfter = await row(second, newcomer);
+	expect(secondAfter.before).toBeCloseTo(firstAfter.after, 6);
+	expect(await rating(newcomer)).toBeCloseTo(secondAfter.after, 6);
+	// a higher-rated opponent beaten is worth more to the rival in the second mogi
+	expect((await row(second, rival)).delta).toBeGreaterThan(rivalSecondBefore.delta);
+
+	// a compensation lands on top of what the mogi gave, and carries on into the next one
+	const rivalBefore = await rating(rival);
+	await edit({ ['adjust_' + rival]: '20' });
+	expect(Number((await row(first, rival)).adjust)).toBe(20);
+	expect((await row(second, rival)).before).toBeCloseTo((await row(first, rival)).after, 6);
+	expect(await rating(rival)).toBeGreaterThan(rivalBefore);
+
+	// the scores themselves can be corrected: the rival won the first mogi after all
+	await api(page.request, { action: 'save', match: String(first),
+		text: loungeBotName('edit', 1) + ' 30\n' + loungeBotName('edit', 2) + ' 40|50' });
+	const [fixed]: any = await sql(
+		`SELECT final_score, final_position, gp_scores FROM mklounge_match_players WHERE \`match\` = ? AND player = ?`,
+		[first, rival]);
+	expect(fixed).toEqual({ final_score: 90, final_position: 1, gp_scores: '40|50' });
+	expect((await row(first, rival)).delta).toBeGreaterThan(0);
+
+	// a table played elsewhere - a Discord tournament - is added and rated like any other
+	const games = async (player: number) =>
+		Number((await sql(`SELECT games FROM mklounge_players WHERE player = ? AND season = 1`, [player]) as any)[0].games);
+	const beforeTable = await rating(newcomer);
+	const created = await api(page.request, { action: 'save', tier: String(tier.id),
+		text: 'A\n' + loungeBotName('edit', 1) + ' [fr] 50+12|40\n\nB\n' + loungeBotName('edit', 2) + ' 20|30' });
+	expect(created.saved).toBe(true);
+	expect(created.match.manual).toBe(true);
+	expect(created.match.players.find((p: any) => p.id === newcomer).score).toBe(102);
+	expect(await games(newcomer)).toBe(3);
+	expect(await rating(newcomer)).toBeGreaterThan(beforeTable);
+
+	// and deleting it takes it out of everyone's history
+	expect((await api(page.request, { action: 'delete', match: String(created.match.id) })).deleted).toBe(true);
+	expect(await games(newcomer)).toBe(2);
+	expect(await rating(newcomer)).toBeCloseTo(beforeTable, 6);
+
+	// a table that does not add up is refused, line by line
+	const refusedTable = await api(page.request, { action: 'preview', tier: String(tier.id),
+		text: 'A\nNobodyCalledThis 10\n' + loungeBotName('edit', 1) + ' 1o\nPenalty -10' });
+	expect(refusedTable.errors.map((e: any) => e.slice(0, 2))).toEqual([[2, 'unknown_player'], [3, 'no_score'], [4, 'team_penalty']]);
+
+	// recorded for the other moderators
+	for (const log of ['LoungeMatchEdit ' + first, 'LoungeMatchCreate ' + created.match.id, 'LoungeMatchDelete ' + created.match.id]) {
+		const [logged]: any = await sql(`SELECT id FROM mklogs WHERE log = ?`, [log]);
+		expect(logged).toBeTruthy();
+		await sql(`DELETE FROM mklogsnapshots WHERE log = ?`, [logged.id]);
+		await sql(`DELETE FROM mklogs WHERE id = ?`, [logged.id]);
+	}
+
+	// and it is only theirs to do
+	await createLoungeBots(1, 'editguest');
+	const guest = await page.context().browser()!.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, loungeBotName('editguest', 1), LOUNGE_BOT_PASSWORD);
+	const refused = await api(guestPage.request, { action: 'save', match: String(first), text, ['adjust_' + rival]: '500' });
+	expect(refused.error).toBe('forbidden');
+	await guest.close();
 });
 
 // Without this a mogi that dies part-way stays "launched" for ever, and every member of the
