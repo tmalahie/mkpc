@@ -50,8 +50,16 @@ $logMapping = array(
         'render' => t('admin_logs.lounge_release_queue'),
         'role' => 'lounge'
     ),
-    'LoungeRatingEdit' => array(
-        'render' => t('admin_logs.lounge_edit_ratings', url: 'lounge.php?tab=leaderboard&amp;match=$1'),
+    'LoungeMatchEdit' => array(
+        'render' => t('admin_logs.lounge_edit_match', url: 'lounge.php?tab=leaderboard&amp;match=$1'),
+        'role' => 'lounge'
+    ),
+    'LoungeMatchCreate' => array(
+        'render' => t('admin_logs.lounge_create_match', url: 'lounge.php?tab=leaderboard&amp;match=$1'),
+        'role' => 'lounge'
+    ),
+    'LoungeMatchDelete' => array(
+        'render' => t('admin_logs.lounge_delete_match'),
         'role' => 'lounge'
     ),
     'LoungeSetting' => array(

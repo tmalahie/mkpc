@@ -51,9 +51,14 @@ define('LOUNGE_DISCORD_INVITE', 'https://discord.gg/qh9DhJsMw');
 // A mogi is 12 races of ~3 minutes. Past this it is not being played any more, whatever
 // the race counter says.
 define('LOUNGE_MATCH_MAX_MINUTES', 120);
-// How far the room's required player count may be lowered when players fail to join or
-// walk out mid-mogi. Below this there is no race worth playing.
+// Whatever the bot allowance, a mogi needs two people racing each other.
 define('LOUNGE_MIN_RACE_PLAYERS', 2);
+// "au-delà de 2 bots on devrait pas pouvoir continuer le mogi": past this many absent members
+// a mogi is voided, and whoever left it pays more than an absence would have cost them.
+define('LOUNGE_MAX_BOTS', 2);
+// how the ladder groups a mogi's races in its tables
+define('LOUNGE_RACES_PER_GP', 4);
+define('LOUNGE_CANCEL_PENALTY', 50);
 // "si tu as raté plus de 4 courses tu prends -25, si tu as joué au moins 8 courses mais raté
 // au moins une tu prends -10": the bot races in the member's place, so their result still
 // stands and the absence is charged as a flat adjustment on top of it.
@@ -217,13 +222,13 @@ function lounge_settings_schema() {
 			'help_en' => 'Past this it is voided and the lineup released.',
 			'help_fr' => 'Au-delà il est annulé et l\'effectif libéré.'
 		),
-		'min_race_players' => array(
-			'default' => LOUNGE_MIN_RACE_PLAYERS, 'min' => 2, 'max' => 8,
-			'group' => 'match', 'unit_en' => 'players', 'unit_fr' => 'joueurs',
-			'label_en' => 'Smallest lineup still worth racing',
-			'label_fr' => 'Effectif minimum pour jouer quand même',
-			'help_en' => 'Below this a mogi is voided rather than played with bots.',
-			'help_fr' => 'En dessous, le mogi est annulé plutôt que joué avec des bots.'
+		'max_bots' => array(
+			'default' => LOUNGE_MAX_BOTS, 'min' => 0, 'max' => 7,
+			'group' => 'match', 'unit_en' => 'bots', 'unit_fr' => 'bots',
+			'label_en' => 'Most bots a mogi can be played with',
+			'label_fr' => 'Nombre maximum de bots dans un mogi',
+			'help_en' => 'Checked when the join time runs out and at the start of every race: one more absent player and the mogi is voided.',
+			'help_fr' => 'Vérifié à la fin du temps pour rejoindre et au début de chaque course&nbsp;: un absent de plus et le mogi est annulé.'
 		),
 		'absence_major_missed' => array(
 			'default' => LOUNGE_ABSENCE_MAJOR_MISSED, 'min' => 0, 'max' => 100,
@@ -248,6 +253,14 @@ function lounge_settings_schema() {
 			'label_fr' => 'Pénalité pour toute course manquée',
 			'help_en' => 'Applies when they still played most of the mogi.',
 			'help_fr' => 'S\'applique s\'ils ont joué la majeure partie du mogi.'
+		),
+		'cancel_penalty' => array(
+			'default' => LOUNGE_CANCEL_PENALTY, 'min' => 0, 'max' => 500,
+			'group' => 'sanctions', 'unit_en' => 'MMR', 'unit_fr' => 'MMR',
+			'label_en' => 'Penalty for getting a mogi voided',
+			'label_fr' => 'Pénalité pour avoir fait annuler un mogi',
+			'help_en' => 'Charged to every absent player when there are too many bots. Nobody else is rated.',
+			'help_fr' => 'Appliquée à chaque absent quand il y a trop de bots. Personne d\'autre n\'est classé.'
 		),
 		'strikes_before_ban' => array(
 			'default' => LOUNGE_STRIKES_BEFORE_BAN, 'min' => 0, 'max' => 10,
@@ -768,13 +781,10 @@ function lounge_queue_state($queueId, $forPlayerId = null) {
 // The ladder's mode names are team *sizes*, not team counts: "2v2" is a lineup split into
 // pairs, which is 2 teams at 4 players and 4 teams at 8 - MogiBot offers it at every even
 // lineup and names it 2v2 throughout.
+// 2v2, 3v3 and 4v4 are what a mogi can be voted to; a table staff type in for a tournament
+// can be any NvN.
 function lounge_mode_team_size($mode) {
-	switch ($mode) {
-		case '2v2': return 2;
-		case '3v3': return 3;
-		case '4v4': return 4;
-		default:    return 0;
-	}
+	return preg_match('#^([2-9])v\1$#', $mode, $match) ? intval($match[1]) : 0;
 }
 
 // Rule 3a: vote 1 FFA, 2 2v2, 3 3v3, 4 4v4. A mode is on the ballot when the lineup divides
@@ -1279,13 +1289,114 @@ function lounge_record_race_attendance($privgameKey, $course) {
 	);
 }
 
+function lounge_bots_acceptable($lineup, $present) {
+	return ($present >= LOUNGE_MIN_RACE_PLAYERS) && (($lineup - $present) <= lounge_setting('max_bots'));
+}
+
+function lounge_match_lineup_size($privgameKey) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT COUNT(*) AS n FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+		WHERE m.privgame_key="'. intval($privgameKey) .'"'
+	));
+	return $row ? intval($row['n']) : 0;
+}
+
+// A voided mogi rates nobody, except the players who got it voided: they pay a flat penalty,
+// recorded on the mogi's own rows so that a recalculation of the season replays it.
+function lounge_charge_cancellation($matchId, $presentIds) {
+	$penalty = -floatval(lounge_setting('cancel_penalty'));
+	$present = array_flip(array_map('intval', $presentIds));
+	$res = mysql_query(
+		'SELECT mp.player, p.mmr FROM `mklounge_match_players` mp
+		LEFT JOIN `mklounge_players` p ON p.player=mp.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
+		WHERE mp.`match`="'. intval($matchId) .'" AND mp.mmr_after IS NULL'
+	);
+	$charged = array();
+	while ($row = mysql_fetch_array($res)) {
+		if (!isset($present[intval($row['player'])]))
+			$charged[] = $row;
+	}
+	foreach ($charged as $row) {
+		$playerId = intval($row['player']);
+		lounge_upsert_player($playerId, array(), 'player=player');
+		$before = is_null($row['mmr']) ? floatval(lounge_setting('default_mmr')) : floatval($row['mmr']);
+		$after = max(lounge_setting('mmr_min'), $before + $penalty);
+		mysql_query(
+			'UPDATE `mklounge_match_players`
+			SET mmr_before="'. lounge_mmr_sql($before) .'", mmr_after="'. lounge_mmr_sql($after) .'",
+				mmr_delta="'. lounge_mmr_sql($after - $before) .'", mmr_penalty="'. lounge_mmr_sql($penalty) .'"
+			WHERE `match`="'. intval($matchId) .'" AND player="'. $playerId .'"'
+		);
+		mysql_query(
+			'UPDATE `mklounge_players` SET mmr="'. lounge_mmr_sql($after) .'"
+			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+		lounge_log('cancel_penalty', array('player' => $playerId), array('match' => intval($matchId), 'penalty' => $penalty));
+	}
+}
+
+// Checked as each race after the first starts: the first is the join timeout's call. Returns
+// whether the mogi was voided, in which case the race must not go ahead.
+function lounge_void_if_too_many_bots($privgameKey, $course) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT q.id AS queue, m.id AS `match`, COUNT(mp.player) AS lineup,
+			SUM(j.course="'. intval($course) .'") AS present
+		FROM `mklounge_queues` q
+		INNER JOIN `mklounge_matches` m ON m.queue=q.id AND m.ended_at IS NULL
+		INNER JOIN `mklounge_match_players` mp ON mp.`match`=m.id
+		LEFT JOIN `mkjoueurs` j ON j.id=mp.player
+		WHERE q.privgame_key="'. intval($privgameKey) .'" AND q.status="launched"
+		GROUP BY q.id, m.id'
+	));
+	if (!$row || lounge_bots_acceptable(intval($row['lineup']), intval($row['present'])))
+		return false;
+	// whoever walked out since the last race has not been struck for it yet
+	lounge_strike_dropouts($privgameKey, $course);
+	global $q;
+	$q = mysql_query(
+		'UPDATE `mklounge_queues` SET status="cancelled"
+		WHERE id="'. intval($row['queue']) .'" AND status="launched"'
+	);
+	if (!mysql_affected_rows())
+		return true;
+	$present = array();
+	$res = mysql_query(
+		'SELECT mp.player FROM `mklounge_match_players` mp
+		INNER JOIN `mkjoueurs` j ON j.id=mp.player AND j.course="'. intval($course) .'"
+		WHERE mp.`match`="'. intval($row['match']) .'"'
+	);
+	while ($player = mysql_fetch_array($res))
+		$present[] = intval($player['player']);
+	mysql_query(
+		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="too_many_bots"
+		WHERE id="'. intval($row['match']) .'"'
+	);
+	mysql_query(
+		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
+		WHERE queue="'. intval($row['queue']) .'" AND dropped_at IS NULL'
+	);
+	lounge_log('match_abandoned', array('queue' => $row['queue'], 'key' => $privgameKey), array(
+		'reason' => 'too_many_bots', 'lineup' => intval($row['lineup']), 'present' => $present
+	));
+	lounge_charge_cancellation(intval($row['match']), $present);
+	return true;
+}
+
+function lounge_match_voided($privgameKey) {
+	return (bool) mysql_fetch_array(mysql_query(
+		'SELECT 1 AS ok FROM `mklounge_matches`
+		WHERE privgame_key="'. intval($privgameKey) .'" AND cancelled_reason IS NOT NULL'
+	));
+}
+
 // The lounge link pins minPlayers to the lineup size, so one no-show or one player walking
 // out leaves everyone else stuck on "waiting for players" for good. Staff fix that by hand
 // today - #link-guidelines tells the host to lower "Minimum number of players" by one - and
 // this does the same automatically. It only applies once the join window has closed, so
 // nobody is left behind while they are still loading in.
 function lounge_relax_room($privgameKey, $playersInRoom) {
-	if ($playersInRoom < lounge_setting('min_race_players'))
+	if (!lounge_bots_acceptable(lounge_match_lineup_size($privgameKey), $playersInRoom))
 		return false;
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT o.rules, t.code AS tier_code FROM `mkgameoptions` o
@@ -1766,9 +1877,10 @@ function lounge_match_payload($matchId) {
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT m.id, m.mode, m.privgame_key, m.started_at, m.ended_at, m.cancelled_reason,
 			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(m.ended_at) AS ended_ago,
-			t.label AS tier_label
+			t.label AS tier_label, m.tier, d.raceCount AS races_run
 		FROM `mklounge_matches` m
 		INNER JOIN `mklounge_tiers` t ON t.id=m.tier
+		LEFT JOIN `mkgamedata` d ON d.game=m.privgame_key
 		WHERE m.id="'. intval($matchId) .'"'
 	));
 	if (!$match)
@@ -1780,10 +1892,17 @@ function lounge_match_payload($matchId) {
 	$total = 0;
 	$res = mysql_query(
 		'SELECT mp.player, mp.team, mp.final_score, mp.final_position, mp.mmr_before,
-			mp.mmr_after, mp.mmr_delta, mp.mmr_penalty, mp.races_played,
-			mp.place_before, mp.place_after, j.nom, c.code AS country
+			mp.mmr_after, mp.mmr_delta, mp.mmr_penalty, mp.mmr_adjust, mp.races_played, mp.gp_scores,
+			mp.place_before, mp.place_after, j.nom, c.code AS country, lp.placement,
+			(mp.mmr_after IS NOT NULL AND NOT EXISTS (
+				SELECT 1 FROM `mklounge_match_players` e
+				INNER JOIN `mklounge_matches` em ON em.id=e.`match` AND em.season="'. LOUNGE_CURRENT_SEASON .'"
+				WHERE e.player=mp.player AND e.mmr_after IS NOT NULL
+				AND (em.ended_at < "'. $match['ended_at'] .'" OR (em.ended_at = "'. $match['ended_at'] .'" AND em.id < "'. intval($match['id']) .'"))
+			)) AS first_rated
 		FROM `mklounge_match_players` mp
 		INNER JOIN `mkjoueurs` j ON j.id=mp.player
+		LEFT JOIN `mklounge_players` lp ON lp.player=mp.player AND lp.season="'. LOUNGE_CURRENT_SEASON .'"
 		LEFT JOIN `mkprofiles` pr ON pr.id=mp.player
 		LEFT JOIN `mkcountries` c ON c.id=pr.country
 		WHERE mp.`match`="'. intval($match['id']) .'"
@@ -1804,8 +1923,13 @@ function lounge_match_payload($matchId) {
 			'mmr_after' => is_null($row['mmr_after']) ? null : (int) round($row['mmr_after']),
 			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
 			'mmr_penalty' => is_null($row['mmr_penalty']) ? null : (int) round($row['mmr_penalty']),
+			'mmr_adjust' => is_null($row['mmr_adjust']) ? null : (int) round($row['mmr_adjust']),
+			// the starting rating staff can edit is shown on the mogi it applies to
+			'placement' => $row['first_rated'] ? (is_null($row['placement']) ? null : (int) round($row['placement'])) : null,
+			'first_rated' => (bool) $row['first_rated'],
 			'races_played' => intval($row['races_played']),
 			'race_points' => lounge_race_points_for($racePoints, intval($row['player'])),
+			'gp_scores' => is_null($row['gp_scores']) ? null : array_map('intval', explode('|', $row['gp_scores'])),
 			'place_before' => is_null($row['place_before']) ? null : intval($row['place_before']),
 			'place_after' => is_null($row['place_after']) ? null : intval($row['place_after']),
 			'rank' => is_null($row['mmr_after']) ? null : lounge_rank_for_mmr(floatval($row['mmr_after']))
@@ -1824,11 +1948,17 @@ function lounge_match_payload($matchId) {
 		'id' => intval($match['id']),
 		'mode' => $match['mode'],
 		'tier_label' => $match['tier_label'],
+		'tier' => intval($match['tier']),
+		// typed in by staff rather than played on the site
+		'manual' => !intval($match['privgame_key']),
 		'started_at' => $match['started_at'],
 		'ended_at' => $match['ended_at'],
 		'ended_ago' => is_null($match['ended_at']) ? null : intval($match['ended_ago']),
 		'cancelled_reason' => $match['cancelled_reason'],
-		'races' => lounge_setting('races_per_match'),
+		// what this mogi ran, not what the setting says today: staff retune it between mogis
+		'races' => (is_null($match['ended_at']) || is_null($match['races_run']))
+			? lounge_setting('races_per_match')
+			: intval($match['races_run']),
 		'total' => $total,
 		'teams' => $teams,
 		'players' => $players
@@ -1957,7 +2087,7 @@ function lounge_handle_join_timeout($queueId) {
 		return false;
 
 	$joined = lounge_match_joined_players($queue['privgame_key']);
-	$enough = count($joined) >= lounge_setting('min_race_players');
+	$enough = lounge_bots_acceptable(lounge_match_lineup_size($queue['privgame_key']), count($joined));
 	lounge_log('join_timeout', array('queue' => $queueId, 'key' => $queue['privgame_key']), array(
 		'joined' => array_keys($joined), 'outcome' => $enough ? 'relaxed' : 'cancelled'
 	));
@@ -1977,10 +2107,15 @@ function lounge_handle_join_timeout($queueId) {
 		return false;
 
 	lounge_strike_no_shows($queueId, $joined);
+	$match = mysql_fetch_array(mysql_query(
+		'SELECT id FROM `mklounge_matches` WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
+	));
 	mysql_query(
 		'UPDATE `mklounge_matches` SET ended_at=NOW(), cancelled_reason="no_show"
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
 	);
+	if ($match)
+		lounge_charge_cancellation(intval($match['id']), array_keys($joined));
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
@@ -2012,8 +2147,7 @@ function lounge_resolve_join_timeout($privgameKey) {
 	// the mogi starts; whoever is late can still take their own kart over when they arrive.
 	if ($row['fillable']) {
 		$joined = lounge_match_joined_players($privgameKey);
-		if (count($joined) >= lounge_setting('min_race_players'))
-			return lounge_relax_room($privgameKey, count($joined));
+		return lounge_relax_room($privgameKey, count($joined));
 	}
 	return false;
 }
@@ -2100,6 +2234,13 @@ function lounge_absence_penalty($racesPlayed, $racesTotal) {
 }
 
 function lounge_apply_mmr($matchId) {
+	lounge_lock_ratings();
+	$applied = lounge_apply_mmr_locked($matchId);
+	lounge_unlock_ratings();
+	return $applied;
+}
+
+function lounge_apply_mmr_locked($matchId) {
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT mode FROM `mklounge_matches` WHERE id="'. intval($matchId) .'"'
 	));
@@ -2186,6 +2327,228 @@ function lounge_apply_mmr($matchId) {
 		);
 	}
 	return true;
+}
+
+// Ratings are rewritten as a whole when staff edit one, so a mogi finishing at that moment
+// waits for the rewrite instead of rating itself on half of it.
+function lounge_lock_ratings() {
+	mysql_query('SELECT GET_LOCK("mkpc-lounge-ratings", 20)');
+}
+
+function lounge_unlock_ratings() {
+	mysql_query('SELECT RELEASE_LOCK("mkpc-lounge-ratings")');
+}
+
+function lounge_ladder_places_of($ratings, $ranked) {
+	$ladder = array();
+	foreach ($ranked as $playerId => $_)
+		$ladder[$playerId] = $ratings[$playerId];
+	uksort($ladder, function($a, $b) use ($ladder) {
+		if ($ladder[$a] == $ladder[$b])
+			return $a - $b;
+		return ($ladder[$a] < $ladder[$b]) ? 1 : -1;
+	});
+	$places = array();
+	$place = 0;
+	$previous = null;
+	$i = 0;
+	foreach ($ladder as $playerId => $rating) {
+		$i++;
+		if (is_null($previous) || ($rating < $previous)) {
+			$place = $i;
+			$previous = $rating;
+		}
+		$places[$playerId] = $place;
+	}
+	return $places;
+}
+
+// Lorenzi's behaviour, which staff rely on: change where a player started or what a mogi
+// gave them, and every mogi after it is rated again from there - the other players' moves
+// included. The season is replayed in the order it was played, with the formula the mogis
+// were rated with, the penalties they were charged and the staff's adjustments.
+function lounge_recompute_season() {
+	$placements = array();
+	$res = mysql_query(
+		'SELECT player, placement FROM `mklounge_players`
+		WHERE season="'. LOUNGE_CURRENT_SEASON .'" AND placement IS NOT NULL'
+	);
+	while ($row = mysql_fetch_array($res))
+		$placements[intval($row['player'])] = floatval($row['placement']);
+	$deleted = array();
+	$res = mysql_query(
+		'SELECT DISTINCT j.id FROM `mkjoueurs` j
+		INNER JOIN `mklounge_players` p ON p.player=j.id AND p.season="'. LOUNGE_CURRENT_SEASON .'"
+		WHERE j.deleted!=0'
+	);
+	while ($row = mysql_fetch_array($res))
+		$deleted[intval($row['id'])] = true;
+
+	$matches = array();
+	$res = mysql_query(
+		'SELECT m.id, m.mode, m.cancelled_reason, mp.player, mp.team, mp.final_score, mp.final_position,
+			mp.mmr_before, mp.mmr_after, mp.mmr_penalty, mp.mmr_adjust, mp.place_before, mp.place_after
+		FROM `mklounge_matches` m
+		INNER JOIN `mklounge_match_players` mp ON mp.`match`=m.id
+		WHERE m.season="'. LOUNGE_CURRENT_SEASON .'" AND m.ended_at IS NOT NULL
+			AND (mp.mmr_after IS NOT NULL OR (m.cancelled_reason IS NULL AND mp.final_score IS NOT NULL))
+		ORDER BY m.ended_at, m.id, mp.player'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$matchId = intval($row['id']);
+		if (!isset($matches[$matchId]))
+			$matches[$matchId] = array('mode' => $row['mode'], 'rated' => is_null($row['cancelled_reason']), 'rows' => array());
+		$matches[$matchId]['rows'][] = $row;
+	}
+
+	$min = lounge_setting('mmr_min');
+	$counters = array();
+	$ratings = array();
+	$peaks = array();
+	$ranked = array();
+	foreach ($matches as $matchId => $match) {
+		$participants = array();
+		foreach ($match['rows'] as $row) {
+			$playerId = intval($row['player']);
+			if (!isset($ratings[$playerId])) {
+				// a player who was never placed starts where they actually started
+				if (isset($placements[$playerId]))
+					$ratings[$playerId] = $placements[$playerId];
+				elseif (!is_null($row['mmr_before']))
+					$ratings[$playerId] = round(floatval($row['mmr_before']), 6);
+				else
+					$ratings[$playerId] = floatval(lounge_setting('default_mmr'));
+				$peaks[$playerId] = $ratings[$playerId];
+			}
+			if ($match['rated'] && !is_null($row['final_score'])) {
+				$participants[] = $row;
+				if (!isset($counters[$playerId]))
+					$counters[$playerId] = array(0, 0, 0);
+				$counters[$playerId][0]++;
+				$counters[$playerId][1] += (intval($row['final_position']) === 1) ? 1 : 0;
+				$counters[$playerId][2] += intval($row['final_score']);
+			}
+		}
+		$deltas = array();
+		if (count($participants) >= 2) {
+			$units = array();
+			foreach ($participants as $row) {
+				$playerId = intval($row['player']);
+				$team = (is_null($row['team']) || (intval($row['team']) < 0)) ? null : intval($row['team']);
+				$key = is_null($team) ? 'p'. $playerId : 't'. $team;
+				if (!isset($units[$key]))
+					$units[$key] = array('members' => array(), 'score' => 0);
+				$units[$key]['members'][$playerId] = $ratings[$playerId];
+				$units[$key]['score'] += intval($row['final_score']);
+			}
+			if (count($units) >= 2)
+				$deltas = lounge_mmr_deltas(array_values($units), lounge_mmr_arity($match['mode']));
+			foreach ($participants as $row) {
+				if (!isset($deleted[intval($row['player'])]))
+					$ranked[intval($row['player'])] = true;
+			}
+		}
+		$placesBefore = $deltas ? lounge_ladder_places_of($ratings, $ranked) : array();
+		$updates = array();
+		foreach ($match['rows'] as $row) {
+			$playerId = intval($row['player']);
+			$before = $ratings[$playerId];
+			$delta = isset($deltas[$playerId]) ? $deltas[$playerId] : 0;
+			$after = round(max($min, $before + $delta + floatval($row['mmr_penalty']) + floatval($row['mmr_adjust'])), 6);
+			// a table rates every player on it, including one with no opponent left to beat
+			if ($match['rated'] && !is_null($row['final_score']) && is_null($row['mmr_penalty']))
+				$row['mmr_penalty'] = 0;
+			$ratings[$playerId] = $after;
+			$peaks[$playerId] = max($peaks[$playerId], $after);
+			$updates[$playerId] = array($row, $before, $after);
+		}
+		$placesAfter = $deltas ? lounge_ladder_places_of($ratings, $ranked) : array();
+		foreach ($updates as $playerId => $update) {
+			list($row, $before, $after) = $update;
+			$placeBefore = isset($deltas[$playerId], $placesBefore[$playerId]) ? $placesBefore[$playerId] : (isset($deltas[$playerId]) ? null : $row['place_before']);
+			$placeAfter = isset($deltas[$playerId], $placesAfter[$playerId]) ? $placesAfter[$playerId] : (isset($deltas[$playerId]) ? null : $row['place_after']);
+			if (!is_null($row['mmr_after'])
+				&& (lounge_mmr_sql($before) === lounge_mmr_sql($row['mmr_before']))
+				&& (lounge_mmr_sql($after) === lounge_mmr_sql($row['mmr_after']))
+				&& ($placeBefore == $row['place_before']) && ($placeAfter == $row['place_after']))
+				continue;
+			mysql_query(
+				'UPDATE `mklounge_match_players`
+				SET mmr_before="'. lounge_mmr_sql($before) .'", mmr_after="'. lounge_mmr_sql($after) .'",
+					mmr_delta="'. lounge_mmr_sql($after - $before) .'", mmr_penalty="'. lounge_mmr_sql($row['mmr_penalty']) .'",
+					place_before='. (is_null($placeBefore) ? 'NULL' : intval($placeBefore)) .',
+					place_after='. (is_null($placeAfter) ? 'NULL' : intval($placeAfter)) .'
+				WHERE `match`="'. intval($matchId) .'" AND player="'. $playerId .'"'
+			);
+		}
+	}
+	foreach ($placements as $playerId => $placement) {
+		if (!isset($ratings[$playerId])) {
+			$ratings[$playerId] = $placement;
+			$peaks[$playerId] = $placement;
+		}
+	}
+	foreach ($ratings as $playerId => $rating) {
+		mysql_query(
+			'UPDATE `mklounge_players`
+			SET mmr="'. lounge_mmr_sql($rating) .'", peak_mmr="'. lounge_mmr_sql($peaks[$playerId]) .'"
+			WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+	}
+	// a table added or deleted changes how many mogis each player has, not only their rating
+	$res = mysql_query('SELECT player, games, wins, total_score FROM `mklounge_players` WHERE season="'. LOUNGE_CURRENT_SEASON .'"');
+	$current = array();
+	while ($row = mysql_fetch_array($res))
+		$current[intval($row['player'])] = array(intval($row['games']), intval($row['wins']), intval($row['total_score']));
+	foreach ($current as $playerId => $stored) {
+		$counted = isset($counters[$playerId]) ? $counters[$playerId] : array(0, 0, 0);
+		if ($counted === $stored)
+			continue;
+		mysql_query(
+			'UPDATE `mklounge_players` SET games="'. $counted[0] .'", wins="'. $counted[1] .'", total_score="'. $counted[2] .'"
+			WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+	}
+}
+
+// $adjustments and $placements map player ids to a number, or to null to clear it.
+function lounge_edit_ratings($matchId, $adjustments, $placements) {
+	lounge_lock_ratings();
+	foreach ($adjustments as $playerId => $adjust) {
+		mysql_query(
+			'UPDATE `mklounge_match_players`
+			SET mmr_adjust='. (is_null($adjust) ? 'NULL' : '"'. lounge_mmr_sql($adjust) .'"') .'
+			WHERE `match`="'. intval($matchId) .'" AND player="'. intval($playerId) .'" AND mmr_after IS NOT NULL'
+		);
+	}
+	foreach ($placements as $playerId => $placement) {
+		lounge_upsert_player($playerId, array(), 'player=player');
+		mysql_query(
+			'UPDATE `mklounge_players`
+			SET placement='. (is_null($placement) ? 'NULL' : '"'. lounge_mmr_sql($placement) .'"') .'
+			WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+	}
+	lounge_recompute_season();
+	lounge_unlock_ratings();
+}
+
+// What the moderation page's "adjust rating" does: the change is filed against the player's
+// latest mogi, or as their starting rating if they have none, so that a later recalculation
+// of the season keeps it instead of rating over it.
+function lounge_adjust_player_rating($playerId, $delta) {
+	$last = mysql_fetch_array(mysql_query(
+		'SELECT mp.`match`, IFNULL(mp.mmr_adjust, 0) AS adjust FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.season="'. LOUNGE_CURRENT_SEASON .'"
+		WHERE mp.player="'. intval($playerId) .'" AND mp.mmr_after IS NOT NULL
+		ORDER BY m.ended_at DESC, m.id DESC LIMIT 1'
+	));
+	if ($last) {
+		lounge_edit_ratings(intval($last['match']), array($playerId => floatval($last['adjust']) + $delta), array());
+		return;
+	}
+	$state = lounge_get_player_state($playerId);
+	lounge_edit_ratings(0, array(), array($playerId => max(lounge_setting('mmr_min'), $state['mmr'] + $delta)));
 }
 
 function lounge_queue_min_players($queueId) {
