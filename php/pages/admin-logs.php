@@ -31,27 +31,31 @@ $logMapping = array(
         'role' => 'clvalidator'
     ),
     'LoungeMmr' => array(
-        'render' => F_('set the CT Lounge rating of {user} from $2 to $3', user: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.lounge_set_rating', user: $logTemplates['member']('$1')),
         'role' => 'lounge'
     ),
     'LoungeStrikes' => array(
-        'render' => F_('set the CT Lounge strikes of {user} to $2', user: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.lounge_set_strikes', user: $logTemplates['member']('$1')),
         'role' => 'lounge'
     ),
     'LoungeBan' => array(
-        'render' => F_('banned {user} from the CT Lounge for $2 minutes', user: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.lounge_ban', user: $logTemplates['member']('$1')),
         'role' => 'lounge'
     ),
     'LoungeUnban' => array(
-        'render' => F_('lifted the CT Lounge ban of {user}', user: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.lounge_unban', user: $logTemplates['member']('$1')),
         'role' => 'lounge'
     ),
     'LoungeRelease' => array(
-        'render' => _('released CT Lounge queue #$1'),
+        'render' => t('admin_logs.lounge_release_queue'),
+        'role' => 'lounge'
+    ),
+    'LoungeRatingEdit' => array(
+        'render' => t('admin_logs.lounge_edit_ratings', url: 'lounge.php?tab=leaderboard&amp;match=$1'),
         'role' => 'lounge'
     ),
     'LoungeSetting' => array(
-        'render' => _('changed the CT Lounge setting <strong>$1</strong> from $2 to $3'),
+        'render' => t('admin_logs.lounge_setting'),
         'role' => 'lounge'
     ),
     'CCircuit' => array(
