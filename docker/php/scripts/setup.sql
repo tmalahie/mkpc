@@ -1042,10 +1042,12 @@ CREATE TABLE `mklounge_match_players` (
   `team` tinyint(3) unsigned DEFAULT NULL,
   `final_score` int(11) DEFAULT NULL,
   `final_position` tinyint(3) unsigned DEFAULT NULL,
+  `gp_scores` varchar(255) DEFAULT NULL,
   `mmr_before` double DEFAULT NULL,
   `mmr_after` double DEFAULT NULL,
   `mmr_delta` double DEFAULT NULL,
   `mmr_penalty` double DEFAULT NULL,
+  `mmr_adjust` double DEFAULT NULL,
   `races_played` smallint(5) unsigned NOT NULL DEFAULT 0,
   `last_race` smallint(5) unsigned NOT NULL DEFAULT 0,
   `place_before` smallint(5) unsigned DEFAULT NULL,
@@ -1080,6 +1082,7 @@ CREATE TABLE `mklounge_players` (
   `season` int(10) unsigned NOT NULL,
   `mmr` double NOT NULL DEFAULT 600,
   `peak_mmr` double NOT NULL DEFAULT 600,
+  `placement` double DEFAULT NULL,
   `games` int(11) NOT NULL DEFAULT 0,
   `wins` int(11) NOT NULL DEFAULT 0,
   `total_score` int(11) NOT NULL DEFAULT 0,
@@ -2436,3 +2439,4 @@ INSERT INTO mkidentifiants SET identifiant=0,disable_cooldown=1;
 INSERT INTO mklounge_seasons SET id=1,name="Season 1",multicup_id=10813;
 INSERT INTO mkmigrations SET name="20261004-1200-ranked-lounge.sql";
 INSERT INTO mkmigrations SET name="20261004-1201-lounge-indexes.sql";
+INSERT INTO mkmigrations SET name="20261004-2100-lounge-rating-edits.sql";
