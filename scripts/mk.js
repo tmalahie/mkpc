@@ -2705,7 +2705,7 @@ function addNewItem(kart,item) {
 	}
 	items[collection].push(item);
 	if (isOnline) {
-		if (kart && (kart.id == identifiant || kart.controller == identifiant))
+		if (kart && isOwnKart(kart))
 			syncItems.push(item);
 	}
 	else {
@@ -9182,7 +9182,7 @@ var itemBehaviors = {
 							if (tCible) {
 								fSprite.target = tCible.id;
 								delete fSprite.rail;
-								if (isOnline && ((tCible.id == identifiant) || (tCible.controller == identifiant) || isControlledByPlayer(fSprite.owner)))
+								if (isOnline && (isOwnKart(tCible) || isControlledByPlayer(fSprite.owner)))
 									syncItems.push(fSprite);
 							}
 						}
@@ -9475,7 +9475,7 @@ var itemBehaviors = {
 				var oKart = aKarts[cible];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
-					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
+					if ((fSprite.target == -1) && (!isOnline || isOwnKart(oKart)) || isBB) {
 						fSprite.target = oKart.id;
 						if (isOnline)
 							syncItems.push(fSprite);
@@ -9665,7 +9665,7 @@ var itemBehaviors = {
 				var oKart = aKarts[cible];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
-					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
+					if ((fSprite.target == -1) && (!isOnline || isOwnKart(oKart)) || isBB) {
 						fSprite.target = oKart.id;
 						if (isOnline)
 							syncItems.push(fSprite);
@@ -13333,7 +13333,7 @@ function dropCurrentItem(oKart) {
 		if (!sArme) continue;
 		var sRoulette = j == 0 ? oKart.roulette : oKart.roulette2;
 		if (sRoulette < 25) continue;
-		if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) continue;
+		if (isOnline && !isOwnKart(oKart)) continue;
 		var itemCount = 1;
 		var sArmeCountRegex = sArme.match(/^(.+)X(\d+)$/);
 		if (sArmeCountRegex) {
@@ -21014,7 +21014,12 @@ function isControlledByPlayer(id) {
 	var oKart = aKarts.find(function(kart) {
 		return kart.id == id;
 	});
-	return oKart && ((oKart.id == identifiant) || (oKart.controller == identifiant));
+	return oKart && isOwnKart(oKart);
+}
+// A spectator drives nothing - not even the bot standing in for them in a ranked mogi, which
+// races under their own id.
+function isOwnKart(oKart) {
+	return !onlineSpectatorId && ((oKart.id == identifiant) || (oKart.controller == identifiant));
 }
 function timeTrialMode() {
 	if (course == "CM")
@@ -30824,6 +30829,13 @@ function choose(map,rand) {
 				}
 				choixJoueurs = rCode[0];
 				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("chooseResponse", {selected: rCode[1], track: choixJoueurs[rCode[1]] ? choixJoueurs[rCode[1]][2] : null, players: choixJoueurs.length, rules: rCode[4]});
+				// a voided mogi has nothing left to race: everyone still in the room is sent
+				// to its results, which say why
+				if (rCode[4] && rCode[4].loungeVoided) {
+					if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("redirect", {reason: "loungeVoided"});
+					document.location.href = "lounge.php?key=" + encodeURIComponent(shareLink.key);
+					return true;
+				}
 				var trs = oTBody.getElementsByTagName("tr");
 				while (trs.length)
 					oTBody.removeChild(trs[0]);
@@ -30926,7 +30938,9 @@ function choose(map,rand) {
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];
-							if (aID != identifiant) {
+							// a member's substitute carries their id, but it is a bot driven by
+							// someone else: the member watching it is a spectator, not its driver
+							if ((aID != identifiant) || choixJoueurs[i][7]) {
 								aIDs.push(aID);
 								var sPlayerName = choixJoueurs[i][1];
 								aPlayers.push(sPlayerName);

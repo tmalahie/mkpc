@@ -330,19 +330,9 @@
 		return wrap;
 	}
 
-	function teamSwatch(team) {
-		var swatch = document.createElement('span');
-		swatch.className = 'lounge-teamswatch';
-		swatch.style.backgroundColor = LB_TEAM_COLORS[team % LB_TEAM_COLORS.length];
-		return swatch;
-	}
-
-	// A side is named by who was in it, the way the staff reads a results post. Past a pair the
-	// names stop fitting on a line, so the rest become a count.
-	function teamName(names) {
-		if (!names || !names.length) return '';
-		if (names.length <= 2) return names.join(' + ');
-		return names[0] + ' +' + (names.length - 1);
+	// Sides are numbered by where they finished, which is how the staff read a results post.
+	function teamName(index) {
+		return toLanguage('Team ', 'Équipe ') + (index + 1);
 	}
 
 	function matchScoreChips(match) {
@@ -361,7 +351,7 @@
 			var teamChip = document.createElement('span');
 			teamChip.className = 'lounge-matchchip is-team';
 			teamChip.style.borderColor = LB_TEAM_COLORS[team.team % LB_TEAM_COLORS.length];
-			teamChip.appendChild(lbCell('span', 'lounge-matchchip-mode', teamName(team.names)));
+			teamChip.appendChild(lbCell('span', 'lounge-matchchip-mode', teamName(i)));
 			teamChip.appendChild(lbCell('span', 'lounge-matchchip-score', team.score));
 			wrap.appendChild(teamChip);
 		}
@@ -450,6 +440,10 @@
 		});
 		postJSON('lounge/matches.php', 'limit=' + LB_RECENT_MATCHES, function(data) {
 			if (!data || data.error || !data.matches) return;
+			if (data.can_edit)
+				matchesCard.firstChild.appendChild(editButton(toLanguage('Add a table', 'Ajouter un tableau'), function() {
+					location.href = lbUrl({ view: 'newtable' });
+				}));
 			if (!data.matches.length) {
 				lbEmpty(matchesCard, 'No mogi yet.', 'Aucun mogi pour le moment.');
 				return;
@@ -459,7 +453,9 @@
 	}
 
 	// Every column the staff kept off Lorenzi's table, in their order. "Avg Rating Gain" and
-	// "Total Points" are the two they struck out: they are not computed here either.
+	// "Total Points" are the two they struck out: they are not computed here either. The
+	// columns with a page are shown a page at a time beside the ones without, so the table
+	// fits without a scrollbar that would end up far below the top of a long ladder.
 	function statsColumns() {
 		return [
 			{ en: 'Ranking', fr: 'Rang', className: 'lounge-lb-place',
@@ -470,33 +466,66 @@
 				value: function(p) { return p.mmr; } },
 			{ en: 'Tier', fr: 'Tier', className: 'lounge-lb-rank',
 				value: function(p) { return p.rank ? rankChip(p.rank) : null; } },
-			{ en: 'Matches Played', fr: 'Mogis joués', className: 'lounge-lb-num',
+			{ page: 1, en: 'Matches Played', fr: 'Mogis joués', className: 'lounge-lb-num',
 				value: function(p) { return p.games; } },
-			{ en: 'Wins', fr: 'Victoires', className: 'lounge-lb-num is-up',
+			{ page: 1, en: 'Wins', fr: 'Victoires', className: 'lounge-lb-num is-up',
 				value: function(p) { return p.wins; } },
-			{ en: 'Losses', fr: 'Défaites', className: 'lounge-lb-num is-down',
+			{ page: 1, en: 'Losses', fr: 'Défaites', className: 'lounge-lb-num is-down',
 				value: function(p) { return p.games - p.wins; } },
-			{ en: 'Win Ratio', fr: 'Ratio', className: 'lounge-lb-num',
+			{ page: 1, en: 'Win Ratio', fr: 'Ratio', className: 'lounge-lb-num',
 				value: function(p) { return ratio(p.wins, p.games); } },
-			{ en: 'Best Ranking', fr: 'Meilleur rang', className: 'lounge-lb-num',
+			{ page: 2, en: 'Best Ranking', fr: 'Meilleur rang', className: 'lounge-lb-num',
 				value: function(p) { return p.stats ? placeEl(p.stats.best_place) : null; } },
-			{ en: 'Worst Ranking', fr: 'Pire rang', className: 'lounge-lb-num',
+			{ page: 2, en: 'Worst Ranking', fr: 'Pire rang', className: 'lounge-lb-num',
 				value: function(p) { return p.stats ? placeEl(p.stats.worst_place) : null; } },
-			{ en: 'Max Rating', fr: 'MMR max', className: 'lounge-lb-num',
+			{ page: 2, en: 'Max Rating', fr: 'MMR max', className: 'lounge-lb-num',
 				value: function(p) { return p.stats ? p.stats.max_mmr : p.peak_mmr; } },
-			{ en: 'Min Rating', fr: 'MMR min', className: 'lounge-lb-num',
+			{ page: 2, en: 'Min Rating', fr: 'MMR min', className: 'lounge-lb-num',
 				value: function(p) { return p.stats ? p.stats.min_mmr : null; } },
-			{ en: 'Max Rating Gain', fr: 'Meilleur gain', className: 'lounge-lb-num is-up',
+			{ page: 3, en: 'Max Rating Gain', fr: 'Meilleur gain', className: 'lounge-lb-num is-up',
 				value: function(p) { return p.stats ? signed(p.stats.max_gain) : null; } },
-			{ en: 'Max Rating Loss', fr: 'Pire perte', className: 'lounge-lb-num is-down',
+			{ page: 3, en: 'Max Rating Loss', fr: 'Pire perte', className: 'lounge-lb-num is-down',
 				value: function(p) { return p.stats ? signed(p.stats.max_loss) : null; } },
-			{ en: 'Max Points Gain', fr: 'Meilleur score', className: 'lounge-lb-num',
+			{ page: 3, en: 'Max Points Gain', fr: 'Meilleur score', className: 'lounge-lb-num',
 				value: function(p) { return p.stats ? p.stats.max_score : null; } },
-			{ en: 'Avg Points Gain', fr: 'Score moyen', className: 'lounge-lb-num',
+			{ page: 3, en: 'Avg Points Gain', fr: 'Score moyen', className: 'lounge-lb-num',
 				value: function(p) { return p.avg_score; } },
-			{ en: 'Last Played', fr: 'Dernier mogi', className: 'lounge-lb-num',
+			{ page: 3, en: 'Last Played', fr: 'Dernier mogi', className: 'lounge-lb-num',
 				value: function(p) { return p.stats ? timeAgo(p.stats.last_played_ago) : null; } }
 		];
+	}
+
+	function statsColumnClass(column) {
+		return column.className + (column.page ? (' lounge-lb-page' + column.page) : '');
+	}
+
+	var LB_STATS_PAGES = 3;
+
+	function statsPager(table) {
+		var page = 1;
+		var wrap = document.createElement('span');
+		wrap.className = 'lounge-lb-pagerbuttons';
+		var button = function(label, titleEn, titleFr, step) {
+			var b = document.createElement('button');
+			b.type = 'button';
+			b.className = 'lounge-lb-pagerbutton';
+			b.textContent = label;
+			b.title = toLanguage(titleEn, titleFr);
+			b.setAttribute('aria-label', b.title);
+			b.addEventListener('click', function() { showPage(page + step); });
+			wrap.appendChild(b);
+			return b;
+		};
+		var previous = button('‹', 'Previous stats', 'Stats précédentes', -1);
+		var next = button('›', 'More stats', 'Plus de stats', 1);
+		var showPage = function(target) {
+			page = Math.min(Math.max(target, 1), LB_STATS_PAGES);
+			table.className = table.className.replace(/ is-page\d/, '') + ' is-page' + page;
+			previous.disabled = (page === 1);
+			next.disabled = (page === LB_STATS_PAGES);
+		};
+		showPage(1);
+		return lbCell('th', 'lounge-lb-pager', wrap);
 	}
 
 	function showLoungePlayers() {
@@ -516,12 +545,14 @@
 			var columns = statsColumns();
 			var headings = [];
 			for (var c = 0; c < columns.length; c++)
-				headings.push({ className: columns[c].className, label: toLanguage(columns[c].en, columns[c].fr) });
-			var table = lbTable('lounge-leaderboard-table lounge-lb-stats', headings);
+				headings.push({ className: statsColumnClass(columns[c]), label: toLanguage(columns[c].en, columns[c].fr) });
+			var table = lbTable('lounge-leaderboard-table lounge-lb-stats is-page1', headings);
+			table.firstChild.appendChild(statsPager(table));
 			for (var i = 0; i < data.players.length; i++) {
 				var cells = [];
 				for (var j = 0; j < columns.length; j++)
-					cells.push(lbCell('td', columns[j].className, columns[j].value(data.players[i])));
+					cells.push(lbCell('td', statsColumnClass(columns[j]), columns[j].value(data.players[i])));
+				cells.push(lbCell('td', 'lounge-lb-pager', ''));
 				table.appendChild(lbRow(
 					'lounge-leaderboard-row' + ((data.players[i].id === data.me) ? ' is-self' : ''),
 					cells
@@ -697,39 +728,298 @@
 			container.appendChild(matchSummaryEl(match));
 			container.appendChild(matchTableEl(match, data.me));
 			container.appendChild(ratingUpdatesEl(match, data.me));
+			if (data.can_edit)
+				head.appendChild(editButton(toLanguage('Edit', 'Modifier'), function() {
+					showTableEditor(container, match.id);
+				}));
 		});
+	}
+
+	function editButton(label, onClick) {
+		var button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'lounge-ratings-edit';
+		button.textContent = label;
+		button.addEventListener('click', onClick);
+		return button;
+	}
+
+	function ratingInput(name, value, placeholder) {
+		var input = document.createElement('input');
+		input.type = 'number';
+		input.step = 'any';
+		input.name = name;
+		input.id = 'lounge-edit-' + name;
+		input.className = 'lounge-ratings-input';
+		input.value = ((value === null) || (value === undefined)) ? '' : value;
+		if (placeholder !== null) input.placeholder = placeholder;
+		return input;
+	}
+
+	var LB_TABLE_ERRORS = {
+		team_penalty: ['Team penalties are not supported: give the players an MMR compensation instead.', 'Les pénalités d\'équipe ne sont pas gérées : donnez plutôt une compensation de MMR aux joueurs.'],
+		no_score: ['A player line needs a score after the name.', 'Une ligne de joueur doit avoir un score après le nom.'],
+		bad_score: ['This score is not a number, or a sum like 70+20+8.', 'Ce score n\'est pas un nombre, ni une somme comme 70+20+8.'],
+		no_team: ['This player is not under a team header, while other players are.', 'Ce joueur n\'est pas sous un nom d\'équipe, alors que d\'autres le sont.'],
+		unknown_player: ['No member is called %s.', 'Aucun membre ne s\'appelle %s.'],
+		duplicate_player: ['%s is in the table twice.', '%s est deux fois dans le tableau.'],
+		uneven_teams: ['The teams do not all have the same number of players.', 'Les équipes n\'ont pas toutes le même nombre de joueurs.'],
+		too_few: ['A table needs at least two players or two teams.', 'Un tableau doit avoir au moins deux joueurs ou deux équipes.'],
+		tier_required: ['Pick the tier the mogi was played in.', 'Choisissez le tier dans lequel le mogi a été joué.'],
+		bad_date: ['The date is not valid, or it is in the future.', 'La date n\'est pas valide, ou elle est dans le futur.']
+	};
+
+	function tableErrorText(error) {
+		var text = LB_TABLE_ERRORS[error[1]] ? toLanguage(LB_TABLE_ERRORS[error[1]][0], LB_TABLE_ERRORS[error[1]][1]) : error[1];
+		text = text.replace('%s', error[2] || '');
+		return error[0] ? (toLanguage('Line ', 'Ligne ') + error[0] + ' : ' + text) : text;
+	}
+
+	// Staff edit a table the way they write one for Lorenzi: as text. A preview replays the
+	// season with the change and shows what every rating on the table becomes; nothing is
+	// written until they save. Placement (the rating a player starts the season on) and MMR
+	// compensation are set per player in the preview, since which players there are depends
+	// on the text.
+	function showTableEditor(container, matchId) {
+		lbBar(matchId ? 'Edit a mogi' : 'Add a table', matchId ? 'Modifier un mogi' : 'Ajouter un tableau');
+		container.innerHTML = '';
+		container.appendChild(lbBack('Back to the leaderboard', 'Retour au classement'));
+		postJSON('lounge/edit-match.php', 'action=load' + (matchId ? '&match=' + matchId : ''), function(data) {
+			if (!data || data.error) return;
+			var form = document.createElement('form');
+			form.className = 'lounge-table-editor';
+			form.appendChild(lbCell('h2', 'lounge-profile-name', matchId
+				? (toLanguage('Match #', 'Mogi n°') + matchId)
+				: toLanguage('New table', 'Nouveau tableau')));
+
+			var tier = null, playedAt = null;
+			if (!matchId) {
+				var fields = document.createElement('div');
+				fields.className = 'lounge-table-fields';
+				tier = document.createElement('select');
+				tier.id = 'lounge-table-tier';
+				for (var t = 0; t < data.tiers.length; t++) {
+					var option = document.createElement('option');
+					option.value = data.tiers[t].id;
+					option.textContent = data.tiers[t].label;
+					tier.appendChild(option);
+				}
+				playedAt = document.createElement('input');
+				playedAt.type = 'datetime-local';
+				playedAt.id = 'lounge-table-date';
+				fields.appendChild(labelled(toLanguage('Tier', 'Tier'), tier));
+				fields.appendChild(labelled(toLanguage('Played on (empty: now)', 'Joué le (vide : maintenant)'), playedAt));
+				form.appendChild(fields);
+			}
+
+			var text = document.createElement('textarea');
+			text.id = 'lounge-table-text';
+			text.className = 'lounge-table-text';
+			text.rows = Math.max(8, data.text.split('\n').length + 2);
+			text.spellcheck = false;
+			text.value = data.text;
+			text.placeholder = 'A\nPlayer1 [fr] 27|33|26\nPlayer2 30|28|12\n\nB\nPlayer3 25|20|31\nPlayer4 14|22|30';
+			form.appendChild(text);
+			form.appendChild(lbCell('p', 'lounge-ratings-help', toLanguage(
+				'Same format as Lorenzi\'s table maker: a team name on its own line, then one line per player with their score per GP separated by |. Leave a blank line between teams. No team names for an FFA.',
+				'Même format que le table maker de Lorenzi : le nom d\'une équipe seul sur sa ligne, puis une ligne par joueur avec son score par GP séparé par |. Une ligne vide entre les équipes. Pas de nom d\'équipe pour un FFA.'
+			)));
+
+			var errors = document.createElement('ul');
+			errors.className = 'lounge-table-errors';
+			form.appendChild(errors);
+			var preview = document.createElement('div');
+			preview.className = 'lounge-table-preview';
+			form.appendChild(preview);
+
+			// typed values survive a preview, which redraws the inputs for whoever is on the table
+			var edits = {};
+			var current = data.match;
+			var remember = function() {
+				var inputs = preview.querySelectorAll('input');
+				for (var i = 0; i < inputs.length; i++) edits[inputs[i].name] = inputs[i].value;
+			};
+			var body = function(action) {
+				remember();
+				var parts = ['action=' + action, 'text=' + encodeURIComponent(text.value)];
+				if (matchId) parts.push('match=' + matchId);
+				if (tier) parts.push('tier=' + encodeURIComponent(tier.value));
+				if (playedAt && playedAt.value) parts.push('played_at=' + encodeURIComponent(playedAt.value));
+				for (var name in edits) {
+					if (edits.hasOwnProperty(name)) parts.push(encodeURIComponent(name) + '=' + encodeURIComponent(edits[name]));
+				}
+				return parts.join('&');
+			};
+			var showErrors = function(list) {
+				errors.innerHTML = '';
+				for (var i = 0; i < list.length; i++) errors.appendChild(lbCell('li', null, tableErrorText(list[i])));
+			};
+			var drawPreview = function(match) {
+				current = match;
+				preview.innerHTML = '';
+				if (!match) return;
+				preview.appendChild(matchTableEl(match, null));
+				preview.appendChild(ratingPreviewEl(match, edits));
+			};
+
+			var actions = document.createElement('div');
+			actions.className = 'lounge-ratings-actions';
+			var previewButton = document.createElement('button');
+			previewButton.type = 'button';
+			previewButton.textContent = toLanguage('Preview', 'Aperçu');
+			var save = document.createElement('button');
+			save.type = 'submit';
+			save.textContent = toLanguage('Save', 'Enregistrer');
+			var cancel = document.createElement('button');
+			cancel.type = 'button';
+			cancel.className = 'is-secondary';
+			cancel.textContent = toLanguage('Cancel', 'Annuler');
+			cancel.addEventListener('click', function() {
+				location.href = matchId ? lbUrl({ match: matchId }) : lbUrl({});
+			});
+			actions.appendChild(previewButton);
+			actions.appendChild(save);
+			actions.appendChild(cancel);
+			if (matchId) {
+				var remove = document.createElement('button');
+				remove.type = 'button';
+				remove.className = 'is-danger';
+				remove.textContent = toLanguage('Delete this mogi', 'Supprimer ce mogi');
+				remove.addEventListener('click', function() {
+					if (!confirm(toLanguage(
+						'Delete mogi #' + matchId + '? Every mogi played since is recalculated without it.',
+						'Supprimer le mogi n°' + matchId + ' ? Tous les mogis joués depuis sont recalculés sans lui.'))) return;
+					postJSON('lounge/edit-match.php', 'action=delete&match=' + matchId, function(res) {
+						if (res && res.deleted) location.href = lbUrl({});
+					});
+				});
+				actions.appendChild(remove);
+			}
+			form.appendChild(actions);
+
+			previewButton.addEventListener('click', function() {
+				previewButton.disabled = true;
+				postJSON('lounge/edit-match.php', body('preview'), function(res) {
+					previewButton.disabled = false;
+					if (!res) return;
+					showErrors(res.errors || []);
+					if (res.match) drawPreview(res.match);
+				});
+			});
+			form.addEventListener('submit', function(e) {
+				e.preventDefault();
+				save.disabled = true;
+				postJSON('lounge/edit-match.php', body('save'), function(res) {
+					save.disabled = false;
+					if (!res) return;
+					showErrors(res.errors || []);
+					if (res.saved) location.href = lbUrl({ match: res.match.id });
+				});
+			});
+			container.appendChild(form);
+			drawPreview(current);
+		});
+	}
+
+	function labelled(label, control) {
+		var wrap = document.createElement('label');
+		wrap.className = 'lounge-table-field';
+		wrap.htmlFor = control.id;
+		wrap.appendChild(lbCell('span', null, label));
+		wrap.appendChild(control);
+		return wrap;
+	}
+
+	// The rating updates, with what staff can set in place: a placement on a player's first
+	// mogi of the season, and an MMR compensation on any of them.
+	function ratingPreviewEl(match, edits) {
+		var box = document.createElement('div');
+		box.className = 'lounge-ratings';
+		box.appendChild(lbCell('h3', 'lounge-ratings-title', toLanguage('Rating updates', 'Évolution du MMR')));
+		var table = lbTable('lounge-ratings-table', [
+			{ className: 'lounge-ratings-name', label: toLanguage('Player', 'Joueur') },
+			{ className: 'lounge-ratings-before', label: toLanguage('Placement', 'Placement') },
+			{ className: 'lounge-ratings-before', label: toLanguage('Before', 'Avant') },
+			{ className: 'lounge-ratings-delta', label: toLanguage('Mogi', 'Mogi') },
+			{ className: 'lounge-ratings-delta', label: toLanguage('MMR compensation', 'Compensation MMR') },
+			{ className: 'lounge-ratings-after', label: toLanguage('After', 'Après') },
+			{ className: 'lounge-ratings-rank', label: '' }
+		]);
+		var players = ratingOrder(match);
+		for (var i = 0; i < players.length; i++) {
+			var p = players[i];
+			if (p.mmr_after === null) continue;
+			var placementName = 'placement_' + p.id, adjustName = 'adjust_' + p.id;
+			var gained = (p.mmr_after === null) ? null : (p.mmr_after - p.mmr_before - (p.mmr_adjust || 0));
+			table.appendChild(lbRow('lounge-ratings-row', [
+				lbCell('td', 'lounge-ratings-name', p.name),
+				lbCell('td', 'lounge-ratings-before', p.first_rated
+					? ratingInput(placementName, (placementName in edits) ? edits[placementName] : p.placement, p.mmr_before) : ''),
+				lbCell('td', 'lounge-ratings-before', p.mmr_before),
+				lbCell('td', 'lounge-ratings-delta', deltaEl(gained)),
+				lbCell('td', 'lounge-ratings-delta', ratingInput(adjustName, (adjustName in edits) ? edits[adjustName] : p.mmr_adjust, 0)),
+				lbCell('td', 'lounge-ratings-after', p.mmr_after),
+				lbCell('td', 'lounge-ratings-rank', p.rank ? rankChip(p.rank) : null)
+			]));
+		}
+		box.appendChild(table);
+		box.appendChild(lbCell('p', 'lounge-ratings-help', toLanguage(
+			'Placement only shows on a player\'s first mogi of the season. Saving recalculates every mogi played since, other players included.',
+			'Le placement n\'apparaît que sur le premier mogi de la saison d\'un joueur. Enregistrer recalcule tous les mogis joués depuis, y compris pour les autres joueurs.'
+		)));
+		return box;
 	}
 
 	function matchSummaryEl(match) {
 		var sub = document.createElement('p');
 		sub.className = 'lounge-results-sub';
-		sub.textContent = match.tier_label + ' — ' + match.mode + ' — '
-			+ match.races + ' ' + toLanguage('races', 'courses');
+		sub.textContent = match.tier_label + ' — ' + match.mode + ' — ' + (match.manual
+			? toLanguage('added by a moderator', 'ajouté par un modérateur')
+			: (match.races + ' ' + toLanguage('races', 'courses')));
 		// Otherwise a voided mogi is a table of ratings that never arrive, with nothing on the
 		// page to say they never will.
 		if (match.cancelled_reason) {
 			sub.appendChild(document.createElement('br'));
-			sub.appendChild(document.createTextNode((match.cancelled_reason === 'no_show')
-				? toLanguage('Voided: the lineup never turned up', 'Annulé : l\'effectif ne s\'est pas présenté')
-				: toLanguage('Voided: the mogi was abandoned', 'Annulé : le mogi a été abandonné')));
+			sub.appendChild(document.createTextNode(voidedLabel(match.cancelled_reason)));
 		}
 		return sub;
+	}
+
+	function voidedLabel(reason) {
+		if (reason === 'no_show')
+			return toLanguage('Voided: the lineup never turned up', 'Annulé : l\'effectif ne s\'est pas présenté');
+		if (reason === 'too_many_bots')
+			return toLanguage('Voided: too many players left, only those who left lose MMR',
+				'Annulé : trop de joueurs sont partis, seuls ceux qui sont partis perdent du MMR');
+		return toLanguage('Voided: the mogi was abandoned', 'Annulé : le mogi a été abandonné');
 	}
 
 	// How a mogi's races are grouped across the table: four to a column, the way the ladder
 	// reads them - 12 races become 27 | 33 | 26 beside the 86 they add up to.
 	var LB_RACE_BAND = 4;
 
-	// A band per group of races, but only where they say something a single total does not:
-	// one band is the total again, and a mogi played before the per-race points were recorded
-	// has none of them.
+	// A band per group of races, even a lone one: the staff read a table by its GPs. A mogi
+	// played before the per-race points were recorded has none of them.
 	function raceBands(match) {
+		// a table typed in by staff comes with its GPs already added up
+		var gps = 0;
+		for (var g = 0; g < match.players.length; g++) {
+			if (match.players[g].gp_scores)
+				gps = Math.max(gps, match.players[g].gp_scores.length);
+		}
+		if (gps > 1) {
+			var gpBands = [];
+			for (var gp = 0; gp < gps; gp++)
+				gpBands.push({ gp: gp, label: 'GP' + (gp + 1) });
+			return gpBands;
+		}
+		if (gps) return [];
 		var races = 0;
 		for (var i = 0; i < match.players.length; i++) {
 			if (match.players[i].race_points)
 				races = Math.max(races, match.players[i].race_points.length);
 		}
-		if (races <= LB_RACE_BAND) return [];
+		if (!races) return [];
 		var bands = [];
 		for (var from = 0; from < races; from += LB_RACE_BAND)
 			bands.push({ from: from, to: Math.min(from + LB_RACE_BAND, races) });
@@ -737,6 +1027,8 @@
 	}
 
 	function bandTotal(player, band) {
+		if (band.gp !== undefined)
+			return (player.gp_scores && (band.gp < player.gp_scores.length)) ? player.gp_scores[band.gp] : null;
 		var points = player.race_points;
 		if (!points) return null;
 		var total = null;
@@ -759,7 +1051,7 @@
 		for (var b = 0; b < bands.length; b++) {
 			headings.push({
 				className: 'lounge-results-band',
-				label: (bands[b].from + 1) + '–' + bands[b].to
+				label: bands[b].label || ((bands[b].from + 1) + '–' + bands[b].to)
 			});
 		}
 		headings.push({ className: 'lounge-results-score', label: toLanguage('Score', 'Score') });
@@ -783,12 +1075,9 @@
 		}
 		for (var i = 0; i < match.teams.length; i++) {
 			var team = match.teams[i];
-			var name = document.createElement('span');
-			name.appendChild(teamSwatch(team.team));
-			name.appendChild(document.createTextNode(team.names.join(' + ')));
 			var header = lbRow('lounge-results-teamhead', [
-				lbCell('td', 'lounge-results-place', '#' + (i + 1)),
-				lbCell('td', 'lounge-results-teamname', name),
+				podiumCell('#' + (i + 1), i + 1),
+				lbCell('td', 'lounge-results-teamname', teamName(i)),
 				lbCell('td', 'lounge-results-score', team.score),
 				lbCell('td', null, '')
 			]);
@@ -805,6 +1094,14 @@
 		return table;
 	}
 
+	var LB_PODIUM = ['is-gold', 'is-silver', 'is-bronze'];
+
+	function podiumCell(label, place) {
+		var cell = lbCell('td', 'lounge-results-place', label);
+		if (LB_PODIUM[place - 1]) cell.className += ' ' + LB_PODIUM[place - 1];
+		return cell;
+	}
+
 	function appendMatchPlayers(table, match, players, me, bands) {
 		for (var i = 0; i < players.length; i++) {
 			var p = players[i];
@@ -817,7 +1114,7 @@
 				races.title = toLanguage('A bot raced in their place', 'Un bot a couru à sa place');
 			}
 			var cells = [
-				lbCell('td', 'lounge-results-place', p.position),
+				podiumCell(p.position, p.position),
 				lbCell('td', 'lounge-results-name', playerNameEl(p))
 			];
 			for (var b = 0; b < bands.length; b++)
@@ -832,6 +1129,20 @@
 		}
 	}
 
+	// A side's members move by the same amount, so they are listed together, sides in the
+	// order they finished.
+	function ratingOrder(match) {
+		var sideOf = {};
+		for (var t = 0; t < match.teams.length; t++)
+			sideOf[match.teams[t].team] = t;
+		return match.players.slice().sort(function(a, b) {
+			var sideA = (a.team in sideOf) ? sideOf[a.team] : match.teams.length;
+			var sideB = (b.team in sideOf) ? sideOf[b.team] : match.teams.length;
+			if (sideA !== sideB) return sideA - sideB;
+			return (a.position || 99) - (b.position || 99);
+		});
+	}
+
 	// Lorenzi's "Rating Updates" block: where each player stood, what the mogi moved, and
 	// where that left them. The before was the whole point of the staff's request - a delta
 	// on its own never says what it was applied to.
@@ -841,8 +1152,13 @@
 		box.appendChild(lbCell('h3', 'lounge-ratings-title', toLanguage('Rating updates', 'Évolution du MMR')));
 		var table = document.createElement('table');
 		table.className = 'lounge-ratings-table';
-		for (var i = 0; i < match.players.length; i++) {
-			var p = match.players[i];
+		var players = ratingOrder(match);
+		// a voided mogi only moved the ratings of the players who got it voided
+		if (match.cancelled_reason)
+			players = players.filter(function(p) { return p.mmr_after !== null; });
+		if (!players.length) box.style.display = 'none';
+		for (var i = 0; i < players.length; i++) {
+			var p = players[i];
 			var move = document.createElement('span');
 			move.className = 'lounge-placemove';
 			move.appendChild(lbCell('span', 'lounge-placemove-from', placeEl(p.place_before)));
@@ -855,8 +1171,17 @@
 				var penalty = document.createElement('div');
 				penalty.className = 'lounge-results-penalty';
 				penalty.textContent = '(' + p.mmr_penalty + ')';
-				penalty.title = toLanguage('Absence penalty', 'Pénalité d\'absence');
+				penalty.title = match.cancelled_reason
+					? toLanguage('Penalty for getting the mogi voided', 'Pénalité pour avoir fait annuler le mogi')
+					: toLanguage('Absence penalty', 'Pénalité d\'absence');
 				delta.appendChild(penalty);
+			}
+			if (p.mmr_adjust) {
+				var adjust = document.createElement('div');
+				adjust.className = 'lounge-results-adjust';
+				adjust.textContent = '(' + signed(p.mmr_adjust) + ')';
+				adjust.title = toLanguage('Adjusted by a moderator', 'Ajusté par un modérateur');
+				delta.appendChild(adjust);
 			}
 			table.appendChild(lbRow(
 				'lounge-ratings-row' + ((p.id === me) ? ' is-self' : ''),
@@ -886,6 +1211,10 @@
 			if (match) return showLoungeMatch(parseInt(match[1], 10));
 			var player = location.search.match(/[?&]player=(\d+)/);
 			if (player) return showLoungePlayer(parseInt(player[1], 10));
+			if (/[?&]view=newtable\b/.test(location.search)) {
+				var editor = lbLoading();
+				if (editor) return showTableEditor(editor, null);
+			}
 			var requested = location.search.match(/[?&]view=(players|matches)/);
 			if (requested)
 				return (requested[1] === 'players') ? showLoungePlayers() : showLoungeMatches();

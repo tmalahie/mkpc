@@ -57,8 +57,15 @@ if ($course) {
 		// already scored. Coming back reclaims it above, where a present player is re-seeded
 		// with controller=0.
 		$subIds = array();
+		$loungeVoided = false;
 		if (!empty($courseRules->lounge) && $nbPlayers) {
 			require_once('lounge/common.php');
+			require_once('onlineStateUtils.php');
+			$raceState = getCourseState($getMap['link']);
+			if (intval($raceState['raceCount']) > 0)
+				$loungeVoided = lounge_void_if_too_many_bots($getMap['link'], $course);
+		}
+		if (!empty($courseRules->lounge) && $nbPlayers && !$loungeVoided) {
 			foreach (lounge_absent_members($getMap['link'], $course) as $sub) {
 				$toUpate = 'course='.$course.',controller='.$playerIds[count($subIds)%$nbPlayers].',aPts='. $sub['pts'] .','.$toUpdate0;
 				mysql_query('INSERT INTO `mkplayers` SET id='. $sub['id'] .','.$toUpate.',place=0 ON DUPLICATE KEY UPDATE '.$toUpate);
@@ -310,6 +317,11 @@ if ($course) {
 		echo ',cc:'.$courseRules->cc;
 	if (!empty($courseRules->mirror))
 		echo ',mirror:'.$courseRules->mirror;
+	if (!empty($courseRules->lounge)) {
+		require_once('lounge/common.php');
+		if (lounge_match_voided($getMap['link']))
+			echo ',loungeVoided:1';
+	}
 	echo '}';
 	echo ']';
 	if ($continuer) {
