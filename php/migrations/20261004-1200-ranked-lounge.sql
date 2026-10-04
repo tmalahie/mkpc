@@ -1,4 +1,42 @@
-USE mkpc;
+-- CT Lounge: the ranked ladder's tables, and what it adds to existing ones.
+-- Production already has all of this, applied by hand before migrations existed, so it is
+-- recorded there with --mark-applied. Were it run there anyway, every statement is a no-op:
+-- enum values are only ever appended, which MariaDB does in place.
+
+ALTER TABLE `mkgamedata`
+  ADD COLUMN IF NOT EXISTS `tracks` varchar(255) NOT NULL DEFAULT '';
+
+-- What each race was worth, next to the finishing position. `link` is the private game the
+-- race belonged to (0 for a public one): rooms live in a MEMORY table, so `course` is gone
+-- once the game ends. `race` is which race of that game it was.
+ALTER TABLE `mkmatches`
+  ADD COLUMN IF NOT EXISTS `link` int(10) unsigned NOT NULL DEFAULT 0 AFTER `course`,
+  ADD COLUMN IF NOT EXISTS `race` smallint(5) unsigned NOT NULL DEFAULT 0 AFTER `link`,
+  ADD COLUMN IF NOT EXISTS `pts_before` int(11) DEFAULT NULL AFTER `rank`,
+  ADD COLUMN IF NOT EXISTS `pts_inc` smallint(6) DEFAULT NULL AFTER `pts_before`,
+  ADD KEY IF NOT EXISTS `link` (`link`);
+
+-- ranked_match_ready is unused, but production carries it and dropping a value rebuilds the table.
+ALTER TABLE `mknotifs` MODIFY `type`
+  enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment',
+       'answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit',
+       'follower_news','follower_perso','new_followtopic','new_followuser','currently_online',
+       'challenge_moderated','follower_challenge','new_record','new_reaction','admin_report',
+       'award','ranked_match_ready','lounge_queue')
+  CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL;
+
+ALTER TABLE `mknotifmute` MODIFY `type`
+  enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment',
+       'answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit',
+       'follower_news','follower_perso','new_followtopic','new_followuser','currently_online',
+       'challenge_moderated','follower_challenge','new_record','reaction_topic',
+       'reaction_newscom','reaction_news','reaction_trackcom','admin_report','award',
+       'lounge_queue')
+  CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
+
+ALTER TABLE `mkrights` MODIFY `privilege`
+  enum('admin','moderator','organizer','publisher','clvalidator','lounge')
+  CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
 
 CREATE TABLE IF NOT EXISTS `mklounge_state` (
   `name` varchar(48) NOT NULL,
@@ -44,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_settings` (
 CREATE TABLE IF NOT EXISTS `mklounge_seasons` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
-  `multicup_id` int(10) unsigned NOT NULL,
+  `multicup_id` int(10) unsigned NOT NULL DEFAULT 0,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `ended_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -106,9 +144,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_queues` (
   `draft_turn_at` timestamp NULL DEFAULT NULL,
   `privgame_key` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `season_tier_status` (`season`,`tier`,`status`),
-  KEY `status` (`status`),
-  KEY `privgame_key` (`privgame_key`)
+  KEY `season_tier_status` (`season`,`tier`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `mklounge_queue_members` (
@@ -137,8 +173,7 @@ CREATE TABLE IF NOT EXISTS `mklounge_matches` (
   `cancelled_reason` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `queue` (`queue`),
-  KEY `season_started` (`season`,`started_at`),
-  KEY `privgame_key` (`privgame_key`)
+  KEY `season_started` (`season`,`started_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
@@ -157,19 +192,16 @@ CREATE TABLE IF NOT EXISTS `mklounge_match_players` (
   `place_before` smallint(5) unsigned DEFAULT NULL,
   `place_after` smallint(5) unsigned DEFAULT NULL,
   `strike_reason` varchar(32) DEFAULT NULL,
-  PRIMARY KEY (`match`,`player`),
-  KEY `player` (`player`,`match`)
+  PRIMARY KEY (`match`,`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT IGNORE INTO `mklounge_seasons` (`id`,`name`,`multicup_id`) VALUES
   (1, 'Season 1', 10813);
 
 -- Ranks and their colours mirror the production ladder (gb.hlorenzi.com/reg/oAFkjh).
--- Reference data: replaced wholesale so a re-run picks up threshold changes.
-DELETE FROM `mklounge_ranks`;
 -- Names stay English in both languages: the ladder has always called them Master, Diamond,
 -- Emerald, and the French renderings read as translationese to the players who use them.
-INSERT INTO `mklounge_ranks` (`code`,`label`,`min_mmr`,`color`,`ordering`) VALUES
+INSERT IGNORE INTO `mklounge_ranks` (`code`,`label`,`min_mmr`,`color`,`ordering`) VALUES
   ('iron',     'Iron',     0,    '#796f6f', 0),
   ('bronze',   'Bronze',   500,  '#cd7f32', 1),
   ('silver',   'Silver',   900,  '#a7b4b4', 2),
