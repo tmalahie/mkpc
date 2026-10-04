@@ -235,6 +235,9 @@ a {
    it is never mistaken for the current tab. */
 .lounge-rank {
 	display: inline-block;
+	box-sizing: border-box;
+	min-width: 68px;
+	text-align: center;
 	padding: 0 7px;
 	border-radius: 2px;
 	border: solid 1px rgba(255,255,255,0.25);
@@ -320,7 +323,9 @@ a {
 .lounge-rules-accept,
 .lounge-results-back,
 .lounge-drop,
-.lounge-draft-pick {
+.lounge-draft-pick,
+.lounge-ratings-edit,
+.lounge-ratings-actions button {
 	appearance: none;
 	background: var(--lounge-btn);
 	color: var(--lounge-hot);
@@ -337,14 +342,18 @@ a {
 .lounge-rules-accept:not(:disabled):active,
 .lounge-results-back:not(:disabled):active,
 .lounge-drop:not(:disabled):active,
-.lounge-draft-pick:not(:disabled):active {
+.lounge-draft-pick:not(:disabled):active,
+.lounge-ratings-edit:active,
+.lounge-ratings-actions button:not(:disabled):active {
 	border: inset 2px var(--lounge-frame);
 }
 
 .lounge-tier-join:hover:not(:disabled),
 .lounge-confirm-btn:hover:not(:disabled),
 .lounge-rules-accept:hover:not(:disabled),
-.lounge-results-back:hover {
+.lounge-results-back:hover,
+.lounge-ratings-edit:hover,
+.lounge-ratings-actions button:hover:not(:disabled) {
 	background: var(--lounge-btn-hover);
 }
 
@@ -817,6 +826,58 @@ a {
 	color: var(--lounge-bad);
 }
 
+.lounge-results-adjust {
+	font-size: 11px;
+	color: var(--lounge-dim);
+}
+
+/* a small one beside the heading it edits, and the page's usual bevelled buttons below */
+.lounge-ratings-edit {
+	margin-left: 10px;
+	padding: 1px 10px;
+	font-size: 11px;
+	vertical-align: middle;
+}
+
+.lounge-ratings-actions .is-secondary {
+	color: var(--lounge-dim);
+}
+
+.lounge-ratings-input {
+	width: 80px;
+	box-sizing: border-box;
+	padding: 3px 6px;
+	border: inset 2px var(--lounge-frame);
+	border-radius: 3px;
+	background: var(--lounge-ground);
+	color: #fff;
+	font: inherit;
+	text-align: right;
+}
+
+.lounge-ratings-input:focus {
+	outline: solid 1px var(--lounge-hot);
+}
+
+.lounge-ratings-help {
+	max-width: 480px;
+	margin: 8px auto;
+	font-size: 11px;
+	color: var(--lounge-dim);
+}
+
+.lounge-ratings-actions {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.lounge-ratings-actions button:disabled {
+	opacity: 0.5;
+	cursor: wait;
+}
+
 .lounge-results-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -1109,8 +1170,8 @@ a {
 	font-size: 10px;
 }
 
-/* Seventeen columns do not fit a phone, and the ones that matter are the first few - so the
-   table keeps its width and scrolls inside its own box rather than squeezing every column. */
+/* The stats are paged, but a phone is narrower than even one page: there the table keeps its
+   width and scrolls inside its own box rather than squeezing every column. */
 .lounge-lb-scroll {
 	overflow-x: auto;
 }
@@ -1126,6 +1187,42 @@ a {
 
 .lounge-lb-num {
 	white-space: nowrap;
+}
+
+.lounge-lb-stats.is-page1 .lounge-lb-page2,
+.lounge-lb-stats.is-page1 .lounge-lb-page3,
+.lounge-lb-stats.is-page2 .lounge-lb-page1,
+.lounge-lb-stats.is-page2 .lounge-lb-page3,
+.lounge-lb-stats.is-page3 .lounge-lb-page1,
+.lounge-lb-stats.is-page3 .lounge-lb-page2 {
+	display: none;
+}
+
+.lounge-lb-pagerbuttons {
+	display: inline-flex;
+	gap: 4px;
+}
+
+.lounge-lb-pagerbutton {
+	padding: 0 8px;
+	border: solid 1px var(--lounge-frame-off);
+	border-radius: 3px;
+	background: transparent;
+	color: inherit;
+	font-size: 16px;
+	line-height: 1.3;
+	cursor: pointer;
+}
+
+.lounge-lb-pagerbutton:disabled {
+	opacity: 0.3;
+	cursor: default;
+}
+
+.lounge-lb-pagerbutton:not(:disabled):hover,
+.lounge-lb-pagerbutton:focus-visible {
+	border-color: var(--lounge-hot);
+	color: var(--lounge-hot);
 }
 
 .lounge-lb-mmr.is-strong {
@@ -1212,15 +1309,9 @@ a {
 	font-weight: bold;
 }
 
-.lounge-teamswatch {
-	display: inline-block;
-	width: 10px;
-	height: 10px;
-	margin-right: 7px;
-	border: solid 1px rgba(0, 0, 0, 0.5);
-	border-radius: 2px;
-	vertical-align: baseline;
-}
+td.lounge-results-place.is-gold { color: #ffd23f; }
+td.lounge-results-place.is-silver { color: #d4dbe3; }
+td.lounge-results-place.is-bronze { color: #e0904a; }
 
 .lounge-results-row.is-teamed .lounge-results-name {
 	padding-left: 24px;
@@ -1438,4 +1529,86 @@ a {
 
 .lounge-results-row.is-self .lounge-results-band {
 	color: inherit;
+}
+
+/* Staff's table editor: the text format they already use on Lorenzi, with the replayed
+   ratings underneath as the preview. */
+.lounge-table-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.lounge-table-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+}
+
+.lounge-table-field {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	font-size: 12px;
+	color: var(--lounge-dim);
+}
+
+.lounge-table-field select,
+.lounge-table-field input,
+.lounge-table-text {
+	box-sizing: border-box;
+	padding: 4px 6px;
+	border: inset 2px var(--lounge-frame);
+	border-radius: 3px;
+	background: var(--lounge-ground);
+	color: #fff;
+	font: inherit;
+	color-scheme: dark;
+}
+
+.lounge-table-text {
+	width: 100%;
+	font-family: var(--lounge-mono);
+	font-size: 13px;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.lounge-table-text:focus,
+.lounge-table-field select:focus,
+.lounge-table-field input:focus {
+	outline: solid 1px var(--lounge-hot);
+}
+
+.lounge-table-editor .lounge-ratings-help {
+	max-width: none;
+	margin: 0;
+	text-align: left;
+}
+
+.lounge-table-errors {
+	margin: 0;
+	padding-left: 18px;
+	color: var(--lounge-bad);
+	font-size: 12px;
+}
+
+.lounge-table-errors:empty {
+	display: none;
+}
+
+.lounge-ratings-actions .is-danger {
+	color: var(--lounge-bad);
+}
+
+.lounge-ratings-table th {
+	padding: 5px 10px;
+	font-family: var(--lounge-mono);
+	font-size: 11px;
+	font-weight: normal;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--lounge-legend);
+	white-space: nowrap;
+	border-bottom: solid 1px var(--lounge-frame-off);
 }

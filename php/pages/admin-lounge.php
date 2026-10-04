@@ -36,13 +36,8 @@ if ($target && isset($_POST['action'])) {
 	lounge_upsert_player($playerId, array(), 'player=player');
 	switch ($_POST['action']) {
 	case 'mmr':
-		$delta = floatval($_POST['mmr_delta']);
-		$after = max(lounge_setting('mmr_min'), $state['mmr'] + $delta);
-		mysql_query(
-			'UPDATE `mklounge_players`
-			SET mmr="'. lounge_mmr_sql($after) .'", peak_mmr=GREATEST(peak_mmr, "'. lounge_mmr_sql($after) .'")
-			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
-		);
+		lounge_adjust_player_rating($playerId, floatval($_POST['mmr_delta']));
+		$after = lounge_get_player_state($playerId)['mmr'];
 		loungeLog('LoungeMmr '. $playerId .' '. round($state['mmr']) .' '. round($after));
 		$notice = ($language ? 'MMR set to ' : 'MMR fix&eacute; &agrave; ') . round($after);
 		break;

@@ -736,11 +736,25 @@ test('the full standings carry every column but the two the staff struck out', a
 	expect(headers).toEqual([
 		'Ranking', 'Name', 'Rating', 'Tier', 'Matches Played', 'Wins', 'Losses', 'Win Ratio',
 		'Best Ranking', 'Worst Ranking', 'Max Rating', 'Min Rating', 'Max Rating Gain',
-		'Max Rating Loss', 'Max Points Gain', 'Avg Points Gain', 'Last Played',
+		'Max Rating Loss', 'Max Points Gain', 'Avg Points Gain', 'Last Played', '‹›',
 	]);
 	// the two they asked us to drop
 	expect(headers).not.toContain('Avg Rating Gain');
 	expect(headers).not.toContain('Total Points');
+
+	// shown a page at a time beside the player's own columns, rather than one wide table with
+	// a scrollbar at its foot
+	const shown = () => page.locator('.lounge-lb-stats th:visible:not(.lounge-lb-pager)').allTextContents();
+	const fixed = ['Ranking', 'Name', 'Rating', 'Tier'];
+	expect(await shown()).toEqual([...fixed, 'Matches Played', 'Wins', 'Losses', 'Win Ratio']);
+	const more = page.getByTitle('More stats');
+	await more.click();
+	expect(await shown()).toEqual([...fixed, 'Best Ranking', 'Worst Ranking', 'Max Rating', 'Min Rating']);
+	await more.click();
+	expect(await shown()).toEqual([...fixed, 'Max Rating Gain', 'Max Rating Loss', 'Max Points Gain', 'Avg Points Gain', 'Last Played']);
+	await expect(more).toBeDisabled();
+	await page.getByTitle('Previous stats').click();
+	expect(await shown()).toContain('Best Ranking');
 
 	// the winner's row: a win counted, a loss not, and both coloured the way they asked
 	const row = page.locator('.lounge-leaderboard-row', { has: page.getByText(loungeBotName('lbstats', 1)) });
@@ -854,11 +868,12 @@ test('a mogi with its races recorded shows what each run of four was worth', asy
 
 test('a team mogi groups its table by side, the way it was raced', async ({ page }) => {
 	await cleanupLoungeQueues();
+	// finishing positions interleave the sides: 1st and 4th won together
 	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 64, 'lbteam', '2v2', [
 		{ score: 40, before: 1000, after: 1030, placeBefore: 3, placeAfter: 3, team: 0 },
-		{ score: 30, before: 990, after: 1020, placeBefore: 4, placeAfter: 4, team: 0 },
-		{ score: 20, before: 980, after: 950, placeBefore: 5, placeAfter: 5, team: 1 },
-		{ score: 10, before: 970, after: 940, placeBefore: 6, placeAfter: 6, team: 1 },
+		{ score: 30, before: 990, after: 960, placeBefore: 4, placeAfter: 5, team: 1 },
+		{ score: 20, before: 980, after: 950, placeBefore: 5, placeAfter: 6, team: 1 },
+		{ score: 15, before: 970, after: 1000, placeBefore: 6, placeAfter: 4, team: 0 },
 	]);
 
 	await login(page);
@@ -868,22 +883,27 @@ test('a team mogi groups its table by side, the way it was raced', async ({ page
 	await expect(sides).toHaveCount(2);
 	// the winning side first, carrying its own total rather than a player's
 	await expect(sides.nth(0).locator('.lounge-results-place')).toHaveText('#1');
-	await expect(sides.nth(0).locator('.lounge-results-score')).toHaveText('70');
-	await expect(sides.nth(1).locator('.lounge-results-score')).toHaveText('30');
-	await expect(sides.nth(0).locator('.lounge-teamswatch')).toBeVisible();
-	await expect(sides.nth(0).locator('.lounge-results-teamname'))
-		.toContainText(loungeBotName('lbteam', 1));
-	await expect(sides.nth(0).locator('.lounge-results-teamname'))
-		.toContainText(loungeBotName('lbteam', 2));
+	await expect(sides.nth(0).locator('.lounge-results-score')).toHaveText('55');
+	await expect(sides.nth(1).locator('.lounge-results-score')).toHaveText('50');
+	// sides are numbered by where they finished, not named after their members
+	expect(await sides.locator('.lounge-results-teamname').allTextContents()).toEqual(['Team 1', 'Team 2']);
 	// members sit under their side, indented, and every one of them is still rated
 	await expect(page.locator('.lounge-results-row.is-teamed')).toHaveCount(4);
-	await expect(page.locator('.lounge-ratings-row')).toHaveCount(4);
+	// the podium is coloured, for sides and for players alike
+	await expect(sides.nth(0).locator('.lounge-results-place')).toHaveClass(/is-gold/);
+	await expect(page.locator('.lounge-results-row .lounge-results-place.is-bronze')).toHaveText('3');
+	// a side's members move together, so the rating updates list them side by side
+	expect(await page.locator('.lounge-ratings-name').allTextContents()).toEqual([
+		loungeBotName('lbteam', 1), loungeBotName('lbteam', 4),
+		loungeBotName('lbteam', 2), loungeBotName('lbteam', 3),
+	]);
 
 	// the same mogi is one line on the recent list, named by its sides and not by a mode
 	await page.locator('.lounge-lb-back').click();
 	const line = page.locator('.lounge-match-row', { hasText: '#' + staged.matchId });
 	await expect(line.locator('.lounge-matchchip')).toHaveCount(2);
-	await expect(line.locator('.lounge-matchchip-score').first()).toHaveText('70');
+	await expect(line.locator('.lounge-matchchip-score').first()).toHaveText('55');
+	await expect(line.locator('.lounge-matchchip-mode').first()).toHaveText('Team 1');
 });
 
 async function joinAndStartVoting(page, tierCode: string) {
@@ -1454,6 +1474,83 @@ test('an absent member keeps their kart, under a bot, until they come back', asy
 	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?, ?)`, [playerId, absent, elsewhere]);
 	await sql(`DELETE FROM mkplayers WHERE course = ?`, [other.insertId]);
 	await sql(`DELETE FROM mariokart WHERE id = ?`, [other.insertId]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+});
+
+// "au-delà de 2 bots on devrait pas pouvoir continuer le mogi": a race that would start
+// with a third bot does not start. The mogi is voided, the players still in the room are
+// told so on their way to the results, and only those who left pay for it.
+test('a mogi that would need a third bot is voided at the next race', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 46;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const leavers = await createLoungeBots(3, 'toomanybots');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 4, cpu: 1, cpuLevel: -1, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW() - INTERVAL 10 MINUTE)`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (const player of [playerId, ...leavers]) {
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [queue.insertId, player]);
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, player]);
+	}
+	// one race is in, so this is the second one starting
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 1, 1)`, [key]);
+	const [before]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [playerId]);
+
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	const startRace = async () => {
+		await sql(`UPDATE mariokart SET map = -1, time = ? WHERE id = ?`, [Math.floor(Date.now() / 1000) + 3600, room.insertId]);
+		await sql(`UPDATE mkjoueurs SET choice_map = 7, choice_rand = 0 WHERE course = ?`, [room.insertId]);
+		const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+		return res.text();
+	};
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id IN (?, ?)`, [room.insertId, playerId, leavers[0]]);
+
+	// two of four still racing: two bots, which is allowed
+	expect(await startRace()).not.toContain('loungeVoided');
+	const [running]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queue.insertId]);
+	expect(running.status).toBe('launched');
+
+	// a third player walks out before the next race
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id = ?`, [leavers[0]]);
+	expect(await startRace()).toContain('loungeVoided:1');
+
+	const [voided]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queue.insertId]);
+	expect(voided.status).toBe('cancelled');
+	const [cancelled]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE id = ?`, [match.id]);
+	expect(cancelled.cancelled_reason).toBe('too_many_bots');
+	const rows: any = await sql(
+		`SELECT player, mmr_before, mmr_after, mmr_penalty FROM mklounge_match_players WHERE \`match\` = ?`, [match.id]);
+	// the one who stayed is not rated at all
+	expect(rows.find((r: any) => r.player === playerId).mmr_after).toBeNull();
+	const [stayer]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [playerId]);
+	expect(Number(stayer.mmr)).toBe(Number(before.mmr));
+	// every one who left, early or just now, pays the cancellation penalty
+	for (const leaver of leavers) {
+		const row = rows.find((r: any) => r.player === leaver);
+		expect(Number(row.mmr_penalty)).toBe(-50);
+		expect(Number(row.mmr_after)).toBe(Number(row.mmr_before) - 50);
+	}
+
+	// and the results say why
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + match.id);
+	await expect(page.locator('.lounge-results-sub')).toContainText('too many players left');
+	await expect(page.locator('.lounge-ratings-row')).toHaveCount(3);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?)`, [[playerId, ...leavers]]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
 	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
 });
 
