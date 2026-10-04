@@ -277,8 +277,8 @@ include('../includes/menu.php');
 			?>
 		<li>
 			<a class="action-ctn" href="admin-lounge.php">
-				<div class="action-title"><?= _("Moderate the <strong>CT Lounge</strong>") ?></div>
-				<div class="action-desc"><?= _("To adjust a rating, hand out or lift a ranked ban, or release a stuck queue") ?></div>
+				<div class="action-title"><?= t('admin.moderate_ct_lounge') ?></div>
+				<div class="action-desc"><?= t('admin.adjust_rating_ban_release_queue') ?></div>
 			</a>
 		</li>
 			<?php

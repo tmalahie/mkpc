@@ -777,13 +777,13 @@ $placeholderPath = 'images/pages/pixel.png';
 					foreach ($loungeQueue['members'] as $loungeMember)
 						$loungeNames[] = $loungeMember['name'] .' (MMR '. $loungeMember['mmr'] .')';
 					echo '<span class="ranking_activeplayernb" title="'. htmlspecialchars(implode(', ', $loungeNames)) .'">';
-					echo FN_("{count} member", "{count} members", count: $loungeQueue['players']);
+					echo t('home.member_count', count: $loungeQueue['players']);
 					echo '</span> ';
-					echo P_("circuit", "in ");
+					echo t('home.online_game_on_track');
 					echo '<strong>'. htmlspecialchars($loungeQueue['label']) .'</strong>';
 					// online.php is where a character gets picked, and the lounge opens over it
 					// once one has been
-					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. _('Join') .'</a>';
+					echo '<a class="action_button" href="online.php?mid='. $loungeMulticup .'&amp;ranked">'. t('home.join') .'</a>';
 					echo '</li>';
 				}
 				// A gathering ranked lineup lives under the Ranked tab, beside the ladder it
@@ -793,7 +793,7 @@ $placeholderPath = 'images/pages/pixel.png';
 					if (empty($loungeQueues))
 						return;
 					echo '<div class="ranking_current" id="ranking_current_ranked">';
-					echo _('Currently online:');
+					echo t('home.currently_online');
 					echo '<ul class="ranking_list_game ranking_list_lounge">';
 					foreach ($loungeQueues as $loungeQueue)
 						print_lounge_line($loungeQueue);
@@ -839,12 +839,12 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				?>
 				<a class="ranking_tab tab_vs" href="javascript:dispRankTab(currenttabvs)">
-					<?= _('VS mode') ?>
+					<?= t('home.vs_mode') ?>
 				</a><a class="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
 					<?= t('home.battle') ?>
 					<?php print_badge(1); ?>
 				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
-					<?= _('Time Trial') ?>
+					<?= t('home.time_trial') ?>
 				</a>
 			</div>
 			<?php
@@ -853,8 +853,8 @@ $placeholderPath = 'images/pages/pixel.png';
 			if ($loungeEligible) {
 				?>
 			<div id="vs_sub">
-			<a class="vs_sub_worldwide" href="javascript:dispRankTab(0)"><?= _('Worldwide') ?></a> <span>|</span>
-			<a class="vs_sub_ranked" href="javascript:dispRankTab(4)"><?= _('Ranked') ?><?php print_lounge_badge(); ?></a>
+			<a class="vs_sub_worldwide" href="javascript:dispRankTab(0)"><?= t('home.worldwide') ?></a> <span>|</span>
+			<a class="vs_sub_ranked" href="javascript:dispRankTab(4)"><?= t('home.ranked') ?><?php print_lounge_badge(); ?></a>
 			</div>
 				<?php
 			}
@@ -884,9 +884,9 @@ $placeholderPath = 'images/pages/pixel.png';
 					?>
 					<table id="top_<?php echo $modeId; ?>">
 						<tr>
-							<th><?= _('Rank') ?></th>
-							<th><?= _('Nick') ?></th>
-							<th><?php echo $isRanked ? 'MMR' : _('Score'); ?></th>
+							<th><?= t('home.rank') ?></th>
+							<th><?= t('home.nick') ?></th>
+							<th><?php echo $isRanked ? 'MMR' : t('home.score'); ?></th>
 						</tr>
 						<?php
 						if ($isRanked) {
@@ -918,11 +918,11 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				?>
 			</div>
-			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?= _('Display all'); ?></a>
-			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= _('Display all'); ?></a>
-			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
-			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
-<?php if ($loungeEligible) { ?>			<a class="right_section_actions action_button action_gotoranked" href="lounge.php?tab=leaderboard"><?= _('Display all'); ?></a>
+			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?= t('home.display_all'); ?></a>
+			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= t('home.display_all'); ?></a>
+			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= t('home.display_all'); ?></a>
+			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= t('home.display_all'); ?></a>
+<?php if ($loungeEligible) { ?>			<a class="right_section_actions action_button action_gotoranked" href="lounge.php?tab=leaderboard"><?= t('home.display_all'); ?></a>
 <?php } ?>
 		</div>
 		<?php
