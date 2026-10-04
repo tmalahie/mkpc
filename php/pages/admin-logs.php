@@ -10,36 +10,36 @@ include('../includes/utils-date.php');
 require_once('../includes/utils-cups.php');
 $logTemplates = array(
     'award' => function($var) {
-        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("</strong><em>'. _('Deleted award') .'</em><strong>")}}</strong>';
+        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("</strong><em>'. t('admin_logs.deleted_award') .'</em><strong>")}}</strong>';
     },
     'challenge' => function($var) {
-        return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("'. _('Untitled') .'")}}</a>';
+        return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("'. t('common.untitled') .'")}}</a>';
     },
     'member' => function($var) {
-        return '<a href="profil.php?id='.$var.'">{{table.mkjoueurs(id='.$var.').nom|global.ifNull("<em>'. _('Deleted account') .'</em>")}}</a>';
+        return '<a href="profil.php?id='.$var.'">{{table.mkjoueurs(id='.$var.').nom|global.ifNull("<em>'. t('admin_logs.deleted_account') .'</em>")}}</a>';
     },
     'topic' => function($var) {
-        return '<a href="topic.php?topic='.$var.'">{{table.mktopics(id='.$var.').titre|global.ifNull("<em>'. _('Deleted topic') .'</em>")}}</a>';
+        return '<a href="topic.php?topic='.$var.'">{{table.mktopics(id='.$var.').titre|global.ifNull("<em>'. t('admin_logs.deleted_topic') .'</em>")}}</a>';
     },
     'news' => function($var) {
-        return '<a href="news.php?id='.$var.'">{{table.mknews(id='.$var.').title|global.ifNull("<em>'. _('Deleted news') .'</em>")}}</a>';
+        return '<a href="news.php?id='.$var.'">{{table.mknews(id='.$var.').title|global.ifNull("<em>'. t('admin_logs.deleted_news') .'</em>")}}</a>';
     }
 );
 $logMapping = array(
     'AChallenge' => array(
-        'render' => _('accepted challenge ') . $logTemplates['challenge']('$1'),
+        'render' => t('admin_logs.accepted_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CCircuit' => array(
-        'render' => _('deleted complete track #$1'),
+        'render' => t('admin_logs.deleted_complete_track'),
         'role' => 'moderator'
     ),
     'Suppr' => array(
         'render' => function(&$group) {
             global $logTemplates;
             if (isset($group[2]))
-                return _('deleted message #$2 in topic ') . $logTemplates['topic']('$1');
-            return _('deleted topic #$1');
+                return t('admin_logs.deleted_message_topic') . $logTemplates['topic']('$1');
+            return t('admin_logs.deleted_topic_id');
         },
         'role' => 'moderator'
     ),
@@ -47,61 +47,60 @@ $logMapping = array(
         'render' => function(&$group) {
             global $logTemplates;
             if (isset($group[2]))
-                return F_(
-                    'edited <a href="{url}">message #$2</a> in topic {topic}',
+                return t('admin_logs.edited_message_topic',
                     url: 'topic.php?topic=$1&amp;message=$2',
                     topic: $logTemplates['topic']('$1'),
                 );
-            return _('edited topic ') . $logTemplates['topic']('$1');
+            return t('admin_logs.edited_topic') . $logTemplates['topic']('$1');
         },
         'role' => 'moderator'
     ),
     'DChallenge' => array(
-        'render' => _('changed difficulty of challenge ') . $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
+        'render' => t('admin_logs.changed_difficulty_challenge') . $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
         'locals' => array(
             'difficulty' => function($i) {
                 if ($i === null) return '';
                 require_once('../includes/challenge-consts.php');
                 $difficulties = getChallengeDifficulties();
-                return _('to') . ' <strong>' . $difficulties[$i] .'</strong>';
+                return t('admin_logs.difficulty_to') . ' <strong>' . $difficulties[$i] .'</strong>';
             }
         ),
         'role' => 'clvalidator'
     ),
     'RChallenge' => array(
-        'render' => _('rejected challenge ') . $logTemplates['challenge']('$1'),
+        'render' => t('admin_logs.rejected_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'Ban' => array(
-        'render' => _('banned member ') . $logTemplates['member']('$1'),
+        'render' => t('admin_logs.banned_member') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Warn' => array(
-        'render' => _('warned member ') . $logTemplates['member']('$1'),
+        'render' => t('admin_logs.warned_member') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Unban' => array(
-        'render' => _('unbanned member ') . $logTemplates['member']('$1'),
+        'render' => t('admin_logs.unbanned_member') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Unwarn' => array(
-        'render' => _('removed the warning of member ') . $logTemplates['member']('$1'),
+        'render' => t('admin_logs.removed_warning_member') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SSanction' => array(
-        'render' => _('removed sanction #$1 from a member\'s infraction log'),
+        'render' => t('admin_logs.removed_sanction_members_infraction_log'),
         'role' => 'moderator'
     ),
     'CBan' => array(
-        'render' => _('banned member ') . '<a href="{{table.mkclbans(id=$1).link}}">{{table.mkclbans(id=$1).username|global.ifNull("<em>'._('Deleted ban').'</em>")}}</a> ' . _('from challenges'),
+        'render' => t('admin_logs.banned_member') . '<a href="{{table.mkclbans(id=$1).link}}">{{table.mkclbans(id=$1).username|global.ifNull("<em>'.t('admin_logs.deleted_ban').'</em>")}}</a> ' . t('admin_logs.from_challenges'),
         'role' => 'clvalidator'
     ),
     'CUnban' => array(
-        'render' => _('unbanned member ') . '#$1 ' . _('from challenges'),
+        'render' => t('admin_logs.unbanned_member') . '#$1 ' . t('admin_logs.from_challenges'),
         'role' => 'clvalidator'
     ),
     'SComment' => array(
-        'render' => _('deleted comment #$1 on a track'),
+        'render' => t('admin_logs.deleted_comment_track'),
         'role' => 'moderator'
     ),
     'pts' => array(
@@ -109,9 +108,9 @@ $logMapping = array(
             global $logTemplates;
             if ($group[1] < 0) {
                 $group[1] = -$group[1];
-                return F_('took $1 pts from {user} in online mode (VS)', user: $logTemplates['member']('$2'));
+                return t('admin_logs.took_pts_online_mode_vs', user: $logTemplates['member']('$2'));
             } else {
-                return F_('gave $1 pts to {user} in online mode (VS)', user: $logTemplates['member']('$2'));
+                return t('admin_logs.gave_pts_online_mode_vs', user: $logTemplates['member']('$2'));
             }
         },
         'role' => 'manager'
@@ -121,15 +120,15 @@ $logMapping = array(
             global $logTemplates;
             if ($group[1] < 0) {
                 $group[1] = -$group[1];
-                return F_('took $1 pts from {user} in online mode (battle)', user: $logTemplates['member']('$2'));
+                return t('admin_logs.took_pts_online_mode_battle', user: $logTemplates['member']('$2'));
             } else {
-                return F_('gave $1 pts to {user} in online mode (battle)', user: $logTemplates['member']('$2'));
+                return t('admin_logs.gave_pts_online_mode_battle', user: $logTemplates['member']('$2'));
             }
         },
         'role' => 'manager'
     ),
     'nick' => array(
-        'render' => _('changed <strong>$2</strong>\'s username to ') . $logTemplates['member']('$1'),
+        'render' => t('admin_logs.changed_username') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SPerso' => array(
@@ -143,22 +142,21 @@ $logMapping = array(
         'role' => 'moderator'
     ),
     'ERecord' => array(
-        'render' => F_(
-            'renamed time trial record #$1 to {nick}',
-             nick: '{{table.mkrecords(id=$1).name|global.ifNull("<em>' .  _("Deleted record") . '</em>")}}',
+        'render' => t('admin_logs.renamed_time_trial_record',
+             nick: '{{table.mkrecords(id=$1).name|global.ifNull("<em>' .  t('admin_logs.deleted_record') . '</em>")}}',
         ),
         'role' => 'moderator'
     ),
     'DRecord' => array(
-        'render' => _('deleted time trial record #$1'),
+        'render' => t('admin_logs.deleted_time_trial_record'),
         'role' => 'moderator'
     ),
     'LTopic' => array(
-        'render' => _('locked topic ') . $logTemplates['topic']('$1'),
+        'render' => t('admin_logs.locked_topic') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
     'ULTopic' => array(
-        'render' => _('unlocked topic ') . $logTemplates['topic']('$1'),
+        'render' => t('admin_logs.unlocked_topic') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
     'LComments' => array(
@@ -167,8 +165,8 @@ $logMapping = array(
             $groups[4] = $getCircuitData['name'];
             $groups[5] = $getCircuitData['link'];
             $groups[6] = $getCircuitData['label'];
-            $track = '<a href="$5">{{$4|global.ifEmpty("<em>'. _('Untitled') .'</em>")}}</a>';
-            return _('locked comments in $6 ') . $track;
+            $track = '<a href="$5">{{$4|global.ifEmpty("<em>'. t('common.untitled') .'</em>")}}</a>';
+            return t('admin_logs.locked_comments') . $track;
         },
         'role' => 'moderator'
     ),
@@ -178,8 +176,8 @@ $logMapping = array(
             $groups[4] = $getCircuitData['name'];
             $groups[5] = $getCircuitData['link'];
             $groups[6] = $getCircuitData['label'];
-            $track = '<a href="$5">{{$4|global.ifEmpty("<em>'. _('Untitled') .'</em>")}}</a>';
-            return _('unlocked comments in $6 ') . $track;
+            $track = '<a href="$5">{{$4|global.ifEmpty("<em>'. t('common.untitled') .'</em>")}}</a>';
+            return t('admin_logs.unlocked_comments') . $track;
         },
         'role' => 'moderator'
     ),
@@ -190,9 +188,9 @@ $logMapping = array(
                 $link = explode(',', $report['link']);
                 $groups[2] = $link[0];
                 $groups[3] = $link[1];
-                return F_('archived report on <a href="{url}">message #$3</a> in topic ', url: 'topic.php?topic=$2&amp;message=$3') . $logTemplates['topic']('$2');
+                return t('admin_logs.archived_report_message_topic', url: 'topic.php?topic=$2&amp;message=$3') . $logTemplates['topic']('$2');
             }
-            return _('archived report #$1');
+            return t('admin_logs.archived_report');
         },
         'role' => 'moderator'
     ),
@@ -203,22 +201,22 @@ $logMapping = array(
                 $link = explode(',', $report['link']);
                 $groups[2] = $link[0];
                 $groups[3] = $link[1];
-                return F_('unarchived report on <a href="{url}">message #$3</a> in topic ', url: 'topic.php?topic=$2&amp;message=$3') . $logTemplates['topic']('$2');
+                return t('admin_logs.unarchived_report_message_topic', url: 'topic.php?topic=$2&amp;message=$3') . $logTemplates['topic']('$2');
             }
-            return _('unarchived report #$1');
+            return t('admin_logs.unarchived_report');
         },
         'role' => 'moderator'
     ),
     'Cup' => array(
-        'render' => _('deleted cup #$1'),
+        'render' => t('admin_logs.deleted_cup'),
         'role' => 'moderator'
     ),
     'RNews' => array(
-        'render' => _('rejected news ') . $logTemplates['news']('$1'),
+        'render' => t('admin_logs.rejected_news') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'ANews' => array(
-        'render' => _('accepted news ') . $logTemplates['news']('$1'),
+        'render' => t('admin_logs.accepted_news') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'EComment' => array(
@@ -230,9 +228,9 @@ $logMapping = array(
                 $groups[5] = $getCircuitData['link'];
                 $groups[6] = $getCircuitData['label'];
             }
-            $member = '<a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>'. _('Deleted account') .'</em>")}}</a>';
-            $track = '<a href="$5">{{$4|global.ifNull("<em>'. _('Deleted track') .'</em>")}}</a>';
-            return F_('updated {member}\'s comment in $6 ', member: $member) . $track;
+            $member = '<a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>'. t('admin_logs.deleted_account') .'</em>")}}</a>';
+            $track = '<a href="$5">{{$4|global.ifNull("<em>'. t('admin_logs.deleted_track') .'</em>")}}</a>';
+            return t('admin_logs.updated_comment', member: $member) . $track;
         },
         'role' => 'moderator'
     ),
@@ -242,69 +240,68 @@ $logMapping = array(
             $groups[4] = $getCircuitData['name'];
             $groups[5] = $getCircuitData['link'];
             $groups[6] = $getCircuitData['label'];
-            $track = '<a href="$5">{{$4|global.ifNull("<em>'. _('Deleted circuit') .'</em>")}}</a>';
-            return _('deleted a rating in $6 '). $track;
+            $track = '<a href="$5">{{$4|global.ifNull("<em>'. t('admin_logs.deleted_circuit') .'</em>")}}</a>';
+            return t('admin_logs.deleted_rating'). $track;
         },
         'role' => 'moderator'
     ),
     'SCircuit' => array(
-        'render' => _('deleted quick circuit #$1'),
+        'render' => t('admin_logs.deleted_quick_circuit'),
         'role' => 'moderator'
     ),
     'SArene' => array(
-        'render' => _('deleted quick arena #$1'),
+        'render' => t('admin_logs.deleted_quick_arena'),
         'role' => 'moderator'
     ),
     'CArene' => array(
-        'render' => _('deleted complete arena #$1'),
+        'render' => t('admin_logs.deleted_complete_arena'),
         'role' => 'moderator'
     ),
     'SNews' => array(
-        'render' => _('deleted news #$1'),
+        'render' => t('admin_logs.deleted_news_id'),
         'role' => 'publisher'
     ),
     'ENews' => array(
-        'render' => _('updated news ') . $logTemplates['news']('$1'),
+        'render' => t('admin_logs.updated_news') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'CAwarded' => array(
-        'render' => F_('awarded the title {award_title} to {awardee}', award_title: $logTemplates['award']('$2'), awardee: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.awarded_title', award_title: $logTemplates['award']('$2'), awardee: $logTemplates['member']('$1')),
         'role' => 'organizer'
     ),
     'EAwarded' => array(
-        'render' => F_('updated message of award {award} for member {member}', award: $logTemplates['member']('$1'), member: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.updated_message_award_member', award: $logTemplates['member']('$1'), member: $logTemplates['member']('$1')),
         'role' => 'organizer'
     ),
     'SAwarded' => array(
-        'render' => F_('removed award {award} for member {member}', award: $logTemplates['award']('$2'), member: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.removed_award_member', award: $logTemplates['award']('$2'), member: $logTemplates['member']('$1')),
         'role' => 'organizer'
     ),
     'SPicture' => array(
-        'render' =>  _('deleted the avatar of ') . $logTemplates['member']('$1'),
+        'render' =>  t('admin_logs.deleted_avatar') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'UAChallenge' => array(
-        'render' => _('reverted validation of challenge ') . $logTemplates['challenge']('$1'),
+        'render' => t('admin_logs.reverted_validation_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'URChallenge' => array(
-        'render' => _('reverted rejection of challenge ') . $logTemplates['challenge']('$1'),
+        'render' => t('admin_logs.reverted_rejection_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CChallenge' => array(
-        'render' => _('revalidated challenge ') . $logTemplates['challenge']('$1'),
+        'render' => t('admin_logs.revalidated_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'ENewscom' => array(
-        'render' => F_(
-            'updated comment #$1 on news <a href="{news_url}">{news}</a>',
+        'render' => t('admin_logs.updated_comment_news',
              news_url : 'news.php?id={{table.mknewscoms(id=$1).news}}',
-             news: '{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>' .  _("Deleted news") . '</em>")}}',
+             news: '{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>' .  t('admin_logs.deleted_news') . '</em>")}}',
         ),
         'role' => 'moderator'
     ),
     'DNewscom' => array(
-        'render' => _('deleted comment on news #$1'),
+        'render' => t('admin_logs.deleted_comment_news'),
         'role' => 'moderator'
     ),
     'Mute' => array(
@@ -312,88 +309,86 @@ $logMapping = array(
         'role' => 'moderator'
     ),
     'Unmute' => array(
-        'render' => _('unmuted member ') . $logTemplates['member']('$1'),
+        'render' => t('admin_logs.unmuted_member') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Blacklist' => array(
-        'render' => _('added ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the forbidden words list'),
+        'render' => t('admin_logs.word_added') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. t('admin_logs.a_word') .'<strong>")}}</strong>' . t('admin_logs.to_forbidden_words'),
         'role' => 'moderator'
     ),
     'BlacklistEdit' => array(
-        'render' => _('edited ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' in the forbidden words list'),
+        'render' => t('admin_logs.word_edited') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. t('admin_logs.a_word') .'<strong>")}}</strong>' . t('admin_logs.in_forbidden_words'),
         'role' => 'moderator'
     ),
     'Unblacklist' => array(
-        'render' => _('removed word #$1 from list of forbidden words'),
+        'render' => t('admin_logs.removed_word_list_forbidden_words'),
         'role' => 'moderator'
     ),
     'NBlacklist' => array(
-        'render' => _('added ') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the forbidden usernames list'),
+        'render' => t('admin_logs.word_added') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. t('admin_logs.a_word') .'<strong>")}}</strong>' . t('admin_logs.to_forbidden_usernames'),
         'role' => 'moderator'
     ),
     'NBlacklistEdit' => array(
-        'render' => _('edited ') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' in the forbidden usernames list'),
+        'render' => t('admin_logs.word_edited') . '<strong>{{table.mkbadnicks(id=$1).word|global.ifNull("</strong>'. t('admin_logs.a_word') .'<strong>")}}</strong>' . t('admin_logs.in_forbidden_usernames'),
         'role' => 'moderator'
     ),
     'NUnblacklist' => array(
-        'render' => _('removed word #$1 from list of forbidden usernames'),
+        'render' => t('admin_logs.removed_word_list_forbidden_usernames'),
         'role' => 'moderator'
     ),
     'Whitelist' => array(
-        'render' => _('added ') . '<strong>{{table.mkgoodwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the allowed words list'),
+        'render' => t('admin_logs.word_added') . '<strong>{{table.mkgoodwords(id=$1).word|global.ifNull("</strong>'. t('admin_logs.a_word') .'<strong>")}}</strong>' . t('admin_logs.to_allowed_words'),
         'role' => 'moderator'
     ),
     'Unwhitelist' => array(
-        'render' => _('removed word #$1 from list of allowed words'),
+        'render' => t('admin_logs.removed_word_list_allowed_words'),
         'role' => 'moderator'
     ),
     'MCup' => array(
-        'render' => _('deleted multicup #$1'),
+        'render' => t('admin_logs.deleted_multicup'),
         'role' => 'moderator'
     ),
     'Profile' => array(
-        'render' => F_('updated {member}\'s profile', member: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.updated_profile', member: $logTemplates['member']('$1')),
         'role' => 'moderator'
     ),
     'RPwd' => array(
-        'render' => F_('reset {member}\'s password', member: $logTemplates['member']('$1')),
+        'render' => t('admin_logs.reset_password', member: $logTemplates['member']('$1')),
         'role' => 'moderator'
     ),
     'Flag' => array(
-        'render' => F_(
-            'updated country of {member} to <strong>{new_country}</strong>',
+        'render' => t('admin_logs.updated_country',
              member: $logTemplates['member']('$1'),
              new_country: '{{table.mkcountries(code=$2).name_en|global.ifNull($2)}}',
         ),
         'role' => 'moderator'
     ),
     'EChallenge' => array(
-        'render' => _('updated challenge ') . $logTemplates['challenge']('$1'),
+        'render' => t('admin_logs.updated_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CAward' => array(
-        'render' => _('created award ') . $logTemplates['award']('$1'),
+        'render' => t('admin_logs.created_award') . $logTemplates['award']('$1'),
         'role' => 'organizer'
     ),
     'EAward' => array(
-        'render' => _('updated award ') . $logTemplates['award']('$1'),
+        'render' => t('admin_logs.updated_award') . $logTemplates['award']('$1'),
         'role' => 'organizer'
     ),
     'SAward' => array(
-        'render' => _('deleted award #$1'),
+        'render' => t('admin_logs.deleted_award_id'),
         'role' => 'organizer'
     ),
     'LNews' => array(
-        'render' => _('locked comments on news ') . $logTemplates['news']('$1'),
+        'render' => t('admin_logs.locked_comments_news') . $logTemplates['news']('$1'),
         'role' => 'moderator'
     ),
     'ULNews' => array(
-        'render' => _('unlocked comments on news ') . $logTemplates['news']('$1'),
+        'render' => t('admin_logs.unlocked_comments_news') . $logTemplates['news']('$1'),
         'role' => 'moderator'
     ),
     'Role' => array(
-        'render' => F_(
-            'gave the <strong>{role}</strong> role to {member}',
+        'render' => t('admin_logs.gave_role',
             role: '{{$2|local.roleName()}}',
             member: $logTemplates['member']('$1'),
         ),
@@ -403,8 +398,7 @@ $logMapping = array(
         'role' => 'admin'
     ),
     'Unrole' => array(
-        'render' => F_(
-            'removed the <strong>{role}</strong> role from {member}',
+        'render' => t('admin_logs.removed_role',
             role: '{{$2|local.roleName()}}',
             member: $logTemplates['member']('$1'),
         ),
@@ -585,7 +579,7 @@ function format_log_snapshot($snapshot) {
     $logFormatted = json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     $logFormatted = preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $logFormatted);
     $logFormatted = substr($logFormatted, 1, -1);
-    return '<details class="log-snapshot"><summary>'. _('View details') .'</summary><pre>'
+    return '<details class="log-snapshot"><summary>'. t('admin_logs.view_details') .'</summary><pre>'
         . htmlspecialchars($logFormatted)
         .'</pre></details>';
 }
@@ -604,25 +598,25 @@ function get_circuit_data($type, $id) {
             case 'mkcircuits':
                 $res['link'] = ($getCircuit['type'] ? 'arena':'circuit') .'.php?id='. $getCircuit['id'];
                 if ($getCircuit['type'])
-                    $res['label'] = _("the arena");
+                    $res['label'] = t('common.arena');
                 else
-                    $res['label'] = _("the circuit");
+                    $res['label'] = t('common.circuit');
                 break;
             case 'circuits':
                 $res['link'] = 'map.php?i='. $getCircuit['ID'];
-                $res['label'] = _("the circuit");
+                $res['label'] = t('common.circuit');
                 break;
             case 'arenes':
                 $res['link'] = 'battle.php?i='. $getCircuit['ID'];
-                $res['label'] = _("the arena");
+                $res['label'] = t('common.arena');
                 break;
             case 'mkcups':
                 $res['link'] = getCupPage($getCircuit['mode']) .'.php?cid='. $getCircuit['id'];
-                $res['label'] = _("the cup");
+                $res['label'] = t('common.cup');
                 break;
             case 'mkmcups':
                 $res['link'] = getCupPage($getCircuit['mode']) .'.php?mid='. $getCircuit['id'];
-                $res['label'] = _("the multicup");
+                $res['label'] = t('common.multicup');
                 break;
         }
     }
@@ -630,9 +624,9 @@ function get_circuit_data($type, $id) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= $locale ?>">
 <head>
-<title><?= _('Admin logs') ?> - Mario Kart PC</title>
+<title><?= t('admin_logs.admin_logs') ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -696,11 +690,11 @@ $page = 'forum';
 include('../includes/menu.php');
 ?>
 <main>
-	<h1><?= _('Admin logs') ?></h1>
+	<h1><?= t('admin_logs.admin_logs') ?></h1>
     <?php
     if (!isset($_GET['role'])) {
         echo '<p>';
-        echo _("This page shows the history of all actions made by MKPC staff members");
+        echo t('admin_logs.this_page_shows_history_all');
         echo '</p>';
     }
     ?>
@@ -708,10 +702,10 @@ include('../includes/menu.php');
         <blockquote>
             <p id="admin-filter">
                 <label for="log-type">
-                    <strong><?= _('Log type') ?></strong>
+                    <strong><?= t('admin_logs.log_type') ?></strong>
                 </label><?php echo $language ? ':':' :'; ?>
                 <select name="type" id="log-type" onchange="this.form.submit()">
-                    <option value=""><?= _('Select') ?>...</option>
+                    <option value=""><?= t('admin_logs.select') ?>...</option>
                     <?php
                     $selectedLog = isset($_GET['type']) ? $_GET['type'] : null;
                     foreach ($availableLogs as $availableLog) {
@@ -723,7 +717,7 @@ include('../includes/menu.php');
                 if (isset($_GET['role']))
                     echo '<input type="hidden" name="role" value="'. htmlspecialchars($_GET['role']) .'" />';
                 ?>
-                <input type="submit" value="<?= _('Filter') ?>" class="action_button" />
+                <input type="submit" value="<?= t('admin_logs.filter') ?>" class="action_button" />
             </p>
         </blockquote>
 	</form>
@@ -764,7 +758,7 @@ include('../includes/menu.php');
             elseif ($log['auteur'] === 0)
                 echo '<em>MKPC</em>';
             else
-                echo '<em>'. _('Deleted account') . '</em>';
+                echo '<em>'. t('admin_logs.deleted_account') . '</em>';
             echo ' ';
             echo format_log($log['log']);
             echo format_log_snapshot($log['snapshot']); ?></td>
@@ -792,8 +786,8 @@ include('../includes/menu.php');
     ?>
     </td></tr>
     </table>
-	<p><a href="forum.php"><?= _('Back to the forum') ?></a><br />
-	<a href="index.php"><?= _('Back to Mario Kart PC') ?></a></p>
+	<p><a href="forum.php"><?= t('common.back_forum') ?></a><br />
+	<a href="index.php"><?= t('common.back_mario_kart_pc') ?></a></p>
 </main>
 <?php
 include('../includes/footer.php');

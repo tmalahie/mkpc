@@ -15,7 +15,7 @@ if ($noFollow) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?= _('Mario Kart PC Forum') ?></title>
+<title><?= t('common.mario_kart_pc_forum') ?></title>
 <?php
 include('../includes/heads.php');
 if ($pageNum > $MAX_INDEXED_PAGE || $noFollow) {
@@ -74,7 +74,7 @@ $topiconly = isset($_GET['type']) && ('topics' === $_GET['type']);
 $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$topiconly);
 ?>
 <main>
-<h1><?= _('Mario Kart PC Forum') ?> - <?php echo $language ? 'Advanced search':'Recherche avancée'; ?></h1>
+<h1><?= t('common.mario_kart_pc_forum') ?> - <?php echo $language ? 'Advanced search':'Recherche avancée'; ?></h1>
 <?php
 require_once('../includes/utils-ads.php');
 showRegularAdSection();

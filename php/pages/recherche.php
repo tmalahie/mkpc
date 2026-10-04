@@ -10,7 +10,7 @@ if (isset($_GET['content'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Search':'Recherche'; ?> - <?= _('Mario Kart PC Forum') ?></title>
+<title><?php echo $language ? 'Search':'Recherche'; ?> - <?= t('common.mario_kart_pc_forum') ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -26,7 +26,7 @@ $page = 'forum';
 include('../includes/menu.php');
 ?>
 <main>
-<h1><?= _('Mario Kart PC Forum') ?></h1>
+<h1><?= t('common.mario_kart_pc_forum') ?></h1>
 <?php
 require_once('../includes/utils-ads.php');
 showRegularAdSection();

@@ -78,15 +78,15 @@ function renderTopicItem($topic) {
         <h3>
             <?php
             if ($message && $message['nom']) {
-                printf(Ft("kLATEST_MESSAGE_BY_PARAM_NAME", name: $message['nom']));
+                printf(t('home.latest_message_by', message: $message['nom']));
             } else {
-                printf(t("kLATEST_MESSAGE"));
+                printf(t('home.latest_message'));
             }
             echo ' ';
             echo pretty_dates_short($topic['dernier'], array('lower' => true));
             ?>
         </h3>
-        <div class="creation_comments" title="<?= FNt("kCOMMENTS_MESSAGES_WITH_COUNT", count: $nbMsgs) ?>">
+        <div class="creation_comments" title="<?= t('common.message_count', count: $nbMsgs) ?>">
             <img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?>
         </div>
     </a>
@@ -146,14 +146,14 @@ function renderNewsItem($news) {
         <h3>
             <?php
             if ($news['authorName']) {
-                printf(P_("Categories", "In <strong>%s</strong> by <strong>%s</strong>"), $news['catname'], $news['authorName']);
+                echo t('home.news_category_author', category: $news['catname'], author: $news['authorName']);
             } else {
-                printf(P_("Categories", "In <strong>%s</strong>"), $news['catname']);
+                echo t('home.news_category', category: $news['catname']);
             }
             ?>
             <?= pretty_dates_short($news['publication_date'], array('lower' => true)); ?>
         </h3>
-        <div class="creation_comments" title="<?= FN_("{count} comment", "{count} comments", count: $nbMsgs) ?>">
+        <div class="creation_comments" title="<?= t('home.comment_count', count: $nbMsgs) ?>">
             <img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?>
         </div>
     </a>
@@ -222,7 +222,7 @@ function home_sortCreationLines($lines) {
 
 function home_getNom($circuit) {
     $maxL = 25;
-    $res = ($circuit['nom'] ? home_controlLengthUtf8($circuit['nom'], $maxL) : (_('Untitled')));
+    $res = ($circuit['nom'] ? home_controlLengthUtf8($circuit['nom'], $maxL) : (t('common.untitled')));
     if (isset($circuit['prefix']) && (home_uc_strlen($circuit['nom']) + mb_strlen($circuit['prefix']) <= $maxL))
         $res = '<small>' . $circuit['prefix'] . ' </small>' . $res;
     return $res;
@@ -230,7 +230,7 @@ function home_getNom($circuit) {
 
 function home_getAuteur($circuit) {
     if ($circuit['auteur']) {
-        return F_("By <strong>{author}</strong>", author: home_controlLengthUtf8($circuit['auteur'], 15));
+        return t('home.creation_author', author: home_controlLengthUtf8($circuit['auteur'], 15));
     }
     return '';
 }
@@ -416,7 +416,8 @@ function home_zerofill($nb, $l) {
 }
 
 function home_getRank($n) {
-    $languageForOrdinals = P_("language for ordinals", "en");
+    global $locale;
+    $languageForOrdinals = $locale;
     $dec = $n % 100;
     if ($languageForOrdinals == "fr") {
         if ($n > 1)
