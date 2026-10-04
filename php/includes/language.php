@@ -52,16 +52,53 @@ function t(string $key, ...$params): string {
 }
 
 function formatTranslation(string $messageLocale, string $message, array $params): string {
+	// Numbers print without thousands separators, like everywhere else on the site
+	// (and a bare {id} is often inside a URL, where "12,345" would break it).
 	foreach ($params as $name => $value) {
-		// Only arguments formatted as numbers ({n, plural, ...}, {n, number}) get locale grouping:
-		// a bare {id} placeholder is often inside a URL, where "12,345" would break it.
 		if ((is_int($value) || is_float($value)) && !preg_match('/\{\s*'. preg_quote($name, '/') .'\s*,/', $message))
 			$params[$name] = (string) $value;
 	}
 	// ICU treats a single quote as an escape character; doubling every quote makes them all literal.
-	$formatter = MessageFormatter::create($messageLocale, str_replace("'", "''", $message));
+	$formatter = MessageFormatter::create($messageLocale, str_replace("'", "''", ungroupPluralNumbers($message)));
 	if (!$formatter)
 		return $message;
 	$formatted = $formatter->format($params);
 	return ($formatted === false) ? $message : $formatted;
+}
+
+// Rewrites each # of a plural as {count, number, ::group-off}, so that "9532 messages" isn't printed "9,532 messages".
+function ungroupPluralNumbers(string $message): string {
+	if (strpos($message, '#') === false)
+		return $message;
+	$result = '';
+	$stack = array();
+	$length = strlen($message);
+	for ($i = 0; $i < $length; $i++) {
+		$c = $message[$i];
+		$top = end($stack);
+		if ($c === '{') {
+			if ($top && $top['type'] === 'choice') {
+				$stack[] = array('type' => 'branch', 'plural' => $top['plural']);
+			}
+			elseif (preg_match('/\G\{\s*(\w+)\s*,\s*(plural|selectordinal|select)\s*,/', $message, $match, 0, $i)) {
+				$plural = ($match[2] === 'select') ? ($top['plural'] ?? null) : $match[1];
+				$stack[] = array('type' => 'choice', 'plural' => $plural);
+				$result .= $match[0];
+				$i += strlen($match[0]) - 1;
+				continue;
+			}
+			else {
+				$stack[] = array('type' => 'argument', 'plural' => null);
+			}
+		}
+		elseif ($c === '}') {
+			array_pop($stack);
+		}
+		elseif ($c === '#' && $top && $top['type'] === 'branch' && $top['plural'] !== null) {
+			$result .= '{'. $top['plural'] .', number, ::group-off}';
+			continue;
+		}
+		$result .= $c;
+	}
+	return $result;
 }
