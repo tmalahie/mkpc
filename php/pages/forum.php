@@ -21,7 +21,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 				if (!$getId['banned'] && mysql_numrows(mysql_query('SELECT * FROM `ip_bans` WHERE ip1="'.$identifiants[0].'" AND ip2="'.$identifiants[1].'" AND ip3="'.$identifiants[2].'" AND ip4="'.$identifiants[3].'"'))) {
 					mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id="'.$id.'"');
 					mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$id.',"'.$identifiants[0].'","'.$identifiants[1].'","'.$identifiants[2].'","'.$identifiants[3].'")');
-					mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. _('Auto-ban by IP') .'",NULL,NULL)');
+					mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. t('forum.auto_ban_ip') .'",NULL,NULL)');
 				}
 			}
 			banIfBlackIp();
@@ -32,9 +32,9 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= $locale ?>">
 <head>
-<title><?= _("Mario Kart PC Forum") ?></title>
+<title><?= t('common.mario_kart_pc_forum') ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -54,17 +54,17 @@ if ($id && $myIdentifiants) {
 }
 ?>
 <main>
-<h1><?= _("Mario Kart PC Forum") ?></h1>
+<h1><?= t('common.mario_kart_pc_forum') ?></h1>
 <?php
 if ($id) {
 	$getNom = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	?>
 	<div class="forum-welcome">
-		<?= F_('Welcome to the MKPC forum! If you haven\'t done it yet, please check out the <a href="{url}">rules</a> before posting.', url: "topic.php?topic=19829") ?>
+		<?= t('forum.welcome_mkpc_forum_if_you', url: "topic.php?topic=19829") ?>
 	</div>
 	<p id="compte"><span><?= $getNom['nom'] ?></span>
-	<a href="profil.php?id=<?= $id ?>"><?= _('My profile') ?></a><br />
-	<a href="logout.php"><?= _('Log out') ?></a>
+	<a href="profil.php?id=<?= $id ?>"><?= t('forum.my_profile') ?></a><br />
+	<a href="logout.php"><?= t('forum.log_out') ?></a>
 	</p>
 	<?php
 	include('../includes/rights-msg.php');
@@ -74,9 +74,9 @@ else {
 	if (isset($warningDeleted)) {
 		?>
 		<p class="warning">
-		<?= _("This account has been deleted. The connection to it has been disabled.") ?>
+		<?= t('forum.this_account_has_been_deleted') ?>
 		<br />
-		<?= F_('If you want to undo and restore it, you can still do it by clicking <a href="{url}">here</a>.', url: $restoreAccount) ?>
+		<?= t('forum.if_you_want_undo_restore', url: $restoreAccount) ?>
 		</p>
 		<?php
 	}
@@ -86,16 +86,16 @@ else {
 	<table id="connexion">
 	<?php
 	if (isset($_POST['pseudo']) && isset($_POST['code']))
-		echo '<caption style="color: #B00">'. _('Incorrect login or password') .'</caption>';
+		echo '<caption style="color: #B00">'. t('forum.incorrect_login_password') .'</caption>';
 	else
-		echo '<caption>'. _("You aren't logged in.") . "<br />" . _("Enter your login and password here:") .'</caption>';
+		echo '<caption>'. t('forum.you_arent_logged') . "<br />" . t('forum.enter_your_login_password_here') .'</caption>';
 	?>
-	<tr><td class="ligne"><label for="pseudo"><?= _('Login:') ?></label></td><td><input type="text" name="pseudo" id="pseudo"<?php echo isset($_POST['pseudo']) ? ' value="'. htmlspecialchars($_POST['pseudo']) .'"':null; ?> /></td></tr>
-	<tr><td class="ligne"><label for="code"><?= _('Password:') ?></label></td><td><input type="password" name="code" id="code"<?php echo isset($_POST['code']) ? ' value="'. htmlspecialchars($_POST['code']) .'"':null; ?> /></td></tr>
-	<tr><td colspan="2"><input type="submit" value="<?= _('Submit') ?>" /></td></tr>
+	<tr><td class="ligne"><label for="pseudo"><?= t('forum.login') ?></label></td><td><input type="text" name="pseudo" id="pseudo"<?php echo isset($_POST['pseudo']) ? ' value="'. htmlspecialchars($_POST['pseudo']) .'"':null; ?> /></td></tr>
+	<tr><td class="ligne"><label for="code"><?= t('forum.password') ?></label></td><td><input type="password" name="code" id="code"<?php echo isset($_POST['code']) ? ' value="'. htmlspecialchars($_POST['code']) .'"':null; ?> /></td></tr>
+	<tr><td colspan="2"><input type="submit" value="<?= t('forum.submit') ?>" /></td></tr>
 	<tr><td colspan="2">
-		<a href="signup.php"><?= _('Register') ?></a> | 
-		<a href="password-lost.php" style="font-weight: normal"><?= _('Forgot password') ?></a>
+		<a href="signup.php"><?= t('forum.register') ?></a> | 
+		<a href="password-lost.php" style="font-weight: normal"><?= t('forum.forgot_password') ?></a>
 	</td></tr>
 	</table>
 	</form>
@@ -110,11 +110,11 @@ showRegularAdSection();
 <form method="get" action="recherche.php" class="forum-search">
 	<p>
 		<label for="search-content">
-			<?= _('Search:') ?>
+			<?= t('forum.search') ?>
 		</label>
-		<input type="text" id="search-content" placeholder="<?= _('Topic title') ?>" name="content" />
+		<input type="text" id="search-content" placeholder="<?= t('forum.topic_title') ?>" name="content" />
 		<input type="submit" value="Ok" class="action_button" />
-		<a href="forum-search.php"><?= _('Advanced search') ?></a>
+		<a href="forum-search.php"><?= t('forum.advanced_search') ?></a>
 	</p>
 </form>
 <table id="listeTopics">
@@ -122,9 +122,9 @@ showRegularAdSection();
 <col id="nbmsgs" />
 <col id="lastmsgs" />
 <tr id="titres">
-<td><?= _('Category') ?></td>
-<td><?= _('Topics nb') ?></td>
-<td><?= _('Last message') ?></td>
+<td><?= t('forum.category') ?></td>
+<td><?= t('forum.topics_nb') ?></td>
+<td><?= t('forum.last_message') ?></td>
 </tr>
 <?php
 include('../includes/category_fields.php');
@@ -164,15 +164,14 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 	$getPosters = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkprofiles` WHERE nbmessages>0'));
 
 	$monthFormatter = new IntlDateFormatter(
-		P_("locale for ICU", 'en_EN'),
+		$locale,
 		timezone: $timeZone,
 		pattern: "MMMM",
 	);
 	$month = $monthFormatter->format($beginMonth);
 
 	echo "<li>";
-	echo F_(
-		"The forum has a total of <strong>{nbMessages} messages</strong> split into <strong>{nbTopics} topics</strong> and posted by <strong>{nbPosters} members</strong>.",
+	echo t('forum.forum_has_total_messages_split',
 		nbMessages: $getNbMessages['nb'],
 		nbTopics: $nbTopics,
 		nbPosters: $getPosters['nb'],
@@ -181,38 +180,36 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 
 	if (hasRight('moderator')) {
 		echo "<li>";
-		echo F_(
-			'The most active member is <a href="{urlToProfile}">{topPlayer}</a> with <strong>{topPlayerMessagesWithCount}</strong> posted in total.',
+		echo t('forum.most_active_member_posted_total',
 			urlToProfile: "profil.php?id=". $getTopPlayer['id'],
 			topPlayer: $getTopPlayer['nom'],
-			topPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getTopPlayer['nb']),
+			topPlayerMessagesWithCount: t('common.message_count', count: $getTopPlayer['nb']),
 		);
 		echo '<a href="ranking-forum.php">';
-		echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") . '"/>';
-		echo _("Ranking of most active members");
-		echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") .  '"/></a>';
+		echo '<img src="images/cups/cup1.png" alt="' . t('forum.ranking') . '"/>';
+		echo t('forum.ranking_most_active_members');
+		echo '<img src="images/cups/cup1.png" alt="' . t('forum.ranking') .  '"/></a>';
 		echo "</li>";
 
 		if ($getMonthlyTopPlayer) {
 			echo "<li>";
-			echo F_(
-				'The most active member of the month is <a href="{urlToProfile}">{monthlyTopPlayer}</a> with <strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the 1<small class="superscript">st</small>.',
+			echo t('forum.most_active_member_month_since',
 				urlToProfile: "profil.php?id=". $getMonthlyTopPlayer['id'],
 				month: $month,
 				monthlyTopPlayer: $getMonthlyTopPlayer['nom'],
-				monthlyTopPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getMonthlyTopPlayer['nb']),
+				monthlyTopPlayerMessagesWithCount: t('common.message_count', count: $getMonthlyTopPlayer['nb']),
 			);
 			echo '<a href="ranking-forum.php?month=last">';
-			echo '<img src="images/cups/cup2.png" alt="' . _("Classement") . '"/>';
-			echo _("Ranking of month's most active members");
-			echo '<img src="images/cups/cup2.png" alt="' . _("Classement") .  '"/></a>';
+			echo '<img src="images/cups/cup2.png" alt="' . t('forum.ranking') . '"/>';
+			echo t('forum.ranking_months_most_active_members');
+			echo '<img src="images/cups/cup2.png" alt="' . t('forum.ranking') .  '"/></a>';
 			echo "</li>";
 		}
 	}
 	?>
 </ul>
 <p class="forumButtons">
-<a href="index.php"><?= _('Back to the homepage') ?></a>
+<a href="index.php"><?= t('forum.back_homepage') ?></a>
 </p>
 </main>
 <?php

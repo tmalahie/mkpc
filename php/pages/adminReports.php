@@ -5,22 +5,22 @@ include('../includes/session.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
-	echo _("You are not moderator");
+	echo t('admin_reports.you_are_not_moderator');
 	mysql_close();
 	exit;
 }
 include('../includes/tokens.php');
 assign_token();
 mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="admin_report"');
-$pageTitle = _('Reported messages');
+$pageTitle = t('admin_reports.reported_messages');
 $archivedFilter = isset($_GET['archived']);
 if ($archivedFilter)
-    $pageTitle = _('Archived reports');
+    $pageTitle = t('admin_reports.archived_reports');
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= $locale ?>">
 <head>
-<title><?= _('Mario Kart PC Forum') ?> - <?= $pageTitle ?></title>
+<title><?= t('common.mario_kart_pc_forum') ?> - <?= $pageTitle ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -61,7 +61,7 @@ function zerofill($s,$l) {
     - <a href="#null" target="_blank"></a>
   </div>
 </template>
-<h1><?= _('Mario Kart PC Forum') ?> - <?= $pageTitle ?></h1>
+<h1><?= t('common.mario_kart_pc_forum') ?> - <?= $pageTitle ?></h1>
 <div id="search-results">
 <?php
 include('../includes/avatars.php');
@@ -91,7 +91,7 @@ if ($nbres) {
         $searchResults[] = $result;
     if (empty($searchResults)) {
         echo '<h4>';
-        echo _("No new reported message for now");
+        echo t('admin_reports.no_new_reported_message_now');
         echo '</h4>';
     }
     else {
@@ -103,10 +103,8 @@ if ($nbres) {
             echo '<div id="report-wrapper-'. $result['reportid'] .'">';
 
             echo '<div class="report-title">';
-            echo F_('In <a href="{topicUrl}">{topicName}</a>, ', topicName: htmlspecialchars($topicName), topicUrl: "topic.php?topic=" . $result['topic']);
-            echo FN_(
-                'reported by <a href="{showMembers}">{count} member</a>',
-                'reported by <a href="{showMembers}">{count} members</a>',
+            echo t('admin_reports.in_topic', topicName: htmlspecialchars($topicName), topicUrl: "topic.php?topic=" . $result['topic']);
+            echo t('admin_reports.reported_member_count',
                 count: $result['count'],
                 showMembers: "javascript:showMembers(" . $result['reportid'] . ")",
             );
@@ -161,7 +159,7 @@ if ($nbres) {
 }
 else {
     echo '<h4>';
-    echo _('No pending reported message');
+    echo t('admin_reports.no_pending_reported_message');
     echo '</h4>';
 }
 ?>
@@ -169,11 +167,11 @@ else {
 <p class="forumButtons">
     <?php
     if ($archivedFilter)
-        echo '<a href="adminReports.php">'. _('Back to pending reports') .'</a><br />';
+        echo '<a href="adminReports.php">'. t('admin_reports.back_pending_reports') .'</a><br />';
     else
-        echo '<a href="adminReports.php?archived=1">'. _('See archived reports') .'</a><br />';
+        echo '<a href="adminReports.php?archived=1">'. t('admin_reports.see_archived_reports') .'</a><br />';
     ?>
-    <a href="forum.php"><?= _('Back to the forum') ?></a>
+    <a href="forum.php"><?= t('common.back_forum') ?></a>
 </p>
 </main>
 <?php

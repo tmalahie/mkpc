@@ -174,7 +174,7 @@ if ($unban) {
             echo $language ? 'Ban a member':'Bannir un membre';
         ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="ban" id="joueur" onkeypress="handleValidate(event)" onblur="handleNameBlur()" />
 		<div id="ban_msg">
-			<?= _('Message:'); ?> <textarea name="msg" cols="30" rows="4"></textarea><br />
+			<?= t('common.message'); ?> <textarea name="msg" cols="30" rows="4"></textarea><br />
             <label><input type="checkbox" name="ban_until" onclick="hanleBanUntil(this.checked)" /> <?php echo $language ? "Ban until:":"Bannir jusqu'à :"; ?> <input type="date" name="ban_until_date" disabled /></label><br />
             <input type="submit" value="<?php echo $language ? 'Confirm' : 'Valider'; ?>" class="action_button" />
 		</div>

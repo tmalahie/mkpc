@@ -70,6 +70,36 @@ A few rules keep them painless:
 - **Use a `.php` migration for data changes that need logic**. It runs with the site's database connection (`$dbh`, `mysql_query()`), and any error stops it.
 - **Never edit a migration that has been deployed**: write a new one.
 
+# Translations
+
+The site's text lives in one JSON file per language, `lang/en.json` and `lang/fr.json`, which map a key to the message:
+
+```json
+"forum.my_profile": "My profile",
+"home.many_more": "And <a href=\"{url}\">many more</a>!",
+"common.message_count": "{count, plural, one {# message} other {# messages}}"
+```
+
+PHP displays a message with `t()`, passing its placeholders as named arguments:
+
+```php
+<?= t('home.many_more', url: 'credits.php') ?>
+```
+
+Editing a JSON file takes effect on the next page load: there is nothing to compile and no server to restart. A key missing from a language falls back to English.
+
+Messages use the [ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/) syntax: `{name}` is a placeholder, `{count, plural, one {…} other {…}}` picks the plural form the language needs (in a plural, `#` stands for the number). Quotes are plain text, and braces are always placeholders.
+
+To add a language, add `lang/<code>.json` with the keys translated; untranslated keys show in English.
+
+```
+npm run lint:translations
+  Checks the catalogs and the code: invalid JSON or ICU syntax, keys the code uses but lang/en.json lacks,
+  unused keys, placeholders that differ from English, leftover gettext calls. It runs in CI on every pull request.
+```
+
+Older code still writes bilingual strings inline as `$language ? 'English':'Français'` (PHP) or `language ? "English":"Français"` (JS). New PHP code uses `t()`.
+
 # Deploying
 
 On the production server, `./deploy.sh` pulls the current branch, applies the pending migrations, then checks the database against `setup.sql`. From your machine:

@@ -1,34 +1,34 @@
 <?php
 include('../includes/session.php');
 if (!$id) {
-	echo _("You aren't logged in");
+	echo t('admin.you_arent_logged');
 	exit;
 }
 include('../includes/language.php');
 include('../includes/initdb.php');
 if (!$id) {
-	echo _("You aren't logged in");
+	echo t('admin.you_arent_logged');
 	mysql_close();
 	exit;
 }
 require_once('../includes/getRights.php');
 if (!hasRight('manager')) {
-	echo _("You aren't admin");
+	echo t('admin.you_arent_admin');
 	mysql_close();
 	exit;
 }
 if (hasRight('admin')) {
-	$roleWithName = _("administrator rank");
+	$roleWithName = t('admin.administrator_rank');
 }
 elseif (hasRight('moderator')) {
-	$roleWithName = _("moderator rank");
+	$roleWithName = t('admin.moderator_rank');
 }
 else {
-	$roleWithName = _('event host rank');
+	$roleWithName = t('admin.event_host_rank');
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= $locale ?>">
 <head>
 <title>Admin - Mario Kart PC</title>
 <?php
@@ -85,19 +85,19 @@ $page = 'forum';
 include('../includes/menu.php');
 ?>
 <main>
-	<h1><?= _('Admin page') ?></h1>
+	<h1><?= t('admin.admin_page') ?></h1>
 	<p class="success">
-		<?= F_("Your {roleWithName} gives you the following rights. Make good use of them!", roleWithName: $roleWithName) ?>
+		<?= t('admin.your_gives_you_following_rights', roleWithName: $roleWithName) ?>
 	</p>
-	<h2><?= _("Member management") ?></h2>
+	<h2><?= t('admin.member_management') ?></h2>
 	<ul>
 		<?php
 		if (hasRight('admin')) {
 			?>
 		<li>
 			<a class="action-ctn" href="roles.php">
-				<div class="action-title"><?= _("Manage staff <strong>roles</strong>") ?></div>
-				<div class="action-desc"><?= _("See who is moderator, event host, etc. Give a role to a member or take it back") ?></div>
+				<div class="action-title"><?= t('admin.manage_staff_roles') ?></div>
+				<div class="action-desc"><?= t('admin.see_who_moderator_event_host') ?></div>
 			</a>
 		</li>
 			<?php
@@ -106,20 +106,20 @@ include('../includes/menu.php');
 			?>
 		<li>
 			<a class="action-ctn" href="edit-pseudo.php">
-				<div class="action-title"><?= _("Edit a member's <strong>username</strong>") ?></div>
-				<div class="action-desc"><?= _("Can be useful if a member has a troll username for example") ?></div>
+				<div class="action-title"><?= t('admin.edit_members_username') ?></div>
+				<div class="action-desc"><?= t('admin.can_useful_if_member_has') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="nick-history.php">
-				<div class="action-title"><?= _("See <strong>username change history</strong>") ?></div>
-				<div class="action-desc"><?= _("To monitor people who would abuse of this option.") ?></div>
+				<div class="action-title"><?= t('admin.see_username_change_history') ?></div>
+				<div class="action-desc"><?= t('admin.monitor_people_who_would_abuse') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="nick-blacklist.php">
-				<div class="action-title"><?= _("Manage <strong>forbidden words</strong> in usernames") ?></div>
-				<div class="action-desc"><?= _("Members can no longer register nor rename themselves with a username containing one of these words") ?></div>
+				<div class="action-title"><?= t('admin.manage_forbidden_words_usernames') ?></div>
+				<div class="action-desc"><?= t('admin.members_can_no_longer_register') ?></div>
 			</a>
 		</li>
 			<?php
@@ -129,8 +129,8 @@ include('../includes/menu.php');
 			?>
 			<li>
 				<a class="action-ctn" href="updatepts.php">
-					<div class="action-title"><?= _("Give / Remove <strong>points</strong> in <strong>online mode</strong>") ?></div>
-					<div class="action-desc"><?= _("As a reward for a tournament, or as punishment after a cheat...") ?></div>
+					<div class="action-title"><?= t('admin.give_remove_points_online_mode') ?></div>
+					<div class="action-desc"><?= t('admin.points_reason') ?></div>
 				</a>
 			</li>
 			<?php
@@ -138,8 +138,8 @@ include('../includes/menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="awards.php">
-				<div class="action-title"><?= _("Award a <strong>reward</strong>") ?></div>
-				<div class="action-desc"><?= _("Following an official event (oscars, festival, ...)") ?></div>
+				<div class="action-title"><?= t('admin.award_reward') ?></div>
+				<div class="action-desc"><?= t('admin.following_official_event_oscars_festival') ?></div>
 			</a>
 		</li>
 			<?php
@@ -147,8 +147,8 @@ include('../includes/menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="doublecomptes.php">
-				<div class="action-title"><?= _("See <strong>alt accounts</strong>") ?></div>
-				<div class="action-desc"><?= _("If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)") ?></div>
+				<div class="action-title"><?= t('admin.see_alt_accounts') ?></div>
+				<div class="action-desc"><?= t('admin.if_new_member_seems_suspicious') ?></div>
 			</a>
 		</li>
 		<?php
@@ -156,20 +156,20 @@ include('../includes/menu.php');
 			?>
 		<li>
 			<a class="action-ctn" href="edit-user.php">
-				<div class="action-title"><?= _("Edit member <strong>profile</strong>") ?></div>
-				<div class="action-desc"><?= _("Can be useful if a troll member has put an inappropriate description for example, or a fake country") ?></div>
+				<div class="action-title"><?= t('admin.edit_member_profile') ?></div>
+				<div class="action-desc"><?= t('admin.can_useful_if_troll_member') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="ban-player.php">
-				<div class="action-title"><?= _("<strong>Ban</strong> or <strong>warn</strong> a member") ?></div>
-				<div class="action-desc"><?= _("Warn a user for innapropriate behavior, or ban them if he persists. Banned members are unable to post anything on the site") ?></div>
+				<div class="action-title"><?= t('admin.ban_warn_member') ?></div>
+				<div class="action-desc"><?= t('admin.warn_user_innapropriate_behavior_ban') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="sanction-logs.php">
-				<div class="action-title"><?= _("See a member's <strong>infraction log</strong>") ?></div>
-				<div class="action-desc"><?= _("Every warn and ban a member has received, including the ones already lifted or expired") ?></div>
+				<div class="action-title"><?= t('admin.see_members_infraction_log') ?></div>
+				<div class="action-desc"><?= t('admin.every_warn_ban_member_has') ?></div>
 			</a>
 		</li>
 			<?php
@@ -179,94 +179,94 @@ include('../includes/menu.php');
 	<?php
 	if (hasRight('moderator')) {
 		?>
-	<h2><?= _('Online mode') ?></h2>
+	<h2><?= t('common.online_mode') ?></h2>
 	<ul>
 		<li>
 			<a class="action-ctn" href="updatepts.php">
-				<div class="action-title"><?= _("Give / Remove <strong>points</strong> in online mode") ?></div>
-				<div class="action-desc"><?= _("As a reward for a tournament, or as punishment after a cheat...") ?></div>
+				<div class="action-title"><?= t('admin.online_give_remove_points') ?></div>
+				<div class="action-desc"><?= t('admin.points_reason') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="chat-blacklist.php">
-				<div class="action-title"><?= _("Manage <strong>forbidden/watched words</strong> in online chat") ?></div>
-				<div class="action-desc"><?= _("All messages containing forbidden words will be blocked and/or logged") ?></div>
+				<div class="action-title"><?= t('admin.manage_forbidden_watched_words_online') ?></div>
+				<div class="action-desc"><?= t('admin.all_messages_containing_forbidden_words') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="chat-logs.php">
-				<div class="action-title"><?= _("See online mode <strong>chat logs</strong>") ?></div>
+				<div class="action-title"><?= t('admin.see_online_mode_chat_logs') ?></div>
 				<div class="action-desc">
-					<?= _("See the messages of the member in the online mode") ?>
+					<?= t('admin.see_messages_member_online_mode') ?>
 					<br />
-					<?= _("You can mute members in case of abuse") ?>
+					<?= t('admin.you_can_mute_members_case') ?>
 				</div>
 			</a>
 		</li>
 	</ul>
-	<h2><?= _('Share management') ?></h2>
+	<h2><?= t('admin.share_management') ?></h2>
 	<ul>
 		<li>
 			<a class="action-ctn" href="creations.php?admin=1">
-				<div class="action-title"><?= _("Delete a <strong>custom track</strong>") ?></div>
-				<div class="action-desc"><?= _("If the content of the track is inappropriate or in case of plagiarism") ?></div>
+				<div class="action-title"><?= t('admin.delete_custom_track') ?></div>
+				<div class="action-desc"><?= t('admin.if_content_track_inappropriate_case') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="creation-ratings.php">
-				<div class="action-title"><?= _("Manage <strong>ratings</strong> on tracks") ?></div>
-				<div class="action-desc"><?= _("To monitor and eradicate 1-star trolls...") ?></div>
+				<div class="action-title"><?= t('admin.manage_ratings_tracks') ?></div>
+				<div class="action-desc"><?= t('admin.monitor_eradicate_1_star_trolls') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="adminPersos.php">
-				<div class="action-title"><?= _("Delete a <strong>character</strong>") ?></div>
-				<div class="action-desc"><?= _("In case of plagiarism or if eventual cheating (invisible character...)") ?></div>
+				<div class="action-title"><?= t('admin.delete_character') ?></div>
+				<div class="action-desc"><?= t('admin.case_plagiarism_if_eventual_cheating') ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="findByCreation.php">
-				<div class="action-title"><?= _("Find the <strong>author</strong> of a given creation") ?></div>
-				<div class="action-desc"><?= _("Find the creator of a circuit published by an anonymous user") ?></div>
+				<div class="action-title"><?= t('admin.find_author_given_creation') ?></div>
+				<div class="action-desc"><?= t('admin.find_creator_circuit_published_anonymous') ?></div>
 			</a>
 		</li>
 	</ul>
 		<?php
 	}
 	?>
-	<h2><?= _('Other rights') ?></h2>
+	<h2><?= t('admin.other_rights') ?></h2>
 	<ul>
 		<?php
 		if (hasRight('moderator')) {
 			?>
 		<li>
 			<div class="action-ctn">
-				<div class="action-title"><?= _("Moderate a message on the <strong>forum</strong>") ?></div>
-				<div class="action-desc"><?= _("To do this, go to the message in question and click on &quot;Edit&quot; or &quot;Delete&quot;") ?></div>
+				<div class="action-title"><?= t('admin.moderate_message_forum') ?></div>
+				<div class="action-desc"><?= t('admin.do_this_go_message_question') ?></div>
 			</div>
 		</li>
 		<li>
 			<div class="action-ctn">
-				<div class="action-title"><?= _("Moderate a <strong>comment</strong> on a <strong>custom track</strong>") ?></div>
-				<div class="action-desc"><?= _("Go to the track in question and click on &quot;Edit&quot; or &quot;Delete&quot;") ?></div>
+				<div class="action-title"><?= t('admin.moderate_comment_custom_track') ?></div>
+				<div class="action-desc"><?= t('admin.go_track_question_click_edit') ?></div>
 			</div>
 		</li>
 		<li>
 			<div class="action-ctn">
-				<div class="action-title"><?= _("Moderate a <strong>comment</strong> on a <strong>news</strong>") ?></div>
-				<div class="action-desc"><?= _("Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;") ?></div>
+				<div class="action-title"><?= t('admin.moderate_comment_news') ?></div>
+				<div class="action-desc"><?= t('admin.go_news_question_click_edit') ?></div>
 			</div>
 		</li>
 		<li>
 			<a class="action-ctn" href="classement.php?moderate=1">
-				<div class="action-title"><?= _("Moderate a <strong>time trial</strong> record") ?></div>
-				<div class="action-desc"><?= _("From the time trial leaderboard, click on &quot;Moderate records&quot;") ?></div>
+				<div class="action-title"><?= t('admin.moderate_time_trial_record') ?></div>
+				<div class="action-desc"><?= t('admin.time_trial_leaderboard_click_moderate') ?></div>
 		</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="adminReports.php">
-				<div class="action-title"><?= _("See forum <strong>reported messages</strong>") ?></div>
-				<div class="action-desc"><?= _("To quickly perform actions on what members reported") ?></div>
+				<div class="action-title"><?= t('admin.see_forum_reported_messages') ?></div>
+				<div class="action-desc"><?= t('admin.quickly_perform_actions_what_members') ?></div>
 			</a>
 		</li>
 			<?php
@@ -274,13 +274,13 @@ include('../includes/menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="admin-logs.php">
-				<div class="action-title"><?= _("See <strong>admin logs</strong>") ?></div>
-				<div class="action-desc"><?= _("To retrace and understand the different actions done by MKPC staff") ?></div>
+				<div class="action-title"><?= t('admin.see_admin_logs') ?></div>
+				<div class="action-desc"><?= t('admin.retrace_understand_different_actions_done') ?></div>
 			</a>
 		</li>
 	</ul>
-	<p><a href="forum.php"><?= _('Back to the forum') ?></a><br />
-	<a href="index.php"><?= _('Back to Mario Kart PC') ?></a></p>
+	<p><a href="forum.php"><?= t('common.back_forum') ?></a><br />
+	<a href="index.php"><?= t('common.back_mario_kart_pc') ?></a></p>
 </main>
 <?php
 include('../includes/footer.php');

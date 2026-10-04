@@ -24,9 +24,9 @@ if ($id) {
 	$getAuthor = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= $locale ?>">
 <head>
-<title><?= _("Mario Kart PC - News") ?></title>
+<title><?= t('news.mario_kart_pc_news') ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -40,7 +40,7 @@ include('../includes/o_online.php');
 <?php
 if (!isset($draftSaved)) {
 	?>
-	onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled)return '<?= addslashes(_('Warning, the message you\'re writing won\'t be saved')) ?>'"<?php
+	onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled)return '<?= addslashes(t('news.warning_message_youre_writing_wont')) ?>'"<?php
 }
 ?>
 >
@@ -54,11 +54,11 @@ include('../includes/menu.php');
 include('../includes/smileys.php');
 if (isset($draftSaved)) {
 	?>
-	<div class="success"><?= _('Draft saved') ?></div>
+	<div class="success"><?= t('news.draft_saved') ?></div>
 	<?php
 }
 ?>
-<h1><?= _('Add news') ?></h1>
+<h1><?= t('news.add_news') ?></h1>
 <?php
 require_once('../includes/utils-ads.php');
 showRegularAdSection();
@@ -88,15 +88,15 @@ showRegularAdSection();
 				mysql_query('INSERT INTO `mknotifs` SET type="follower_news", user="'. $follower['follower'] .'", link="'.$iGenerated.'"');
 		}
 		echo '<p id="successSent">';
-		echo _("News created successfully");
+		echo t('news.news_created_successfully');
 		echo "<br />";
 		if (!hasRight('publisher')) {
-			echo _('This news will be published once validated by a moderator.');
+			echo t('news.this_news_will_published_once');
 			echo "<br />";
 		}
-		echo F_('<a href="{url}">Click here</a> to see the news.', url: "news.php?id=". $iGenerated);
+		echo t('news.click_here_see_news', url: "news.php?id=". $iGenerated);
 		echo "<br />";
-		echo F_('<a href="{url}">Click here</a> to return to the news list.', url: "listNews.php");
+		echo t('news.click_here_return_news_list', url: "listNews.php");
 		echo "</p>";
 	}
 	else {
@@ -108,12 +108,12 @@ showRegularAdSection();
 		if (mysql_numrows($getPendingNews)) {
 		?>
 		<div id="advice-pending-news" class="info advice-pending-hidden">
-			<?= _("Tip: before beginning, check that a news on the same subject is not pending validation.") ?>
+			<?= t('news.tip_before_beginning_check_that') ?>
 			<span class="advice-pending-show">
-				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-shown';void(0)"><?= _('Show') ?></a>]
+				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-shown';void(0)"><?= t('news.show') ?></a>]
 			</span>
 			<span class="advice-pending-hide">
-				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-hidden';void(0)"><?= _('Hide'); ?></a>]
+				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-hidden';void(0)"><?= t('news.hide'); ?></a>]
 			</span>
 			<ul class="pending-news-list"><?php
 			while ($news = mysql_fetch_array($getPendingNews))
@@ -123,11 +123,11 @@ showRegularAdSection();
 		<?php
 		}
 	?>
-<form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?= _('Please enter a title') ?>');return false}if(!this.message.value){alert('<?= _('Please enter a content') ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
+<form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?= t('news.please_enter_title') ?>');return false}if(!this.message.value){alert('<?= t('news.please_enter_content') ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
 <table id="nMessage">
-<tr><td class="mLabel"><label for="title"><?= _('Title:') ?></label></td>
+<tr><td class="mLabel"><label for="title"><?= t('common.title') ?></label></td>
 <td class="mInput"><input type="text" id="title" name="title" onchange="document.getElementById('mTitle').innerHTML=htmlspecialchars(this.value)" value="<?php if ($draft) echo htmlspecialchars($draft['title']); ?>" /></td></tr>
-<tr><td class="mLabel"><label for="category"><?= _('Category:') ?></label></td>
+<tr><td class="mLabel"><label for="category"><?= t('common.category') ?></label></td>
 <td class="mInput">
 	<select id="category" name="category" onchange="document.getElementById('mCategory').innerHTML=this.options[this.selectedIndex].text">
 		<?php
@@ -145,16 +145,16 @@ showRegularAdSection();
 		?>
 	</select>
 </td></tr>
-<tr><td class="mLabel"><?= _('BBcode:'); ?><br /><a href="javascript:helpBbCode()"><?= _('Help') ?></a></td><td><?php
+<tr><td class="mLabel"><?= t('common.bbcode'); ?><br /><a href="javascript:helpBbCode()"><?= t('news.help') ?></a></td><td><?php
 $isNews = true;
 include('../includes/bbButtons.php');
 ?></td></tr>
-<tr><td class="mLabel"><p><label for="message"><?= _('Content:'); ?></label></p>
+<tr><td class="mLabel"><p><label for="message"><?= t('news.content'); ?></label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';
 ?>
-<a href="javascript:moresmileys()" id="more-smileys"><?= _('More smileys') ?></a></p>
+<a href="javascript:moresmileys()" id="more-smileys"><?= t('news.more_smileys') ?></a></p>
 </td><td class="mInput"><textarea name="message" id="message" rows="10"><?php
 	if ($draft)
 		echo htmlspecialchars($draft['message']);
@@ -163,14 +163,14 @@ for ($i=0;$i<$nbSmileys;$i++)
 if ($draft) {
 	?>
 <tr><td colspan="2" class="mLabel">
-	<input type="submit" class="mUndraft" name="undraft" value="<?= _('Delete draft') ?>" onclick="return confirm('<?= _('Delete the draft?') ?>')" />
+	<input type="submit" class="mUndraft" name="undraft" value="<?= t('news.delete_draft') ?>" onclick="return confirm('<?= t('news.delete_draft_confirm') ?>')" />
 </td></tr>
 	<?php
 }
 ?>
 <tr><td colspan="2" class="mLabel">
-	<input type="submit" class="mDraft" name="draft" value="<?= _('Save draft') ?>" />
-	<input type="button" value="<?= _('Preview') ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?= _('Send') ?>" />	
+	<input type="submit" class="mDraft" name="draft" value="<?= t('news.save_draft') ?>" />
+	<input type="button" value="<?= t('news.preview') ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?= t('news.send') ?>" />	
 </td></tr>
 </table>
 </form>
@@ -178,21 +178,20 @@ if ($draft) {
 <div class="news-header">
 	<h1 id="mTitle"><?php if ($draft) echo $draft['title']; ?></h1>
 	<div class="news-author">
-		<?= F_(
-			"In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</strong>",
+		<?= t('news.preview_category_author',
 			cssAttributes: 'id="mCategory"',
 			categoryName: $currentCategory['name'],
 			author: $getAuthor['nom'],
 		); ?>
 	</div>
 	<div class="news-date">
-		<?= _('Published') ?> <span class="mDate"></span>
+		<?= t('news.published') ?> <span class="mDate"></span>
 	</div>
 </div>
 <div class="news-content mBody"></div>
 </div>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
-	<a href="listNews.php"><?= _('Back to the news list') ?></a>
+	<a href="listNews.php"><?= t('news.back_news_list') ?></a>
 </p>
 	<?php
 }

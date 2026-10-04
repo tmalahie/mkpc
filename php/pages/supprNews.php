@@ -9,7 +9,7 @@ if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `m
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?= _("Mario Kart PC - News") ?></title>
+<title><?= t('news.mario_kart_pc_news') ?></title>
 <?php
 include('../includes/heads.php');
 ?>

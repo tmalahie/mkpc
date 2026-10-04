@@ -6,7 +6,7 @@ include('../includes/initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>	">
 <head>
-<title><?= _('Mario Kart PC Forum'); ?></title>
+<title><?= t('common.mario_kart_pc_forum'); ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -127,12 +127,12 @@ showRegularAdSection();
 		?>
 <form method="post" action="edittopic.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
-<tr><td class="mLabel"><label for="titre"><?= _('Title:'); ?></label></td>
+<tr><td class="mLabel"><label for="titre"><?= t('common.title'); ?></label></td>
 <td class="mInput"><input type="text" id="titre" name="titre" value="<?php
 	$getTopic = mysql_fetch_array(mysql_query('SELECT titre,category,private FROM `mktopics` WHERE id="'. $_GET['topic'] .'"'));
 	echo htmlspecialchars($getTopic['titre']);
 ?>" required /></td></tr>
-<tr><td class="mLabel"><label for="category"><?= _('Category:'); ?></label></td>
+<tr><td class="mLabel"><label for="category"><?= t('common.category'); ?></label></td>
 <td class="mInput">
 	<select id="category" name="category">
 		<?php
@@ -147,8 +147,8 @@ showRegularAdSection();
 		?>
 	</select>
 </td></tr>
-<tr><td class="mLabel"><?= _('BBcode:'); ?><br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
-<tr><td class="mLabel"><p><label for="message"><?= _('Message:'); ?></label></p>
+<tr><td class="mLabel"><?= t('common.bbcode'); ?><br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
+<tr><td class="mLabel"><p><label for="message"><?= t('common.message'); ?></label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';

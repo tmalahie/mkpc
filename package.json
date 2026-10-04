@@ -4,7 +4,10 @@
   "description": "This repository contains the source code of MKPC website: https://mkpc.malahieude.net.",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "lint": "npm run lint:php && npm run lint:translations",
+    "lint:php": "git ls-files -z '*.php' | xargs -0 -n1 -P4 php -d display_errors=stderr -d log_errors=0 -l > /dev/null",
+    "lint:translations": "php php/tools/lint-translations.php"
   },
   "repository": {
     "type": "git",

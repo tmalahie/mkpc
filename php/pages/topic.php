@@ -87,7 +87,7 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $topic ? htmlspecialchars($titreTopic).' - '. _('MKPC Forum'): _('Mario Kart PC Forum'); ?></title>
+<title><?php echo $topic ? htmlspecialchars($titreTopic).' - '. t('forum.mkpc_forum'): t('common.mario_kart_pc_forum'); ?></title>
 <?php
 include('../includes/heads.php');
 ?>

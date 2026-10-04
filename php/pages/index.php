@@ -14,7 +14,7 @@ if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 include('../includes/session.php');
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= $locale ?>">
 <head>
 <title>Mario Kart PC</title>
 <?php
@@ -51,10 +51,10 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo1.jpg" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo1-640w.jpg 640w, <?= $slidesPath ?>/diapo1.jpg 960w" class="top" alt="Slide 1">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('A Mario Kart Game for browser') ?></h3>
+								<h3><?= t('home.mario_kart_game_browser') ?></h3>
 								<div>
-									<?= _("A computer version of the famous racing game by Nintendo."); ?><br/>
-									<?= _("This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!"); ?>
+									<?= t('home.computer_version_famous_racing_game'); ?><br/>
+									<?= t('home.this_game_completely_free_does'); ?>
 								</div>
 							</div>
 						</div>
@@ -66,11 +66,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo2.png" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo2-640w.png 640w, <?= $slidesPath ?>/diapo2.png 960w" alt="Slide 2">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Crazy races full of fun!') ?></h3>
+								<h3><?= t('home.crazy_races_full_fun') ?></h3>
 								<div>
-									<?= _("Try to be the fastest while avoiding items!") ?>
+									<?= t('home.try_fastest_while_avoiding_items') ?>
 									<br />
-									<?= _("Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.") ?>
+									<?= t('home.race_all_56_tracks_original') ?>
 								</div>
 							</div>
 						</div>
@@ -82,11 +82,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Win all the cups!') ?></h3>
+								<h3><?= t('home.win_all_cups') ?></h3>
 								<div>
-									<?= _("Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!") ?>
+									<?= t('home.face_off_cpus_14_grand') ?>
 									<br />
-									<?= _("Win enough cups to unlock the <strong>15 secret characters</strong>!") ?>
+									<?= t('home.win_enough_cups_unlock_15') ?>
 								</div>
 							</div>
 						</div>
@@ -98,11 +98,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Create your own tracks!') ?></h3>
+								<h3><?= t('home.create_your_own_tracks') ?></h3>
 								<div>
-									<?= _("With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!") ?>
+									<?= t('home.track_builder_possibilities_are_endless') ?>
 									<br />
-									<?= _("You can <strong>share</strong> your tracks or try other people's creations!") ?>
+									<?= t('home.you_can_share_your_tracks') ?>
 								</div>
 							</div>
 						</div>
@@ -114,11 +114,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="top smooth" alt="Slide 5">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Face players from around the world!') ?></h3>
+								<h3><?= t('home.face_players_around_world') ?></h3>
 								<div>
-									<?= _("Race and battle in <strong>online mode</strong>!") ?>
+									<?= t('home.race_battle_online_mode') ?>
 									<br />
-									<?= _("Win as many races as possible and <strong>climb the official leaderboard</strong>!") ?>
+									<?= t('home.win_as_many_races_as') ?>
 								</div>
 							</div>
 						</div>
@@ -130,11 +130,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" class="smooth" alt="Slide 6">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Make the best scores in time trial!') ?></h3>
+								<h3><?= t('home.make_best_scores_time_trial') ?></h3>
 								<div>
-									<?= _("<strong>Finish the race track</strong> as fast as you can!") ?>
+									<?= t('home.finish_race_track_as_fast') ?>
 									<br />
-									<?= _("<strong>Compare your scores</strong> with the community, and face other players' ghosts!") ?>
+									<?= t('home.compare_your_scores_community_face') ?>
 								</div>
 							</div>
 						</div>
@@ -146,11 +146,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Release your fighting talents!') ?></h3>
+								<h3><?= t('home.release_your_fighting_talents') ?></h3>
 								<div>
-									<?= _("<strong>Destroy your opponents</strong>' balloons with your items, without getting hit by theirs!") ?>
+									<?= t('home.destroy_your_opponents_balloons_your') ?>
 									<br />
-									<?= _("The last player standing wins!") ?>
+									<?= t('home.last_player_standing_wins') ?>
 								</div>
 							</div>
 						</div>
@@ -162,11 +162,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="center smooth" alt="Slide 8">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
+								<h3><?= t('home.face_off_your_friends_local') ?></h3>
 								<div>
-									<?= _("Prove to your friends that you're the best!")?>
+									<?= t('home.prove_your_friends_that_youre')?>
 									<br />
-									<?= _("Face them in <strong>multiplayer</strong> in VS races or in battle mode.") ?>
+									<?= t('home.face_them_multiplayer_vs_races') ?>
 								</div>
 							</div>
 						</div>
@@ -176,30 +176,30 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
-		&#9660;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9660;<br />
-		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" /><br />
-		&#9650;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9650;</a></div>
-		<h2><img src="images/about.png" alt="" /> <?= _('What\'s Mario Kart PC?') ?></h2>
+		&#9660;&nbsp;<?= t('home.click_game_box_begin') ?>&nbsp;&#9660;<br />
+		<img src="images/mkpc_box.jpg" alt="<?= t('home.start_game') ?>" /><br />
+		&#9650;&nbsp;<?= t('home.click_game_box_begin') ?>&nbsp;&#9650;</a></div>
+		<h2><img src="images/about.png" alt="" /> <?= t('home.whats_mario_kart_pc') ?></h2>
 		<div>
 			<p>
-				<?= _("You might know Mario Kart, the most fun racing game series of all time! Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.") ?>
+				<?= t('home.you_might_know_mario_kart') ?>
 			</p>
 			</p>
-				<?= _("Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!") ?>
+				<?= t('home.most_modes_mario_kart_have') ?>
 				<br />
 				
-				<?= _("There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more! Everything is customizable! The only limit is your own imagination!") ?>
+				<?= t('home.theres_also_brand_new_mode') ?>
 				<br />
 				
-				<?= F_('You can share your tracks, and try other people\'s tracks thanks to the <a href="{url}">sharing tool</a>. Thousands of custom tracks are already available!', url: "creations.php") ?>
+				<?= t('home.you_can_share_your_tracks_try', url: "creations.php") ?>
 			</p>
 			<p>
-				<?= F_('Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="{url}">rankings</a> and become world champion!', url: "bestscores.php") ?>
+				<?= t('home.finally_you_can_face_players', url: "bestscores.php") ?>
 			</p>
 		</div>
-		<h2><img src="images/camera.png" alt="" /> <?= _('Some screenshots') ?></h2>
+		<h2><img src="images/camera.png" alt="" /> <?= t('home.some_screenshots') ?></h2>
 		<div>
-			<?= _('Here are some screenshots of the game to give you a quick preview of what it looks like:') ?>
+			<?= t('home.here_are_some_screenshots_game') ?>
 			<div id="screenshots" class="demo-gallery">
 				<?php
 				for ($i=1;$i<=12;$i++) {
@@ -240,43 +240,43 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 		}
 		?>
-		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
+		<h2><img src="images/thanks.png" alt="" /> <?= t('home.special_thanks') ?></h2>
 		<div>
-			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed!") ?>
+			<?= t('home.big_thanks_nintendo_these_three') ?>
 				<ul>
 					<li>
-						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">Mario Kart original PoC</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
+						<?= t('home.nihilogic_mario_kart_original_poc', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">SNESMaps</a> for the <a href="{url_mario_kart}">track images</a>', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
+						<?= t('home.snesmaps_track_images', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">Khinsider</a> for the <a href="{url_mario_kart}">music</a>', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
+						<?= t('home.khinsider_music', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
 					</li>
 					<li>
-						<?= F_('And <a href="{url}">many more</a>!', url: "credits.php") ?>
+						<?= t('home.many_more', url: "credits.php") ?>
 					</li>
 				</ul>
 		</div>
-		<h2><img src="images/follow.png" alt="" /> <?= _('Follow us') ?></h2>
+		<h2><img src="images/follow.png" alt="" /> <?= t('home.follow_us') ?></h2>
 		<div>
 			<ul>
 				<li>
-					<?= F_('<a href="{url}">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.', url: "https://discord.gg/VkeAxaj") ?>
+					<?= t('home.discord_server_site_join_it', url: "https://discord.gg/VkeAxaj") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url_youtube}">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="{url_topic}">official topic</a>.', url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
+					<?= t('home.official_youtube_channel_find_videos', url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url}">Github repo</a> of the site. Follow all the ongoing developments here, and if you can code, don\'t hesitate to contribute to the project!', url: "https://github.com/tmalahie/mkpc") ?>
+					<?= t('home.github_repo_site_follow_all', url: "https://github.com/tmalahie/mkpc") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url_wiki}">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="{url_topic}">this topic</a>!', url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
+					<?= t('home.mkpc_wiki_find_out_all', url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
 				</li>
 			</ul>
 			<p>
 				<em>
-				<?= F_('This site is mostly maintained by French members, if you see some translation errors in the game or the site, don\'t hesitate to report them on this <a href="{url_topic}">forum topic</a>', url_topic: "topic.php?topic=1") ?>
+				<?= t('home.this_site_mostly_maintained_french', url_topic: "topic.php?topic=1") ?>
 				</em>
 			</p>
 		</div>
@@ -297,10 +297,10 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 		}
 		?>
-		<h2><img src="images/gamepad.png" alt="" /> <?= _('Go to the game') ?></h2>
+		<h2><img src="images/gamepad.png" alt="" /> <?= t('home.go_game') ?></h2>
 		<div>
-			<?= _("To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:") ?><br />
-				<a href="mariokart.php" class="action_button button_game"><?= _("Start playing now &gt;") ?></a>
+			<?= t('home.start_playing_its_very_simple') ?><br />
+				<a href="mariokart.php" class="action_button button_game"><?= t('home.start_playing_now') ?></a>
 		</div>
 	</section>
 	<section id="right_section">
@@ -360,7 +360,7 @@ $placeholderPath = 'images/pages/pixel.png';
 			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'" AND (end_date IS NULL OR end_date>=CURDATE())'))) && !$getWarn['seen']) {
 				?>
 				<div class="warning-top-message">
-					<?= F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>
+					<?= t('home.you_have_received_warning_inappropriate', url: 'forum.php?warn#compte'); ?>
 				</div>
 				<?php
 			}
@@ -387,15 +387,15 @@ $placeholderPath = 'images/pages/pixel.png';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?= _("Happy birthday to") ?>
+					<?= t('home.happy_birthday') ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];
 						if ($i)
-							echo ($i==$nbBirthdays-1) ? _(" and ") : ", ";
+							echo ($i==$nbBirthdays-1) ? t('home.birthday_and') : ", ";
 						echo '<a href="profil.php?id='. $birthday['id'] .'">'. $birthday['nom'] .'</a>';
 					}
-					echo P_("final exclamation point in a sentence", '!');
+					echo t('home.birthday_exclamation');
 					?>
 				</div>
 				<?php
@@ -404,7 +404,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		date_default_timezone_set('UTC');
 		display_sidebar('Forum', 'forum.php');
 		?>
-			<h2><?= _('Latest topics') ?></h2>
+			<h2><?= t('home.latest_topics') ?></h2>
 			<div id="forum_section" class="right_subsection" data-section="topics" data-offset="10" data-limit="10">
 				<?php
 				$topics = getLatestTopics(10, 0, $id);
@@ -412,20 +412,20 @@ $placeholderPath = 'images/pages/pixel.png';
 				unset($topics);
 				?>
 			</div>
-			<a class="right_section_actions action_button" href="forum.php"><?= _('Go to the forum') ?></a>
+			<a class="right_section_actions action_button" href="forum.php"><?= t('home.go_forum') ?></a>
 		</div>
 		<div class="subsection">
 		<?php
 		display_sidebar('News', 'listNews.php');
 		?>
-			<h2><?= _('Latest news') ?></h2>
+			<h2><?= t('home.latest_news') ?></h2>
 			<div id="news_section" class="right_subsection" data-section="news" data-offset="8" data-limit="8">
 				<?php
 				$newsList = getLatestNews(8, 0, $id);
 				if (count($newsList) > 0) {
 					echo renderNewsItems($newsList);
 				} else {
-					echo '<div style="text-align:center;margin-top:55px">' . _('No news yet') . '</div>';
+					echo '<div style="text-align:center;margin-top:55px">' . t('home.no_news_yet') . '</div>';
 				}
 				unset($newsList);
 				?>
@@ -436,13 +436,13 @@ $placeholderPath = 'images/pages/pixel.png';
 				if ($getPendingNews['nb']) {
 					?>
 					<p class="nb-pending-news">
-						<?= F_('<a href="{url}">{count} pending</a> news', count: $getPendingNews['nb'], url: 'listNews.php#pending-news') ?>
+						<?= t('home.pending_news', count: $getPendingNews['nb'], url: 'listNews.php#pending-news') ?>
 					</p>
 					<?php
 				}
 			}
 			?>
-			<a class="right_section_actions action_button" href="listNews.php"><?= _('All news') ?></a>
+			<a class="right_section_actions action_button" href="listNews.php"><?= t('home.all_news') ?></a>
 		</div>
 		<?php
 		/*if ($id) {
@@ -451,21 +451,21 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 			display_sidebar('MKPC Tri-Nations', 'news.php?id=15069');
 			?>
-			<h2><?= _('Current bracket') ?></h2>
+			<h2><?= t('home.current_bracket') ?></h2>
 			<div id="tri-nations" class="right_subsection">
 			<table>
 					<tr>
-						<th><?= _('Rank') ?></th>
-						<th><?= _('Team') ?></th>
+						<th><?= t('home.rank') ?></th>
+						<th><?= t('home.team') ?></th>
 						<th>Pts</th>
-						<th class="pl-l" title="<?= _('Wins - Ties - Losses') ?>"><?= _('W-T-L') ?></th>
-						<th class="pl-xl" title="<?= _('Score difference') ?>"><?= _('Diff') ?></th>
+						<th class="pl-l" title="<?= t('home.wins_ties_losses') ?>"><?= t('home.w_t_l') ?></th>
+						<th class="pl-xl" title="<?= t('home.score_difference') ?>"><?= t('home.diff') ?></th>
 					</tr>
 					<?php
 					$plRanking = array(
 						array(
 							'icon' => 'ea.png',
-							'name' => _('Eurasia'),
+							'name' => t('home.eurasia'),
 							'score' => 9,
 							'wins' => 3,
 							'losses' => 1,
@@ -474,7 +474,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						),
 						array(
 							'icon' => 'fr.png',
-							'name' => _('France'),
+							'name' => t('home.france'),
 							'score' => 9,
 							'wins' => 3,
 							'losses' => 1,
@@ -483,7 +483,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						),
 						array(
 							'icon' => 'am.png',
-							'name' => _('Americas'),
+							'name' => t('home.americas'),
 							'score' => 0,
 							'wins' => 0,
 							'losses' => 4,
@@ -513,16 +513,16 @@ $placeholderPath = 'images/pages/pixel.png';
 					?>
 				</table>
 			</div>
-			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _("Tournament's Discord Server") ?></a></div>
+			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= t('home.tournaments_discord_server') ?></a></div>
 		</div>
 			<?php
 		}*/
 		?>
 		<div class="subsection">
 			<?php
-			display_sidebar(_('Track builder'), 'creations.php');
+			display_sidebar(t('home.track_builder'), 'creations.php');
 			?>
-			<h2><?= _('Latest creations') ?></h2>
+			<h2><?= t('home.latest_creations') ?></h2>
 			<div id="creations_section" class="right_subsection" data-section="creations" data-offset="14" data-limit="14">
 				<table>
 					<?php
@@ -534,8 +534,8 @@ $placeholderPath = 'images/pages/pixel.png';
 					?>
 				</table>
 			</div>
-			<a class="right_section_actions action_button" href="creations.php"><?= _('Display all') ?></a>
-			<h2><?= _('Latest challenges') ?></h2>
+			<a class="right_section_actions action_button" href="creations.php"><?= t('home.display_all') ?></a>
+			<h2><?= t('home.latest_challenges') ?></h2>
 			<div id="challenges_section" class="right_subsection" data-section="challenges" data-offset="15" data-limit="15">
 				<?php
 				$challenges = getLatestChallenges(15, 0, $id);
@@ -547,14 +547,14 @@ $placeholderPath = 'images/pages/pixel.png';
 				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
 				if ($getPendingChallenges['nb']) {
 					echo '<p class="nb-pending-news">';
-					echo FN_('<a href="{url}">{count} pending</a> challenge', '<a href="{url}">{count} pending</a> challenges', count: $getPendingChallenges['nb'], url: 'challengesList.php?moderate');
+					echo t('home.pending_challenge_count', count: $getPendingChallenges['nb'], url: 'challengesList.php?moderate');
 					echo '</p>';
 				}
 			}
 			?>
-			<a class="right_section_actions action_button" href="challengesList.php"><?= _('Display all') ?></a>
-			<div id="challenge_ranking"><a href="challengeRanking.php"><?= _('Challenge points - Leaderboard') ?></a></div>
-			<h2><?= _('Recent activity') ?></h2>
+			<a class="right_section_actions action_button" href="challengesList.php"><?= t('home.display_all') ?></a>
+			<div id="challenge_ranking"><a href="challengeRanking.php"><?= t('home.challenge_points_leaderboard') ?></a></div>
+			<h2><?= t('home.recent_activity') ?></h2>
 			<div id="comments_section" class="right_subsection" data-section="activity" data-offset="14" data-limit="14">
 				<?php
 				$activities = getRecentActivity(14, 0);
@@ -564,7 +564,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<div class="subsection rank_vs" id="rankings_section">
 			<?php
-			display_sidebar(_('Online mode'), 'online.php');
+			display_sidebar(t('common.online_mode'), 'online.php');
 			$activePlayers = array(array(),array());
 			if ($id) {
 				$time = time();
@@ -676,7 +676,7 @@ $placeholderPath = 'images/pages/pixel.png';
 					$res = '';
 					if ($getNom = fetchCreationData($table,$params['cup'], array('select' => '1')))
 						$res = $getNom['name'];
-					if (!$res) $res = _('Untitled');
+					if (!$res) $res = t('common.untitled');
 					return controlLengthUtf8($res,30);
 				}
 				function get_mode_string(&$params) {
@@ -684,9 +684,9 @@ $placeholderPath = 'images/pages/pixel.png';
 					$link = $params['link'];
 					$modeNames = array(
 						'cc' => '${value}cc',
-						'mirror' => _('Mirror'),
-						'team' => _('Team'),
-						'friendly' => _('Friendly')
+						'mirror' => t('home.mirror'),
+						'team' => t('home.team'),
+						'friendly' => t('home.friendly')
 					);
 					$publicLinkData = $publicLinksData[$link];
 					$enabledModes = array();
@@ -695,7 +695,7 @@ $placeholderPath = 'images/pages/pixel.png';
 							$enabledModes[$option] = str_replace('${value}', $publicLinkData->$option, $value);
 					}
 					if (empty($enabledModes))
-						return _('Normal');
+						return t('home.normal');
 					else
 						return implode('+',$enabledModes);
 				}
@@ -712,30 +712,30 @@ $placeholderPath = 'images/pages/pixel.png';
 						$i++;
 					}
 					echo '<span class="ranking_activeplayernb" title="'. $title .'">';
-					echo FN_("{count} member", "{count} members", count: $nbActivePlayers);
+					echo t('home.member_count', count: $nbActivePlayers);
 					echo '</span>';
 					if (!empty($params['cup'])) {
 						echo ' ';
 						if ($params['game'])
-							$theCircuit = _('the arena');
+							$theCircuit = t('common.arena');
 						else {
 							$isMCup = ($params['mode']==8);
 							$isSingle = (($params['mode']%4)>=2);
 							if ($isMCup)
-								$theCircuit = _('the multicup');
+								$theCircuit = t('common.multicup');
 							elseif ($isSingle)
-								$theCircuit = _('the circuit');
+								$theCircuit = t('common.circuit');
 							else
-								$theCircuit = _('the cup');
+								$theCircuit = t('common.cup');
 						}
-						echo P_("circuit", "in ") . $theCircuit;
+						echo t('home.online_game_on_track') . $theCircuit;
 						echo ' ';
 						echo '<strong>';
 						echo get_creation_string($params);
 						echo '</strong>';
 					}
 					elseif (!empty($params)) {
-						echo F_(" in {mode} mode", mode: get_mode_string($params));
+						echo t('home.online_game_mode', mode: get_mode_string($params));
 					}
 				}
 				function print_join_button(&$params) {
@@ -753,7 +753,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						$urlParams[] = 'key='.$params['link'];
 					if (!empty($urlParams))
 						$url .= '?'.implode('&',$urlParams);
-					echo '<a class="action_button" href="'. $url .'">'. _('Join') .'</a>';
+					echo '<a class="action_button" href="'. $url .'">'. t('home.join') .'</a>';
 				}
 				function print_active_players($game,$type) {
 					global $activePlayers, $activePlayersByLink;
@@ -762,7 +762,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						$firstPlayer = reset($activePlayers[$game]);
 						if ((count($activePlayersByLink[$game]) < 2) && !$firstPlayer['link'] && !$firstPlayer['cup']) {
 							echo '<span class="ranking_list">';
-							echo _('Currently online:');
+							echo t('home.currently_online');
 							echo ' ';
 							print_players_raw($activePlayers[$game]);
 							print_join_button($firstPlayer);
@@ -770,7 +770,7 @@ $placeholderPath = 'images/pages/pixel.png';
 							echo ' ';
 						}
 						else {
-							echo _('Currently online:');
+							echo t('home.currently_online');
 							echo '<ul class="ranking_list_game">';
 							foreach ($activePlayersByLink[$game] as $players) {
 								echo '<li>';
@@ -786,12 +786,12 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				?>
 				<a class="ranking_tab tab_vs" href="javascript:dispRankTab(0)">
-					<?= _('VS mode') ?>
+					<?= t('home.vs_mode') ?>
 				</a><a class="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
-					<?= _('Battle') ?>
+					<?= t('home.battle') ?>
 					<?php print_badge(1); ?>
 				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
-					<?= _('Time Trial') ?>
+					<?= t('home.time_trial') ?>
 				</a>
 			</div>
 			<div id="currently_online">
@@ -815,9 +815,9 @@ $placeholderPath = 'images/pages/pixel.png';
 					?>
 					<table id="top_<?php echo $modeId; ?>">
 						<tr>
-							<th><?= _('Rank') ?></th>
-							<th><?= _('Nick') ?></th>
-							<th><?= _('Score') ?></th>
+							<th><?= t('home.rank') ?></th>
+							<th><?= t('home.nick') ?></th>
+							<th><?= t('home.score') ?></th>
 						</tr>
 						<?php
 						if ($isClm) {
@@ -841,10 +841,10 @@ $placeholderPath = 'images/pages/pixel.png';
 				}
 				?>
 			</div>
-			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?= _('Display all'); ?></a>
-			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= _('Display all'); ?></a>
-			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
-			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
+			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?= t('home.display_all'); ?></a>
+			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= t('home.display_all'); ?></a>
+			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= t('home.display_all'); ?></a>
+			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= t('home.display_all'); ?></a>
 		</div>
 		<?php
 		if ($shouldShowAds) {
@@ -864,9 +864,9 @@ $placeholderPath = 'images/pages/pixel.png';
 		?>
 		<div class="subsection">
 			<div class="flag_counter">
-				<h3><?= _('Visitors since november 2017') ?></h3>
-				<img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt="<?= _('Visitors') ?>" />
-				<a class="right_section_actions action_button" href="topic.php?topic=2288"><?= _('Learn more') ?></a>
+				<h3><?= t('home.visitors_since_november_2017') ?></h3>
+				<img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt="<?= t('home.visitors') ?>" />
+				<a class="right_section_actions action_button" href="topic.php?topic=2288"><?= t('home.learn_more') ?></a>
 			</div>
 		</div>
 	</section>
@@ -876,7 +876,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		<div id="final_call_to_action">
 			<a href="mariokart.php">
 				<img src="images/gamepad.png" alt="Play" />
-				<span><?= _("Click here to start playing") ?></span>
+				<span><?= t('home.click_here_start_playing') ?></span>
 			</a>
 		</div>
 		<?php
@@ -923,7 +923,7 @@ include('../includes/footer.php');
 mysql_close();
 ?>
 <script>
-var loadingMsg = "<?= _('Loading') ?>";
+var loadingMsg = "<?= t('home.loading') ?>";
 </script>
 <script defer src="scripts/creations.js"></script>
 <script defer src="scripts/home-sections.js"></script>
