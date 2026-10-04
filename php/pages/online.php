@@ -68,8 +68,8 @@ $isRanked = isset($_GET['ranked']);
 require_once('../includes/lounge/common.php');
 $loungeEligible = lounge_is_eligible($id);
 $loungeUnlockBanner = $loungeEligible && lounge_should_show_unlock_banner($id);
-// A lounge link has no owner, so without this nobody could ever edit a mogi's rules; a
-// lounge moderator stands in for the human host the Discord mogis rely on.
+// A lounge link is owned by the lineup's oldest account, who may not be around or may need
+// help; a lounge moderator can edit a mogi's rules too, as the Discord mogis' staff can.
 $canEditLink = false;
 if ($id && isset($privateLink)) {
 	if (isset($privateLinkData) && $privateLinkData['player'] == $id)

@@ -1241,8 +1241,6 @@ test('the launched link carries the lounge lightning settings', async ({ page })
 	expect(distrib.algorithm).toBeUndefined();
 });
 
-// A lounge link has no owner (mkprivgame.player = 0), so without the lounge right nobody at
-// all could edit a mogi's rules - unlike the Discord mogis, where whoever made the link can.
 // Rule 4c. The client kept this history in memory only, so a player joining mid-mogi had no
 // idea which courses were already used up - and Random could hand them a repeat.
 test('the played course is recorded server-side and handed back to the room', async ({ page }) => {
@@ -1586,7 +1584,9 @@ test('the lounge moderation page acts on a member and logs it', async ({ page, b
 	await sql(`DELETE FROM mklogs WHERE ${mine}`, [bot]);
 });
 
-test('only a lounge moderator can edit a lounge link', async ({ page, browser }) => {
+// A lounge link is owned by the lineup's oldest account, as staff asked, and a lounge
+// moderator can edit it too. Anyone else is turned away.
+test('a lounge link is edited by its owner or a lounge moderator', async ({ page, browser }) => {
 	await login(page);
 	const queueId = await joinAndStartVoting(page, 'all');
 	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
@@ -1598,26 +1598,39 @@ test('only a lounge moderator can edit a lounge link', async ({ page, browser })
 		const [row]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
 		return JSON.parse(row.rules).minPlayers;
 	};
-	const edit = (request: any) => request.post('http://127.0.0.1:8080/api/privateGameOptions.php', {
-		form: { key: String(key), options: JSON.stringify({ minPlayers: 3 }) },
+	const edit = (request: any, value: number) => request.post('http://127.0.0.1:8080/api/privateGameOptions.php', {
+		form: { key: String(key), options: JSON.stringify({ minPlayers: value }) },
 	});
 
-	// an ordinary player is not the owner and holds no right, so the link is closed to them
-	await createLoungeBots(1, 'linkedit');
-	const guest = await browser.newContext();
-	const guestPage = await guest.newPage();
-	await login(guestPage, loungeBotName('linkedit', 1), LOUNGE_BOT_PASSWORD);
+	const [owner, stranger] = await createLoungeBots(2, 'linkedit');
+	const asBot = async (index: number) => {
+		const context = await browser.newContext();
+		const botPage = await context.newPage();
+		await login(botPage, loungeBotName('linkedit', index), LOUNGE_BOT_PASSWORD);
+		return { context, request: botPage.request };
+	};
+	// the seeded admin launched the room alone, so it owns the link; hand it to a bot so the
+	// admin below goes through the lounge right rather than through ownership
+	await sql(`UPDATE mkprivgame SET player = ? WHERE id = ?`, [owner, key]);
+
+	// neither the owner nor a holder of the lounge right
 	const before = await minPlayers();
-	await edit(guestPage.request);
+	const strangerSession = await asBot(2);
+	await edit(strangerSession.request, 3);
 	expect(await minPlayers()).toBe(before);
-	await guest.close();
+	await strangerSession.context.close();
+
+	const ownerSession = await asBot(1);
+	await edit(ownerSession.request, 3);
+	expect(await minPlayers()).toBe(3);
+	await ownerSession.context.close();
 
 	// the seeded account is an admin, which carries the lounge right
 	const [stored]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
 	const fixedTeams = { '1': 0, '2': 1 };
 	await sql(`UPDATE mkgameoptions SET rules = ? WHERE id = ?`, [JSON.stringify({ ...JSON.parse(stored.rules), fixedTeams }), key]);
-	await edit(page.request);
-	expect(await minPlayers()).toBe(3);
+	await edit(page.request, 4);
+	expect(await minPlayers()).toBe(4);
 
 	// the form never sends what the lounge built the room with, and a save keeps it
 	const [saved]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
