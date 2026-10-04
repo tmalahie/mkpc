@@ -1,5 +1,5 @@
--- CT Lounge, fifth pass: indexes for the lookups the lounge tick and the profile make on
--- every poll, which otherwise scan tables that only ever grow. Safe to re-run.
+-- Indexes for the lookups the lounge tick and the player profile make on every poll, which
+-- otherwise scan tables that only ever grow.
 ALTER TABLE `mklounge_queues`
   ADD KEY IF NOT EXISTS `status` (`status`),
   ADD KEY IF NOT EXISTS `privgame_key` (`privgame_key`);

@@ -21,7 +21,7 @@ export function loungeBotPattern(tag: string): string {
 // Private-game keys are normally random, so the specs that stage a finished match
 // take them from a reserved range. Cleanup sweeps the range rather than a list of
 // keys the specs would have to keep in sync with it.
-// What docker/php/scripts/lounge.sql seeds every tier with, and what the specs stage against.
+// What docker/php/scripts/setup.sql seeds every tier with, and what the specs stage against.
 export const SEEDED_MIN_PLAYERS = 4;
 
 export const LOUNGE_KEY_MIN = 990000;
