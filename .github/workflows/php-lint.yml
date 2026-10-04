@@ -15,6 +15,6 @@ jobs:
           php-version: '8.3'
           extensions: intl
       - name: Check for syntax errors
-        run: make php-lint
+        run: npm run lint:php
       - name: Check translations
-        run: make translations-lint
+        run: npm run lint:translations

@@ -93,7 +93,7 @@ Messages use the [ICU MessageFormat](https://unicode-org.github.io/icu/userguide
 To add a language, add `lang/<code>.json` with the keys translated; untranslated keys show in English.
 
 ```
-make translations-lint
+npm run lint:translations
   Checks the catalogs and the code: invalid JSON or ICU syntax, keys the code uses but lang/en.json lacks,
   unused keys, placeholders that differ from English, leftover gettext calls. It runs in CI on every pull request.
 ```
