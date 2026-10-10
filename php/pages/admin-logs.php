@@ -34,6 +34,10 @@ $logMapping = array(
         'render' => t('admin_logs.lounge_set_rating', user: $logTemplates['member']('$1')),
         'role' => 'lounge'
     ),
+    'LoungePlacement' => array(
+        'render' => t('admin_logs.lounge_set_placement', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
     'LoungeStrikes' => array(
         'render' => t('admin_logs.lounge_set_strikes', user: $logTemplates['member']('$1')),
         'role' => 'lounge'

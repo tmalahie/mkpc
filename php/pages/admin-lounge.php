@@ -35,11 +35,13 @@ if ($target && isset($_POST['action'])) {
 	// the row may not exist yet for a player who has never queued
 	lounge_upsert_player($playerId, array(), 'player=player');
 	switch ($_POST['action']) {
-	case 'mmr':
-		lounge_adjust_player_rating($playerId, floatval($_POST['mmr_delta']));
+	case 'placement':
+		lounge_set_player_placement($playerId, floatval($_POST['placement']));
+		$placement = lounge_player_placement($playerId);
 		$after = lounge_get_player_state($playerId)['mmr'];
-		loungeLog('LoungeMmr '. $playerId .' '. round($state['mmr']) .' '. round($after));
-		$notice = ($language ? 'MMR set to ' : 'MMR fix&eacute; &agrave; ') . round($after);
+		loungeLog('LoungePlacement '. $playerId .' '. round($placement) .' '. round($after));
+		$notice = ($language ? 'Placement set to ' : 'Placement fix&eacute; &agrave; ') . round($placement)
+			. ($language ? ', current MMR ' : ', MMR actuel ') . round($after);
 		break;
 	case 'strikes':
 		$strikes = max(0, intval($_POST['strikes']));
@@ -276,8 +278,8 @@ include('../includes/menu.php');
 	</div>
 	<?php if ($tab === 'activity') { ?>
 	<p><?php echo $language
-		? 'Adjust a rating, hand out or lift a ranked ban, or release a queue that got stuck. Every action is recorded in the <a href="admin-logs.php?role=lounge">admin logs</a>.'
-		: 'Ajustez un classement, donnez ou levez un bannissement du mode class&eacute;, ou lib&eacute;rez une file bloqu&eacute;e. Chaque action est enregistr&eacute;e dans les <a href="admin-logs.php?role=lounge">logs d\'administration</a>.'; ?></p>
+		? 'Set a player\'s placement, hand out or lift a ranked ban, or release a queue that got stuck. To correct a single mogi, edit its table from its page. Every action is recorded in the <a href="admin-logs.php?role=lounge">admin logs</a>.'
+		: 'Fixez le placement d\'un joueur, donnez ou levez un bannissement du mode class&eacute;, ou lib&eacute;rez une file bloqu&eacute;e. Pour corriger un seul mogi, modifiez son tableau depuis sa page. Chaque action est enregistr&eacute;e dans les <a href="admin-logs.php?role=lounge">logs d\'administration</a>.'; ?></p>
 
 	<h2><?php echo $language ? 'Member':'Membre'; ?></h2>
 	<form method="post" action="admin-lounge.php">
@@ -303,9 +305,12 @@ include('../includes/menu.php');
 	<div class="lounge-actions">
 		<form method="post" action="admin-lounge.php">
 			<input type="hidden" name="player" value="<?php echo htmlspecialchars($target['nom']); ?>" />
-			<input type="hidden" name="action" value="mmr" />
-			<label for="mmr_delta"><?php echo $language ? 'Adjust MMR by':'Ajuster le MMR de'; ?></label>
-			<input type="number" name="mmr_delta" id="mmr_delta" step="0.01" value="0" />
+			<input type="hidden" name="action" value="placement" />
+			<label for="placement" title="<?php echo $language
+				? 'The MMR the player starts the season from: every mogi they have played since is rated again from it.'
+				: 'Le MMR de d&eacute;part du joueur pour la saison : chaque mogi jou&eacute; depuis est recalcul&eacute; &agrave; partir de lui.'; ?>"><?php echo $language ? 'Placement':'Placement'; ?></label>
+			<?php $placement = lounge_player_placement($target['id']); ?>
+			<input type="number" name="placement" id="placement" step="1" min="0" value="<?php echo round(is_null($placement) ? $state['mmr'] : $placement); ?>" />
 			<input type="submit" class="action_button" value="<?php echo $language ? 'Apply':'Appliquer'; ?>" />
 		</form>
 		<form method="post" action="admin-lounge.php">

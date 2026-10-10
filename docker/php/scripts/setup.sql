@@ -1066,6 +1066,7 @@ CREATE TABLE `mklounge_matches` (
   `tier` int(10) unsigned NOT NULL,
   `privgame_key` int(10) unsigned NOT NULL,
   `mode` varchar(8) NOT NULL,
+  `mmr_mult` double NOT NULL DEFAULT 1,
   `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `ended_at` timestamp NULL DEFAULT NULL,
   `cancelled_reason` varchar(64) DEFAULT NULL,
@@ -2441,3 +2442,4 @@ INSERT INTO mklounge_seasons SET id=1,name="Season 1",multicup_id=10813;
 INSERT INTO mkmigrations SET name="20261004-1200-ranked-lounge.sql";
 INSERT INTO mkmigrations SET name="20261004-1201-lounge-indexes.sql";
 INSERT INTO mkmigrations SET name="20261004-2100-lounge-rating-edits.sql";
+INSERT INTO mkmigrations SET name="20261010-2200-lounge-mmr-mult.sql";

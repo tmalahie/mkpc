@@ -306,6 +306,7 @@
 	"admin_logs.select": "Sélectionner",
 	"admin_logs.filter": "Filtrer",
 	"admin_logs.lounge_set_rating": "a fixé le MMR CT Lounge de {user} de $2 à $3",
+	"admin_logs.lounge_set_placement": "a fixé le placement CT Lounge de {user} à $2 (désormais $3 de MMR)",
 	"admin_logs.lounge_set_strikes": "a fixé les strikes CT Lounge de {user} à $2",
 	"admin_logs.lounge_ban": "a banni {user} du CT Lounge pour $2 minutes",
 	"admin_logs.lounge_unban": "a levé le ban CT Lounge de {user}",
