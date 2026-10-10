@@ -947,7 +947,6 @@ if (pause) {
 }
 
 function resetGame(strMap) {
-	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "loading", map: strMap});
 	oMap = oMaps[strMap];
 	loadMap();
 }
@@ -1698,6 +1697,7 @@ var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "loading", map: oMap.ref});
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
