@@ -33,3 +33,20 @@ export async function sql(query: string, params: any[] = []): Promise<any> {
     await conn.end();
   }
 }
+
+// Takes a MariaDB named lock on a connection of its own and keeps it until the returned
+// release() is called. A spec holds the lock the server is meant to wait on, fires the
+// requests, and checks nothing was written before letting go: the windows those locks close
+// are milliseconds wide, so requests merely fired together would almost never land in one.
+export async function holdLock(name: string): Promise<() => Promise<void>> {
+  const conn = await mysql.createConnection(config);
+  const [[row]]: any = await conn.query('SELECT GET_LOCK(?, 10) AS got', [name]);
+  if (Number(row.got) !== 1) {
+    await conn.end();
+    throw new Error('could not take the lock ' + name);
+  }
+  return async () => {
+    await conn.query('SELECT RELEASE_LOCK(?)', [name]);
+    await conn.end();
+  };
+}

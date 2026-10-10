@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { sql } from './helpers/db';
+import { sql, holdLock } from './helpers/db';
 import { LOUNGE_KEY_MIN, createLoungeBots, loungeBotName, loungeBotPattern, LOUNGE_BOT_PASSWORD } from './helpers/lounge';
 
 // lounge_tick() only runs for a logged-in caller, so the tick that finishes the match has
@@ -626,6 +626,84 @@ test('concurrent ticks finish a match exactly once', async ({ page, browser }) =
 		 WHERE j.nom LIKE ? ORDER BY p.mmr DESC`, [loungeBotPattern('race')]);
 	expect(rows.map(r => r.games)).toEqual([1, 1, 1, 1]);
 	expect(rows.map(r => Math.round(r.mmr))).toEqual([641, 614, 586, 559]);
+});
+
+// A season replay rebuilds every counter and rating from the ended mogis, so a mogi being
+// finished must not touch either until it holds the ratings lock, and must be marked ended
+// before it lets go - otherwise a replay running in between leaves it out.
+test('a mogi finishing during a replay waits for it before counting anything', async ({ page }) => {
+	const key = LOUNGE_KEY_MIN + 67;
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code='all'`);
+	const players = await createLoungeBots(4, 'heldfinish');
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at) VALUES (1, ?, 'launching', ?, NOW())`,
+		[tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode) VALUES (?, 1, ?, ?, 'FFA')`,
+		[q.insertId, tier.id, key]);
+	const [m]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	const scores = [120, 90, 60, 30];
+	for (let i = 0; i < 4; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [m.id, players[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], scores[i]]);
+	}
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+	await publish(key);
+	await login(page);
+
+	const release = await holdLock('mkpc-lounge-ratings');
+	let finishing;
+	try {
+		finishing = tick(page);
+		await page.waitForTimeout(1500);
+		const counted: any[] = await sql(
+			`SELECT games FROM mklounge_players WHERE player IN (?) AND season = 1`, [players]);
+		expect(counted.map(r => r.games)).toEqual([0, 0, 0, 0]);
+		const [held]: any = await sql(`SELECT ended_at FROM mklounge_matches WHERE id = ?`, [m.id]);
+		expect(held.ended_at).toBeNull();
+	}
+	finally {
+		await release();
+	}
+	await finishing;
+
+	const counted: any[] = await sql(
+		`SELECT games FROM mklounge_players WHERE player IN (?) AND season = 1`, [players]);
+	expect(counted.map(r => r.games)).toEqual([1, 1, 1, 1]);
+	const [ended]: any = await sql(`SELECT ended_at FROM mklounge_matches WHERE id = ?`, [m.id]);
+	expect(ended.ended_at).not.toBeNull();
+});
+
+// The same for a voided mogi's penalty: charged while a replay runs, the replay's own write
+// of the rating would undo it.
+test('a cancellation penalty waits for a running replay', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 68;
+	const { matchId, players } = await stageLaunchedMatch('heldvoid', key, 4, 1, 0);
+
+	const release = await holdLock('mkpc-lounge-ratings');
+	let voiding;
+	try {
+		voiding = tick(page);
+		await page.waitForTimeout(1500);
+		const [voided]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE id = ?`, [matchId]);
+		expect(voided.cancelled_reason).toBe('no_show');
+		const charged: any[] = await sql(
+			`SELECT mmr_penalty FROM mklounge_match_players WHERE \`match\` = ? AND mmr_penalty IS NOT NULL`, [matchId]);
+		expect(charged).toHaveLength(0);
+	}
+	finally {
+		await release();
+	}
+	await voiding;
+
+	const rows: any[] = await sql(
+		`SELECT mp.player, mp.mmr_after, p.mmr FROM mklounge_match_players mp
+		 JOIN mklounge_players p ON p.player = mp.player AND p.season = 1
+		 WHERE mp.\`match\` = ? AND mp.player != ?`, [matchId, players[0]]);
+	expect(rows).toHaveLength(3);
+	for (const absent of rows)
+		expect(Number(absent.mmr)).toBe(Number(absent.mmr_after));
+	expect(rows.map(r => Number(r.mmr_after))).toEqual([550, 550, 550]);
 });
 
 // The ladder place either side of a mogi. Absolute places depend on the whole season's
