@@ -481,9 +481,11 @@ test('editing a table recalculates every mogi played since', async ({ page }) =>
 	const games = async (player: number) =>
 		Number((await sql(`SELECT games FROM mklounge_players WHERE player = ? AND season = 1`, [player]) as any)[0].games);
 	const beforeTable = await rating(newcomer);
-	const created = await api(page.request, { action: 'save', tier: String(tier.id),
+	const created = await api(page.request, { action: 'save', tier: String(tier.id), ['adjust_' + rival]: '15',
 		text: 'A\n' + loungeBotName('edit', 1) + ' [fr] 50+12|40\n\nB\n' + loungeBotName('edit', 2) + ' 20|30' });
 	expect(created.saved).toBe(true);
+	// a compensation reaches players the table has only just added
+	expect(created.match.players.find((p: any) => p.id === rival).mmr_adjust).toBe(15);
 	expect(created.match.manual).toBe(true);
 	expect(created.match.players.find((p: any) => p.id === newcomer).score).toBe(102);
 	expect(await games(newcomer)).toBe(3);
@@ -494,13 +496,26 @@ test('editing a table recalculates every mogi played since', async ({ page }) =>
 	expect(await games(newcomer)).toBe(2);
 	expect(await rating(newcomer)).toBeCloseTo(beforeTable, 6);
 
+	// deleting the first mogi replays the second from the placement, not from a "before" the
+	// deleted mogi had already moved; deleting the last one puts both back on their placement
+	expect((await api(page.request, { action: 'delete', match: String(first) })).deleted).toBe(true);
+	expect((await row(second, newcomer)).before).toBe(800);
+	expect((await row(second, rival)).before).toBe(600);
+	expect((await api(page.request, { action: 'delete', match: String(second) })).deleted).toBe(true);
+	expect(await rating(newcomer)).toBe(800);
+	expect(await rating(rival)).toBe(600);
+	expect(await games(rival)).toBe(0);
+	const [peak]: any = await sql(`SELECT peak_mmr FROM mklounge_players WHERE player = ? AND season = 1`, [rival]);
+	expect(Number(peak.peak_mmr)).toBe(600);
+
 	// a table that does not add up is refused, line by line
 	const refusedTable = await api(page.request, { action: 'preview', tier: String(tier.id),
 		text: 'A\nNobodyCalledThis 10\n' + loungeBotName('edit', 1) + ' 1o\nPenalty -10' });
 	expect(refusedTable.errors.map((e: any) => e.slice(0, 2))).toEqual([[2, 'unknown_player'], [3, 'no_score'], [4, 'team_penalty']]);
 
 	// recorded for the other moderators
-	for (const log of ['LoungeMatchEdit ' + first, 'LoungeMatchCreate ' + created.match.id, 'LoungeMatchDelete ' + created.match.id]) {
+	for (const log of ['LoungeMatchEdit ' + first, 'LoungeMatchCreate ' + created.match.id, 'LoungeMatchDelete ' + created.match.id,
+		'LoungeMatchDelete ' + first, 'LoungeMatchDelete ' + second]) {
 		const [logged]: any = await sql(`SELECT id FROM mklogs WHERE log = ?`, [log]);
 		expect(logged).toBeTruthy();
 		await sql(`DELETE FROM mklogsnapshots WHERE log = ?`, [logged.id]);
@@ -512,7 +527,7 @@ test('editing a table recalculates every mogi played since', async ({ page }) =>
 	const guest = await page.context().browser()!.newContext();
 	const guestPage = await guest.newPage();
 	await login(guestPage, loungeBotName('editguest', 1), LOUNGE_BOT_PASSWORD);
-	const refused = await api(guestPage.request, { action: 'save', match: String(first), text, ['adjust_' + rival]: '500' });
+	const refused = await api(guestPage.request, { action: 'save', text, ['adjust_' + rival]: '500' });
 	expect(refused.error).toBe('forbidden');
 	await guest.close();
 });
