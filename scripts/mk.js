@@ -111,6 +111,7 @@ var gamepadMenuEventsHandler;
 var updateVolumeSettings;
 
 function MarioKart() {
+if (typeof MK_DEV !== "undefined" && MK_DEV) eval(mkDevAttach);
 
 var oMaps = listMaps();
 
@@ -1696,6 +1697,7 @@ var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "loading", map: oMap.ref});
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
@@ -3727,6 +3729,8 @@ function startEndMusic() {
 	}
 }
 function handleEndRace() {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("raceEnd", {race: iRaceCount, online: false});
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "results"});
 	if (bMusic||iSfx)
 		startEndMusic();
 	var events = ["next_circuit"];
@@ -4798,6 +4802,8 @@ function startGame() {
 			}
 			else {
 				clearTimeout(fncHandler);
+				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("raceStart", {race: iRaceCount, map: oMap.ref, replay: !!willReplay});
+				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "race"});
 				var currentPressedKeys = {};
 				if (oPlayers[0].speedinc > 0)
 					currentPressedKeys.up = true;
@@ -5411,6 +5417,7 @@ function startGame() {
 				countDownMusic.play();
 			document.body.style.cursor = "default";
 			//* gogogo
+			if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "countdown", race: iRaceCount});
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -6305,6 +6312,7 @@ function reprendre(debug) {
 
 function quitter() {
 	if (isOnline) {
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("redirect", {reason: "quit"});
 		document.location.href = isCup ? ((isBattle ? (complete ? 'battle':'arena') : (complete ? 'map':'circuit')) + '.php?' + (isMCups ? ('mid=' + nid) : ((isSingle ? (complete?'i':'id'):'cid')+'='+nid))) : 'index.php';
 		return;
 	}
@@ -18624,7 +18632,9 @@ function resetDatas() {
 			connecte = rCode[2];
 			if (rCode[3]) {
 				refreshDatas = false;
+				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("raceEnd", {race: iRaceCount, online: true, ranking: rCode[3].map(function(p) { return p[0]; })});
 				function displayRankings() {
+					if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "results"});
 					var oPlayer = getPlayerAtScreen(0);
 					if (course == "BB") {
 						oPlayer.arme = false;
@@ -22657,6 +22667,7 @@ function handleSpectatorInput(e) {
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId,prevId);
 		break;
 	case "quit":
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("redirect", {reason: "spectatorQuit"});
 		document.location.reload();
 		return false;
 	default:
@@ -24944,6 +24955,7 @@ function privateLink(options) {
 }
 
 function selectTypeScreen() {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "main"});
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -25675,6 +25687,7 @@ function selectTrackCreate(i) {
 
 var myPersosCache;
 function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "characterSelect", player: IdJ});
 	var isCustomSel = (nbSels !== undefined);
 	var force = (IdJ === -1);
 	if (force) IdJ = 0;
@@ -29034,6 +29047,7 @@ function selectChallengesScreen() {
 }
 
 function searchCourse(opts) {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "lobby"});
 	opts = opts || {};
 
 	var oScr = document.createElement("div");
@@ -29475,6 +29489,7 @@ function selectMapScreen(opts) {
 				break;
 			}
 		}
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "cupSelect"});
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
 
@@ -29892,6 +29907,7 @@ function selectMapScreen(opts) {
 					if (!hadInputDuringRace) {
 						var $spectatorLink = document.getElementById("enable-spectator-mode");
 						if ($spectatorLink) {
+							if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("afkSpectator", {});
 							$spectatorLink.click();
 							return;
 						}
@@ -29978,6 +29994,7 @@ function appendContainers() {
 
 function selectRaceScreen(cup) {
 	if (isOnline || (!isSingle && course != "GP")) {
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "trackSelect", cup: cup});
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
 
@@ -30169,6 +30186,7 @@ function selectRaceScreen(cup) {
 					if (!hadInputDuringRace) {
 						var $spectatorLink = document.getElementById("enable-spectator-mode");
 						if ($spectatorLink) {
+							if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("afkSpectator", {});
 							$spectatorLink.click();
 							return;
 						}
@@ -30221,6 +30239,7 @@ function choose(map,rand) {
 		resetGame("map"+map);
 		return;
 	}
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "trackVote", map: map, random: !!rand});
 	var choixJoueurs = [];
 	var oTable = document.createElement("table");
 	oTable.className = "online-track-sel";
@@ -30248,6 +30267,7 @@ function choose(map,rand) {
 					return false;
 				}
 				choixJoueurs = rCode[0];
+				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("chooseResponse", {selected: rCode[1], track: choixJoueurs[rCode[1]] ? choixJoueurs[rCode[1]][2] : null, players: choixJoueurs.length, rules: rCode[4]});
 				var trs = oTBody.getElementsByTagName("tr");
 				while (trs.length)
 					oTBody.removeChild(trs[0]);
@@ -30602,6 +30622,7 @@ function clearRaceWheenScreen() {
 
 var onlineSpectatorState;
 function setSpectatorId(id) {
+	if (typeof MK_DEV !== "undefined" && MK_DEV && id != onlineSpectatorId) mkDevLog(id ? "spectatorOn" : "spectatorOff", {id: id});
 	onlineSpectatorId = id;
 	if (!onlineSpectatorId)
 		onlineSpectatorState = undefined;
@@ -31236,6 +31257,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 }
 
 function iDeco() {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("disconnected", {});
 	var oDiv = document.createElement("div");
 	oDiv.style.position = "absolute";
 	oDiv.style.left = (iScreenScale*15) +"px";
@@ -31258,6 +31280,7 @@ function iDeco() {
 	oQuit.value = toLanguage("Back", "Retour");
 	oQuit.style.fontSize = (iScreenScale*3) +"px";
 	oQuit.onclick = function() {
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("redirect", {reason: "disconnected"});
 		location.reload();
 	}
 	oDiv.appendChild(oQuit);
