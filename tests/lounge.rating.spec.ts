@@ -349,6 +349,37 @@ test('a short mogi charges the light penalty for one missed race', async ({ page
 	}
 });
 
+// The room's raceLimit is fixed at launch and its players leave when it is reached, so a
+// change of the setting mid-mogi must not leave the match waiting for races nobody will run.
+test('a mogi ends at the length it was launched with', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const key = LOUNGE_KEY_MIN + 66;
+	const players = await createLoungeBots(4, 'launchlen');
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launching', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	const scores = [120, 90, 60, 30];
+	for (let i = 0; i < players.length; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player, races_played) VALUES (?, ?, 1)`,
+			[match.id, players[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], scores[i]]);
+	}
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)`,
+		[key, JSON.stringify({ raceLimit: 1, lounge: 1 })]);
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 1, 1)`, [key]);
+	await publish(key);
+
+	await login(page);
+	await tick(page);
+
+	const [ended]: any = await sql(`SELECT ended_at, cancelled_reason FROM mklounge_matches WHERE id = ?`, [match.id]);
+	expect(ended.ended_at).not.toBeNull();
+	expect(ended.cancelled_reason).toBeNull();
+});
+
 // If the race-end hook never ran, every attendance is 0 - which must read as "we do not know
 // how long the mogi was", not as "nobody turned up for any of it".
 test('a mogi with no attendance recorded penalises nobody', async ({ page }) => {
