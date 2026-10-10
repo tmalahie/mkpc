@@ -39,7 +39,6 @@ if ($course) {
 				$nbJoueurs = $courseRules->cpuCount;
 			$time += getTeamSelectionTime($nbJoueurs);
 		}
-		mysql_query('UPDATE `mariokart` SET map='. $map .', time='.$time.' WHERE id='. $course);
 		$isLocal = !empty($courseRules->friendly) && !empty($courseRules->localScore);
 		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
 		$nConnect = round($time/67);
@@ -65,6 +64,9 @@ if ($course) {
 			if (intval($raceState['raceCount']) > 0)
 				$loungeVoided = lounge_void_if_too_many_bots($getMap['link'], $course);
 		}
+		// Published only once the void is settled: a player polling in between would see a race
+		// start without the void flag, and stop on "not enough players" instead of the results.
+		mysql_query('UPDATE `mariokart` SET map='. $map .', time='.$time.' WHERE id='. $course);
 		if (!empty($courseRules->lounge) && $nbPlayers && !$loungeVoided) {
 			foreach (lounge_absent_members($getMap['link'], $course) as $sub) {
 				$toUpate = 'course='.$course.',controller='.$playerIds[count($subIds)%$nbPlayers].',aPts='. $sub['pts'] .','.$toUpdate0;
