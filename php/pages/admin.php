@@ -272,6 +272,18 @@ include('../includes/menu.php');
 			<?php
 		}
 		?>
+		<?php
+		if (hasRight('lounge')) {
+			?>
+		<li>
+			<a class="action-ctn" href="admin-lounge.php">
+				<div class="action-title"><?= t('admin.moderate_ct_lounge') ?></div>
+				<div class="action-desc"><?= t('admin.adjust_rating_ban_release_queue') ?></div>
+			</a>
+		</li>
+			<?php
+		}
+		?>
 		<li>
 			<a class="action-ctn" href="admin-logs.php">
 				<div class="action-title"><?= t('admin.see_admin_logs') ?></div>

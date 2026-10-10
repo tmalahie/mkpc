@@ -30,6 +30,42 @@ $logMapping = array(
         'render' => t('admin_logs.accepted_challenge') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
+    'LoungeMmr' => array(
+        'render' => t('admin_logs.lounge_set_rating', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeStrikes' => array(
+        'render' => t('admin_logs.lounge_set_strikes', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeBan' => array(
+        'render' => t('admin_logs.lounge_ban', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeUnban' => array(
+        'render' => t('admin_logs.lounge_unban', user: $logTemplates['member']('$1')),
+        'role' => 'lounge'
+    ),
+    'LoungeRelease' => array(
+        'render' => t('admin_logs.lounge_release_queue'),
+        'role' => 'lounge'
+    ),
+    'LoungeMatchEdit' => array(
+        'render' => t('admin_logs.lounge_edit_match', url: 'lounge.php?tab=leaderboard&amp;match=$1'),
+        'role' => 'lounge'
+    ),
+    'LoungeMatchCreate' => array(
+        'render' => t('admin_logs.lounge_create_match', url: 'lounge.php?tab=leaderboard&amp;match=$1'),
+        'role' => 'lounge'
+    ),
+    'LoungeMatchDelete' => array(
+        'render' => t('admin_logs.lounge_delete_match'),
+        'role' => 'lounge'
+    ),
+    'LoungeSetting' => array(
+        'render' => t('admin_logs.lounge_setting'),
+        'role' => 'lounge'
+    ),
     'CCircuit' => array(
         'render' => t('admin_logs.deleted_complete_track'),
         'role' => 'moderator'

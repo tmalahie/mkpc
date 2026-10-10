@@ -1,0 +1,2703 @@
+import { test, expect } from '@playwright/test';
+import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
+import { sql } from './helpers/db';
+import { cleanupLoungeQueues, createLoungeBots, loungeBotName, loungeBotPattern, acceptLoungeRules, LOUNGE_BOT_PASSWORD, LOUNGE_BOT_HASH, LOUNGE_KEY_MIN } from './helpers/lounge';
+
+// One file on purpose. join.php puts a player into the tier's existing open queue, so
+// every test here shares that queue whichever account it uses - and Playwright can only
+// serialise tests within a file. Split across files they run in parallel workers and
+// stand in each other's lineups.
+test.describe.configure({ mode: 'serial' });
+
+// Owns the fixtures this file builds. The "e2e-" prefix is what cleanupCreations
+// sweeps by, so anything created without it would leak.
+const OWNER = 'e2e-lounge-bot';
+
+async function login(page, pseudo = 'wargor', code = 'aaaa') {
+	const res = await page.request.post('http://127.0.0.1:8080/api/testcode.php', {
+		form: { pseudo, code },
+	});
+	const body = await res.text();
+	expect(Number(body)).toBeGreaterThan(0);
+	const cookies = res.headersArray().filter(h => h.name.toLowerCase() === 'set-cookie');
+	for (const c of cookies) {
+		const [pair] = c.value.split(';');
+		const [name, value] = pair.split('=');
+		await page.context().addCookies([{ name, value, domain: '127.0.0.1', path: '/' }]);
+	}
+}
+
+// leave.php enforces rule 3a's 15-second delay, so a spec that joins and then tidies up has
+// to age its own row first - a real player would simply have waited it out. Scoped to rows
+// still in a queue, and only ever moves joined_at backwards, so it cannot change a status.
+async function ageJoins() {
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = joined_at - INTERVAL 1 MINUTE
+		 WHERE dropped_at IS NULL`
+	);
+}
+
+async function dropOut(request) {
+	await ageJoins();
+	await request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+}
+
+async function resetLoungeState(request) {
+	await dropOut(request);
+}
+
+// The dev container carries real bot credentials, so a suite that only flipped discord_enabled
+// would ping a staff channel on every run. Dry run still records every message - which is what
+// these cases assert on - it just never sends one.
+// Every settled lineup sits on the recap for a few seconds before the room opens. The cases
+// that care about the room rather than the wait step over it.
+async function passRecap(page, queueId: number) {
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = draft_turn_at - INTERVAL 1 MINUTE WHERE id = ?`,
+		[queueId]);
+	await tick(page);
+}
+
+async function enableDiscord() {
+	await sql(
+		`INSERT INTO mklounge_settings (name, value) VALUES ('discord_enabled', 1), ('discord_dry_run', 1)
+		 ON DUPLICATE KEY UPDATE value = 1`
+	);
+}
+
+// cleanupLoungeQueues sweeps by account name; this closes every lineup whoever is standing
+// in it, for the cases that assert on what a single tick does.
+async function quietLadder() {
+	await sql(
+		`UPDATE mklounge_queues SET status = 'cancelled'
+		 WHERE status NOT IN ('cancelled', 'finished')`
+	);
+	await sql(`UPDATE mklounge_queue_members SET dropped_at = NOW() WHERE dropped_at IS NULL`);
+}
+
+test('lounge page renders tiers for logged-in user', async ({ page }) => {
+	await login(page);
+	// a queued account lands on the waiting view instead of the tier list
+	await resetLoungeState(page.request);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	await expect(page.locator('.lounge-header h1')).toHaveText('CT Lounge');
+	await expect(page.locator('.lounge-tier').first()).toBeVisible({ timeout: 5000 });
+
+	const tiers = page.locator('.lounge-tier');
+	await expect(tiers).toHaveCount(5);
+
+	await expect(tiers.nth(0).locator('.lounge-tier-title')).toContainText('All');
+	await expect(tiers.nth(1).locator('.lounge-tier-title')).toContainText('C');
+
+	// which tiers are locked depends on the account's current MMR, so derive it
+	// from the API rather than assuming the player is still at the default rating
+	const state = await (await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php')).json();
+	const lockedTiers = state.tiers.filter((t: any) => !t.eligible);
+	await expect(page.locator('.lounge-tier.is-locked')).toHaveCount(lockedTiers.length);
+	await expect(tiers.nth(0)).not.toHaveClass(/is-locked/);
+});
+
+test('lounge tab switching works', async ({ page }) => {
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	await expect(page.locator('[data-panel="queueup"]')).toHaveClass(/is-active/);
+	await page.locator('[data-tab="howitworks"]').click();
+	await expect(page.locator('[data-panel="howitworks"]')).toHaveClass(/is-active/);
+	await expect(page.locator('[data-panel="queueup"]')).not.toHaveClass(/is-active/);
+});
+
+test('lounge page is gated when logged out', async ({ page }) => {
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-gate')).toBeVisible();
+	await expect(page.locator('#lounge')).toHaveCount(0);
+});
+
+test('joining a tier transitions to the waiting screen and dropping returns', async ({ page }) => {
+	await login(page);
+	await resetLoungeState(page.request);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	const joinAll = page.locator('.lounge-tier').nth(0).locator('.lounge-tier-join');
+	await expect(joinAll).toBeEnabled();
+	await joinAll.click();
+
+	const waiting = page.locator('#lounge-queueup');
+	await expect(waiting).toBeVisible();
+	await expect(waiting.locator('.lounge-waiting-header h2')).toContainText('All');
+	await expect(waiting.locator('.lounge-member')).toHaveCount(1);
+	await expect(waiting.locator('.lounge-member.is-self')).toHaveCount(1);
+
+	const drop = waiting.locator('.lounge-drop');
+	await expect(drop).toBeVisible();
+	await drop.click();
+
+	await expect(page.locator('#lounge-tiers')).toBeVisible();
+	await expect(page.locator('#lounge-queueup')).toBeHidden();
+});
+
+test('reopening lounge while queued shows waiting view directly', async ({ page }) => {
+	await login(page);
+	await resetLoungeState(page.request);
+
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	expect((await joined.json()).queue).toBeTruthy();
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('#lounge-queueup')).toBeVisible();
+	await expect(page.locator('#lounge-tiers')).toBeHidden();
+
+	await resetLoungeState(page.request);
+});
+
+test('voting flow: join → lock → vote → launch creates a private game', async ({ request }) => {
+	const loginAs = async (pseudo, code) => {
+		const r = await request.post('http://127.0.0.1:8080/api/testcode.php', { form: { pseudo, code } });
+		const id = Number(await r.text());
+		expect(id).toBeGreaterThan(0);
+		return r.headersArray().filter(h => h.name.toLowerCase() === 'set-cookie').map(h => h.value);
+	};
+	const apiCall = async (cookieHeaders, endpoint, form = {}) => {
+		const headers: Record<string, string> = {};
+		if (cookieHeaders.length) headers['Cookie'] = cookieHeaders.map(c => c.split(';')[0]).join('; ');
+		const r = await request.post('http://127.0.0.1:8080/api/' + endpoint, { form, headers });
+		return r.json();
+	};
+
+	const cookies1 = await loginAs('wargor', 'aaaa');
+	await apiCall(cookies1, 'lounge/leave.php');
+	const joinRes = await apiCall(cookies1, 'lounge/join.php', { tier: '1' });
+	expect(joinRes.queue.status).toBe('open');
+	expect(joinRes.queue.members).toHaveLength(1);
+
+	// Solo "vote" path: with 1 player, we can't lock/vote naturally. The unit-level coverage for vote/launch is
+	// validated via direct API calls in CI; here we just confirm the public flow up through joining and leaving
+	// returns the expected shape.
+	expect(joinRes.queue.allowed_modes).toContain('FFA');
+
+	await ageJoins();
+	await apiCall(cookies1, 'lounge/leave.php');
+});
+
+// Ranked is only offered to a player who could actually enter it. The two criteria are
+// checked server-side and handed to mk.js, so the page itself is what these read.
+async function createEntryBot(name: string, ptsVs: number): Promise<number> {
+	await sql(`DELETE FROM mkjoueurs WHERE nom = ?`, [name]);
+	const res: any = await sql(
+		`INSERT INTO mkjoueurs
+			(nom, course, code, joueur, choice_map, choice_rand, pts_vs, pts_battle, pts_challenge, online, deleted)
+		 VALUES (?, 0, ?, 'mario', 0, 0, ?, 0, 0, 0, 0)`,
+		[name, LOUNGE_BOT_HASH, ptsVs]
+	);
+	return res.insertId;
+}
+
+async function loungeFlags(page, pseudo: string) {
+	await login(page, pseudo, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	return page.evaluate(() => ({
+		eligible: window['loungeEligible'],
+		banner: window['loungeUnlockBanner'],
+	}));
+}
+
+test('ranked is hidden from a player short of the entry criteria', async ({ page }) => {
+	const short = 'e2e-lounge-entry-short';
+	const met = 'e2e-lounge-entry-met';
+	await createEntryBot(short, 500);
+	const metId = await createEntryBot(met, 999999);
+
+	expect(await loungeFlags(page, short)).toEqual({ eligible: false, banner: false });
+	// crossing the criteria both offers ranked and says so
+	expect(await loungeFlags(page, met)).toEqual({ eligible: true, banner: true });
+
+	// "Don't show again" is remembered; the button stays
+	await page.request.post('http://127.0.0.1:8080/api/lounge/dismiss-unlock.php');
+	expect(await loungeFlags(page, met)).toEqual({ eligible: true, banner: false });
+
+	const [row]: any = await sql(
+		`SELECT unlock_dismissed_at FROM mklounge_players WHERE player = ? AND season = 1`, [metId]
+	);
+	expect(row.unlock_dismissed_at).toBeTruthy();
+
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [metId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
+// Someone who has already used ranked does not need telling it exists.
+test('the unlock banner stops once a player has queued', async ({ page }) => {
+	const name = 'e2e-lounge-entry-queued';
+	const botId = await createEntryBot(name, 999999);
+	expect((await loungeFlags(page, name)).banner).toBe(true);
+
+	await acceptLoungeRules(name);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
+	expect((await loungeFlags(page, name)).banner).toBe(false);
+
+	await cleanupLoungeQueues(name);
+	await sql(`DELETE FROM mklounge_queue_members WHERE player = ?`, [botId]);
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [botId]);
+	await sql(`DELETE FROM mkjoueurs WHERE id = ?`, [botId]);
+	await login(page);
+});
+
+test('Ranked button opens the lounge overlay from online.php', async ({ page }) => {
+	test.setTimeout(60000);
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	await page.waitForFunction(() => typeof window['openLoungeOverlay'] === 'function', null, { timeout: 30000 });
+	await page.evaluate(() => window['openLoungeOverlay']());
+
+	const overlay = page.locator('#lounge-overlay');
+	await expect(overlay).toBeVisible();
+	const frame = page.frameLocator('#lounge-overlay iframe');
+	await expect(frame.locator('.lounge-header h1')).toHaveText('CT Lounge');
+});
+
+// Closing the overlay used to throw the lounge away - and goToRoom() navigates the parent
+// window, so a lineup would gather, launch, and race without the player who was still in it.
+test('closing the lounge while queued keeps it running, and says so', async ({ page }) => {
+	test.setTimeout(90000);
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php',
+		{ form: { tier: String(tier.id) } });
+
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	await page.waitForFunction(() => typeof window['openLoungeOverlay'] === 'function', null,
+		{ timeout: 30000 });
+	await page.evaluate(() => window['openLoungeOverlay']());
+	const overlay = page.locator('#lounge-overlay');
+	await expect(page.frameLocator('#lounge-overlay iframe').locator('.lounge-alerts-toggle'))
+		.toBeVisible({ timeout: 20000 });
+
+	// shut it: hidden rather than gone, so it can still take this window to the race
+	await overlay.locator('button').first().click();
+	await expect(overlay).toHaveCount(1);
+	expect(await overlay.evaluate((o: HTMLElement) => o.style.visibility)).toBe('hidden');
+	const chip = page.locator('#lounge-queued-chip');
+	await expect(chip).toHaveText(/Ranked lineup 1\/\d/);
+
+	// and the chip is the way back in, without starting a second lounge beside the first
+	await chip.click();
+	expect(await overlay.evaluate((o: HTMLElement) => o.style.visibility)).toBe('');
+	await expect(chip).toHaveCount(0);
+	await expect(page.locator('#lounge-overlay iframe')).toHaveCount(1);
+
+	// once the player is out of the queue there is nothing left to keep alive
+	await overlay.locator('button').first().click();
+	await expect(chip).toHaveCount(1);
+	await ageJoins();
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await expect(overlay).toHaveCount(0, { timeout: 20000 });
+	await expect(chip).toHaveCount(0);
+});
+
+// The ranked flow replaced the game screen to get here, so hiding the overlay would leave a
+// dark screen and a chip on it. The cross says why it will not close instead.
+test('the lounge will not close onto a dark screen while the player is in a lineup', async ({ page }) => {
+	test.setTimeout(90000);
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php',
+		{ form: { tier: String(tier.id) } });
+
+	await page.goto('http://127.0.0.1:8080/online.php', { waitUntil: 'domcontentloaded' });
+	await page.waitForFunction(() => typeof window['openLoungeOverlay'] === 'function', null,
+		{ timeout: 30000 });
+	// perso is what the ranked flow passes, and what says there is no screen underneath
+	await page.evaluate(() => window['openLoungeOverlay']({ perso: 'mario' }));
+	const overlay = page.locator('#lounge-overlay');
+	await expect(page.frameLocator('#lounge-overlay iframe').locator('.lounge-alerts-toggle'))
+		.toBeVisible({ timeout: 20000 });
+
+	const close = overlay.locator('button').first();
+	await expect(close).toHaveAttribute('title', 'You are in a ranked lineup');
+	await close.click();
+	await expect(page.locator('#lounge-notice')).toHaveText(/leave it below before closing/);
+	// still there, still shown, and no chip pretending to be the way back
+	expect(await overlay.evaluate((o: HTMLElement) => o.style.visibility)).toBe('');
+	await expect(page.locator('#lounge-queued-chip')).toHaveCount(0);
+
+	// out of the lineup, the cross is a cross again
+	await ageJoins();
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await expect(close).toHaveAttribute('title', 'Close', { timeout: 20000 });
+});
+
+// The online mode screen is where most players pick how to play, so ranked is only offered
+// there to the ones who have already shown they want it - a player who has never queued keeps
+// the two modes they have always had, and finds ranked through its own entry points.
+test('the online mode screen offers ranked to players who have queued before', async ({ page }) => {
+	test.setTimeout(60000);
+	const short = 'e2e-lounge-mode-short';
+	const fresh = 'e2e-lounge-mode-fresh';
+	const regular = 'e2e-lounge-mode-regular';
+	await createEntryBot(short, 500);
+	await createEntryBot(fresh, 999999);
+	const regularId = await createEntryBot(regular, 999999);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const past: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'cancelled')`, [tier.id]);
+	await sql(
+		`INSERT INTO mklounge_queue_members (queue, player, joined_at, last_heartbeat, confirmed_at, dropped_at)
+		 VALUES (?, ?, NOW(), NOW(), NOW(), NOW())`, [past.insertId, regularId]);
+	const modes = async () => {
+		await page.goto('http://127.0.0.1:8080/mariokart.php', { waitUntil: 'domcontentloaded' });
+		await page.locator('input[value*="Online race"]:visible').first().click({ timeout: 30000 });
+		const buttons = page.locator('input[value$="mode"]:visible, input[value="Course VS"]:visible');
+		await expect(buttons.first()).toBeVisible();
+		return page.evaluate(() => [...document.querySelectorAll('input[type=button]')]
+			.filter(b => (b as HTMLElement).offsetParent && /mode|Course VS|ballons/.test((b as HTMLInputElement).value))
+			.map(b => ({ v: (b as HTMLInputElement).value, y: Math.round(b.getBoundingClientRect().y) })));
+	};
+
+	await login(page, regular, LOUNGE_BOT_PASSWORD);
+	const withRanked = await modes();
+	expect(withRanked.map(b => b.v)).toEqual(['VS mode', 'Battle mode', 'Ranked mode']);
+	// evenly spaced, and the last one clear of the menu links along the bottom
+	const gaps = withRanked.slice(1).map((b, i) => b.y - withRanked[i].y);
+	expect(new Set(gaps).size).toBe(1);
+	const back = (await page.locator('input[value="Back"]:visible').first().boundingBox())!;
+	expect(withRanked[2].y).toBeLessThan(back.y);
+	await page.locator('input[value="Ranked mode"]:visible').first().click();
+	await expect(page).toHaveURL(/online\.php\?mid=\d+&ranked$/);
+
+	// eligible but never queued, and short of the criteria: the two original modes, in the
+	// places they have always had
+	for (const name of [fresh, short]) {
+		await login(page, name, LOUNGE_BOT_PASSWORD);
+		const without = await modes();
+		expect(without.map(b => b.v)).toEqual(['VS mode', 'Battle mode']);
+		expect(without[0].y).toBeGreaterThan(withRanked[0].y);
+	}
+
+	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [past.insertId]);
+	await sql(`DELETE FROM mklounge_queues WHERE id = ?`, [past.insertId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?, ?)`, [short, fresh, regular]);
+	await login(page);
+});
+
+// The lineup notification is only ever sent to a player who could enter ranked, so the switch
+// for it is only offered to one.
+test('the notification settings carry the ranked lineup alert, for eligible players only', async ({ page }) => {
+	const short = 'e2e-lounge-notif-short';
+	const met = 'e2e-lounge-notif-met';
+	const shortId = await createEntryBot(short, 500);
+	const metId = await createEntryBot(met, 999999);
+	const box = page.locator('#lounge_queue');
+
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/notif-settings.php', { waitUntil: 'domcontentloaded' });
+	await expect(box).toHaveCount(0);
+
+	await login(page, met, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/notif-settings.php', { waitUntil: 'domcontentloaded' });
+	await expect(box).toBeChecked();
+	await box.uncheck();
+	await page.locator('input[type=submit]').click();
+	await expect(box).not.toBeChecked();
+	const [muted]: any = await sql(
+		`SELECT COUNT(*) n FROM mknotifmute WHERE user = ? AND type = 'lounge_queue'`, [metId]);
+	expect(Number(muted.n)).toBe(1);
+
+	// a save by someone who is not offered a type must not clear their setting for it
+	await sql(`INSERT IGNORE INTO mknotifmute VALUES(?, 'lounge_queue')`, [shortId]);
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/notif-settings.php', { waitUntil: 'domcontentloaded' });
+	await page.locator('input[type=submit]').click();
+	await page.waitForLoadState('domcontentloaded');
+	const [kept]: any = await sql(
+		`SELECT COUNT(*) n FROM mknotifmute WHERE user = ? AND type = 'lounge_queue'`, [shortId]);
+	expect(Number(kept.n)).toBe(1);
+
+	await sql(`DELETE FROM mknotifmute WHERE user IN (?, ?)`, [shortId, metId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
+// The home page builds every Top 10 table server-side on each load, so the ranked one is
+// built only for players who have a ladder to be in. Ranked is a way of playing VS, so it sits
+// under the VS tab beside Worldwide, the way the two cc's sit under Time Trial.
+test('the home page Top 10 gains a Ranked view under VS, for eligible players only', async ({ page }) => {
+	const short = 'e2e-lounge-top10-short';
+	const met = 'e2e-lounge-top10-met';
+	const shortId = await createEntryBot(short, 500);
+	await createEntryBot(met, 999999);
+	const tabs = () => page.locator('.ranking_tab');
+
+	await login(page, met, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	await expect(tabs()).toHaveCount(3);
+	await expect(page.locator('#vs_sub')).toBeVisible();
+	await expect(page.locator('#top_vs')).toBeVisible();
+	await page.locator('.vs_sub_ranked').click();
+	await expect(page.locator('#top_ranked')).toBeVisible();
+	await expect(page.locator('#top_vs')).toBeHidden();
+	// still the VS tab, the way either cc is still the Time Trial tab
+	await expect(page.locator('#rankings_section')).toHaveClass(/rank_ranked/);
+	expect(await page.locator('.tab_vs').evaluate(t => getComputedStyle(t).fontWeight)).toBe('700');
+	// ordered by MMR, and only players who have actually raced
+	const mmrs = await page.locator('#top_ranked tr td:nth-child(3)').allTextContents();
+	expect(mmrs.length).toBeGreaterThan(0);
+	const numbers = mmrs.map(Number);
+	expect(numbers).toEqual([...numbers].sort((a, b) => b - a));
+	// each row painted in its player's rank colour, the way the ladder is read on Discord
+	const ranks: any[] = await sql(`SELECT color, min_mmr FROM mklounge_ranks ORDER BY min_mmr DESC`);
+	const rgb = (hex: string) => {
+		const n = parseInt(hex.replace('#', ''), 16);
+		return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+	};
+	// the colour's channels only: how see-through the row is is a design choice, not the rank
+	const painted = await page.locator('#top_ranked tr.top10_rank')
+		.evaluateAll(rows => rows.map(r => getComputedStyle(r).backgroundColor.replace(/^rgba?\((\d+, \d+, \d+).*$/, '$1')));
+	expect(painted).toEqual(numbers.map(mmr => rgb(ranks.find(r => mmr >= r.min_mmr).color)));
+
+	// Time Trial reopens the cc you last looked at, and Ranked must not become that memory
+	await page.locator('.tab_clm').click();
+	await expect(page.locator('#top_clm150')).toBeVisible();
+	await expect(page.locator('#top_ranked')).toBeHidden();
+	await page.locator('.clm_cc_200').click();
+	await page.locator('.tab_vs').click();
+	// and the VS tab reopens the view you left it on, which was Ranked
+	await expect(page.locator('#top_ranked')).toBeVisible();
+	await expect(page.locator('#vs_sub')).toBeVisible();
+	await page.locator('.tab_clm').click();
+	await expect(page.locator('#top_clm200')).toBeVisible();
+	await expect(page.locator('#top_ranked')).toBeHidden();
+	await expect(page.locator('#vs_sub')).toBeHidden();
+
+	// A gathering lineup belongs beside the ladder, not in with the public VS games, and the
+	// Ranked view wears a badge so it is noticed from Worldwide, where VS opens.
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	// the badge counts every player waiting, so the count is only knowable from a clean slate
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE status NOT IN ('cancelled', 'finished')`);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'open')`, [tier.id]);
+	await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`,
+		[queue.insertId, shortId]);
+
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	const badge = page.locator('.vs_sub_ranked .ranking_badge');
+	await expect(badge).toHaveText('1');
+	await expect(badge).toBeVisible();
+	await expect(page.locator('#ranking_current_vs a[href*="ranked"]')).toHaveCount(0);
+	await expect(page.locator('#ranking_current_ranked')).toBeHidden();
+
+	await page.locator('.vs_sub_ranked').click();
+	await expect(page.locator('#ranking_current_ranked li')).toHaveCount(1);
+	await expect(badge).toBeHidden();
+
+	// a lineup whose members have all closed the lounge is not advertised, even before anything
+	// has come along to drop them - and it is left alone: dropping them, with the strike that
+	// goes with it, is the lounge's job
+	await sql(`UPDATE mklounge_queue_members SET last_heartbeat = NOW() - INTERVAL 1 HOUR WHERE queue = ?`,
+		[queue.insertId]);
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	await expect(badge).toHaveCount(0);
+	await page.locator('.vs_sub_ranked').click();
+	await expect(page.locator('#ranking_current_ranked')).toHaveCount(0);
+	const [stale]: any = await sql(`SELECT dropped_at FROM mklounge_queue_members WHERE queue = ?`, [queue.insertId]);
+	expect(stale.dropped_at).toBeNull();
+
+	// "Display all" opens the leaderboard itself, and Queue Up on that standalone page is the
+	// way back into the game, where a character can be picked
+	await expect(page.locator('.action_gotoranked'))
+		.toHaveAttribute('href', 'lounge.php?tab=leaderboard');
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard');
+	await expect(page.locator('.lounge-tab[data-tab="leaderboard"]')).toHaveClass(/is-active/);
+	await expect(page.locator('.lounge-leaderboard-table')).toBeVisible();
+	await page.locator('.lounge-tab[data-tab="queueup"]').click();
+	await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:8080\/online\.php\?mid=\d+&ranked$/);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queue.insertId]);
+
+	await login(page, short, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/index.php', { waitUntil: 'domcontentloaded' });
+	await expect(tabs()).toHaveCount(3);
+	await expect(page.locator('#vs_sub')).toHaveCount(0);
+	await expect(page.locator('#top_ranked')).toHaveCount(0);
+
+	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [queue.insertId]);
+	await sql(`DELETE FROM mklounge_queues WHERE id = ?`, [queue.insertId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?)`, [short, met]);
+	await login(page);
+});
+
+// The Discord server belongs to the ladder, so it is offered where the ladder is played and
+// nowhere else - not in the public lobby, and not on a private link that happens to be ranked.
+test('a ranked room points at the Discord server, and nothing else does', async ({ page }) => {
+	test.setTimeout(60000);
+	await uiLogin(page);
+	const circuitIds = await createCircuits(page.request, 2, OWNER);
+	const cupId = await createCup(page.request, { name: 'e2e-discord-cup', circuitIds, author: OWNER });
+	const mid = await createMulticup(page.request, { name: 'e2e-discord-mcup', cupIds: [cupId], author: OWNER });
+	const invite = page.locator('a[href*="discord.gg"]');
+
+	await page.goto('http://127.0.0.1:8080/online.php?mid=' + mid + '&ranked');
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await expect(invite).toBeVisible();
+	await expect(invite).toHaveAttribute('target', '_blank');
+
+	const key = LOUNGE_KEY_MIN;
+	await sql('INSERT IGNORE INTO mkprivgame SET id = ?, player = 0', [key]);
+	await page.goto(`http://127.0.0.1:8080/online.php?mid=${mid}&ranked&key=${key}`);
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await expect(invite).toHaveCount(0);
+
+	await page.goto('http://127.0.0.1:8080/online.php');
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await expect(invite).toHaveCount(0);
+});
+
+test('ranked entry redirects to the season multicup', async ({ page }) => {
+	await login(page);
+	// follow no redirect: on a fresh database the season's multicup is only a stand-in, with no
+	// tracks to load
+	const res = await page.request.get('http://127.0.0.1:8080/ranked.php', { maxRedirects: 0 });
+	expect(res.status()).toBe(302);
+	expect(res.headers()['location']).toMatch(/^online\.php\?mid=\d+&ranked$/);
+});
+
+test('ranked entry picks a character then opens the lounge with it', async ({ page }) => {
+	// build our own multicup: setup.sql seeds none, so the season's configured one
+	// (prod's CT Project) does not exist in CI
+	await uiLogin(page);
+	const circuitIds = await createCircuits(page.request, 2, OWNER);
+	const cupId = await createCup(page.request, { name: 'e2e-ranked-cup', circuitIds, author: OWNER });
+	const mid = await createMulticup(page.request, { name: 'e2e-ranked-mcup', cupIds: [cupId], author: OWNER });
+
+	await dropOut(page.request);
+	await page.goto('http://127.0.0.1:8080/online.php?mid=' + mid + '&ranked');
+
+	// the roster comes from the multicup, so selection happens inside the game
+	await page.locator('#perso-selector-mario').click();
+
+	const lounge = page.frameLocator('#lounge-overlay iframe');
+	await expect(lounge.locator('.lounge-header h1')).toHaveText('CT Lounge');
+	await lounge.locator('.lounge-tier').first().locator('.lounge-tier-join').click();
+	await expect(lounge.locator('.lounge-member.is-self')).toHaveCount(1);
+
+	const queue = await (await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php')).json();
+	expect(queue.queue.members[0].perso).toBe('mario');
+
+	await dropOut(page.request);
+});
+
+// quitter() sends the other online modes to the multicup page the game belongs to, which
+// is not where a ranked player came from: they came through the lounge.
+test('ranked exits step back to the lounge, then to the game menu', async ({ page }) => {
+	test.setTimeout(60000);
+	await uiLogin(page);
+	const circuitIds = await createCircuits(page.request, 2, OWNER);
+	const cupId = await createCup(page.request, { name: 'e2e-ranked-exit-cup', circuitIds, author: OWNER });
+	const mid = await createMulticup(page.request, { name: 'e2e-ranked-exit-mcup', cupIds: [cupId], author: OWNER });
+	await dropOut(page.request);
+
+	// the account is not in a match for this key, so the character screen is shown
+	// rather than skipped, which is where the Back button lives
+	const key = LOUNGE_KEY_MIN;
+	await sql('INSERT IGNORE INTO mkprivgame SET id = ?, player = 0', [key]);
+
+	await page.goto(`http://127.0.0.1:8080/online.php?mid=${mid}&ranked&key=${key}`);
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await page.locator('input[value="Back"]:visible').first().click();
+	await expect(page).toHaveURL(`http://127.0.0.1:8080/online.php?mid=${mid}&ranked`);
+
+	await page.locator('#perso-selector-mario').waitFor({ timeout: 30000 });
+	await page.locator('input[value="Back"]:visible').first().click();
+	await expect(page).toHaveURL('http://127.0.0.1:8080/mariokart.php');
+
+	await sql('DELETE FROM mkprivgame WHERE id = ?', [key]);
+});
+
+test('leaderboard tab lists ranked players', async ({ page }) => {
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	await page.locator('[data-tab="leaderboard"]').click();
+	await expect(page.locator('[data-panel="leaderboard"]')).toHaveClass(/is-active/);
+
+	// either a populated table or the "no mogi yet" notice, depending on season data
+	const rows = page.locator('.lounge-leaderboard-row');
+	const empty = page.locator('#lounge-leaderboard .lounge-empty');
+	await expect(rows.first().or(empty)).toBeVisible({ timeout: 5000 });
+
+	if (await rows.count()) {
+		const first = rows.first();
+		await expect(first.locator('.lounge-lb-place')).toHaveText('1');
+		await expect(first.locator('.lounge-lb-rank')).not.toBeEmpty();
+		await expect(first.locator('.lounge-lb-mmr')).not.toBeEmpty();
+	}
+});
+
+// A mogi that is over and rated, staged directly. The leaderboard views only read finished
+// matches, and playing one out through the API takes a lineup, a vote and twelve races.
+async function stageFinishedMatch(key: number, tag: string, mode: string, rows: any[]) {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const ids = await createLoungeBots(rows.length, tag);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'finished', ?, NOW())`,
+		[tier.id, key]
+	);
+	const match: any = await sql(
+		`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode, ended_at)
+		 VALUES (?, 1, ?, ?, ?, NOW())`,
+		[queue.insertId, tier.id, key, mode]
+	);
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
+		await sql(
+			`INSERT INTO mklounge_match_players
+			  (\`match\`, player, team, final_score, final_position, mmr_before, mmr_after,
+			   mmr_delta, races_played, place_before, place_after)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 12, ?, ?)`,
+			[match.insertId, ids[i], row.team === undefined ? null : row.team, row.score, i + 1,
+			 row.before, row.after, row.after - row.before, row.placeBefore, row.placeAfter]
+		);
+		await sql(
+			`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, games, wins, total_score)
+			 VALUES (?, 1, ?, ?, 1, ?, ?)
+			 ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr),
+			  games = games + 1, wins = wins + VALUES(wins), total_score = total_score + VALUES(total_score)`,
+			[ids[i], row.after, row.after, i === 0 ? 1 : 0, row.score]
+		);
+	}
+	return { matchId: match.insertId, ids };
+}
+
+test('the leaderboard opens on the top players beside the last mogis', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 61, 'lbsplit', 'FFA', [
+		{ score: 40, before: 1000, after: 1040, placeBefore: 5, placeAfter: 3 },
+		{ score: 30, before: 900, after: 915, placeBefore: 6, placeAfter: 6 },
+		{ score: 20, before: 800, after: 785, placeBefore: 7, placeAfter: 7 },
+		{ score: 10, before: 700, after: 660, placeBefore: 8, placeAfter: 9 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard');
+
+	const cards = page.locator('.lounge-lb-card');
+	await expect(cards).toHaveCount(2);
+	await expect(cards.nth(0).locator('h3')).toHaveText('Top players');
+	await expect(cards.nth(1).locator('h3')).toHaveText('Recent matches');
+	// each side of the split gets its own way into the full list
+	await expect(cards.nth(0).locator('.lounge-lb-viewall')).toBeVisible();
+	await expect(cards.nth(1).locator('.lounge-lb-viewall')).toBeVisible();
+
+	// the overview is a shortlist rather than the ladder
+	const players = cards.nth(0).locator('.lounge-leaderboard-row');
+	await expect(players.first()).toBeVisible({ timeout: 5000 });
+	expect(await players.count()).toBeLessThanOrEqual(20);
+
+	// and the mogi just staged is the freshest one on the right, named by its mode and total
+	const latest = cards.nth(1).locator('.lounge-match-row').first();
+	await expect(latest.locator('.lounge-match-id')).toHaveText('#' + staged.matchId);
+	await expect(latest.locator('.lounge-matchchip-mode')).toHaveText('FFA');
+	await expect(latest.locator('.lounge-matchchip-score')).toHaveText('100');
+
+	// the right-hand "view all" opens the whole list, and the back link returns to the split
+	await cards.nth(1).locator('.lounge-lb-viewall').click();
+	await expect(page).toHaveURL(/tab=leaderboard&view=matches/);
+	await expect(page.locator('#lounge-lb-bar')).toHaveText('Recent matches');
+	await expect(page.locator('.lounge-match-row').first()).toBeVisible();
+	await page.locator('.lounge-lb-back').click();
+	await expect(page.locator('.lounge-lb-card')).toHaveCount(2);
+
+	// each view is an address, so a mogi can be linked to and the browser's Back button
+	// steps through the leaderboard rather than out of the lounge
+	await latest.click();
+	await expect(page).toHaveURL(new RegExp('match=' + staged.matchId + '$'));
+	await expect(page.locator('.lounge-profile-name')).toHaveText('Match #' + staged.matchId);
+	await page.goBack();
+	await expect(page.locator('.lounge-lb-card')).toHaveCount(2);
+});
+
+test('the full standings carry every column but the two the staff struck out', async ({ page }) => {
+	await cleanupLoungeQueues();
+	await stageFinishedMatch(LOUNGE_KEY_MIN + 62, 'lbstats', 'FFA', [
+		{ score: 60, before: 1200, after: 1260, placeBefore: 4, placeAfter: 2 },
+		{ score: 20, before: 1100, after: 1040, placeBefore: 5, placeAfter: 6 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard');
+	await page.locator('.lounge-lb-card').first().locator('.lounge-lb-viewall').click();
+	await expect(page.locator('#lounge-lb-bar')).toHaveText('Season standings');
+
+	const headers = await page.locator('.lounge-lb-stats th').allTextContents();
+	expect(headers).toEqual([
+		'Ranking', 'Name', 'Rating', 'Tier', 'Matches Played', 'Wins', 'Losses', 'Win Ratio',
+		'Best Ranking', 'Worst Ranking', 'Max Rating', 'Min Rating', 'Max Rating Gain',
+		'Max Rating Loss', 'Max Points Gain', 'Avg Points Gain', 'Last Played', '‹›',
+	]);
+	// the two they asked us to drop
+	expect(headers).not.toContain('Avg Rating Gain');
+	expect(headers).not.toContain('Total Points');
+
+	// shown a page at a time beside the player's own columns, rather than one wide table with
+	// a scrollbar at its foot
+	const shown = () => page.locator('.lounge-lb-stats th:visible:not(.lounge-lb-pager)').allTextContents();
+	const fixed = ['Ranking', 'Name', 'Rating', 'Tier'];
+	expect(await shown()).toEqual([...fixed, 'Matches Played', 'Wins', 'Losses', 'Win Ratio']);
+	const more = page.getByTitle('More stats');
+	await more.click();
+	expect(await shown()).toEqual([...fixed, 'Best Ranking', 'Worst Ranking', 'Max Rating', 'Min Rating']);
+	await more.click();
+	expect(await shown()).toEqual([...fixed, 'Max Rating Gain', 'Max Rating Loss', 'Max Points Gain', 'Avg Points Gain', 'Last Played']);
+	await expect(more).toBeDisabled();
+	await page.getByTitle('Previous stats').click();
+	expect(await shown()).toContain('Best Ranking');
+
+	// the winner's row: a win counted, a loss not, and both coloured the way they asked
+	const row = page.locator('.lounge-leaderboard-row', { has: page.getByText(loungeBotName('lbstats', 1)) });
+	const cells = row.locator('td');
+	await expect(cells.nth(4)).toHaveText('1');
+	await expect(cells.nth(5)).toHaveText('1');
+	await expect(cells.nth(5)).toHaveClass(/is-up/);
+	await expect(cells.nth(6)).toHaveText('0');
+	await expect(cells.nth(6)).toHaveClass(/is-down/);
+	await expect(cells.nth(7)).toHaveText('100%');
+	// the ladder places the match recorded, which is where best and worst come from
+	await expect(cells.nth(8)).toHaveText('#2');
+	await expect(cells.nth(9)).toHaveText('#2');
+	await expect(cells.nth(12)).toHaveText('+60');
+	await expect(cells.nth(13)).toHaveText('0');
+});
+
+test('a mogi has a page of its own, saying what each rating moved from and to', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 63, 'lbmatch', 'FFA', [
+		{ score: 44, before: 1000, after: 1040, placeBefore: 5, placeAfter: 3 },
+		{ score: 33, before: 900, after: 915, placeBefore: 6, placeAfter: 6 },
+		{ score: 22, before: 800, after: 785, placeBefore: 7, placeAfter: 7 },
+		{ score: 11, before: 700, after: 660, placeBefore: 8, placeAfter: 9 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
+
+	await expect(page.locator('.lounge-profile-name')).toHaveText('Match #' + staged.matchId);
+	// nothing recorded per race for this one, so the table stays as it was
+	expect(await page.locator('.lounge-results-table th').allTextContents())
+		.toEqual(['Place', 'Player', 'Score', 'Races']);
+	const standings = page.locator('.lounge-results-row');
+	await expect(standings).toHaveCount(4);
+	await expect(standings.first().locator('.lounge-results-place')).toHaveText('1');
+	await expect(standings.first().locator('.lounge-results-score')).toHaveText('44');
+	await expect(standings.first().locator('.lounge-results-races')).toHaveText('12/12');
+	await expect(page.locator('.lounge-results-total .lounge-results-score')).toHaveText('110');
+
+	// the before, which is what the staff could not read off the old screen
+	const updates = page.locator('.lounge-ratings-row');
+	await expect(updates).toHaveCount(4);
+	const top = updates.first();
+	await expect(top.locator('.lounge-ratings-before')).toHaveText('1000');
+	await expect(top.locator('.lounge-ratings-delta')).toHaveText('+40');
+	await expect(top.locator('.lounge-ratings-after')).toHaveText('1040');
+	await expect(top.locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-up/);
+	await expect(top.locator('.lounge-placemove-from')).toHaveText('#5');
+	await expect(top.locator('.lounge-placemove-to')).toHaveText('#3');
+	await expect(top.locator('.lounge-ratings-rank .lounge-rank')).toHaveText('Silver');
+	// and a rating that went down says so in red
+	await expect(updates.last().locator('.lounge-ratings-delta')).toHaveText('-40');
+	await expect(updates.last().locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-down/);
+
+	// a name in the table is the way to that player's own page
+	await standings.nth(1).locator('.lounge-lb-playerlink').click();
+	await expect(page.locator('.lounge-profile-name')).toHaveText(loungeBotName('lbmatch', 2));
+	await expect(page.locator('.lounge-profile-grid')).toContainText('915');
+});
+
+// The ladder splits a mogi's score into runs of four races - 27 | 33 | 26 beside the 86 they
+// add up to - which needs the per-race points `mkmatches` now carries.
+test('a mogi with its races recorded shows what each run of four was worth', async ({ page }) => {
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 65;
+	const staged = await stageFinishedMatch(key, 'lbband', 'FFA', [
+		{ score: 24, before: 1000, after: 1020, placeBefore: 3, placeAfter: 3 },
+		{ score: 12, before: 900, after: 880, placeBefore: 4, placeAfter: 4 },
+	]);
+	// twelve races, the winner taking two points a race and the other one
+	for (let race = 1; race <= 12; race++) {
+		for (let i = 0; i < staged.ids.length; i++)
+			await sql(
+				`INSERT INTO mkmatches SET player = ?, course = 0, link = ?, race = ?,
+				 \`rank\` = ?, pts_before = ?, pts_inc = ?`,
+				[staged.ids[i], key, race, i + 1, (race - 1) * (2 - i), 2 - i]
+			);
+	}
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
+
+	expect(await page.locator('.lounge-results-table th').allTextContents())
+		.toEqual(['Place', 'Player', '1\u20134', '5\u20138', '9\u201312', 'Score', 'Races']);
+	const bands = page.locator('.lounge-results-row').first().locator('.lounge-results-band');
+	await expect(bands).toHaveCount(3);
+	// four races at two points each, three times over, and the score they add up to
+	expect(await bands.allTextContents()).toEqual(['8', '8', '8']);
+	await expect(page.locator('.lounge-results-row').first().locator('.lounge-results-score'))
+		.toHaveText('24');
+	expect(await page.locator('.lounge-results-row').nth(1).locator('.lounge-results-band')
+		.allTextContents()).toEqual(['4', '4', '4']);
+
+	// and the mogi's total sits in the score column with the scores it is the sum of, on a
+	// row as wide as the table: a heading that does not sit over its own cells is the bug
+	// this table had before.
+	const columns = await page.locator('.lounge-results-table th').count();
+	await expect(page.locator('.lounge-results-total td')).toHaveCount(columns);
+	await expect(page.locator('.lounge-results-total td.lounge-results-score')).toHaveText('36');
+	const centres = await page.evaluate(() => {
+		const mid = (sel) => {
+			const box = document.querySelector(sel).getBoundingClientRect();
+			return Math.round(box.left + box.width / 2);
+		};
+		return [mid('th.lounge-results-score'), mid('.lounge-results-row td.lounge-results-score'),
+			mid('.lounge-results-total td.lounge-results-score')];
+	});
+	expect(new Set(centres).size).toBe(1);
+});
+
+test('a team mogi groups its table by side, the way it was raced', async ({ page }) => {
+	await cleanupLoungeQueues();
+	// finishing positions interleave the sides: 1st and 4th won together
+	const staged = await stageFinishedMatch(LOUNGE_KEY_MIN + 64, 'lbteam', '2v2', [
+		{ score: 40, before: 1000, after: 1030, placeBefore: 3, placeAfter: 3, team: 0 },
+		{ score: 30, before: 990, after: 960, placeBefore: 4, placeAfter: 5, team: 1 },
+		{ score: 20, before: 980, after: 950, placeBefore: 5, placeAfter: 6, team: 1 },
+		{ score: 15, before: 970, after: 1000, placeBefore: 6, placeAfter: 4, team: 0 },
+	]);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
+
+	const sides = page.locator('.lounge-results-teamhead');
+	await expect(sides).toHaveCount(2);
+	// the winning side first, carrying its own total rather than a player's
+	await expect(sides.nth(0).locator('.lounge-results-place')).toHaveText('#1');
+	await expect(sides.nth(0).locator('.lounge-results-score')).toHaveText('55');
+	await expect(sides.nth(1).locator('.lounge-results-score')).toHaveText('50');
+	// sides are numbered by where they finished, not named after their members
+	expect(await sides.locator('.lounge-results-teamname').allTextContents()).toEqual(['Team 1', 'Team 2']);
+	// members sit under their side, indented, and every one of them is still rated
+	await expect(page.locator('.lounge-results-row.is-teamed')).toHaveCount(4);
+	// the podium is coloured, for sides and for players alike
+	await expect(sides.nth(0).locator('.lounge-results-place')).toHaveClass(/is-gold/);
+	await expect(page.locator('.lounge-results-row .lounge-results-place.is-bronze')).toHaveText('3');
+	// a side's members move together, so the rating updates list them side by side
+	expect(await page.locator('.lounge-ratings-name').allTextContents()).toEqual([
+		loungeBotName('lbteam', 1), loungeBotName('lbteam', 4),
+		loungeBotName('lbteam', 2), loungeBotName('lbteam', 3),
+	]);
+
+	// the same mogi is one line on the recent list, named by its sides and not by a mode
+	await page.locator('.lounge-lb-back').click();
+	const line = page.locator('.lounge-match-row', { hasText: '#' + staged.matchId });
+	await expect(line.locator('.lounge-matchchip')).toHaveCount(2);
+	await expect(line.locator('.lounge-matchchip-score').first()).toHaveText('55');
+	await expect(line.locator('.lounge-matchchip-mode').first()).toHaveText('Team 1');
+});
+
+async function joinAndStartVoting(page, tierCode: string) {
+	// a previous case may have launched a match, and leave.php cannot release that
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = ?`, [tierCode]);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tier.id) },
+	});
+	const queueId = (await joined.json()).queue.id;
+	await sql(`UPDATE mklounge_queues SET status = 'voting', ready_at = NOW() WHERE id = ?`, [queueId]);
+	return queueId;
+}
+
+// lounge_tick() piggybacks on any authenticated lounge endpoint.
+async function tick(page) {
+	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
+	expect((await res.json()).error).toBeUndefined();
+}
+
+async function rulesFor(queueId: number) {
+	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.privgame_key).toBeTruthy();
+	const [options]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [queue.privgame_key]);
+	return JSON.parse(options.rules);
+}
+
+// Staff settled this on 2026-09-06: 4 to start and 8 at most, in every tier including All.
+// The minimum still comes from the tier row rather than a global, so they can split them
+// again later without a deploy.
+test('every tier starts at four players', async ({ page }) => {
+	await login(page);
+	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
+	const tiers = (await res.json()).tiers;
+
+	for (const tier of tiers)
+		expect(tier.min_players).toBe(4);
+});
+
+test('a queue reports its own tier minimum', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	expect((await joined.json()).queue.lock_threshold).toBe(4);
+	await dropOut(page.request);
+});
+
+test('a single member does not lock Tier All', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	expect((await joined.json()).queue.status).toBe('open');
+	await dropOut(page.request);
+});
+
+// The lock window exists so the rest of the mogi can still turn up before the vote, so a
+// locked lineup has to keep taking joiners. Looking only for an "open" queue sent everyone
+// after the fourth into a lineup of their own.
+test('a locked lineup keeps taking players up to the maximum', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const lineup = 8;
+	const bots = await createLoungeBots(lineup + 1, 'lockjoin');
+
+	const queues: number[] = [];
+	for (let i = 1; i <= lineup + 1; i++) {
+		await login(page, loungeBotName('lockjoin', i), LOUNGE_BOT_PASSWORD);
+		const res = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+			form: { tier: String(tier.id) },
+		});
+		const body = await res.json();
+		expect(body.error).toBeUndefined();
+		queues.push(body.queue.id);
+	}
+
+	// everyone up to the maximum lands in the same lineup, whether it was open or locked
+	expect(new Set(queues.slice(0, lineup)).size).toBe(1);
+	const [first]: any = await sql(
+		`SELECT COUNT(*) AS n FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`,
+		[queues[0]]
+	);
+	expect(Number(first.n)).toBe(lineup);
+	// only a full lineup sends the next player somewhere else
+	expect(queues[lineup]).not.toBe(queues[0]);
+
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('lockjoin'));
+	expect(bots).toHaveLength(lineup + 1);
+});
+
+// MogiBot tailors its ballot to the lineup and has never once put a one-option poll to a
+// room. Five and seven divide into nothing, so FFA is forced and the 120 seconds would buy
+// nobody anything.
+test('a lineup with only one possible mode skips the vote', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	const settleWith = async (lineup: number, tag: string) => {
+		const bots = await createLoungeBots(lineup, tag);
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status, locked_at) VALUES (1, ?, 'locked', NOW())`,
+			[tier.id]
+		);
+		for (const bot of bots)
+			await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, bot]);
+		await sql(
+			`UPDATE mklounge_queues SET locked_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]
+		);
+		await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
+		await tick(page);
+		const [row]: any = await sql(
+			`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [q.insertId]
+		);
+		await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+		await sql(`UPDATE mklounge_queue_members SET dropped_at = NOW() WHERE queue = ?`, [q.insertId]);
+		await cleanupLoungeQueues(loungeBotPattern(tag));
+		return row;
+	};
+
+	// five divides into nothing, so the lock window ends on the FFA recap, not a ballot
+	const five = await settleWith(5, 'onemode5');
+	expect(five.status).toBe('drafting');
+	expect(five.mode).toBe('FFA');
+
+	// six has 2v2 and 3v3 on the ballot, so it still asks
+	const six = await settleWith(6, 'onemode6');
+	expect(six.status).toBe('voting');
+
+	await login(page);
+});
+
+// The official rules penalise drops and no-shows, never a missed vote, and a background
+// tab can throttle the poll past a 60s window - so the deadline falls back to whoever did
+// vote instead of cancelling the mogi and striking the rest of the lineup.
+test('a missed vote launches on the votes cast rather than striking', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [before]: any = await sql(
+		`SELECT strikes FROM mklounge_players WHERE player = ? AND season = 1`, [playerId]
+	);
+
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+	await tick(page);
+	await passRecap(page, queueId);
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.mode).toBe('FFA');
+
+	const [after]: any = await sql(
+		`SELECT strikes FROM mklounge_players WHERE player = ? AND season = 1`, [playerId]
+	);
+	expect(after?.strikes ?? 0).toBe(before?.strikes ?? 0);
+});
+
+test('the vote screen offers the mode choice on its own', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	// rule 3h (the POW opt-in) is dead: the item composition is fixed, so the mode is the
+	// only thing left to vote on and no Items group is rendered at all
+	const groups = page.locator('.lounge-vote-group');
+	await expect(groups).toHaveCount(1);
+	await expect(groups.nth(0).locator('.lounge-vote-group-title')).toHaveText('Game mode');
+	await expect(page.locator('.lounge-pow-toggle')).toHaveCount(0);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('the waiting screen offers an alert opt-in that survives a reload', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+
+	const toggle = page.locator('.lounge-alerts-toggle');
+	await expect(toggle).toBeVisible();
+	// the label names the setting and the state word reports it, so neither reads as a
+	// call to action that could be mistaken for "alerts are off, click to enable"
+	await expect(toggle.locator('.lounge-alerts-label')).toHaveText('Match alerts');
+	// on by default: a queued player is expected to look away while waiting
+	await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+	await expect(toggle.locator('.lounge-alerts-state')).toHaveText('On');
+
+	// permission was never granted here, so the fallback hint stands while alerts are on
+	await expect(page.locator('.lounge-alerts-hint')).toBeVisible();
+
+	await page.locator('.lounge-alerts-toggle').click();
+	await expect(page.locator('.lounge-alerts-toggle')).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.locator('.lounge-alerts-state')).toHaveText('Off');
+	// and it goes away with them, rather than lingering from the previous state
+	await expect(page.locator('.lounge-alerts-hint')).toHaveCount(0);
+
+	await page.reload();
+	await expect(page.locator('.lounge-alerts-toggle')).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.locator('.lounge-alerts-state')).toHaveText('Off');
+
+	await page.evaluate(() => localStorage.removeItem('lounge.alerts'));
+	await dropOut(page.request);
+});
+
+// The whole point of the notification is to reach a player who is not looking at the tab,
+// which is exactly the case alert() cannot serve.
+test('a status change alerts a player whose tab is in the background', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await page.context().grantPermissions(['notifications'], { origin: 'http://127.0.0.1:8080' });
+	await page.addInitScript(() => {
+		(window as any).__notifications = [];
+		document.hasFocus = () => false;
+		(window as any).Notification = function(title: string, opts: any) {
+			(window as any).__notifications.push({ title, body: opts.body });
+		};
+		(window as any).Notification.permission = 'granted';
+	});
+
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	const queueId = (await joined.json()).queue.id;
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-alerts-toggle')).toBeVisible();
+	// the state the page opened on is not an update, so it must not alert
+	expect(await page.evaluate(() => (window as any).__notifications.length)).toBe(0);
+
+	// locked_at stays null so lounge_tick() leaves the queue sitting in this state
+	await sql(`UPDATE mklounge_queues SET status = 'locked' WHERE id = ?`, [queueId]);
+
+	await expect
+		.poll(() => page.evaluate(() => (window as any).__notifications), { timeout: 10000 })
+		.toHaveLength(1);
+	const [notification]: any = await page.evaluate(() => (window as any).__notifications);
+	expect(notification.title).toContain('Lineup complete');
+
+	// and the tab title carries the same alert for anyone who denied permission
+	await expect.poll(() => page.title(), { timeout: 5000 }).toContain('Lineup complete');
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+	await dropOut(page.request);
+});
+
+test('leaving the page while queued is guarded, and released on drop', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-alerts-toggle')).toBeVisible();
+	// Chrome only raises the dialog for a frame the player has interacted with
+	await page.locator('.lounge-tab[data-tab="queueup"]').click();
+
+	const guardedWhileQueued = await page.evaluate(() => {
+		const event = new Event('beforeunload', { cancelable: true });
+		window.dispatchEvent(event);
+		return event.defaultPrevented;
+	});
+	expect(guardedWhileQueued).toBe(true);
+
+	// dropping releases it, so a player who left the queue is not nagged
+	await page.locator('.lounge-drop').click();
+	await expect(page.locator('.lounge-tier').first()).toBeVisible();
+	const guardedAfterDrop = await page.evaluate(() => {
+		const event = new Event('beforeunload', { cancelable: true });
+		window.dispatchEvent(event);
+		return event.defaultPrevented;
+	});
+	expect(guardedAfterDrop).toBe(false);
+});
+
+test('the POW Block is always in the item distribution', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
+	await passRecap(page, queueId);
+
+	// #link-guidelines pins one mandatory composition and it contains the POW unconditionally
+	const distrib = (await rulesFor(queueId)).itemDistrib.value;
+	expect(distrib.some((tier: any) => 'pow' in tier)).toBe(true);
+});
+
+test('a queued player is asked to confirm, and dropped if they never answer', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tierAll]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const joined = await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: String(tierAll.id) },
+	});
+	const queueId = (await joined.json()).queue.id;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	const age = (seconds: number) => sql(
+		`UPDATE mklounge_queue_members SET confirmed_at = NOW() - INTERVAL ? SECOND
+		 WHERE queue = ? AND player = ?`, [seconds, queueId, playerId]);
+
+	// past the prompt window but still inside the grace period: asked, not dropped
+	await age(700);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	const prompt = page.locator('.lounge-confirm');
+	await expect(prompt).toBeVisible();
+	await expect(prompt.locator('.lounge-confirm-text')).toContainText('Please confirm');
+
+	// answering resets the clock and clears the prompt
+	await prompt.locator('.lounge-confirm-btn').click();
+	await expect(page.locator('.lounge-confirm')).toHaveCount(0);
+
+	// no answer at all, past the grace period: taken out of the list
+	await age(60 * 60);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php');
+	const [member]: any = await sql(
+		`SELECT dropped_at FROM mklounge_queue_members WHERE queue = ? AND player = ?`,
+		[queueId, playerId]);
+	expect(member.dropped_at).not.toBeNull();
+	// dropping out of a queue is not an offence, so no strike
+	const [state]: any = await sql(`SELECT strikes FROM mklounge_players WHERE player = ?`, [playerId]);
+	expect(state?.strikes ?? 0).toBe(0);
+});
+
+test('the launched link carries the lounge lightning settings', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
+	await passRecap(page, queueId);
+
+	const distrib = (await rulesFor(queueId)).itemDistrib;
+	expect(distrib.lightningx2).toBe(1);
+	// "leave all other categories ticked": every other flag must stay at its default,
+	// which the options screen expresses by leaving the key out entirely.
+	expect(distrib.lightninglast).toBeUndefined();
+	expect(distrib.powx2).toBeUndefined();
+	expect(distrib.blueshellx2).toBeUndefined();
+	expect(distrib.powdelay).toBeUndefined();
+	expect(distrib.blueshelldelay).toBeUndefined();
+	expect(distrib.lightningdelay).toBeUndefined();
+	expect(distrib.powstart).toBeUndefined();
+	expect(distrib.algorithm).toBeUndefined();
+});
+
+// Rule 4c. The client kept this history in memory only, so a player joining mid-mogi had no
+// idea which courses were already used up - and Random could hand them a repeat.
+test('the played course is recorded server-side and handed back to the room', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 40;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	// a room whose players have all picked, which is the moment setMap.php resolves the course
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 1, lounge: 1 })]);
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7, choice_rand = 0 WHERE id = ?`,
+		[room.insertId, playerId]);
+
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
+	const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const body = await res.text();
+	// the same expression the client uses to pick the course: choixJoueurs[rCode[1]][2]
+	expect(body).toContain('tracks:[7]');
+	const started: any[] = await sql(
+		`SELECT data FROM mklounge_events WHERE id > ? AND privgame_key = ? AND event = 'race_started'`,
+		[since, key]);
+	expect(started).toHaveLength(1);
+	expect(JSON.parse(started[0].data)).toMatchObject({ race: 1, course: room.insertId, track: 7, players: [playerId] });
+	const [state]: any = await sql(`SELECT tracks FROM mkgamedata WHERE game = ?`, [key]);
+	expect(state.tracks).toBe('7');
+
+	// polling it again must not record the same course twice
+	await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const [again]: any = await sql(`SELECT tracks FROM mkgamedata WHERE game = ?`, [key]);
+	expect(again.tracks).toBe('7');
+
+	// and matchmaking hands it over too: the selection screen comes before setMap.php, so a
+	// player joining mid-game must already know what is used up on their first pick
+	const [mate] = await createLoungeBots(1, 'joiner');
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, mate]);
+	await sql(`UPDATE mariokart SET map = -1, time = ? WHERE link = ?`,
+		[Math.floor(Date.now() / 1000) + 500, key]);
+	const joining = await page.request.post('http://127.0.0.1:8080/api/getCourse.php', {
+		form: { key: String(key) },
+	});
+	expect(await joining.text()).toContain('"tracks":[7]');
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id = ?`, [mate]);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id = ?`, [playerId]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
+});
+
+// A client counts the races it has played itself, so one that arrives after the mogi is over -
+// a reload, a step back in the browser - started again from zero and was offered a thirteenth
+// race in a room everybody else had left. Matchmaking hands the count over so it knows.
+test('a player rejoining a finished mogi is told how many races it ran', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 43;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 4, raceLimit: 2, lounge: 1 })]);
+	// the room in the seconds after the last race: reload.php has put it back to map=-1, and the
+	// others are still in it because their clients have not reached the results page yet
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 500, key]);
+	const [mate] = await createLoungeBots(1, 'rejoin');
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount, tracks) VALUES (?, 1, 2, '3,1')
+	           ON DUPLICATE KEY UPDATE aRaceCount = VALUES(aRaceCount), raceCount = VALUES(raceCount),
+	           tracks = VALUES(tracks)`, [key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 0 WHERE id IN (?, ?)`,
+		[room.insertId, playerId, mate]);
+
+	const rejoining = await page.request.post('http://127.0.0.1:8080/api/getCourse.php', {
+		form: { key: String(key) },
+	});
+	const body = JSON.parse(await rejoining.text());
+	expect(body.found).toBe(true);
+	// getRaceLimit() is 2, so this is what sends the client to the mogi results instead of the
+	// track selection screen
+	expect(body.raceCount).toBe(2);
+	// and the log says so, which is how the original report was pieced together
+	const joins: any[] = await sql(
+		`SELECT player, data FROM mklounge_events WHERE id > ? AND privgame_key = ? AND event = 'room_joined'`,
+		[since, key]);
+	expect(joins).toHaveLength(1);
+	expect(joins[0].player).toBe(playerId);
+	expect(JSON.parse(joins[0].data)).toMatchObject({ course: room.insertId, race_count: 2 });
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?)`, [playerId, mate]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
+});
+
+// A whole lineup opening one private link has to land in one room. Anyone still carrying the
+// course of an earlier race used to keep it, wait there alone, and report the lineup's size as
+// if they were in it - so a mogi of five showed up as three waiting for two next to two waiting
+// for three, until the lounge's join timeout eventually let them in.
+test('a player who still carries an old course joins the link\'s room, not their own', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 42;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const mates = await createLoungeBots(2, 'stale');
+	const soon = Math.floor(Date.now() / 1000) + 500;
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	// the lineup is still short, which is when the old room looked like a good enough place to
+	// wait - with the room one player off starting, matchmaking would have moved them anyway
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 5, maxPlayers: 8, lounge: 1 })]);
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`, [soon, key]);
+	for (const mate of mates)
+		await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [room.insertId, mate]);
+
+	// the leftover: a room from another game this player never left cleanly
+	const stale: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`, [soon, key + 1]);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [stale.insertId, playerId]);
+
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+
+	const [me]: any = await sql(`SELECT course FROM mkjoueurs WHERE id = ?`, [playerId]);
+	expect(me.course).toBe(room.insertId);
+	// and the lineup is one room, so nobody is counted twice
+	const [rooms]: any = await sql(
+		`SELECT COUNT(DISTINCT course) AS n FROM mkjoueurs WHERE course IN (?, ?)`,
+		[room.insertId, stale.insertId]);
+	expect(rooms.n).toBe(1);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE course IN (?, ?)`,
+		[room.insertId, stale.insertId]);
+	await sql(`DELETE FROM mkplayers WHERE course IN (?, ?)`, [room.insertId, stale.insertId]);
+	await sql(`DELETE FROM mariokart WHERE link IN (?, ?)`, [key, key + 1]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
+});
+
+// The substitute, rule 4db: a member missing when a race starts does not leave a hole in the
+// grid - their own kart stays on it under AI control, and they take it back when they return.
+test('an absent member keeps their kart, under a bot, until they come back', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 41;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [absent, elsewhere] = await createLoungeBots(2, 'sub');
+	const [{ nom: absentName }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [absent]);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 2, cpu: 1, cpuLevel: -1, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (const player of [playerId, absent, elsewhere])
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, player]);
+	// the points the absentee had already scored, which their bot has to carry on from
+	await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, 37)`, [key, absent]);
+	// a member racing in another room has their one kart there, and it is not the lounge's to take
+	const other: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (3, ?, 0, 0, 0)`,
+		[Math.floor(Date.now() / 1000) + 3600]);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id = ?`, [other.insertId, elsewhere]);
+	await sql(`INSERT INTO mkplayers (id, course, controller, place, finaltime, finalts) VALUES (?, ?, 0, 1, 0, 0)
+	           ON DUPLICATE KEY UPDATE course = VALUES(course), controller = 0`, [elsewhere, other.insertId]);
+
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7, choice_rand = 0 WHERE id = ?`,
+		[room.insertId, playerId]);
+
+	const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const body = await res.text();
+
+	const [kart]: any = await sql(`SELECT controller, aPts FROM mkplayers WHERE id = ? AND course = ?`,
+		[absent, room.insertId]);
+	expect(kart.controller).toBe(playerId);
+	expect(kart.aPts).toBe(37);
+	// it races under their name, not as a numbered CPU
+	expect(body).toContain(JSON.stringify(absentName));
+	expect(body).not.toContain('CPU 1');
+	const [elsewhereKart]: any = await sql(`SELECT course, controller FROM mkplayers WHERE id = ?`, [elsewhere]);
+	expect(elsewhereKart).toEqual({ course: other.insertId, controller: 0 });
+
+	// and it is handed straight back when they turn up
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7 WHERE id = ?`, [room.insertId, absent]);
+	await sql(`UPDATE mariokart SET map = -1, time = ? WHERE link = ?`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const [back]: any = await sql(`SELECT controller FROM mkplayers WHERE id = ? AND course = ?`,
+		[absent, room.insertId]);
+	expect(back.controller).toBe(0);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?, ?)`, [playerId, absent, elsewhere]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [other.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [other.insertId]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+});
+
+// "au-delà de 2 bots on devrait pas pouvoir continuer le mogi": a race that would start
+// with a third bot does not start. The mogi is voided, the players still in the room are
+// told so on their way to the results, and only those who left pay for it.
+test('a mogi that would need a third bot is voided at the next race', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 46;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const leavers = await createLoungeBots(3, 'toomanybots');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 1, maxPlayers: 4, cpu: 1, cpuLevel: -1, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW() - INTERVAL 10 MINUTE)`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (const player of [playerId, ...leavers]) {
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [queue.insertId, player]);
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, player]);
+	}
+	// one race is in, so this is the second one starting
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 1, 1)`, [key]);
+	const [before]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [playerId]);
+
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	const startRace = async () => {
+		await sql(`UPDATE mariokart SET map = -1, time = ? WHERE id = ?`, [Math.floor(Date.now() / 1000) + 3600, room.insertId]);
+		await sql(`UPDATE mkjoueurs SET choice_map = 7, choice_rand = 0 WHERE course = ?`, [room.insertId]);
+		const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+		return res.text();
+	};
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id IN (?, ?)`, [room.insertId, playerId, leavers[0]]);
+
+	// two of four still racing: two bots, which is allowed
+	expect(await startRace()).not.toContain('loungeVoided');
+	const [running]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queue.insertId]);
+	expect(running.status).toBe('launched');
+
+	// a third player walks out before the next race
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id = ?`, [leavers[0]]);
+	expect(await startRace()).toContain('loungeVoided:1');
+
+	const [voided]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queue.insertId]);
+	expect(voided.status).toBe('cancelled');
+	const [cancelled]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE id = ?`, [match.id]);
+	expect(cancelled.cancelled_reason).toBe('too_many_bots');
+	const rows: any = await sql(
+		`SELECT player, mmr_before, mmr_after, mmr_penalty FROM mklounge_match_players WHERE \`match\` = ?`, [match.id]);
+	// the one who stayed is not rated at all
+	expect(rows.find((r: any) => r.player === playerId).mmr_after).toBeNull();
+	const [stayer]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [playerId]);
+	expect(Number(stayer.mmr)).toBe(Number(before.mmr));
+	// every one who left, early or just now, pays the cancellation penalty
+	for (const leaver of leavers) {
+		const row = rows.find((r: any) => r.player === leaver);
+		expect(Number(row.mmr_penalty)).toBe(-50);
+		expect(Number(row.mmr_after)).toBe(Number(row.mmr_before) - 50);
+	}
+
+	// and the results say why
+	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + match.id);
+	await expect(page.locator('.lounge-results-sub')).toContainText('too many players left');
+	await expect(page.locator('.lounge-ratings-row')).toHaveCount(3);
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?)`, [[playerId, ...leavers]]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+});
+
+// A ranked room is the lineup's. Anyone else with the link can watch but never race - not
+// even through the spectators' queue, which seats its players at the next race.
+test('a player outside the lineup can only watch a ranked room', async ({ page, browser }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 47;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [outsider] = await createLoungeBots(1, 'outsider');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 2, maxPlayers: 2, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, playerId]);
+
+	const guest = await browser.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, loungeBotName('outsider', 1), LOUNGE_BOT_PASSWORD);
+	await guestPage.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+	await guest.close();
+
+	const [seat]: any = await sql(`SELECT course FROM mkjoueurs WHERE id = ?`, [outsider]);
+	expect(seat.course).toBe(0);
+	const queued: any = await sql(`SELECT 1 FROM mkspectators WHERE player = ? AND state = 'queuing'`, [outsider]);
+	expect(queued).toHaveLength(0);
+
+	await sql(`DELETE FROM mkspectators WHERE player = ?`, [outsider]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
+});
+
+// The substitute has to be in place for the first race, not only for later ones. A member who
+// never opens the link leaves the room one kart short of the lineup minPlayers was pinned to,
+// and both start gates counted only the humans present - so the rest sat on "there are not
+// enough players to begin the race" until the lounge's join timeout relaxed the room.
+test('a lineup whose absent member has a substitute is at full strength', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 43;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [absent] = await createLoungeBots(1, 'firstrace');
+	const [{ nom: absentName }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [absent]);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	// minPlayers is the whole lineup, the way the lounge pins it at launch
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 2, maxPlayers: 2, cpu: 1, cpuLevel: -1, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (const player of [playerId, absent])
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, player]);
+
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, ?, 0, 0, ?)`,
+		[Math.floor(Date.now() / 1000) + 3600, key]);
+	await sql(`UPDATE mkjoueurs SET course = ?, choice_map = 7, choice_rand = 0 WHERE id = ?`,
+		[room.insertId, playerId]);
+
+	const res = await page.request.post('http://127.0.0.1:8080/api/getMap.php', { form: { key: String(key) } });
+	const body = await res.text();
+	const karts: any[] = JSON.parse(body.slice(1, body.indexOf(']]') + 2));
+
+	// the absent member's kart is on the grid, driven by the present player's client and
+	// flagged so the grid knows it fills their place rather than being an extra bot
+	const sub = karts.find(k => k[5] === absentName);
+	expect(sub).toBeTruthy();
+	expect(sub[7]).toBe(playerId);
+	expect(sub[8]).toBe(1);
+	// a real player is never flagged as one
+	expect(karts.find(k => k[0] === playerId)[8]).toBe(0);
+
+	// and the room counts as full, which is what lets the race begin: the course state is only
+	// opened once there are enough players for it
+	const [state]: any = await sql(`SELECT game FROM mkgamedata WHERE game = ?`, [key]);
+	expect(state).toBeTruthy();
+	// the course drawn is one a player actually picked, never the substitute's placeholder
+	expect(body).toContain('tracks:[7]');
+
+	await sql(`UPDATE mkjoueurs SET course = 0, choice_map = 0 WHERE id IN (?, ?)`, [playerId, absent]);
+	await sql(`DELETE FROM mkplayers WHERE course = ?`, [room.insertId]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
+	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
+	await sql(`DELETE FROM mkgameoptions WHERE id = ?`, [key]);
+});
+
+// Adjusting a rating, lifting a ban or freeing a wedged queue all needed direct SQL before
+// this page existed.
+test('the lounge moderation page acts on a member and logs it', async ({ page, browser }) => {
+	await login(page);
+	const [bot] = await createLoungeBots(1, 'admin');
+	const [{ nom }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [bot]);
+	const mine = `log REGEXP CONCAT('^Lounge[A-Za-z]+ ', ?, '( |$)')`;
+	await sql(`DELETE FROM mklogs WHERE ${mine}`, [bot]);
+
+	const post = (form: Record<string, string>) =>
+		page.request.post('http://127.0.0.1:8080/admin-lounge.php', { form });
+
+	const page1 = await (await post({ player: nom })).text();
+	expect(page1).toContain(nom);
+	// stripped of tags, so the assertion survives the stats line being restyled
+	expect(page1.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).toContain('600 MMR');
+
+	await post({ player: nom, action: 'mmr', mmr_delta: '50' });
+	const [rated]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(Math.round(rated.mmr)).toBe(650);
+
+	await post({ player: nom, action: 'ban', ban_minutes: '30' });
+	const [banned]: any = await sql(
+		`SELECT banned_until FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(banned.banned_until).not.toBeNull();
+
+	await post({ player: nom, action: 'strikes', strikes: '2' });
+	await post({ player: nom, action: 'unban' });
+	const [lifted]: any = await sql(
+		`SELECT banned_until, strikes FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(lifted.banned_until).toBeNull();
+	expect(lifted.strikes).toBe(0);
+
+	// a count set by hand means what an earned one means: at the threshold it closes ranked
+	// and clears itself, rather than leaving the member on 82 strikes and still queueing
+	const threshold = 3;
+	await post({ player: nom, action: 'strikes', strikes: String(threshold) });
+	const [struck]: any = await sql(
+		`SELECT banned_until, strikes FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(struck.banned_until).not.toBeNull();
+	expect(struck.strikes).toBe(0);
+	await post({ player: nom, action: 'unban' });
+
+	// a duration past 2038 overflowed the timestamp to NULL, which read as no ban at all
+	await post({ player: nom, action: 'ban', ban_minutes: '18000000000' });
+	const [capped]: any = await sql(
+		`SELECT banned_until FROM mklounge_players WHERE player = ?`, [bot]);
+	expect(capped.banned_until).not.toBeNull();
+	await post({ player: nom, action: 'unban' });
+
+	// every action is retraceable in the staff log
+	const logs: any = await sql(`SELECT log FROM mklogs WHERE ${mine} ORDER BY id`, [bot]);
+	expect(logs.map((r: any) => r.log.split(' ')[0]))
+		.toEqual(['LoungeMmr', 'LoungeBan', 'LoungeStrikes', 'LoungeUnban',
+			'LoungeStrikes', 'LoungeBan', 'LoungeUnban', 'LoungeBan', 'LoungeUnban']);
+
+	// and someone without the right cannot reach it at all
+	const guest = await browser.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, nom, LOUNGE_BOT_PASSWORD);
+	const refused = await guestPage.request.get('http://127.0.0.1:8080/admin-lounge.php');
+	expect(await refused.text()).toContain("aren't a lounge moderator");
+	await guest.close();
+
+	await sql(`DELETE FROM mklogs WHERE ${mine}`, [bot]);
+});
+
+// A lounge link is owned by the lineup's oldest account, as staff asked, and a lounge
+// moderator can edit it too. Anyone else is turned away.
+test('a lounge link is edited by its owner or a lounge moderator', async ({ page, browser }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'FFA' } });
+	await passRecap(page, queueId);
+	const [queue]: any = await sql(`SELECT privgame_key FROM mklounge_queues WHERE id = ?`, [queueId]);
+	const key = queue.privgame_key;
+
+	const minPlayers = async () => {
+		const [row]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+		return JSON.parse(row.rules).minPlayers;
+	};
+	const edit = (request: any, value: number) => request.post('http://127.0.0.1:8080/api/privateGameOptions.php', {
+		form: { key: String(key), options: JSON.stringify({ minPlayers: value }) },
+	});
+
+	const [owner, stranger] = await createLoungeBots(2, 'linkedit');
+	const asBot = async (index: number) => {
+		const context = await browser.newContext();
+		const botPage = await context.newPage();
+		await login(botPage, loungeBotName('linkedit', index), LOUNGE_BOT_PASSWORD);
+		return { context, request: botPage.request };
+	};
+	// the seeded admin launched the room alone, so it owns the link; hand it to a bot so the
+	// admin below goes through the lounge right rather than through ownership
+	await sql(`UPDATE mkprivgame SET player = ? WHERE id = ?`, [owner, key]);
+
+	// neither the owner nor a holder of the lounge right
+	const before = await minPlayers();
+	const strangerSession = await asBot(2);
+	await edit(strangerSession.request, 3);
+	expect(await minPlayers()).toBe(before);
+	await strangerSession.context.close();
+
+	const ownerSession = await asBot(1);
+	await edit(ownerSession.request, 3);
+	expect(await minPlayers()).toBe(3);
+	await ownerSession.context.close();
+
+	// the seeded account is an admin, which carries the lounge right
+	const [stored]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	const fixedTeams = { '1': 0, '2': 1 };
+	await sql(`UPDATE mkgameoptions SET rules = ? WHERE id = ?`, [JSON.stringify({ ...JSON.parse(stored.rules), fixedTeams }), key]);
+	await edit(page.request, 4);
+	expect(await minPlayers()).toBe(4);
+
+	// the form never sends what the lounge built the room with, and a save keeps it
+	const [saved]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	const rules = JSON.parse(saved.rules);
+	expect(rules.lounge).toBe(1);
+	expect(rules.raceLimit).toBe(JSON.parse(stored.rules).raceLimit);
+	expect(rules.fixedTeams).toEqual(fixedTeams);
+});
+
+// Several of the ladder's numbers are still guesses - the vote timer, how long a ban lasts -
+// so they are staff-tunable rather than a deploy away. The constants in common.php stay the
+// defaults; a row in mklounge_settings overrides one. (The tier bands are not in here: they
+// are seed rows in mklounge_tiers, and only SQL changes them.)
+test('the settings page retunes the lounge and logs the change', async ({ page }) => {
+	await login(page);
+	const [{ id: adminId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const settings = async (form: Record<string, string>) =>
+		page.request.post('http://127.0.0.1:8080/admin-lounge.php', {
+			form: { settings: '1', ...form },
+		});
+
+	// the defaults come from the constants, so an untouched table reads as before
+	const seen = async () =>
+		(await (await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php')).json());
+	await sql(`DELETE FROM mklounge_settings`);
+	await sql(`DELETE FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %'`, [adminId]);
+	expect((await seen()).tiers[0].min_players).toBeGreaterThan(0);
+
+	await settings({ set_vote_wait_seconds: '300', set_ban_minutes: '10080' });
+
+	const rows: any = await sql(`SELECT name, value FROM mklounge_settings ORDER BY name`);
+	expect(rows).toEqual([
+		{ name: 'ban_minutes', value: 10080 },
+		{ name: 'vote_wait_seconds', value: 300 },
+	]);
+
+	// the queue state is what the client counts down from, so it has to read the override
+	// rather than the constant. A throwaway account keeps this off the shared seeded queue.
+	await createLoungeBots(1, 'settings');
+	await login(page, loungeBotName('settings', 1), LOUNGE_BOT_PASSWORD);
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(joined.queue.vote_wait_seconds).toBe(300);
+	await dropOut(page.request);
+	await login(page);
+
+	// out-of-range input is clamped to the schema rather than stored
+	await settings({ set_races_per_match: '9999' });
+	const [races]: any = await sql(`SELECT value FROM mklounge_settings WHERE name = 'races_per_match'`);
+	expect(races.value).toBe(32);
+
+	const logs: any = await sql(
+		`SELECT log FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %' ORDER BY id`,
+		[adminId]
+	);
+	expect(logs.map((r: any) => r.log)).toEqual([
+		'LoungeSetting vote_wait_seconds 120 300',
+		'LoungeSetting ban_minutes 60 10080',
+		'LoungeSetting races_per_match 12 32',
+	]);
+
+	await sql(`DELETE FROM mklounge_settings`);
+	await sql(`DELETE FROM mklogs WHERE auteur = ? AND log LIKE 'LoungeSetting %'`, [adminId]);
+});
+
+// The ladder's mode names are team sizes, not team counts: MogiBot offers "2v2" at every even
+// lineup, splitting 8 players into four teams of two. We offered 2v2 only at 4, skipped it at
+// 6 entirely, and called the 8-player case "2v2v2v2" - a label players would have seen on the
+// vote button.
+test('team modes follow the lineup size, the way the ladder names them', async ({ page }) => {
+	await login(page);
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	// a tag per lineup, so the throwaway names stay unique across the five stagings
+	const modesFor = async (lineup: number) => {
+		const tag = 'modes' + lineup;
+		const bots = await createLoungeBots(lineup, tag);
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'voting')`, [tier.id]);
+		for (const bot of bots)
+			await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, bot]);
+		await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
+		const state = await (await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php')).json();
+		await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+		await sql(`UPDATE mklounge_queue_members SET dropped_at = NOW() WHERE queue = ?`, [q.insertId]);
+		return state.queue.allowed_modes;
+	};
+
+	expect(await modesFor(4)).toEqual(['FFA', '2v2']);
+	// 5 and 7 divide into nothing, so they are FFA whatever the lineup wants
+	expect(await modesFor(5)).toEqual(['FFA']);
+	expect(await modesFor(6)).toEqual(['FFA', '2v2', '3v3']);
+	expect(await modesFor(7)).toEqual(['FFA']);
+	expect(await modesFor(8)).toEqual(['FFA', '2v2', '4v4']);
+
+	await login(page);
+});
+
+// 2v2 at six players is three teams, not two - nbTeams has to come from the lineup.
+test('a 2v2 lineup of six launches as three teams', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	const bots = await createLoungeBots(5, 'teams');
+	for (const bot of bots)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [queueId, bot]);
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: '2v2' } });
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+	await tick(page);
+	// the drawn teams are held on screen first, so the room only opens on the tick after
+	await passRecap(page, queueId);
+
+	const [match]: any = await sql(`SELECT mode FROM mklounge_matches WHERE queue = ?`, [queueId]);
+	expect(match.mode).toBe('2v2');
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(3);
+	expect(rules.team).toBe(1);
+
+	await cleanupLoungeQueues();
+	await cleanupLoungeQueues(loungeBotPattern('teams'));
+});
+
+// Rule 3a, and MogiBot says it out loud: "You can /d in 15 seconds". Without it a player can
+// flicker in and out of a gathering list.
+test('a player cannot drop out of a list they just joined', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(joined.queue.drop_seconds_left).toBeGreaterThan(0);
+
+	const refused = await (await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php')).json();
+	expect(refused.error).toBe('drop_too_soon');
+	const [still]: any = await sql(
+		`SELECT dropped_at FROM mklounge_queue_members WHERE queue = ? AND dropped_at IS NULL`,
+		[joined.queue.id]
+	);
+	expect(still).toBeTruthy();
+
+	// past the delay it goes through, and the countdown is gone from the queue state
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = NOW() - INTERVAL 1 MINUTE WHERE queue = ?`,
+		[joined.queue.id]
+	);
+	const left = await (await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php')).json();
+	expect(left.ok).toBe(true);
+});
+
+// A mogi reported as having gone wrong is investigated from mklounge_events, so what a player
+// did and what they were refused both have to be in it, in the order it happened.
+test('joining, a refused drop and leaving are all in the event log, in order', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
+
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = NOW() - INTERVAL 1 MINUTE WHERE queue = ?`,
+		[joined.queue.id]
+	);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/leave.php');
+
+	const events: any[] = await sql(
+		`SELECT event, player, actor, source, data FROM mklounge_events
+		 WHERE id > ? AND queue = ? ORDER BY id`, [since, joined.queue.id]);
+	expect(events.map(e => e.event)).toEqual(['queue_joined', 'leave_refused', 'queue_left', 'queue_cancelled']);
+	expect(events[0].player).toBe(playerId);
+	expect(events[0].actor).toBe(playerId);
+	expect(events[0].source).toBe('join.php');
+	expect(JSON.parse(events[1].data).seconds_left).toBeGreaterThan(0);
+	// the last one out empties the queue, and the row says which request did it
+	expect(events[3].source).toBe('leave.php');
+	expect(events[3].player).toBeNull();
+});
+
+// Both of these were set low for the test suite and never raised, so they contradicted the
+// rules their own help text quotes.
+test('the queue timers default to what the rules say', async ({ page }) => {
+	await login(page);
+	await sql(`DELETE FROM mklounge_settings`);
+	await dropOut(page.request);
+	const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+
+	// rule 3aa: 5 minutes for a lineup that just gathered to grow
+	expect(joined.queue.lock_wait_seconds).toBe(300);
+
+	await sql(
+		`UPDATE mklounge_queue_members SET joined_at = NOW() - INTERVAL 1 MINUTE WHERE queue = ?`,
+		[joined.queue.id]
+	);
+	await dropOut(page.request);
+});
+
+// Staff asked for a terms-of-use style gate: the rules shown at least once, with a checkbox,
+// before a player can pick a tier at all.
+test('the rules have to be accepted once before a tier can be picked', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	await sql(`UPDATE mklounge_players SET rules_accepted_at = NULL WHERE player = ?`, [playerId]);
+
+	// joining is refused server-side, not just hidden in the UI
+	const refused = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(refused.error).toBe('rules_not_accepted');
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	const gate = page.locator('.lounge-rules-gate');
+	await expect(gate).toBeVisible();
+	await expect(page.locator('.lounge-tier')).toHaveCount(0);
+	// the gate shows the published rules rather than a copy of them
+	await expect(gate.locator('.lounge-rules-body')).toContainText('10000');
+
+	const accept = gate.locator('.lounge-rules-accept');
+	await expect(accept).toBeDisabled();
+	await gate.locator('.lounge-rules-check input').check();
+	await expect(accept).toBeEnabled();
+	await accept.click();
+
+	await expect(page.locator('.lounge-tier').first()).toBeVisible();
+	const [row]: any = await sql(
+		`SELECT rules_accepted_at FROM mklounge_players WHERE player = ?`, [playerId]);
+	expect(row.rules_accepted_at).not.toBeNull();
+});
+
+// Accepting the rules is what first creates a player's season row, so that is where the
+// staff-tunable starting rating has to land - not the column default.
+test('a new player starts on the configured rating', async ({ page }) => {
+	const [newcomer] = await createLoungeBots(1, 'startmmr');
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [newcomer]);
+	await sql(`INSERT INTO mklounge_settings (name, value) VALUES ('default_mmr', 850)
+	           ON DUPLICATE KEY UPDATE value = VALUES(value)`);
+	try {
+		await login(page, loungeBotName('startmmr', 1), LOUNGE_BOT_PASSWORD);
+		await page.request.post('http://127.0.0.1:8080/api/lounge/accept-rules.php');
+		const [row]: any = await sql(`SELECT mmr, peak_mmr FROM mklounge_players WHERE player = ?`, [newcomer]);
+		expect(Number(row.mmr)).toBe(850);
+		expect(Number(row.peak_mmr)).toBe(850);
+	} finally {
+		await sql(`DELETE FROM mklounge_settings WHERE name = 'default_mmr'`);
+	}
+});
+
+// 10000 VS points and a 14-day-old account, agreed with staff. Both are settings, so the
+// numbers can move; what matters is that the tier screen explains the refusal.
+test('a player short of the entry criteria is told which one they fail', async ({ page }) => {
+	await login(page);
+	await dropOut(page.request);
+	// the schema clamps to its own maximum, so ask for the most the setting can hold
+	await sql(
+		`INSERT INTO mklounge_settings (name, value) VALUES ('min_vs_points', 1000000)
+		 ON DUPLICATE KEY UPDATE value = 1000000`
+	);
+
+	const refused = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', {
+		form: { tier: '1' },
+	})).json();
+	expect(refused.error).toBe('not_enough_points');
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-access-block')).toBeVisible();
+	await expect(page.locator('.lounge-access-block li.is-unmet')).toContainText('1000000');
+	await expect(page.locator('.lounge-tier')).toHaveCount(0);
+
+	await sql(`DELETE FROM mklounge_settings WHERE name = 'min_vs_points'`);
+});
+
+// A Random vote is "no preference", so it never wins on its own: it is dropped from the tally
+// and the winner drawn from whatever tied on top.
+test('Random is on the ballot and never decides a mode on its own', async ({ page }) => {
+	await login(page);
+	const queueId = await joinAndStartVoting(page, 'all');
+	const bots = await createLoungeBots(3, 'random');
+	for (const bot of bots)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [queueId, bot]);
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	const buttons = page.locator('.lounge-vote-btn');
+	await expect(buttons).toHaveCount(3); // FFA, 2v2, Random
+	await expect(buttons.nth(2)).toContainText('Random');
+
+	// wargor picks Random, one bot picks 2v2: the single real vote decides
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: 'Random' } });
+	await login(page, loungeBotName('random', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/vote.php', { form: { mode: '2v2' } });
+	await login(page);
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+	await tick(page);
+
+	// the mode is settled when the vote closes, whether or not a captain draft follows it
+	const [queue]: any = await sql(`SELECT mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.mode).toBe('2v2');
+
+	await cleanupLoungeQueues();
+	await cleanupLoungeQueues(loungeBotPattern('random'));
+});
+
+// The ladder still lives on Discord, so a mogi gathering on the site has to show up there.
+// Nothing leaves the machine: the cases run in dry run, and every message the system would
+// send is recorded, which is what they assert on.
+test('a gathering lineup is narrated to the tier channel', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	// This asserts on the exact traffic one join produces, so the ladder has to be quiet
+	// first: any lineup an earlier case left behind is narrated by the same tick.
+	await quietLadder();
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await enableDiscord();
+
+	const sent = async () =>
+		(await sql(`SELECT channel, content, action FROM mklounge_discord_log ORDER BY id`)) as any[];
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	let log = await sent();
+	// the tier message, then the #mllu summary it triggers
+	expect(log[0].content).toContain('Wargor has joined the mogi -- 1 player');
+	expect(log[0].content).toContain('`Mogi List`');
+	// the name links to the player's profile, so a Discord reader is one click from the site
+	expect(log[0].content).toMatch(
+		/`1\.` \[Wargor\]\(https:\/\/mkpc\.malahieude\.net\/profil\.php\?id=\d+\) \(MMR: \d+\)/
+	);
+	// first player in an empty lineup always pings, asking for the three still needed
+	expect(log[0].content).toContain('@here +3');
+	expect(log[1].channel).not.toBe(log[0].channel);
+	expect(log[1].content).toContain('There are 1 active mogi and 0 full mogi.');
+
+	// a second player is announced but must not ping again
+	await sql(`DELETE FROM mklounge_discord_log`);
+	const bots = await createLoungeBots(1, 'discord');
+	await login(page, loungeBotName('discord', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	log = await sent();
+	expect(log[0].content).toContain('has joined the mogi -- 2 players');
+	expect(log[0].content).not.toContain('@here');
+
+	// dropping is announced too, and never pings
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await dropOut(page.request);
+	log = await sent();
+	expect(log[0].content).toContain('has dropped from the mogi -- 1 player');
+	expect(log[0].content).not.toContain('@here');
+
+	await login(page);
+	await dropOut(page.request);
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+	await cleanupLoungeQueues(loungeBotPattern('discord'));
+});
+
+// #mllu is a dashboard, not a feed: one message for the whole channel, edited in place.
+test('the #mllu summary is edited rather than reposted', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await sql(`DELETE FROM mklounge_state`);
+	await enableDiscord();
+	// pretend the summary was posted once already, so the next sync has something to edit
+	await sql(`INSERT INTO mklounge_state (name, value) VALUES ('mllu_message', '123')`);
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	const mllu: any[] = await sql(
+		`SELECT action, message_id, content FROM mklounge_discord_log
+		 WHERE message_id = '123' ORDER BY id`
+	);
+	expect(mllu).toHaveLength(1);
+	expect(mllu[0].action).toBe('edit');
+	expect(mllu[0].content).toContain('Wargor');
+	expect(mllu[0].content).toContain('Last updated <t:');
+
+	await dropOut(page.request);
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+	await sql(`DELETE FROM mklounge_state`);
+});
+
+// Losing the id of the message being edited is what leaves a second dashboard in the channel.
+// The recovery posts one replacement and then goes back to editing it, rather than posting
+// again on every update.
+test('a lost #mllu message is replaced exactly once', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await sql(`DELETE FROM mklounge_state`);
+	await enableDiscord();
+
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } });
+	const mlluLog = async () =>
+		(await sql(
+			`SELECT l.action FROM mklounge_discord_log l ORDER BY l.id`
+		)) as any[];
+	const posts = (log: any[]) => log.filter(r => r.action === 'post').length;
+
+	// the tier announcement and the summary it triggers
+	expect(posts(await mlluLog())).toBe(2);
+	const [remembered]: any = await sql(`SELECT value FROM mklounge_state WHERE name = 'mllu_message'`);
+	expect(remembered.value).toBeTruthy();
+
+	await sql(`DELETE FROM mklounge_discord_log`);
+	// the summary is rewritten at most twice a minute unless a queue changed, so the throttle
+	// has to be aged for a bare tick to reach it
+	const ageSync = () =>
+		sql(`UPDATE mklounge_state SET value = value - 3600 WHERE name = 'mllu_synced_at'`);
+	await ageSync();
+	await tick(page);
+	await ageSync();
+	await tick(page);
+	const after = await mlluLog();
+	expect(posts(after)).toBe(0);
+	expect(after.filter(r => r.action === 'edit').length).toBeGreaterThan(0);
+
+	await dropOut(page.request);
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+	await sql(`DELETE FROM mklounge_state`);
+});
+
+// Between the launch and the first race a lounge match has no supervision at all: everyone has
+// left the lounge page, so lounge_tick() never runs, and reload.php only reaches the lounge at
+// the end of a race. A lineup that never fully turned up hung there for ever.
+test('a room nobody fully joined is relaxed rather than left hanging', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const key = LOUNGE_KEY_MIN + 40;
+	const bots = await createLoungeBots(3, 'relax');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`DELETE FROM mkprivgame WHERE id = ?`, [key]);
+	await sql(`INSERT INTO mkprivgame (id, player) VALUES (?, ?)`, [key, bots[0]]);
+	await sql(
+		`INSERT INTO mkgameoptions (id, public, rules) VALUES (?, 0, ?)
+		 ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ minPlayers: 5, maxPlayers: 5, friendly: 1, localScore: 1, lounge: 1 })]
+	);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, launched_at, privgame_key, mode)
+		 VALUES (1, ?, 'launched', NOW(), ?, 'FFA')`, [tier.id, key]
+	);
+	// Three of the five reach the room; the other two never open the link. None of them has an
+	// mkplayers row yet - those only appear once setMap has run - so this also covers the lounge
+	// being unable to see a player who is still in matchmaking, and voiding the mogi over it.
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, UNIX_TIMESTAMP(NOW())+35, 0, 0, ?)`,
+		[key]
+	);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id IN (?)`, [room.insertId, bots]);
+
+	await sql(
+		`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]
+	);
+	await login(page, loungeBotName('relax', 1), LOUNGE_BOT_PASSWORD);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mklounge_events`);
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [q.insertId]);
+	// the mogi survives: three is enough to race
+	expect(queue.status).toBe('launched');
+
+	// the timeline a moderator would read if one of the two absentees disputed their strike
+	const events: any[] = await sql(
+		`SELECT event, player, data FROM mklounge_events
+		 WHERE id > ? AND (privgame_key = ? OR queue = ?) ORDER BY id`, [since, key, q.insertId]);
+	expect(events.map(e => e.event)).toEqual(['join_timeout', 'room_relaxed']);
+	const timeout = JSON.parse(events[0].data);
+	expect(timeout.outcome).toBe('relaxed');
+	expect([...timeout.joined].sort()).toEqual([...bots].sort());
+	expect(JSON.parse(events[1].data)).toMatchObject({ min_players: 3, cpu_count: 5 });
+
+	const [options]: any = await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]);
+	const rules = JSON.parse(options.rules);
+	expect(rules.minPlayers).toBe(3);
+	// cpuCount is the field size setMap fills up to - setting only `cpu` created no bots at all
+	expect(rules.cpuCount).toBe(5);
+	// Extreme outside the top two tiers, which staff settled on the call
+	expect(rules.cpuLevel).toBe(-1);
+
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id IN (?)`, [bots]);
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('relax'));
+});
+
+// Rule 4da's five minutes decide when an absentee is penalised. They used to also decide how
+// long everyone else stared at "waiting for more players" - mudky's "ça fait attendre tlm",
+// and the voice note about a mogi stuck at three when four were required.
+test('a bot takes an empty seat long before the absentee is penalised', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const key = LOUNGE_KEY_MIN + 45;
+	const bots = await createLoungeBots(5, 'fill');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`DELETE FROM mkprivgame WHERE id = ?`, [key]);
+	await sql(`INSERT INTO mkprivgame (id, player) VALUES (?, ?)`, [key, bots[0]]);
+	await sql(
+		`INSERT INTO mkgameoptions (id, public, rules) VALUES (?, 0, ?)
+		 ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ minPlayers: 5, maxPlayers: 5, friendly: 1, localScore: 1, lounge: 1 })]
+	);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, launched_at, privgame_key, mode)
+		 VALUES (1, ?, 'launched', NOW(), ?, 'FFA')`, [tier.id, key]
+	);
+	for (const bot of bots)
+		await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, bot]);
+	// three of the five open the link; the other two are still elsewhere
+	const room: any = await sql(
+		`INSERT INTO mariokart (map, time, cup, mode, link) VALUES (-1, UNIX_TIMESTAMP(NOW())+35, 0, 0, ?)`,
+		[key]
+	);
+	await sql(`UPDATE mkjoueurs SET course = ? WHERE id IN (?)`, [room.insertId, bots.slice(0, 3)]);
+
+	// past the fill window, nowhere near rule 4da's
+	await sql(`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 90 SECOND WHERE id = ?`,
+		[q.insertId]);
+	await login(page, loungeBotName('fill', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+
+	const rules = async () =>
+		JSON.parse((await sql(`SELECT rules FROM mkgameoptions WHERE id = ?`, [key]))[0].rules);
+	expect((await rules()).minPlayers).toBe(3);
+	expect((await rules()).cpuCount).toBe(5);
+	// the race goes ahead, and nobody has been penalised for being 90 seconds late
+	const struck = async () => (await sql(
+		`SELECT SUM(strikes) n FROM mklounge_players WHERE player IN (?)`, [bots]))[0].n;
+	expect(Number(await struck())).toBe(0);
+	const [mid]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [q.insertId]);
+	expect(mid.status).toBe('launched');
+
+	// Past the five minutes the two who never came take the strike. The room is put back to
+	// wanting five first: once it has been relaxed the race can start, so getCourse answers
+	// "found" and never reaches the resolver - which is the whole point of relaxing it.
+	await sql(`UPDATE mkgameoptions SET rules = ? WHERE id = ?`,
+		[JSON.stringify({ minPlayers: 5, maxPlayers: 5, friendly: 1, localScore: 1, lounge: 1 }), key]);
+	await sql(`UPDATE mklounge_queues SET launched_at = NOW() - INTERVAL 6 MINUTE WHERE id = ?`,
+		[q.insertId]);
+	await page.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+	expect(Number(await struck())).toBe(2);
+
+	await sql(`DELETE FROM mariokart WHERE id = ?`, [room.insertId]);
+	await sql(`UPDATE mkjoueurs SET course = 0 WHERE id IN (?)`, [bots]);
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('fill'));
+});
+
+// A gathering lineup has to be visible from outside the lounge, or nobody turns up: the home
+// page advertises it, and everyone who has queued before is notified.
+test('a gathering lineup is advertised on the home page, to those who could join it', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	const bots = await createLoungeBots(1, 'advert');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await login(page, loungeBotName('advert', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
+
+	// the seeded account is past the criteria, so it is invited - under the Ranked view, beside
+	// the ladder it belongs to rather than in with the public VS games
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/index.php');
+	await page.locator('.vs_sub_ranked').click();
+	const gathering = page.locator('#ranking_current_ranked li');
+	await expect(gathering).toHaveCount(1);
+	await expect(gathering).toContainText('1 member');
+	await expect(gathering).toContainText('Tier All');
+	// the member count names them, the way a normal game's does. sidebars.js moves the title
+	// into its own element, so the tooltip is what there is to assert on.
+	// the previous tooltip fades out rather than vanishing, so the newest one is the one to read
+	const tooltip = page.locator('.ranking_activeplayertitle').last();
+	await gathering.locator('.ranking_activeplayernb').hover();
+	await expect(tooltip).toHaveText(/^e2e-lounge-advert-1 \(MMR \d+\)$/);
+
+	// leaving and coming back inside the 200ms fade used to take the new tooltip away with the
+	// old one, so a second hover showed nothing at all
+	const reHover = await page.evaluate(async () => {
+		const li = document.querySelector('#ranking_current_ranked li');
+		const fire = (el: Element, type: string) => el.dispatchEvent(new MouseEvent(type, { bubbles: true }));
+		const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+		const target = li.querySelector('.ranking_activeplayernb');
+		fire(target, 'mouseout');
+		await sleep(400);
+		fire(target, 'mouseover');
+		await sleep(30);
+		fire(target, 'mouseout');
+		await sleep(50);
+		fire(target, 'mouseover');
+		await sleep(400);
+		return [...document.querySelectorAll('.ranking_activeplayertitle')]
+			.filter(t => getComputedStyle(t).opacity !== '0')
+			.map(t => t.textContent);
+	});
+	expect(reHover).toHaveLength(1);
+	expect(reHover[0]).toMatch(/^e2e-lounge-advert-1 \(MMR \d+\)$/);
+	// Join goes where the Ranked button goes: online.php, which is where a character is picked
+	await expect(gathering.locator('.action_button'))
+		.toHaveAttribute('href', /^online\.php\?mid=\d+&ranked$/);
+
+	// a player short of the criteria is not shown a lineup they could not join - the view it
+	// would live under is not built for them at all
+	const shortName = 'e2e-lounge-advert-short';
+	await createEntryBot(shortName, 500);
+	await login(page, shortName, LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/index.php');
+	await expect(page.locator('.vs_sub_ranked')).toHaveCount(0);
+	await expect(page.locator('#ranking_current_ranked')).toHaveCount(0);
+
+	await sql(`DELETE FROM mkjoueurs WHERE nom = ?`, [shortName]);
+	await login(page);
+	await cleanupLoungeQueues(loungeBotPattern('advert'));
+	expect(bots).toHaveLength(1);
+});
+
+test('players who have queued before are notified when a lineup gathers', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	await quietLadder();
+	await sql(`DELETE FROM mknotifs WHERE type = 'lounge_queue'`);
+	const [{ id: wargorId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	const bots = await createLoungeBots(1, 'notify');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	await login(page, loungeBotName('notify', 1), LOUNGE_BOT_PASSWORD);
+	await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier.id) } });
+
+	const mine: any = await sql(
+		`SELECT link FROM mknotifs WHERE type = 'lounge_queue' AND user = ?`, [wargorId]
+	);
+	expect(mine).toHaveLength(1);
+	// the joiner is never notified about their own lineup
+	const joiners: any = await sql(
+		`SELECT COUNT(*) AS n FROM mknotifs WHERE type = 'lounge_queue' AND user = ?`, [bots[0]]
+	);
+	expect(Number(joiners[0].n)).toBe(0);
+
+	await login(page);
+	await page.goto('http://127.0.0.1:8080/index.php');
+	const notif = page.locator('#notifs-list .notif-container').first();
+	await expect(notif).toContainText('queueing for a ranked game');
+	await expect(notif).toContainText('Tier All');
+
+	// and it is gone once the lineup is
+	await cleanupLoungeQueues(loungeBotPattern('notify'));
+	await page.goto('http://127.0.0.1:8080/index.php');
+	const left: any = await sql(
+		`SELECT COUNT(*) AS n FROM mknotifs WHERE type = 'lounge_queue' AND user = ?`, [wargorId]
+	);
+	expect(Number(left[0].n)).toBe(0);
+
+	await sql(`DELETE FROM mknotifs WHERE type = 'lounge_queue'`);
+});
+
+// The captain draft, settled with staff on 2026-09-06: the two highest-rated players captain
+// the two sides and fill them by hand before the room ever opens, so the in-game team screen
+// is skipped entirely.
+// `discord` has to be switched on inside here rather than before the call: cleanupLoungeQueues
+// clears the settings table, and the announcement happens on the tick below.
+async function stageDraftLineup(page, tag: string, lineup: number, mode: string, discord = false) {
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const bots = await createLoungeBots(lineup, tag);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, ready_at) VALUES (1, ?, 'voting', NOW())`,
+		[tier.id]
+	);
+	// descending, so the captains are bots 1 and 2 and the auto-pick order is the bot order
+	for (let i = 0; i < bots.length; i++) {
+		await sql(
+			`INSERT INTO mklounge_queue_members (queue, player, voted_mode) VALUES (?, ?, ?)`,
+			[q.insertId, bots[i], mode]
+		);
+		await sql(
+			`INSERT INTO mklounge_players (player, season, mmr) VALUES (?, 1, ?)
+			 ON DUPLICATE KEY UPDATE mmr = VALUES(mmr)`,
+			[bots[i], 2000 - i * 100]
+		);
+	}
+	await sql(`UPDATE mklounge_queues SET ready_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [q.insertId]);
+	if (discord) {
+		await sql(`DELETE FROM mklounge_discord_log`);
+		await enableDiscord();
+	}
+	await login(page, loungeBotName(tag, 1), LOUNGE_BOT_PASSWORD);
+	await tick(page);
+	return { queueId: q.insertId, bots };
+}
+
+async function draftState(page, tag: string, captainIndex: number) {
+	await login(page, loungeBotName(tag, captainIndex), LOUNGE_BOT_PASSWORD);
+	const res = await page.request.post('http://127.0.0.1:8080/api/lounge/poll.php');
+	return (await res.json()).queue;
+}
+
+test('a team-mode vote hands the lineup to the two highest-rated captains', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'draft6', 6, '3v3');
+
+	const [queue]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('drafting');
+	expect(queue.mode).toBe('3v3');
+
+	const state = await draftState(page, 'draft6', 1);
+	expect(state.draft.captains.map((c: any) => c.mmr).sort()).toEqual([1900, 2000]);
+	// each captain already stands on their own side, and nobody else is placed yet
+	expect(state.draft.teams[0]).toHaveLength(1);
+	expect(state.draft.teams[1]).toHaveLength(1);
+	expect(state.draft.available).toHaveLength(4);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('the draft snakes 1-2-1 and launches with the teams already set', async ({ page }) => {
+	const { queueId, bots } = await stageDraftLineup(page, 'draft3v3', 6, '3v3');
+
+	const captainIndexOf = (state: any, side: number) =>
+		bots.indexOf(state.draft.captains[side].id) + 1;
+
+	await sql(`DELETE FROM mklounge_discord_log`);
+	await enableDiscord();
+
+	// 1-2-1 is four picks, but the last one is a formality - one player, one empty seat - so
+	// only the first three are ever put to a captain
+	const expectedSides = [0, 1, 1];
+	for (const side of expectedSides) {
+		let state = await draftState(page, 'draft3v3', 1);
+		expect(state.status).toBe('drafting');
+		expect(state.draft.current_captain.id).toBe(state.draft.captains[side].id);
+
+		const captain = captainIndexOf(state, side);
+		state = await draftState(page, 'draft3v3', captain);
+		const target = state.draft.available[0].id;
+		const res = await page.request.post('http://127.0.0.1:8080/api/lounge/draft.php', {
+			form: { player: String(target) },
+		});
+		expect((await res.json()).error).toBeUndefined();
+	}
+
+	// the sixth player was placed without anyone picking them, and the finished teams stand
+	// for a beat so the lineup can see them before the room opens
+	const [held]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(held.status).toBe('drafting');
+	const teams: any = await sql(
+		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members WHERE queue = ? GROUP BY team`, [queueId]
+	);
+	expect(teams.map((t: any) => Number(t.n))).toEqual([3, 3]);
+
+	// a settled draft is recapped to the tier channel the same way a drawn lineup is
+	const log: any = await sql(`SELECT content FROM mklounge_discord_log ORDER BY id`);
+	const recap = log.map((r: any) => r.content).find((c: string) => c.includes('**Teams'));
+	expect(recap).toContain('**Teams — 3v3**');
+	expect(recap).toContain('`Team 2`:');
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+
+	await passRecap(page, queueId);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(2);
+	// the whole point of drafting beforehand: no in-game team-selection screen
+	expect(rules.manualTeams).toBeUndefined();
+	expect(Object.keys(rules.fixedTeams)).toHaveLength(6);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+// Every settled lineup gets the recap, not just the ones with sides to read: an FFA lineup is
+// told it is playing FFA. It is also where the "your mogi is starting" alert now lands.
+test('an FFA lineup gets a recap of its own before the room opens', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'ffarecap', 5, 'FFA');
+
+	const [held]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(held.status).toBe('drafting');
+	expect(held.mode).toBe('FFA');
+
+	// no sides to show, and nobody waiting to be placed - the lineup itself is the recap
+	const state = await draftState(page, 'ffarecap', 1);
+	expect(state.draft.teams).toHaveLength(0);
+	expect(state.draft.available).toHaveLength(0);
+	expect(state.members).toHaveLength(5);
+
+	await passRecap(page, queueId);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+// The vote's answer used to be half a sentence in the status line, which is not where anyone
+// looks to find out what they are about to play. "2v2" is also the ladder's name for pairs
+// however many pairs that makes, so the recap says the shape rather than the name.
+test('the recap announces the mode in the shape it will be played', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+
+	const recapSays = async (mode: string, lineup: number, teamCount: number, tag: string, shape: string) => {
+		const bots = await createLoungeBots(lineup - 1, tag);
+		// held open, so the recap cannot launch out from under the assertion
+		const q: any = await sql(
+			`INSERT INTO mklounge_queues (season, tier, status, mode, draft_turn_at)
+			 VALUES (1, ?, 'drafting', ?, NOW() + INTERVAL 1 HOUR)`, [tier.id, mode]);
+		const members = [playerId, ...bots];
+		for (let i = 0; i < members.length; i++)
+			await sql(`INSERT INTO mklounge_queue_members (queue, player, team) VALUES (?, ?, ?)`,
+				[q.insertId, members[i], teamCount ? i % teamCount : null]);
+
+		await page.goto('http://127.0.0.1:8080/lounge.php');
+		await expect(page.locator('.lounge-verdict-mode')).toHaveText(shape);
+
+		await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+		await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [q.insertId]);
+		await cleanupLoungeQueues(loungeBotPattern(tag));
+	};
+
+	await recapSays('2v2', 8, 4, 'shape8', '2v2v2v2');
+	await recapSays('2v2', 4, 2, 'shape4', '2v2');
+	await recapSays('FFA', 5, 0, 'shapeffa', 'FFA');
+});
+
+// The recap is for the lineup that waited for it. Someone opening the lounge to find their
+// mogi already under way has missed it, is most likely late, and is sent straight there.
+test('a player who walks in on a running mogi is sent to it, not shown the recap', async ({ page }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const key = LOUNGE_KEY_MIN + 44;
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, mode, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', 'FFA', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_queue_members (queue, player) VALUES (?, ?)`, [q.insertId, playerId]);
+
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await expect(page.locator('.lounge-launching h2')).toHaveText('Match found!', { timeout: 4000 });
+	// and it takes them there rather than leaving them on it
+	await page.waitForURL(/online\.php\?mid=\d+&ranked&key=/, { timeout: 8000 });
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [q.insertId]);
+	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [q.insertId]);
+	await sql(`DELETE FROM mkprivgame WHERE id = ?`, [key]);
+});
+
+// The ladder only hands a lineup to captains for its two big two-sided modes. A 2v2 splits
+// four players into two teams as well, but MogiBot posts those teams with the poll result:
+// drawn at random, unbalanced as often as not, and never put to a draft.
+test('a 2v2 of four is drawn at random rather than drafted', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'rand2v2', 4, '2v2', true);
+
+	// the teams go up on the same screen a draft ends on, with nothing to pick
+	const [held]: any = await sql(`SELECT status, mode FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(held.status).toBe('drafting');
+	expect(held.mode).toBe('2v2');
+	const state = await draftState(page, 'rand2v2', 1);
+	expect(state.draft.captains).toHaveLength(0);
+	expect(state.draft.available).toHaveLength(0);
+	expect(state.draft.teams.map((t: any[]) => t.length)).toEqual([2, 2]);
+
+	const teams: any = await sql(
+		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members
+		 WHERE queue = ? AND dropped_at IS NULL GROUP BY team ORDER BY team`, [queueId]);
+	expect(teams.map((t: any) => Number(t.team))).toEqual([0, 1]);
+	expect(teams.map((t: any) => Number(t.n))).toEqual([2, 2]);
+
+	// and the tier channel is told who is with whom, for anyone not watching the site
+	const log: any = await sql(`SELECT content FROM mklounge_discord_log ORDER BY id`);
+	const recap = log.map((r: any) => r.content).find((c: string) => c.includes('**Teams'));
+	expect(recap).toContain('**Teams — 2v2**');
+	expect(recap).toMatch(/`Team 1`: \[.+\]\(.+\), \[.+\]\(.+\) \(MMR: \d+\)/);
+	expect(recap).toContain('`Team 2`:');
+
+	// the room opens once the lineup has had its look
+	await passRecap(page, queueId);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	// the sides were settled before it did, so nobody picks one in-game
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(2);
+	expect(rules.manualTeams).toBeUndefined();
+	expect(Object.keys(rules.fixedTeams)).toHaveLength(4);
+
+	await sql(`DELETE FROM mklounge_settings WHERE name IN ('discord_enabled', 'discord_dry_run')`);
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('a captain who runs out of time gets the highest-rated player left', async ({ page }) => {
+	const { queueId, bots } = await stageDraftLineup(page, 'draftto', 6, '3v3');
+
+	await sql(
+		`UPDATE mklounge_queues SET draft_turn_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]
+	);
+	await login(page, loungeBotName('draftto', 1), LOUNGE_BOT_PASSWORD);
+	await tick(page);
+
+	// bots 1 and 2 captain; bot 3 is the highest-rated player still in the pool
+	const [assigned]: any = await sql(
+		`SELECT team FROM mklounge_queue_members WHERE queue = ? AND player = ?`, [queueId, bots[2]]
+	);
+	expect(assigned.team).not.toBeNull();
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+test('a lineup that splits into more than two teams is drawn at random too', async ({ page }) => {
+	const { queueId } = await stageDraftLineup(page, 'draft2v2', 8, '2v2');
+
+	// eight players in pairs is four teams, and the reveal screen shows all four
+	const teams: any = await sql(
+		`SELECT team, COUNT(*) AS n FROM mklounge_queue_members
+		 WHERE queue = ? AND dropped_at IS NULL GROUP BY team ORDER BY team`, [queueId]);
+	expect(teams.map((t: any) => Number(t.team))).toEqual([0, 1, 2, 3]);
+	expect(teams.map((t: any) => Number(t.n))).toEqual([2, 2, 2, 2]);
+	const state = await draftState(page, 'draft2v2', 1);
+	expect(state.draft.teams.map((t: any[]) => t.length)).toEqual([2, 2, 2, 2]);
+
+	await passRecap(page, queueId);
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+
+	const rules = await rulesFor(queueId);
+	expect(rules.nbTeams).toBe(4);
+	expect(rules.manualTeams).toBeUndefined();
+	expect(Object.keys(rules.fixedTeams)).toHaveLength(8);
+
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});

@@ -779,6 +779,7 @@ CREATE TABLE `mkgamedata` (
   `game` int(11) NOT NULL,
   `aRaceCount` int(11) NOT NULL,
   `raceCount` int(11) NOT NULL,
+  `tracks` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`game`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1001,16 +1002,209 @@ CREATE TABLE `mklogsnapshots` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_discord_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `channel` varchar(32) NOT NULL,
+  `content` text NOT NULL,
+  `message_id` varchar(32) NOT NULL DEFAULT '',
+  `action` varchar(8) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` timestamp(3) NOT NULL DEFAULT current_timestamp(3),
+  `event` varchar(32) NOT NULL,
+  `request` char(8) NOT NULL,
+  `source` varchar(48) NOT NULL,
+  `actor` int(10) unsigned DEFAULT NULL,
+  `player` int(10) unsigned DEFAULT NULL,
+  `queue` int(10) unsigned DEFAULT NULL,
+  `privgame_key` int(10) unsigned DEFAULT NULL,
+  `data` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`),
+  KEY `player` (`player`,`id`),
+  KEY `queue` (`queue`,`id`),
+  KEY `privgame_key` (`privgame_key`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_match_players` (
+  `match` int(10) unsigned NOT NULL,
+  `player` int(11) NOT NULL,
+  `perso` varchar(250) DEFAULT NULL,
+  `team` tinyint(3) unsigned DEFAULT NULL,
+  `final_score` int(11) DEFAULT NULL,
+  `final_position` tinyint(3) unsigned DEFAULT NULL,
+  `gp_scores` varchar(255) DEFAULT NULL,
+  `mmr_before` double DEFAULT NULL,
+  `mmr_after` double DEFAULT NULL,
+  `mmr_delta` double DEFAULT NULL,
+  `mmr_penalty` double DEFAULT NULL,
+  `mmr_adjust` double DEFAULT NULL,
+  `races_played` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `last_race` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `place_before` smallint(5) unsigned DEFAULT NULL,
+  `place_after` smallint(5) unsigned DEFAULT NULL,
+  `strike_reason` varchar(32) DEFAULT NULL,
+  PRIMARY KEY (`match`,`player`),
+  KEY `player` (`player`,`match`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_matches` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `queue` int(10) unsigned NOT NULL,
+  `season` int(10) unsigned NOT NULL,
+  `tier` int(10) unsigned NOT NULL,
+  `privgame_key` int(10) unsigned NOT NULL,
+  `mode` varchar(8) NOT NULL,
+  `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ended_at` timestamp NULL DEFAULT NULL,
+  `cancelled_reason` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `queue` (`queue`),
+  KEY `season_started` (`season`,`started_at`),
+  KEY `privgame_key` (`privgame_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_players` (
+  `player` int(11) NOT NULL,
+  `season` int(10) unsigned NOT NULL,
+  `mmr` double NOT NULL DEFAULT 600,
+  `peak_mmr` double NOT NULL DEFAULT 600,
+  `placement` double DEFAULT NULL,
+  `games` int(11) NOT NULL DEFAULT 0,
+  `wins` int(11) NOT NULL DEFAULT 0,
+  `total_score` int(11) NOT NULL DEFAULT 0,
+  `strikes` int(11) NOT NULL DEFAULT 0,
+  `banned_until` timestamp NULL DEFAULT NULL,
+  `rules_accepted_at` timestamp NULL DEFAULT NULL,
+  `unlock_dismissed_at` timestamp NULL DEFAULT NULL,
+  `placed` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`player`,`season`),
+  KEY `season_mmr` (`season`,`mmr`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_queue_members` (
+  `queue` int(10) unsigned NOT NULL,
+  `player` int(11) NOT NULL,
+  `joined_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_heartbeat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `confirmed_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `perso` varchar(250) DEFAULT NULL,
+  `voted_mode` varchar(8) DEFAULT NULL,
+  `team` tinyint(4) DEFAULT NULL,
+  `dropped_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`queue`,`player`),
+  KEY `player_active` (`player`,`dropped_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_queues` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `season` int(10) unsigned NOT NULL,
+  `tier` int(10) unsigned NOT NULL,
+  `status` enum('open','locked','voting','drafting','launching','launched','finished','cancelled') NOT NULL DEFAULT 'open',
+  `opened_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `locked_at` timestamp NULL DEFAULT NULL,
+  `ready_at` timestamp NULL DEFAULT NULL,
+  `launched_at` timestamp NULL DEFAULT NULL,
+  `discord_here_at` timestamp NULL DEFAULT NULL,
+  `mode` varchar(8) DEFAULT NULL,
+  `draft_turn_at` timestamp NULL DEFAULT NULL,
+  `privgame_key` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `season_tier_status` (`season`,`tier`,`status`),
+  KEY `status` (`status`),
+  KEY `privgame_key` (`privgame_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_ranks` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(16) NOT NULL,
+  `label` varchar(32) NOT NULL,
+  `min_mmr` int(11) NOT NULL DEFAULT 0,
+  `color` varchar(7) NOT NULL DEFAULT '#ffffff',
+  `ordering` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`),
+  KEY `min_mmr` (`min_mmr`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_seasons` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL,
+  `multicup_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ended_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ended_at` (`ended_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_settings` (
+  `name` varchar(48) NOT NULL,
+  `value` int(11) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_state` (
+  `name` varchar(48) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mklounge_tiers` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(8) NOT NULL,
+  `label` varchar(32) NOT NULL,
+  `min_mmr` int(11) NOT NULL DEFAULT 0,
+  `max_mmr` int(11) DEFAULT NULL,
+  `min_players` tinyint(3) unsigned NOT NULL DEFAULT 4,
+  `ordering` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkmatches` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` int(11) NOT NULL,
   `course` int(11) NOT NULL,
+  `link` int(10) unsigned NOT NULL DEFAULT 0,
+  `race` smallint(5) unsigned NOT NULL DEFAULT 0,
   `rank` tinyint(4) NOT NULL,
+  `pts_before` int(11) DEFAULT NULL,
+  `pts_inc` smallint(6) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `player` (`player`),
-  KEY `course` (`course`)
+  KEY `course` (`course`),
+  KEY `link` (`link`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @saved_cs_client     = @@character_set_client;
@@ -1193,7 +1387,7 @@ CREATE TABLE `mknotes` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotifmute` (
   `user` int(11) NOT NULL,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report','award') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report','award','lounge_queue') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`user`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1201,7 +1395,7 @@ CREATE TABLE `mknotifmute` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mknotifs` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award','ranked_match_ready','lounge_queue') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `user` int(10) unsigned DEFAULT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
   `identifiant2` int(10) unsigned DEFAULT NULL,
@@ -1553,7 +1747,7 @@ CREATE TABLE `mkreportshist` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkrights` (
   `player` int(11) NOT NULL,
-  `privilege` enum('admin','moderator','organizer','publisher','clvalidator') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `privilege` enum('admin','moderator','organizer','publisher','clvalidator','lounge') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   UNIQUE KEY `player` (`player`,`privilege`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2234,9 +2428,15 @@ INSERT INTO `mkcountries` VALUES
 (244,'ye','Yémen','Yemen',32767),
 (245,'rs','Serbie','Serbia',32767),
 (246,'zm','Zambie','Zambia',32767);
+INSERT INTO `mklounge_ranks` VALUES (1,'iron','Iron',0,'#796f6f',0),(2,'bronze','Bronze',500,'#cd7f32',1),(3,'silver','Silver',900,'#a7b4b4',2),(4,'gold','Gold',1200,'#f4d80b',3),(5,'platinum','Platinum',1400,'#9aabc6',4),(6,'emerald','Emerald',1600,'#27dd6a',5),(7,'diamond','Diamond',1800,'#31f4ff',6),(8,'master','Master',2000,'#4c4c4c',7),(9,'gm','GM',2500,'#a32937',8);
+INSERT INTO `mklounge_tiers` VALUES (1,'all','Tier All',0,NULL,4,0),(2,'C','Tier C',0,1199,4,1),(3,'B','Tier B',500,1799,4,2),(4,'A','Tier A',900,NULL,4,3),(5,'X','Tier X',1600,NULL,4,4);
 INSERT INTO mkjoueurs SET id=1,course=0,nom="Wargor",code="$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/tqGwnO",joueur="mario",choice_map=0,choice_rand=0,pts_vs=5000,pts_battle=5000,pts_challenge=0,online=0,deleted=0;
 INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="Wargor",nbmessages=0,email="",country=76,description="";
 INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);
 INSERT INTO mkgamecpu VALUES(0,0,1000000000);
 INSERT INTO mkrights VALUES(1, "admin");
 INSERT INTO mkidentifiants SET identifiant=0,disable_cooldown=1;
+INSERT INTO mklounge_seasons SET id=1,name="Season 1",multicup_id=10813;
+INSERT INTO mkmigrations SET name="20261004-1200-ranked-lounge.sql";
+INSERT INTO mkmigrations SET name="20261004-1201-lounge-indexes.sql";
+INSERT INTO mkmigrations SET name="20261004-2100-lounge-rating-edits.sql";
