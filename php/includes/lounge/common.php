@@ -1323,6 +1323,10 @@ function lounge_charge_cancellation($matchId, $presentIds) {
 		$before = is_null($row['mmr']) ? floatval(lounge_setting('default_mmr')) : floatval($row['mmr']);
 		$after = max(lounge_setting('mmr_min'), $before + $penalty);
 		mysql_query(
+			'UPDATE `mklounge_players` SET placement="'. lounge_mmr_sql($before) .'"
+			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'" AND placement IS NULL'
+		);
+		mysql_query(
 			'UPDATE `mklounge_match_players`
 			SET mmr_before="'. lounge_mmr_sql($before) .'", mmr_after="'. lounge_mmr_sql($after) .'",
 				mmr_delta="'. lounge_mmr_sql($after - $before) .'", mmr_penalty="'. lounge_mmr_sql($penalty) .'"
@@ -1381,6 +1385,16 @@ function lounge_void_if_too_many_bots($privgameKey, $course) {
 	));
 	lounge_charge_cancellation(intval($row['match']), $present);
 	return true;
+}
+
+// Someone the link's lineup does not include.
+function lounge_is_outsider($privgameKey, $playerId) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT MAX(mp.player="'. intval($playerId) .'") AS member FROM `mklounge_match_players` mp
+		INNER JOIN `mklounge_matches` m ON m.id=mp.`match`
+		WHERE m.privgame_key="'. intval($privgameKey) .'"'
+	));
+	return $row && !is_null($row['member']) && !intval($row['member']);
 }
 
 function lounge_match_voided($privgameKey) {
@@ -2302,6 +2316,10 @@ function lounge_apply_mmr_locked($matchId) {
 		$penalty = $participant['penalty'];
 		$after = max(lounge_setting('mmr_min'), $before + $deltas[$playerId] + $penalty);
 		mysql_query(
+			'UPDATE `mklounge_players` SET placement="'. lounge_mmr_sql($before) .'"
+			WHERE player="'. $playerId .'" AND season="'. LOUNGE_CURRENT_SEASON .'" AND placement IS NULL'
+		);
+		mysql_query(
 			'UPDATE `mklounge_match_players`
 			SET mmr_before="'. lounge_mmr_sql($before) .'",
 				mmr_after="'. lounge_mmr_sql($after) .'",
@@ -2403,6 +2421,7 @@ function lounge_recompute_season() {
 
 	$min = lounge_setting('mmr_min');
 	$counters = array();
+	$unplaced = array();
 	$ratings = array();
 	$peaks = array();
 	$ranked = array();
@@ -2411,13 +2430,14 @@ function lounge_recompute_season() {
 		foreach ($match['rows'] as $row) {
 			$playerId = intval($row['player']);
 			if (!isset($ratings[$playerId])) {
-				// a player who was never placed starts where they actually started
-				if (isset($placements[$playerId]))
-					$ratings[$playerId] = $placements[$playerId];
-				elseif (!is_null($row['mmr_before']))
-					$ratings[$playerId] = round(floatval($row['mmr_before']), 6);
-				else
-					$ratings[$playerId] = floatval(lounge_setting('default_mmr'));
+				// The start is the placement, recorded the first time a player is rated - never
+				// the "before" of their first mogi still on record, which a deleted mogi ahead of
+				// it has already moved.
+				if (!isset($placements[$playerId])) {
+					$placements[$playerId] = floatval(lounge_setting('default_mmr'));
+					$unplaced[$playerId] = true;
+				}
+				$ratings[$playerId] = $placements[$playerId];
 				$peaks[$playerId] = $ratings[$playerId];
 			}
 			if ($match['rated'] && !is_null($row['final_score'])) {
@@ -2482,11 +2502,22 @@ function lounge_recompute_season() {
 			);
 		}
 	}
-	foreach ($placements as $playerId => $placement) {
-		if (!isset($ratings[$playerId])) {
-			$ratings[$playerId] = $placement;
-			$peaks[$playerId] = $placement;
-		}
+	foreach ($unplaced as $playerId => $_) {
+		mysql_query(
+			'UPDATE `mklounge_players` SET placement="'. lounge_mmr_sql($placements[$playerId]) .'"
+			WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
+		);
+	}
+	// a player whose every mogi has been deleted is back on their placement, or on the
+	// default rating when they were never placed
+	$res = mysql_query('SELECT player, placement FROM `mklounge_players` WHERE season="'. LOUNGE_CURRENT_SEASON .'"');
+	while ($row = mysql_fetch_array($res)) {
+		$playerId = intval($row['player']);
+		if (isset($ratings[$playerId]))
+			continue;
+		$start = is_null($row['placement']) ? floatval(lounge_setting('default_mmr')) : floatval($row['placement']);
+		$ratings[$playerId] = $start;
+		$peaks[$playerId] = $start;
 	}
 	foreach ($ratings as $playerId => $rating) {
 		mysql_query(
@@ -2518,7 +2549,7 @@ function lounge_edit_ratings($matchId, $adjustments, $placements) {
 		mysql_query(
 			'UPDATE `mklounge_match_players`
 			SET mmr_adjust='. (is_null($adjust) ? 'NULL' : '"'. lounge_mmr_sql($adjust) .'"') .'
-			WHERE `match`="'. intval($matchId) .'" AND player="'. intval($playerId) .'" AND mmr_after IS NOT NULL'
+			WHERE `match`="'. intval($matchId) .'" AND player="'. intval($playerId) .'"'
 		);
 	}
 	foreach ($placements as $playerId => $placement) {
