@@ -723,6 +723,7 @@
 			var head = document.createElement('div');
 			head.className = 'lounge-profile-head';
 			head.appendChild(lbCell('h2', 'lounge-profile-name', toLanguage('Match #', 'Mogi n°') + match.id));
+			head.appendChild(matchStepsEl(match));
 			head.appendChild(lbCell('span', 'lounge-profile-when', timeAgo(match.ended_ago)));
 			container.appendChild(head);
 			container.appendChild(matchSummaryEl(match));
@@ -733,6 +734,31 @@
 					showTableEditor(container, match.id);
 				}));
 		});
+	}
+
+	// The older and the newer mogi, in the order of the recent list
+	function matchStepsEl(match) {
+		var wrap = document.createElement('span');
+		wrap.className = 'lounge-lb-pagerbuttons';
+		var step = function(label, targetId, titleEn, titleFr) {
+			var title = toLanguage(titleEn, titleFr);
+			var el;
+			if (targetId) {
+				el = lbLink('lounge-lb-pagerbutton', label, lbUrl({ match: targetId }));
+			}
+			else {
+				el = document.createElement('span');
+				el.className = 'lounge-lb-pagerbutton is-disabled';
+				el.textContent = label;
+				el.setAttribute('aria-disabled', 'true');
+			}
+			el.title = title;
+			el.setAttribute('aria-label', title);
+			wrap.appendChild(el);
+		};
+		step('‹', match.previous_id, 'Previous mogi', 'Mogi précédent');
+		step('›', match.next_id, 'Next mogi', 'Mogi suivant');
+		return wrap;
 	}
 
 	function editButton(label, onClick) {
@@ -765,6 +791,7 @@
 		duplicate_player: ['%s is in the table twice.', '%s est deux fois dans le tableau.'],
 		uneven_teams: ['The teams do not all have the same number of players.', 'Les équipes n\'ont pas toutes le même nombre de joueurs.'],
 		too_few: ['A table needs at least two players or two teams.', 'Un tableau doit avoir au moins deux joueurs ou deux équipes.'],
+		bad_mult: ['#mult takes a number from 0 to 10, such as #mult 0.5.', '#mult prend un nombre de 0 à 10, comme #mult 0.5.'],
 		tier_required: ['Pick the tier the mogi was played in.', 'Choisissez le tier dans lequel le mogi a été joué.'],
 		bad_date: ['The date is not valid, or it is in the future.', 'La date n\'est pas valide, ou elle est dans le futur.']
 	};
@@ -930,12 +957,21 @@
 		return wrap;
 	}
 
+	// #mult shows next to the title: what the mogi's own changes were multiplied by, penalties
+	// and compensations aside.
+	function ratingsTitle(match) {
+		var title = toLanguage('Rating updates', 'Évolution du MMR');
+		if (match.mmr_mult !== undefined && match.mmr_mult !== 1)
+			title += ' (×' + match.mmr_mult + ')';
+		return title;
+	}
+
 	// The rating updates, with what staff can set in place: a placement on a player's first
 	// mogi of the season, and an MMR compensation on any of them.
 	function ratingPreviewEl(match, edits) {
 		var box = document.createElement('div');
 		box.className = 'lounge-ratings';
-		box.appendChild(lbCell('h3', 'lounge-ratings-title', toLanguage('Rating updates', 'Évolution du MMR')));
+		box.appendChild(lbCell('h3', 'lounge-ratings-title', ratingsTitle(match)));
 		var table = lbTable('lounge-ratings-table', [
 			{ className: 'lounge-ratings-name', label: toLanguage('Player', 'Joueur') },
 			{ className: 'lounge-ratings-before', label: toLanguage('Placement', 'Placement') },
@@ -1149,7 +1185,7 @@
 	function ratingUpdatesEl(match, me) {
 		var box = document.createElement('div');
 		box.className = 'lounge-ratings';
-		box.appendChild(lbCell('h3', 'lounge-ratings-title', toLanguage('Rating updates', 'Évolution du MMR')));
+		box.appendChild(lbCell('h3', 'lounge-ratings-title', ratingsTitle(match)));
 		var table = document.createElement('table');
 		table.className = 'lounge-ratings-table';
 		var players = ratingOrder(match);
@@ -1166,7 +1202,10 @@
 				? 0 : (p.place_before - p.place_after)));
 			move.appendChild(lbCell('span', 'lounge-placemove-to', placeEl(p.place_after)));
 
-			var delta = lbCell('td', 'lounge-ratings-delta', deltaEl(p.mmr_delta));
+			// Lorenzi's layout: the mogi's own change on top, and each penalty or compensation
+			// under it on its own line, adding up to the total rather than counted in it
+			var raced = (p.mmr_delta === null) ? null : Math.round(p.mmr_delta - (p.mmr_penalty || 0) - (p.mmr_adjust || 0));
+			var delta = lbCell('td', 'lounge-ratings-delta', deltaEl(raced));
 			if (p.mmr_penalty) {
 				var penalty = document.createElement('div');
 				penalty.className = 'lounge-results-penalty';

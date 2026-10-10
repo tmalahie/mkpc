@@ -780,6 +780,9 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 		{ score: 22, before: 800, after: 785, placeBefore: 7, placeAfter: 7 },
 		{ score: 11, before: 700, after: 660, placeBefore: 8, placeAfter: 9 },
 	]);
+	// 12 of the winner's 40 were a compensation
+	await sql(`UPDATE mklounge_match_players SET mmr_adjust = 12 WHERE \`match\` = ? AND player = ?`,
+		[staged.matchId, staged.ids[0]]);
 
 	await login(page);
 	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
@@ -800,7 +803,9 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 	await expect(updates).toHaveCount(4);
 	const top = updates.first();
 	await expect(top.locator('.lounge-ratings-before')).toHaveText('1000');
-	await expect(top.locator('.lounge-ratings-delta')).toHaveText('+40');
+	// Lorenzi's layout: what the mogi gave on top, the compensation under it, adding up to the move
+	await expect(top.locator('.lounge-ratings-delta .lounge-delta')).toHaveText('+28');
+	await expect(top.locator('.lounge-results-adjust')).toHaveText('(+12)');
 	await expect(top.locator('.lounge-ratings-after')).toHaveText('1040');
 	await expect(top.locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-up/);
 	await expect(top.locator('.lounge-placemove-from')).toHaveText('#5');
@@ -809,6 +814,15 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 	// and a rating that went down says so in red
 	await expect(updates.last().locator('.lounge-ratings-delta')).toHaveText('-40');
 	await expect(updates.last().locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-down/);
+
+	// the newest mogi has none after it, and steps back to the one before
+	const steps = page.locator('.lounge-profile-head .lounge-lb-pagerbutton');
+	await expect(steps.nth(1)).toHaveClass(/is-disabled/);
+	await steps.nth(0).click();
+	await expect(page).toHaveURL(/match=\d+$/);
+	await expect(page.locator('.lounge-profile-name')).not.toHaveText('Match #' + staged.matchId);
+	await page.locator('.lounge-profile-head .lounge-lb-pagerbutton').nth(1).click();
+	await expect(page.locator('.lounge-profile-name')).toHaveText('Match #' + staged.matchId);
 
 	// a name in the table is the way to that player's own page
 	await standings.nth(1).locator('.lounge-lb-playerlink').click();
@@ -1668,9 +1682,11 @@ test('the lounge moderation page acts on a member and logs it', async ({ page, b
 	// stripped of tags, so the assertion survives the stats line being restyled
 	expect(page1.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).toContain('600 MMR');
 
-	await post({ player: nom, action: 'mmr', mmr_delta: '50' });
-	const [rated]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ?`, [bot]);
+	// a placement is where the member starts the season: with no mogi yet, it is their rating
+	await post({ player: nom, action: 'placement', placement: '650' });
+	const [rated]: any = await sql(`SELECT mmr, placement FROM mklounge_players WHERE player = ?`, [bot]);
 	expect(Math.round(rated.mmr)).toBe(650);
+	expect(Math.round(rated.placement)).toBe(650);
 
 	await post({ player: nom, action: 'ban', ban_minutes: '30' });
 	const [banned]: any = await sql(
@@ -1704,7 +1720,7 @@ test('the lounge moderation page acts on a member and logs it', async ({ page, b
 	// every action is retraceable in the staff log
 	const logs: any = await sql(`SELECT log FROM mklogs WHERE ${mine} ORDER BY id`, [bot]);
 	expect(logs.map((r: any) => r.log.split(' ')[0]))
-		.toEqual(['LoungeMmr', 'LoungeBan', 'LoungeStrikes', 'LoungeUnban',
+		.toEqual(['LoungePlacement', 'LoungeBan', 'LoungeStrikes', 'LoungeUnban',
 			'LoungeStrikes', 'LoungeBan', 'LoungeUnban', 'LoungeBan', 'LoungeUnban']);
 
 	// and someone without the right cannot reach it at all
