@@ -1204,7 +1204,9 @@
 
 			// Lorenzi's layout: the mogi's own change on top, and each penalty or compensation
 			// under it on its own line, adding up to the total rather than counted in it
-			var raced = (p.mmr_delta === null) ? null : Math.round(p.mmr_delta - (p.mmr_penalty || 0) - (p.mmr_adjust || 0));
+			// A rating stopped by the floor moved less than its parts add up to, and which part
+			// the floor took is not recorded: the whole move goes on top, the parts stay as notes.
+			var raced = ((p.mmr_delta === null) || p.mmr_floored) ? p.mmr_delta : Math.round(p.mmr_delta - (p.mmr_penalty || 0) - (p.mmr_adjust || 0));
 			var delta = lbCell('td', 'lounge-ratings-delta', deltaEl(raced));
 			if (p.mmr_penalty) {
 				var penalty = document.createElement('div');
