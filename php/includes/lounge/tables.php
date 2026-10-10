@@ -10,10 +10,17 @@
 //
 //   B
 //   ...
+//
+// Of Lorenzi's # directives, only #mult is read - "#mult 0.5" multiplies the mogi's MMR changes;
+// the others style his table image, which the site does not draw, so they are skipped.
 require_once(__DIR__ .'/common.php');
 
 function lounge_table_text($match) {
 	$lines = array();
+	if ($match['mmr_mult'] != 1) {
+		$lines[] = '#mult '. $match['mmr_mult'];
+		$lines[] = '';
+	}
 	$gpOf = function($player) {
 		if (!empty($player['gp_scores']))
 			return implode('|', $player['gp_scores']);
@@ -47,17 +54,27 @@ function lounge_table_text($match) {
 	return implode("\n", $lines);
 }
 
-// Returns array('mode' =>, 'players' => array(array('id', 'team', 'gps', 'score'))) or
+// Returns array('mode' =>, 'mult' =>, 'players' => array(array('id', 'team', 'gps', 'score'))) or
 // array('errors' => array(...)), each error naming its line.
 function lounge_parse_table($text) {
 	$errors = array();
 	$blocks = array();
 	$block = null;
+	$mult = 1;
 	foreach (preg_split('#\r?\n#', $text) as $i => $raw) {
 		$line = trim($raw);
 		$number = $i + 1;
 		if ($line === '') {
 			$block = null;
+			continue;
+		}
+		if ($line[0] === '#') {
+			if (preg_match('#^\#mult\b\s*(.*)$#i', $line, $match)) {
+				if (is_numeric($match[1]) && ($match[1] >= 0) && ($match[1] <= 10))
+					$mult = floatval($match[1]);
+				else
+					$errors[] = array($number, 'bad_mult');
+			}
 			continue;
 		}
 		if (preg_match('#^penalty\b#i', $line)) {
@@ -133,7 +150,7 @@ function lounge_parse_table($text) {
 	$mode = $teamed ? ($teamSizes[0] .'v'. $teamSizes[0]) : 'FFA';
 	if ($teamed && ($teamSizes[0] === 1))
 		$mode = 'FFA';
-	return array('mode' => $mode, 'players' => $players);
+	return array('mode' => $mode, 'mult' => $mult, 'players' => $players);
 }
 
 // Writes the parsed table over a mogi's standings, or into a new mogi when $matchId is null.
@@ -147,15 +164,16 @@ function lounge_save_table($matchId, $table, $tierId = null, $playedAt = null) {
 		$queueId = mysql_insert_id();
 		$when = $playedAt ? '"'. mysql_real_escape_string($playedAt) .'"' : 'NOW()';
 		mysql_query(
-			'INSERT INTO `mklounge_matches` (queue, season, tier, privgame_key, mode, started_at, ended_at)
+			'INSERT INTO `mklounge_matches` (queue, season, tier, privgame_key, mode, mmr_mult, started_at, ended_at)
 			VALUES ("'. intval($queueId) .'", "'. LOUNGE_CURRENT_SEASON .'", "'. intval($tierId) .'", 0,
-				"'. mysql_real_escape_string($table['mode']) .'", '. $when .', '. $when .')'
+				"'. mysql_real_escape_string($table['mode']) .'", "'. floatval($table['mult']) .'", '. $when .', '. $when .')'
 		);
 		$matchId = mysql_insert_id();
 	}
 	else {
 		mysql_query(
-			'UPDATE `mklounge_matches` SET mode="'. mysql_real_escape_string($table['mode']) .'"
+			'UPDATE `mklounge_matches` SET mode="'. mysql_real_escape_string($table['mode']) .'",
+				mmr_mult="'. floatval($table['mult']) .'"
 			WHERE id="'. intval($matchId) .'"'
 		);
 	}
