@@ -56,6 +56,14 @@ function inGame(fn) {
 	return mkDevEval("(" + fn + ")");
 }
 
+function goToFinishLine() {
+	var finishLine = inGame(function() {
+		var oPlayer = oPlayers[0];
+		return getCurrentLMap(getCurrentLapId(oPlayer)).checkpointCoords[getNextCp(oPlayer)].O;
+	})();
+	cheatOrThrow("/tp " + finishLine[0] + " " + finishLine[1] + " cur");
+}
+
 function cheatOrThrow(code) {
 	var result = mkDev.cheat(code);
 	if (result !== true)
@@ -123,13 +131,16 @@ window.mkDev = {
 	},
 	// Puts the player on its last checkpoint and onto the finish line: the race (or the player's
 	// race, online) ends on the next frame. Not for battle mode.
+	// Online, the server takes at most one more lap per update (reload.php), so a jump to the
+	// last lap is ignored there: finish lap by lap with finishLap() instead.
 	finishRace: function() {
 		cheatOrThrow("/lap");
-		var finishLine = inGame(function() {
-			var oPlayer = oPlayers[0];
-			return getCurrentLMap(getCurrentLapId(oPlayer)).checkpointCoords[getNextCp(oPlayer)].O;
-		})();
-		cheatOrThrow("/tp " + finishLine[0] + " " + finishLine[1] + " cur");
+		goToFinishLine();
+	},
+	// Completes the current lap at the next frame, the way finishRace() completes the race.
+	finishLap: function() {
+		cheatOrThrow("/lap " + mkDevEval("oPlayers[0].tours"));
+		goToFinishLine();
 	},
 
 	// Skips the menus and starts a local race, as if picked from the menus. Call it from a menu
