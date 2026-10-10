@@ -1051,27 +1051,44 @@ function lounge_draft_assign($queueId, $playerId, $side) {
 	return true;
 }
 
+// A pick is read from the draft's state and written back, so two picks at once - a captain
+// clicking twice, or picking as the clock runs out - would both take the same turn.
+function lounge_lock_draft($queueId) {
+	mysql_query('SELECT GET_LOCK("mkpc-lounge-draft-'. intval($queueId) .'", 10)');
+}
+
+function lounge_unlock_draft($queueId) {
+	mysql_query('SELECT RELEASE_LOCK("mkpc-lounge-draft-'. intval($queueId) .'")');
+}
+
 function lounge_draft_pick($queueId, $captainId, $targetId) {
+	lounge_lock_draft($queueId);
 	$state = lounge_draft_state($queueId);
 	if (!$state)
-		return 'no_draft';
-	if (!$state['current_captain'] || ($state['current_captain']['id'] !== intval($captainId)))
-		return 'not_your_turn';
-	return lounge_draft_assign($queueId, $targetId, $state['side']) ? null : 'not_available';
+		$error = 'no_draft';
+	elseif (!$state['current_captain'] || ($state['current_captain']['id'] !== intval($captainId)))
+		$error = 'not_your_turn';
+	else
+		$error = lounge_draft_assign($queueId, $targetId, $state['side']) ? null : 'not_available';
+	lounge_unlock_draft($queueId);
+	return $error;
 }
 
 // "si il n'a pas selectionne a temps, on fallback sur les membres avec le plus de MMR"
 function lounge_draft_autopick($queueId) {
+	lounge_lock_draft($queueId);
 	$state = lounge_draft_state($queueId);
-	if (!$state || !count($state['available']))
-		return;
-	$bestIndex = 0;
-	foreach ($state['available'] as $i => $m) {
-		$best = $state['available'][$bestIndex];
-		if (($m['mmr'] > $best['mmr']) || (($m['mmr'] === $best['mmr']) && ($m['id'] < $best['id'])))
-			$bestIndex = $i;
+	// a captain who picked while this waited for the lock has started a fresh turn
+	if ($state && count($state['available']) && !$state['seconds_left']) {
+		$bestIndex = 0;
+		foreach ($state['available'] as $i => $m) {
+			$best = $state['available'][$bestIndex];
+			if (($m['mmr'] > $best['mmr']) || (($m['mmr'] === $best['mmr']) && ($m['id'] < $best['id'])))
+				$bestIndex = $i;
+		}
+		lounge_draft_assign($queueId, $state['available'][$bestIndex]['id'], $state['side']);
 	}
-	lounge_draft_assign($queueId, $state['available'][$bestIndex]['id'], $state['side']);
+	lounge_unlock_draft($queueId);
 }
 
 // Closing the vote is what picks the mode; whether that leads straight into a room or through
@@ -1249,7 +1266,7 @@ function lounge_cpu_level($tierCode) {
 // Keeping the member's own row is what makes the rest fall out for free: one line in the
 // standings rather than a player and a bot, `mkgamerank` accumulating under their id, and a
 // rating computed as though they had raced the whole mogi. What the absence costs them is a
-// flat penalty, applied by lounge_apply_mmr().
+// flat penalty, applied by lounge_apply_mmr_locked().
 //
 // A member has one kart for the whole site, so one who is racing in another room is left out:
 // substituting them would pull that kart out of the game they are actually playing.
@@ -1305,6 +1322,12 @@ function lounge_match_lineup_size($privgameKey) {
 // A voided mogi rates nobody, except the players who got it voided: they pay a flat penalty,
 // recorded on the mogi's own rows so that a recalculation of the season replays it.
 function lounge_charge_cancellation($matchId, $presentIds) {
+	lounge_lock_ratings();
+	lounge_charge_cancellation_locked($matchId, $presentIds);
+	lounge_unlock_ratings();
+}
+
+function lounge_charge_cancellation_locked($matchId, $presentIds) {
 	$penalty = -floatval(lounge_setting('cancel_penalty'));
 	$present = array_flip(array_map('intval', $presentIds));
 	$res = mysql_query(
@@ -1577,6 +1600,18 @@ function lounge_add_strike($playerId, $reason, $refs = array()) {
 	return lounge_apply_ban_threshold($playerId);
 }
 
+// What the room was launched with: staff retune the setting between mogis, never for one
+// already running.
+function lounge_room_race_limit($privgameKey) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT rules FROM `mkgameoptions` WHERE id="'. intval($privgameKey) .'"'
+	));
+	$rules = $row ? json_decode($row['rules'], true) : null;
+	if (is_array($rules) && !empty($rules['raceLimit']))
+		return intval($rules['raceLimit']);
+	return lounge_setting('races_per_match');
+}
+
 function lounge_match_race_count($privgameKey) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT raceCount FROM `mkgamedata` WHERE game="'. intval($privgameKey) .'"'
@@ -1615,6 +1650,10 @@ function lounge_finish_match($queueId) {
 	// already be gone, which is exactly why lounge_race_finished() does it every race.
 	lounge_snapshot_teams($queue['privgame_key']);
 
+	// A replay rebuilds every counter and rating from the ended matches, so this one is
+	// counted, rated and marked ended in a single hold of the lock, or a replay in between
+	// would drop it.
+	lounge_lock_ratings();
 	$standings = array();
 	$getStandings = mysql_query(
 		'SELECT r.player, r.pts FROM `mkgamerank` r
@@ -1644,9 +1683,10 @@ function lounge_finish_match($queueId) {
 		), 'games=games+1, wins=wins+'. $isWin .', total_score=total_score+'. $standing['pts']);
 	}
 
-	lounge_apply_mmr($matchId);
+	lounge_apply_mmr_locked($matchId);
 
 	mysql_query('UPDATE `mklounge_matches` SET ended_at=NOW() WHERE id="'. $matchId .'"');
+	lounge_unlock_ratings();
 	lounge_log('match_finished', array('queue' => $queueId, 'key' => $queue['privgame_key']), array(
 		'match' => $matchId, 'standings' => $standings
 	));
@@ -1971,7 +2011,7 @@ function lounge_match_payload($matchId) {
 		'cancelled_reason' => $match['cancelled_reason'],
 		// what this mogi ran, not what the setting says today: staff retune it between mogis
 		'races' => (is_null($match['ended_at']) || is_null($match['races_run']))
-			? lounge_setting('races_per_match')
+			? lounge_room_race_limit($match['privgame_key'])
 			: intval($match['races_run']),
 		'total' => $total,
 		'teams' => $teams,
@@ -2247,16 +2287,9 @@ function lounge_absence_penalty($racesPlayed, $racesTotal) {
 	return -floatval(lounge_setting('absence_penalty_minor'));
 }
 
-function lounge_apply_mmr($matchId) {
-	lounge_lock_ratings();
-	$applied = lounge_apply_mmr_locked($matchId);
-	lounge_unlock_ratings();
-	return $applied;
-}
-
 function lounge_apply_mmr_locked($matchId) {
 	$match = mysql_fetch_array(mysql_query(
-		'SELECT mode FROM `mklounge_matches` WHERE id="'. intval($matchId) .'"'
+		'SELECT mode, privgame_key FROM `mklounge_matches` WHERE id="'. intval($matchId) .'"'
 	));
 	if (!$match)
 		return false;
@@ -2268,7 +2301,7 @@ function lounge_apply_mmr_locked($matchId) {
 		'SELECT MAX(races_played) AS n FROM `mklounge_match_players`
 		WHERE `match`="'. intval($matchId) .'"'
 	));
-	$racesTotal = min(intval($attendance['n']), lounge_setting('races_per_match'));
+	$racesTotal = min(intval($attendance['n']), lounge_room_race_limit($match['privgame_key']));
 
 	$participants = array();
 	$res = mysql_query(
@@ -2695,7 +2728,7 @@ function lounge_tick() {
 	);
 	while ($row = mysql_fetch_array($launched)) {
 		$races = intval($row['races']);
-		if ($races >= lounge_setting('races_per_match'))
+		if ($races >= lounge_room_race_limit($row['privgame_key']))
 			lounge_finish_match(intval($row['id']));
 		elseif (!$races && $row['join_timed_out'] && !$row['match_timed_out'])
 			lounge_handle_join_timeout(intval($row['id']));
