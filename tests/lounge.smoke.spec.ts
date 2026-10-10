@@ -1554,6 +1554,43 @@ test('a mogi that would need a third bot is voided at the next race', async ({ p
 	await sql(`DELETE FROM mkgamedata WHERE game = ?`, [key]);
 });
 
+// A ranked room is the lineup's. Anyone else with the link can watch but never race - not
+// even through the spectators' queue, which seats its players at the next race.
+test('a player outside the lineup can only watch a ranked room', async ({ page, browser }) => {
+	await login(page);
+	await cleanupLoungeQueues();
+	const key = LOUNGE_KEY_MIN + 47;
+	const [{ id: playerId }]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [outsider] = await createLoungeBots(1, 'outsider');
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+
+	await sql(`INSERT IGNORE INTO mkprivgame SET id = ?, player = 0`, [key]);
+	await sql(`INSERT INTO mkgameoptions (id, rules, public) VALUES (?, ?, 0)
+	           ON DUPLICATE KEY UPDATE rules = VALUES(rules)`,
+		[key, JSON.stringify({ friendly: 1, localScore: 1, minPlayers: 2, maxPlayers: 2, lounge: 1 })]);
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launched', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode)
+	           VALUES (?, 1, ?, ?, 'FFA')`, [queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, playerId]);
+
+	const guest = await browser.newContext();
+	const guestPage = await guest.newPage();
+	await login(guestPage, loungeBotName('outsider', 1), LOUNGE_BOT_PASSWORD);
+	await guestPage.request.post('http://127.0.0.1:8080/api/getCourse.php', { form: { key: String(key) } });
+	await guest.close();
+
+	const [seat]: any = await sql(`SELECT course FROM mkjoueurs WHERE id = ?`, [outsider]);
+	expect(seat.course).toBe(0);
+	const queued: any = await sql(`SELECT 1 FROM mkspectators WHERE player = ? AND state = 'queuing'`, [outsider]);
+	expect(queued).toHaveLength(0);
+
+	await sql(`DELETE FROM mkspectators WHERE player = ?`, [outsider]);
+	await sql(`DELETE FROM mariokart WHERE link = ?`, [key]);
+});
+
 // The substitute has to be in place for the first race, not only for later ones. A member who
 // never opens the link leaves the room one kart short of the lineup minPlayers was pinned to,
 // and both start gates counted only the humans present - so the rest sat on "there are not
