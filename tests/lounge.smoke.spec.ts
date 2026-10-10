@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { login as uiLogin, createCircuits, createCup, createMulticup } from './helpers/mkpc';
-import { sql } from './helpers/db';
+import { sql, holdLock } from './helpers/db';
 import { cleanupLoungeQueues, createLoungeBots, loungeBotName, loungeBotPattern, acceptLoungeRules, LOUNGE_BOT_PASSWORD, LOUNGE_BOT_HASH, LOUNGE_KEY_MIN } from './helpers/lounge';
 
 // One file on purpose. join.php puts a player into the tier's existing open queue, so
@@ -2700,4 +2700,77 @@ test('a lineup that splits into more than two teams is drawn at random too', asy
 	expect(Object.keys(rules.fixedTeams)).toHaveLength(8);
 
 	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+// A pick reads the turn and writes it back, so a captain picking as the clock runs out could
+// have both their pick and the auto-pick land on the same turn. Each session needs its own
+// context: PHP runs requests that share a session one after another.
+test('a pick racing the auto-pick takes the turn once', async ({ page, browser }) => {
+	const { queueId, bots } = await stageDraftLineup(page, 'helddraft', 6, '3v3');
+	const state = await draftState(page, 'helddraft', 1);
+	const captain = bots.indexOf(state.draft.current_captain.id) + 1;
+	const target = state.draft.available[0].id;
+	await sql(`UPDATE mklounge_queues SET draft_turn_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, [queueId]);
+
+	const captainPage = await (await browser.newContext()).newPage();
+	await login(captainPage, loungeBotName('helddraft', captain), LOUNGE_BOT_PASSWORD);
+	const tickPage = await (await browser.newContext()).newPage();
+	await login(tickPage, loungeBotName('helddraft', 6), LOUNGE_BOT_PASSWORD);
+
+	const assigned = async () => Number((await sql(
+		`SELECT COUNT(*) AS n FROM mklounge_queue_members WHERE queue = ? AND team IS NOT NULL`, [queueId]))[0].n);
+	const release = await holdLock('mkpc-lounge-draft-' + queueId);
+	let pick, autopick;
+	try {
+		pick = captainPage.request.post('http://127.0.0.1:8080/api/lounge/draft.php', { form: { player: String(target) } });
+		autopick = tick(tickPage);
+		await page.waitForTimeout(1500);
+		// only the two captains are placed while the turn is held
+		expect(await assigned()).toBe(2);
+	}
+	finally {
+		await release();
+	}
+	await Promise.all([pick, autopick]);
+	expect(await assigned()).toBe(3);
+
+	await captainPage.context().close();
+	await tickPage.context().close();
+	await sql(`UPDATE mklounge_queues SET status = 'cancelled' WHERE id = ?`, [queueId]);
+});
+
+// Two sessions of one account, each joining a different tier at the same moment.
+test('one account joining two tiers at once ends up in one queue', async ({ browser }) => {
+	await cleanupLoungeQueues();
+	const [player] = await createLoungeBots(1, 'heldjoin');
+	const [all]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [tierC]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'C'`);
+	const sessions = [];
+	for (let i = 0; i < 2; i++) {
+		const session = await (await browser.newContext()).newPage();
+		await login(session, loungeBotName('heldjoin', 1), LOUNGE_BOT_PASSWORD);
+		sessions.push(session);
+	}
+
+	const queued = async () => Number((await sql(
+		`SELECT COUNT(*) AS n FROM mklounge_queue_members WHERE player = ? AND dropped_at IS NULL`, [player]))[0].n);
+	const release = await holdLock('mkpc-lounge-join-' + player);
+	let joins;
+	try {
+		joins = Promise.all([all.id, tierC.id].map((tier, i) =>
+			sessions[i].request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier) } })));
+		await sessions[0].waitForTimeout(1500);
+		expect(await queued()).toBe(0);
+	}
+	finally {
+		await release();
+	}
+	const bodies = await Promise.all((await joins).map((res: any) => res.json()));
+	expect(bodies.filter((b: any) => b.queue)).toHaveLength(1);
+	expect(bodies.filter((b: any) => b.error === 'already_queued')).toHaveLength(1);
+	expect(await queued()).toBe(1);
+
+	for (const session of sessions)
+		await session.context().close();
+	await cleanupLoungeQueues(loungeBotPattern('heldjoin'));
 });
