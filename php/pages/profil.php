@@ -389,6 +389,7 @@ include('../includes/menu.php');
 						if (!is_null($loungeState['avg_score']))
 							echo ' - '. ($language ? 'avg. score' : 'score moyen') .' <strong>'. $loungeState['avg_score'] .'</strong>';
 						echo ' - '. toPlace($getLoungePlace['place']);
+						echo $language ? ' <a class="lounge-leaderboard" href="lounge.php?season='. LOUNGE_CURRENT_SEASON .'&tab=leaderboard&player='. $profileId .'">[View]</a>' : ' <a class="lounge-leaderboard" href="lounge.php?season='. LOUNGE_CURRENT_SEASON .'&tab=leaderboard&player='. $profileId .'">[Voir]</a>';
 					echo '</div>';
 				}
 				$getRecordsByCc = mysql_query('SELECT class,COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1 GROUP BY class ORDER BY class');
