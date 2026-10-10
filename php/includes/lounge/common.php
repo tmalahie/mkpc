@@ -1824,6 +1824,25 @@ function lounge_leaderboard($limit = 0, $withStats = false) {
 
 // One row per match for the listings: who was in it and what the sides scored, which is all
 // a recent-matches line shows. The per-player detail is left to lounge_match_payload().
+// The mogis either side of one, in the order the recent list shows them, for stepping through
+// them from a mogi's page.
+function lounge_match_neighbours($matchId, $endedAt) {
+	if (is_null($endedAt))
+		return array(null, null);
+	$after = '(m.ended_at > "'. mysql_real_escape_string($endedAt) .'"
+		OR (m.ended_at = "'. mysql_real_escape_string($endedAt) .'" AND m.id > "'. intval($matchId) .'"))';
+	$neighbour = function($where, $order) {
+		$row = mysql_fetch_array(mysql_query(
+			'SELECT m.id FROM `mklounge_matches` m
+			WHERE m.season="'. LOUNGE_CURRENT_SEASON .'" AND m.ended_at IS NOT NULL
+				AND m.cancelled_reason IS NULL AND '. $where .'
+			ORDER BY m.ended_at '. $order .', m.id '. $order .' LIMIT 1'
+		));
+		return $row ? intval($row['id']) : null;
+	};
+	return array($neighbour('NOT '. $after .' AND m.id != "'. intval($matchId) .'"', 'DESC'), $neighbour($after, 'ASC'));
+}
+
 function lounge_recent_matches($limit = 10, $offset = 0, $forPlayerId = null) {
 	$join = '';
 	if ($forPlayerId)
@@ -1936,7 +1955,7 @@ function lounge_race_points_for($points, $playerId) {
 // the rating move each player's row carries.
 function lounge_match_payload($matchId) {
 	$match = mysql_fetch_array(mysql_query(
-		'SELECT m.id, m.mode, m.privgame_key, m.started_at, m.ended_at, m.cancelled_reason,
+		'SELECT m.id, m.mode, m.mmr_mult, m.privgame_key, m.started_at, m.ended_at, m.cancelled_reason,
 			UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(m.ended_at) AS ended_ago,
 			t.label AS tier_label, m.tier, d.raceCount AS races_run
 		FROM `mklounge_matches` m
@@ -2004,10 +2023,14 @@ function lounge_match_payload($matchId) {
 	}
 	$teams = array_values($teams);
 	usort($teams, 'lounge_compare_team_score');
+	list($previousId, $nextId) = lounge_match_neighbours($match['id'], $match['ended_at']);
 
 	return array(
 		'id' => intval($match['id']),
+		'previous_id' => $previousId,
+		'next_id' => $nextId,
 		'mode' => $match['mode'],
+		'mmr_mult' => floatval($match['mmr_mult']),
 		'tier_label' => $match['tier_label'],
 		'tier' => intval($match['tier']),
 		// typed in by staff rather than played on the site
@@ -2444,7 +2467,7 @@ function lounge_recompute_season() {
 
 	$matches = array();
 	$res = mysql_query(
-		'SELECT m.id, m.mode, m.cancelled_reason, mp.player, mp.team, mp.final_score, mp.final_position,
+		'SELECT m.id, m.mode, m.mmr_mult, m.cancelled_reason, mp.player, mp.team, mp.final_score, mp.final_position,
 			mp.mmr_before, mp.mmr_after, mp.mmr_penalty, mp.mmr_adjust, mp.place_before, mp.place_after
 		FROM `mklounge_matches` m
 		INNER JOIN `mklounge_match_players` mp ON mp.`match`=m.id
@@ -2455,7 +2478,7 @@ function lounge_recompute_season() {
 	while ($row = mysql_fetch_array($res)) {
 		$matchId = intval($row['id']);
 		if (!isset($matches[$matchId]))
-			$matches[$matchId] = array('mode' => $row['mode'], 'rated' => is_null($row['cancelled_reason']), 'rows' => array());
+			$matches[$matchId] = array('mode' => $row['mode'], 'mult' => floatval($row['mmr_mult']), 'rated' => is_null($row['cancelled_reason']), 'rows' => array());
 		$matches[$matchId]['rows'][] = $row;
 	}
 
@@ -2513,7 +2536,7 @@ function lounge_recompute_season() {
 		foreach ($match['rows'] as $row) {
 			$playerId = intval($row['player']);
 			$before = $ratings[$playerId];
-			$delta = isset($deltas[$playerId]) ? $deltas[$playerId] : 0;
+			$delta = isset($deltas[$playerId]) ? ($deltas[$playerId] * $match['mult']) : 0;
 			$after = round(max($min, $before + $delta + floatval($row['mmr_penalty']) + floatval($row['mmr_adjust'])), 6);
 			// a table rates every player on it, including one with no opponent left to beat
 			if ($match['rated'] && !is_null($row['final_score']) && is_null($row['mmr_penalty']))
@@ -2604,22 +2627,18 @@ function lounge_edit_ratings($matchId, $adjustments, $placements) {
 	lounge_unlock_ratings();
 }
 
-// What the moderation page's "adjust rating" does: the change is filed against the player's
-// latest mogi, or as their starting rating if they have none, so that a later recalculation
-// of the season keeps it instead of rating over it.
-function lounge_adjust_player_rating($playerId, $delta) {
-	$last = mysql_fetch_array(mysql_query(
-		'SELECT mp.`match`, IFNULL(mp.mmr_adjust, 0) AS adjust FROM `mklounge_match_players` mp
-		INNER JOIN `mklounge_matches` m ON m.id=mp.`match` AND m.season="'. LOUNGE_CURRENT_SEASON .'"
-		WHERE mp.player="'. intval($playerId) .'" AND mp.mmr_after IS NOT NULL
-		ORDER BY m.ended_at DESC, m.id DESC LIMIT 1'
+// The moderation page's placement: the rating a player starts the season from, every mogi
+// they have played since rated again from it.
+function lounge_set_player_placement($playerId, $placement) {
+	lounge_edit_ratings(0, array(), array($playerId => max(lounge_setting('mmr_min'), $placement)));
+}
+
+function lounge_player_placement($playerId) {
+	$row = mysql_fetch_array(mysql_query(
+		'SELECT placement FROM `mklounge_players`
+		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
 	));
-	if ($last) {
-		lounge_edit_ratings(intval($last['match']), array($playerId => floatval($last['adjust']) + $delta), array());
-		return;
-	}
-	$state = lounge_get_player_state($playerId);
-	lounge_edit_ratings(0, array(), array($playerId => max(lounge_setting('mmr_min'), $state['mmr'] + $delta)));
+	return ($row && !is_null($row['placement'])) ? floatval($row['placement']) : null;
 }
 
 function lounge_queue_min_players($queueId) {
