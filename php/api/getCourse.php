@@ -10,6 +10,13 @@ if ($id) {
 	$cas = 0;
 	$switchCourse = false;
 	$noJoin = isset($_POST['nojoin']);
+	// A ranked room is the lineup's: anyone else who has the link can watch, never race - not
+	// even from the spectators' queue, which seats its players at the next race.
+	if (!$noJoin && $nlink && !empty($linkOptions->rules->lounge)) {
+		require_once('../includes/lounge/common.php');
+		if (lounge_is_outsider($nlink, $id))
+			$noJoin = true;
+	}
 	if ($noJoin) $linkOptions->rules->maxPlayers += 1000; // hack to remove max player restriction if spectator mode enabled
 
 	function addLog($msg) {

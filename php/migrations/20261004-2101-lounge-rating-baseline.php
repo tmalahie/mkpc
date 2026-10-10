@@ -25,7 +25,12 @@ $min = lounge_setting('mmr_min');
 $ratings = array();
 $lastRow = array();
 $adjustments = array();
+$placements = array();
 foreach ($matches as $matchId => $match) {
+	foreach ($match['rows'] as $row) {
+		if (!isset($placements[intval($row['player'])]))
+			$placements[intval($row['player'])] = floatval($row['mmr_before']);
+	}
 	// a rating that moved between two mogis was edited by hand: the edit belongs to the mogi
 	// before, or to the starting rating when there was none
 	foreach ($match['rows'] as $row) {
@@ -90,6 +95,12 @@ while ($row = mysql_fetch_array($res)) {
 	}
 }
 
+foreach ($placements as $playerId => $placement) {
+	mysql_query(
+		'UPDATE `mklounge_players` SET placement="'. lounge_mmr_sql($placement) .'"
+		WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'" AND placement IS NULL'
+	);
+}
 foreach ($adjustments as $key => $adjust) {
 	list($matchId, $playerId) = explode('-', $key);
 	mysql_query(
