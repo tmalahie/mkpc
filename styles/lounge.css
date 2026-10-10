@@ -1214,9 +1214,14 @@ a {
 	cursor: pointer;
 }
 
-.lounge-lb-pagerbutton:disabled {
+.lounge-lb-pagerbutton:disabled,
+.lounge-lb-pagerbutton.is-disabled {
 	opacity: 0.3;
 	cursor: default;
+}
+
+a.lounge-lb-pagerbutton {
+	text-decoration: none;
 }
 
 .lounge-lb-pagerbutton:not(:disabled):hover,
