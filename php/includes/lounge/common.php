@@ -2004,6 +2004,8 @@ function lounge_match_payload($matchId) {
 			'mmr_delta' => is_null($row['mmr_delta']) ? null : (int) round($row['mmr_delta']),
 			'mmr_penalty' => is_null($row['mmr_penalty']) ? null : (int) round($row['mmr_penalty']),
 			'mmr_adjust' => is_null($row['mmr_adjust']) ? null : (int) round($row['mmr_adjust']),
+			// stopped by the floor, so the move is not the mogi's change plus its penalties
+			'mmr_floored' => !is_null($row['mmr_after']) && (floatval($row['mmr_after']) <= lounge_setting('mmr_min')),
 			// the starting rating staff can edit is shown on the mogi it applies to
 			'placement' => $row['first_rated'] ? (is_null($row['placement']) ? null : (int) round($row['placement'])) : null,
 			'first_rated' => (bool) $row['first_rated'],

@@ -780,9 +780,11 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 		{ score: 22, before: 800, after: 785, placeBefore: 7, placeAfter: 7 },
 		{ score: 11, before: 700, after: 660, placeBefore: 8, placeAfter: 9 },
 	]);
-	// 12 of the winner's 40 were a compensation
+	// 12 of the winner's 40 were a compensation, and the last one's -50 penalty met the floor at 0
 	await sql(`UPDATE mklounge_match_players SET mmr_adjust = 12 WHERE \`match\` = ? AND player = ?`,
 		[staged.matchId, staged.ids[0]]);
+	await sql(`UPDATE mklounge_match_players SET mmr_before = 20, mmr_after = 0, mmr_delta = -20, mmr_penalty = -50
+		WHERE \`match\` = ? AND player = ?`, [staged.matchId, staged.ids[3]]);
 
 	await login(page);
 	await page.goto('http://127.0.0.1:8080/lounge.php?tab=leaderboard&match=' + staged.matchId);
@@ -812,8 +814,11 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 	await expect(top.locator('.lounge-placemove-to')).toHaveText('#3');
 	await expect(top.locator('.lounge-ratings-rank .lounge-rank')).toHaveText('Silver');
 	// and a rating that went down says so in red
-	await expect(updates.last().locator('.lounge-ratings-delta')).toHaveText('-40');
-	await expect(updates.last().locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-down/);
+	await expect(updates.nth(2).locator('.lounge-ratings-delta')).toHaveText('-15');
+	await expect(updates.nth(2).locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-down/);
+	// the floor took part of that penalty, and which part is not recorded: the whole move on top
+	await expect(updates.last().locator('.lounge-ratings-delta .lounge-delta')).toHaveText('-20');
+	await expect(updates.last().locator('.lounge-results-penalty')).toHaveText('(-50)');
 
 	// the newest mogi has none after it, and steps back to the one before
 	const steps = page.locator('.lounge-profile-head .lounge-lb-pagerbutton');
