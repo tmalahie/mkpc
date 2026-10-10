@@ -1,13 +1,27 @@
 import { test, expect } from '@playwright/test';
+import { sql } from './helpers/db';
 
 // Entering ranked while logged out should land on the online page, which logs the visitor
 // in without navigating away, rather than bouncing them to the forum.
 test.describe.configure({ mode: 'serial' });
 
 test('ranked entry sends a logged-out visitor to the online page', async ({ page }) => {
-	const res = await page.request.get('http://127.0.0.1:8080/ranked.php', { maxRedirects: 0 });
-	expect(res.status()).toBe(302);
-	expect(res.headers()['location']).toMatch(/^online\.php\?mid=\d+&ranked$/);
+	// A fresh database seeds the season with a multicup id it has no row for, and ranked.php
+	// only redirects to a multicup that exists.
+	const [season]: any = await sql(`SELECT multicup_id FROM mklounge_seasons WHERE id = 1`);
+	const [existing]: any = await sql(`SELECT id FROM mkmcups WHERE id = ?`, [season.multicup_id]);
+	if (!existing)
+		await sql(`INSERT INTO mkmcups (id, identifiant, identifiant2, identifiant3, identifiant4, nbnotes, nbcomments, mode, nom, auteur)
+		           VALUES (?, 0, 0, 0, 0, 0, 0, 0, 'Ranked test multicup', '')`, [season.multicup_id]);
+	try {
+		const res = await page.request.get('http://127.0.0.1:8080/ranked.php', { maxRedirects: 0 });
+		expect(res.status()).toBe(302);
+		expect(res.headers()['location']).toBe(`online.php?mid=${season.multicup_id}&ranked`);
+	}
+	finally {
+		if (!existing)
+			await sql(`DELETE FROM mkmcups WHERE id = ?`, [season.multicup_id]);
+	}
 });
 
 // Creating a multicup here would need two new tracks, and the creation cooldown is
