@@ -522,6 +522,28 @@ test('editing a table recalculates every mogi played since', async ({ page }) =>
 	expect(await games(newcomer)).toBe(3);
 	expect(await rating(newcomer)).toBeGreaterThan(beforeTable);
 
+	// Lorenzi's #mult multiplies what the mogi itself gave, and leaves a compensation as typed
+	const createdText = 'A\n' + loungeBotName('edit', 1) + ' [fr] 50+12|40\n\nB\n' + loungeBotName('edit', 2) + ' 20|30';
+	const raced = async (player: number) => {
+		const r = await row(created.match.id, player);
+		return r.delta - Number(r.adjust || 0);
+	};
+	const single = await raced(rival);
+	const multiplied = (mult: string) => api(page.request, { action: 'save', match: String(created.match.id),
+		['adjust_' + rival]: '15', text: '#mult ' + mult + '\n\n' + createdText });
+	expect((await multiplied('2')).match.mmr_mult).toBe(2);
+	expect(await raced(rival)).toBeCloseTo(2 * single, 4);
+	await multiplied('0');
+	expect(await raced(rival)).toBeCloseTo(0, 6);
+	expect(await raced(newcomer)).toBeCloseTo(0, 6);
+	expect(Number((await row(created.match.id, rival)).adjust)).toBe(15);
+	// and it comes back in the text, so the next edit keeps it
+	const reloaded = await api(page.request, { action: 'load', match: String(created.match.id) });
+	expect(reloaded.text.split('\n')[0]).toBe('#mult 0');
+	const badMult = await api(page.request, { action: 'preview', match: String(created.match.id), text: '#mult lots\n\n' + createdText });
+	expect(badMult.errors.map((e: any) => e.slice(0, 2))).toEqual([[1, 'bad_mult']]);
+	await multiplied('1');
+
 	// and deleting it takes it out of everyone's history
 	expect((await api(page.request, { action: 'delete', match: String(created.match.id) })).deleted).toBe(true);
 	expect(await games(newcomer)).toBe(2);
