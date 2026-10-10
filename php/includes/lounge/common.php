@@ -1376,7 +1376,10 @@ function lounge_void_if_too_many_bots($privgameKey, $course) {
 		WHERE q.privgame_key="'. intval($privgameKey) .'" AND q.status="launched"
 		GROUP BY q.id, m.id'
 	));
-	if (!$row || lounge_bots_acceptable(intval($row['lineup']), intval($row['present'])))
+	// a race start that found the mogi already being voided by another must not go ahead either
+	if (!$row)
+		return lounge_match_voided($privgameKey);
+	if (lounge_bots_acceptable(intval($row['lineup']), intval($row['present'])))
 		return false;
 	// whoever walked out since the last race has not been struck for it yet
 	lounge_strike_dropouts($privgameKey, $course);
@@ -1420,10 +1423,14 @@ function lounge_is_outsider($privgameKey, $playerId) {
 	return $row && !is_null($row['member']) && !intval($row['member']);
 }
 
+// The queue is claimed before the match records why, so a request landing in between reads
+// the queue.
 function lounge_match_voided($privgameKey) {
 	return (bool) mysql_fetch_array(mysql_query(
-		'SELECT 1 AS ok FROM `mklounge_matches`
-		WHERE privgame_key="'. intval($privgameKey) .'" AND cancelled_reason IS NOT NULL'
+		'SELECT 1 AS ok FROM `mklounge_matches` m
+		INNER JOIN `mklounge_queues` q ON q.id=m.queue
+		WHERE m.privgame_key="'. intval($privgameKey) .'"
+		AND (m.cancelled_reason IS NOT NULL OR q.status="cancelled")'
 	));
 }
 
