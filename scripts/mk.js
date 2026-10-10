@@ -24955,6 +24955,7 @@ function privateLink(options) {
 }
 
 function selectTypeScreen() {
+	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "main"});
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -25242,7 +25243,6 @@ function selectTypeScreen() {
 	updateMenuMusic(0);
 }
 function selectMainPage() {
-	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "main"});
 	switch (page) {
 		case "OL":
 			if (mId)
@@ -29451,7 +29451,6 @@ function chooseWithin(min,range) {
 }
 
 function selectMapScreen(opts) {
-	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "cupSelect"});
 	if (!opts) opts = {};
 	if (typeof shareLink !== "undefined")
 		bSelectedMirror = (shareLink.options && shareLink.options.mirror);
@@ -29490,6 +29489,7 @@ function selectMapScreen(opts) {
 				break;
 			}
 		}
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "cupSelect"});
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
 
@@ -29993,8 +29993,8 @@ function appendContainers() {
 }
 
 function selectRaceScreen(cup) {
-	if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "trackSelect", cup: cup});
 	if (isOnline || (!isSingle && course != "GP")) {
+		if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "trackSelect", cup: cup});
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
 
@@ -30267,7 +30267,7 @@ function choose(map,rand) {
 					return false;
 				}
 				choixJoueurs = rCode[0];
-				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("chooseResponse", {selected: rCode[1], track: rCode[1] >= 0 ? choixJoueurs[rCode[1]][2] : null, players: choixJoueurs.length, rules: rCode[4]});
+				if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("chooseResponse", {selected: rCode[1], track: choixJoueurs[rCode[1]] ? choixJoueurs[rCode[1]][2] : null, players: choixJoueurs.length, rules: rCode[4]});
 				var trs = oTBody.getElementsByTagName("tr");
 				while (trs.length)
 					oTBody.removeChild(trs[0]);
