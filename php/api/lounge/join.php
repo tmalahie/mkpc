@@ -45,6 +45,8 @@ if (!lounge_tier_eligible($tier, $playerState['mmr'])) {
 	exit;
 }
 
+// Two sessions of one account joining two tiers at once would both pass the check below.
+mysql_query('SELECT GET_LOCK("mkpc-lounge-join-'. intval($id) .'", 10)');
 if (lounge_get_active_queue_for_player($id)) {
 	lounge_log('join_refused', array('player' => $id), array('tier' => $tierId, 'error' => 'already_queued'));
 	echo json_encode(array('error' => 'already_queued'));
@@ -89,6 +91,7 @@ mysql_query(
 );
 
 mysql_query('COMMIT');
+mysql_query('SELECT RELEASE_LOCK("mkpc-lounge-join-'. intval($id) .'")');
 
 $count = lounge_active_member_count($queueId);
 lounge_log('queue_joined', array('player' => $id, 'queue' => $queueId), array('tier' => $tierId, 'players' => $count));
