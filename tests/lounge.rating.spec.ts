@@ -498,6 +498,11 @@ test('editing a table recalculates every mogi played since', async ({ page }) =>
 	expect(Number((await row(first, rival)).adjust)).toBe(20);
 	expect((await row(second, rival)).before).toBeCloseTo((await row(first, rival)).after, 6);
 	expect(await rating(rival)).toBeGreaterThan(rivalBefore);
+	// the editor shows it rounded and sends every field back: left as it was, it keeps its
+	// exact value
+	await sql(`UPDATE mklounge_match_players SET mmr_adjust = 19.678736 WHERE \`match\` = ? AND player = ?`, [first, rival]);
+	await edit({ ['adjust_' + rival]: '20' });
+	expect(Number((await row(first, rival)).adjust)).toBeCloseTo(19.678736, 6);
 
 	// the scores themselves can be corrected: the rival won the first mogi after all
 	await api(page.request, { action: 'save', match: String(first),
@@ -583,6 +588,56 @@ test('editing a table recalculates every mogi played since', async ({ page }) =>
 	const refused = await api(guestPage.request, { action: 'save', text, ['adjust_' + rival]: '500' });
 	expect(refused.error).toBe('forbidden');
 	await guest.close();
+});
+
+test('a mogi still being played cannot be edited or deleted', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const [member, other] = await createLoungeBots(2, 'editlive');
+	const key = LOUNGE_KEY_MIN + 29;
+	const q: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at) VALUES (1, ?, 'launched', ?, NOW())`,
+		[tier.id, key]);
+	const m: any = await sql(
+		`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode, started_at) VALUES (?, 1, ?, ?, 'FFA', NOW())`,
+		[q.insertId, tier.id, key]);
+	for (const player of [member, other])
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [m.insertId, player]);
+
+	await login(page);
+	const api = async (form: Record<string, string>) => (await page.request.post(
+		'http://127.0.0.1:8080/api/lounge/edit-match.php', { form })).json();
+	const text = loungeBotName('editlive', 1) + ' 90\n' + loungeBotName('editlive', 2) + ' 30';
+	for (const action of ['delete', 'save']) {
+		const res = await api({ action, match: String(m.insertId), text });
+		expect(res.errors.map((e: any) => e.slice(0, 2))).toEqual([[0, 'match_running']]);
+	}
+	const lineup: any = await sql(`SELECT player, final_score FROM mklounge_match_players WHERE \`match\` = ?`, [m.insertId]);
+	expect(lineup.map((r: any) => r.final_score)).toEqual([null, null]);
+});
+
+test('a profile shows the place the ladder gives', async ({ page }) => {
+	const [me]: any = await sql(`SELECT id FROM mkjoueurs WHERE nom = 'wargor'`);
+	const [tied, below] = await createLoungeBots(2, 'profileplace');
+	// above any rating the other tests leave behind, with a fraction the display rounds away
+	const [saved]: any = await sql(`SELECT mmr, games FROM mklounge_players WHERE player = ? AND season = 1`, [me.id]);
+	await sql(`INSERT INTO mklounge_players (player, season, mmr, games) VALUES (?, 1, 99999.4, 1), (?, 1, 99999.4, 1), (?, 1, 99990, 1)
+		ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), games = VALUES(games)`, [me.id, tied, below]);
+	try {
+		const league = async (player: number) => {
+			const html = await (await page.request.get('/profil.php?id=' + player)).text();
+			return html.match(/<div class="player-league"><img src="images\/cups\/cup2.png".*?<\/div>/s)![0];
+		};
+		// tied with another player, and not behind its own rounded rating
+		expect(await league(me.id)).toMatch(/ - 1<sup>/);
+		expect(await league(tied)).toMatch(/ - 1<sup>/);
+		expect(await league(below)).toMatch(/ - 3<sup>/);
+	}
+	finally {
+		if (saved)
+			await sql(`UPDATE mklounge_players SET mmr = ?, games = ? WHERE player = ? AND season = 1`, [saved.mmr, saved.games, me.id]);
+		else
+			await sql(`DELETE FROM mklounge_players WHERE player = ? AND season = 1`, [me.id]);
+	}
 });
 
 // Without this a mogi that dies part-way stays "launched" for ever, and every member of the

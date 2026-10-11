@@ -378,9 +378,9 @@ include('../includes/menu.php');
 					$getLoungePlace = mysql_fetch_array(mysql_query(
 						'SELECT 1+COUNT(*) AS place FROM `mklounge_players` p
 						INNER JOIN `mkjoueurs` j ON j.id=p.player
+						INNER JOIN `mklounge_players` me ON me.player="'. $profileId .'" AND me.season=p.season
 						WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0
-						AND (p.mmr>"'. $loungeState['mmr'] .'"
-							OR (p.mmr="'. $loungeState['mmr'] .'" AND p.player<"'. $profileId .'"))'
+						AND p.mmr>me.mmr'
 					));
 					echo '<div class="player-league">';
 						echo '<img src="images/cups/cup2.png" alt="CT Lounge" title="CT Lounge" />';
