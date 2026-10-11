@@ -225,7 +225,7 @@
 	"admin.see_admin_logs": "See <strong>admin logs</strong>",
 	"admin.retrace_understand_different_actions_done": "To retrace and understand the different actions done by MKPC staff",
 	"admin.moderate_ct_lounge": "Moderate the <strong>CT Lounge</strong>",
-	"admin.adjust_rating_ban_release_queue": "To adjust a rating, hand out or lift a ranked ban, or release a stuck queue",
+	"admin.set_placement_ban_release_queue": "To set a player's placement, hand out or lift a ranked ban, edit the tables or release a stuck queue",
 	"admin_logs.deleted_award": "Deleted award",
 	"admin_logs.deleted_account": "Deleted account",
 	"admin_logs.deleted_topic": "Deleted topic",
