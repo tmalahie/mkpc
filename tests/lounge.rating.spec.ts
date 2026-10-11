@@ -789,6 +789,36 @@ test('a cancellation penalty waits for a running replay', async ({ page }) => {
 	expect(rows.map(r => Number(r.mmr_after))).toEqual([550, 550, 550]);
 });
 
+// Who turned up is read once the lock is held: players who arrive while a replay holds it
+// count, instead of the mogi being voided on who was there before the wait.
+test('players who arrive while the join timeout waits for a replay are counted', async ({ page }) => {
+	await login(page);
+	const key = LOUNGE_KEY_MIN + 69;
+	const { queueId, matchId, players } = await stageLaunchedMatch('heldarrive', key, 4, 1, 0);
+	const [room]: any = await sql(`SELECT id FROM mariokart WHERE link = ?`, [key]);
+
+	const release = await holdLock('mkpc-lounge-ratings');
+	let handling;
+	try {
+		handling = tick(page);
+		await page.waitForTimeout(1500);
+		for (const player of players.slice(1, 3))
+			await sql(`INSERT INTO mkplayers (id, course, team, finaltime, finalts) VALUES (?, ?, -1, 0, 0)`, [player, room.id]);
+	}
+	finally {
+		await release();
+	}
+	await handling;
+
+	const [queue]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [queueId]);
+	expect(queue.status).toBe('launched');
+	const [match]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE id = ?`, [matchId]);
+	expect(match.cancelled_reason).toBeNull();
+	const struck: any[] = await sql(
+		`SELECT player FROM mklounge_match_players WHERE \`match\` = ? AND strike_reason = 'no_show'`, [matchId]);
+	expect(struck.map(r => r.player)).toEqual([players[3]]);
+});
+
 // The ladder place either side of a mogi. Absolute places depend on the whole season's
 // table, so what is asserted is the relation: the same order the ratings are in, and a move
 // in the direction the rating went.

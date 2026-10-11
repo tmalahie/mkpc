@@ -220,6 +220,10 @@ include('../includes/menu.php');
 		}
 		?>
 	</ul>
+		<?php
+	}
+	if (hasRight('moderator')) {
+		?>
 	<h2><?= t('admin.share_management') ?></h2>
 	<ul>
 		<li>
