@@ -737,6 +737,9 @@ test('a mogi finishing during a replay waits for it before counting anything', a
 		expect(counted.map(r => r.games)).toEqual([0, 0, 0, 0]);
 		const [held]: any = await sql(`SELECT ended_at FROM mklounge_matches WHERE id = ?`, [m.id]);
 		expect(held.ended_at).toBeNull();
+		// not even claimed, so a lock that never came would leave it to the next tick
+		const [unclaimed]: any = await sql(`SELECT status FROM mklounge_queues WHERE id = ?`, [q.insertId]);
+		expect(unclaimed.status).toBe('launched');
 	}
 	finally {
 		await release();
@@ -751,7 +754,8 @@ test('a mogi finishing during a replay waits for it before counting anything', a
 });
 
 // The same for a voided mogi's penalty: charged while a replay runs, the replay's own write
-// of the rating would undo it.
+// of the rating would undo it. The void waits too, taking the lock before it claims the mogi,
+// so a lock that never came would leave it to a later tick rather than voided uncharged.
 test('a cancellation penalty waits for a running replay', async ({ page }) => {
 	await login(page);
 	const key = LOUNGE_KEY_MIN + 68;
@@ -763,7 +767,7 @@ test('a cancellation penalty waits for a running replay', async ({ page }) => {
 		voiding = tick(page);
 		await page.waitForTimeout(1500);
 		const [voided]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE id = ?`, [matchId]);
-		expect(voided.cancelled_reason).toBe('no_show');
+		expect(voided.cancelled_reason).toBeNull();
 		const charged: any[] = await sql(
 			`SELECT mmr_penalty FROM mklounge_match_players WHERE \`match\` = ? AND mmr_penalty IS NOT NULL`, [matchId]);
 		expect(charged).toHaveLength(0);
@@ -772,6 +776,8 @@ test('a cancellation penalty waits for a running replay', async ({ page }) => {
 		await release();
 	}
 	await voiding;
+	const [voided]: any = await sql(`SELECT cancelled_reason FROM mklounge_matches WHERE id = ?`, [matchId]);
+	expect(voided.cancelled_reason).toBe('no_show');
 
 	const rows: any[] = await sql(
 		`SELECT mp.player, mp.mmr_after, p.mmr FROM mklounge_match_players mp
