@@ -1054,7 +1054,7 @@ function lounge_draft_assign($queueId, $playerId, $side) {
 // A pick is read from the draft's state and written back, so two picks at once - a captain
 // clicking twice, or picking as the clock runs out - would both take the same turn.
 function lounge_lock_draft($queueId) {
-	mysql_query('SELECT GET_LOCK("mkpc-lounge-draft-'. intval($queueId) .'", 10)');
+	lounge_get_lock('mkpc-lounge-draft-'. intval($queueId));
 }
 
 function lounge_unlock_draft($queueId) {
@@ -1544,7 +1544,6 @@ function lounge_race_finished($privgameKey, $course) {
 	lounge_log('race_finished', array('key' => $privgameKey), array(
 		'race' => lounge_match_race_count($privgameKey), 'course' => intval($course), 'present' => $present
 	));
-	lounge_record_race_attendance($privgameKey, $course);
 	lounge_maintain_match($privgameKey, $course);
 }
 
@@ -2415,7 +2414,19 @@ function lounge_apply_mmr_locked($matchId) {
 // Ratings are rewritten as a whole when staff edit one, so a mogi finishing at that moment
 // waits for the rewrite instead of rating itself on half of it.
 function lounge_lock_ratings() {
-	mysql_query('SELECT GET_LOCK("mkpc-lounge-ratings", 20)');
+	lounge_get_lock('mkpc-lounge-ratings');
+}
+
+// GET_LOCK gives up after its timeout, and going on without the lock is exactly the write
+// it exists to prevent: keep waiting, and abort the request if it never comes, which rolls
+// back whatever it had started.
+function lounge_get_lock($name) {
+	for ($i = 0; $i < 6; $i++) {
+		$row = mysql_fetch_array(mysql_query('SELECT GET_LOCK("'. $name .'", 20) AS got'));
+		if ($row && $row['got'])
+			return;
+	}
+	throw new RuntimeException('lounge: could not acquire '. $name);
 }
 
 function lounge_unlock_ratings() {
@@ -2695,6 +2706,7 @@ function lounge_tick() {
 	if (mt_rand(1, 1000) === 1)
 		lounge_prune_events();
 	$cutoff = intval(lounge_setting('afk_seconds'));
+	$confirmCutoff = intval(lounge_setting('confirm_seconds') + lounge_setting('confirm_grace_seconds'));
 	$afkRes = mysql_query(
 		'SELECT m.queue, m.player FROM `mklounge_queue_members` m
 		INNER JOIN `mklounge_queues` q ON q.id=m.queue
@@ -2706,7 +2718,7 @@ function lounge_tick() {
 		'SELECT m.queue, m.player FROM `mklounge_queue_members` m
 		INNER JOIN `mklounge_queues` q ON q.id=m.queue
 		WHERE m.dropped_at IS NULL
-		AND m.confirmed_at < (NOW() - INTERVAL '. intval(lounge_setting('confirm_seconds') + lounge_setting('confirm_grace_seconds')) .' SECOND)
+		AND m.confirmed_at < (NOW() - INTERVAL '. $confirmCutoff .' SECOND)
 		AND q.status IN ("open","locked")'
 	);
 	$stale = array();
@@ -2714,9 +2726,11 @@ function lounge_tick() {
 		$stale[intval($row['queue'])] = true;
 		// left the queue rather than misbehaved, so no strike - the spec only removes them
 		$q = mysql_query(
-			'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
-			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
-			AND dropped_at IS NULL'
+			'UPDATE `mklounge_queue_members` m
+			INNER JOIN `mklounge_queues` q ON q.id=m.queue AND q.status IN ("open","locked")
+			SET m.dropped_at=NOW()
+			WHERE m.queue="'. intval($row['queue']) .'" AND m.player="'. intval($row['player']) .'"
+			AND m.dropped_at IS NULL AND m.confirmed_at < (NOW() - INTERVAL '. $confirmCutoff .' SECOND)'
 		);
 		if (!mysql_affected_rows())
 			continue;
@@ -2729,11 +2743,14 @@ function lounge_tick() {
 	while ($row = mysql_fetch_array($afkRes)) {
 		$affected[intval($row['queue'])] = true;
 		// Dropping the member is the claim, as for no-shows: an overlapping tick, or the
-		// unconfirmed sweep above, may already have removed them.
+		// unconfirmed sweep above, may already have removed them. The expiry is checked
+		// again, so a heartbeat that came in since the select keeps them in.
 		$q = mysql_query(
-			'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
-			WHERE queue="'. intval($row['queue']) .'" AND player="'. intval($row['player']) .'"
-			AND dropped_at IS NULL'
+			'UPDATE `mklounge_queue_members` m
+			INNER JOIN `mklounge_queues` q ON q.id=m.queue AND q.status IN ("open","locked")
+			SET m.dropped_at=NOW()
+			WHERE m.queue="'. intval($row['queue']) .'" AND m.player="'. intval($row['player']) .'"
+			AND m.dropped_at IS NULL AND m.last_heartbeat < (NOW() - INTERVAL '. $cutoff .' SECOND)'
 		);
 		if (!mysql_affected_rows())
 			continue;
