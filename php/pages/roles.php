@@ -122,7 +122,8 @@ $roleDescs = array(
 	'moderator' => $language ? 'Moderates the forum, comments, creations and the online mode. Can warn and ban members.':'Modère le forum, les commentaires, les créations et le mode en ligne. Peut avertir et bannir des membres.',
 	'organizer' => $language ? 'Gives online points and awards after events.':'Donne des points en ligne et des récompenses après les événements.',
 	'publisher' => $language ? 'Accepts or rejects the news submitted by members.':'Accepte ou refuse les news proposées par les membres.',
-	'clvalidator' => $language ? 'Accepts or rejects the challenges submitted by members.':'Accepte ou refuse les défis proposés par les membres.'
+	'clvalidator' => $language ? 'Accepts or rejects the challenges submitted by members.':'Accepte ou refuse les défis proposés par les membres.',
+	'lounge' => $language ? 'Runs the CT Lounge: placements, ranked bans and strikes, mogi tables and settings.':'Gère le CT Lounge : placements, bans et strikes du classé, tables des mogis et réglages.'
 );
 ?>
 <main>
