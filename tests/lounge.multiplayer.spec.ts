@@ -4,10 +4,9 @@ import { cleanupLoungeQueues, createLoungeBots, loungeBotName, LOUNGE_BOT_PASSWO
 
 // Real mogis, raced by one browser per member on the official tracks. Nobody drives:
 // mkDev.finishLap() (scripts/mk-dev.js) ends each player's laps, and each vote is cast with
-// the Random button. The game's own timers - track loading, countdown, the results the server
-// holds - still make each case about a minute, so they run locally and skip on CI.
+// the Random button. The game runs ten times faster (mkDevTimeScale), so the countdown, the
+// results screens and the track vote take a few seconds instead of a minute.
 test.describe.configure({ mode: 'serial' });
-test.skip(!!process.env.CI, 'about a minute per case: run locally');
 
 test.afterEach(async () => {
 	await sql(`DELETE FROM mklounge_settings`);
@@ -27,7 +26,9 @@ async function tick(page) {
 }
 
 async function newPlayerPage(browser, tag: string, index: number) {
-	const page = await (await browser.newContext({ viewport: { width: 1000, height: 700 } })).newPage();
+	const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+	await context.addInitScript(() => { (window as any).mkDevTimeScale = 0.1; });
+	const page = await context.newPage();
 	await login(page, loungeBotName(tag, index), LOUNGE_BOT_PASSWORD);
 	return page;
 }
@@ -93,6 +94,16 @@ async function finishRace(page, race: number) {
 	await waitForEvents(page, race, 'raceEnd');
 }
 
+// Players who walked out keep the next race waiting until the vote's deadline, 35 seconds after
+// the last race: once everyone still in the room has voted, bring the deadline forward.
+async function closeVote(key: number, voters: number[]) {
+	await expect.poll(async () => {
+		const [row]: any = await sql(`SELECT COUNT(*) AS n FROM mkjoueurs WHERE id IN (?) AND choice_map != 0`, [voters]);
+		return Number(row.n);
+	}, { timeout: 30_000 }).toBe(voters.length);
+	await sql(`UPDATE mariokart SET time = UNIX_TIMESTAMP() WHERE link = ? AND map = -1`, [key]);
+}
+
 async function raceOnce(pages, race: number) {
 	await Promise.all(pages.map(voteRandom));
 	await Promise.all(pages.map(p => finishRace(p, race)));
@@ -100,7 +111,7 @@ async function raceOnce(pages, race: number) {
 
 test('a mogi voided at a race start sends the players still in the room to its results', async ({ browser }) => {
 	test.setTimeout(120_000);
-	const { key, pages } = await launchLineup(browser, 'mpvoid', 5);
+	const { key, players, pages } = await launchLineup(browser, 'mpvoid', 5);
 	await raceOnce(pages, 1);
 
 	// three of the five walk out, so the second race would need three bots
@@ -108,6 +119,7 @@ test('a mogi voided at a race start sends the players still in the room to its r
 		await page.context().close();
 	const stayed = pages.slice(0, 2);
 	await Promise.all(stayed.map(voteRandom));
+	await closeVote(key, players.slice(0, 2));
 
 	for (const page of stayed)
 		await page.waitForURL('**/lounge.php?key=' + key, { timeout: 60_000 });
@@ -121,13 +133,14 @@ test('a mogi voided at a race start sends the players still in the room to its r
 // and hidden, shifting every name after it by one.
 test('a member watching their own substitute sees every kart', async ({ browser }) => {
 	test.setTimeout(120_000);
-	const { players, pages } = await launchLineup(browser, 'mpspec', 4);
+	const { key, players, pages } = await launchLineup(browser, 'mpspec', 4);
 	await raceOnce(pages, 1);
 	await pages[3].context().close();
 
 	// nobody drives race 2, so it lasts as long as the member needs to walk in on it
 	const racers = pages.slice(0, 3);
 	await Promise.all(racers.map(voteRandom));
+	await closeVote(key, players.slice(0, 3));
 	await waitForEvents(pages[0], 2, 'screen', 'race');
 
 	const watcher = await newPlayerPage(browser, 'mpspec', 4);

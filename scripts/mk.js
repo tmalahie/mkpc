@@ -5418,10 +5418,8 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			//* gogogo
 			if (typeof MK_DEV !== "undefined" && MK_DEV) mkDevLog("screen", {name: "countdown", race: iRaceCount});
-			fncHandler = setInterval(fncCount,1000);
-			//*/fncHandler = setInterval(fncCount,1);
+			fncHandler = setInterval(fncCount,(typeof MK_DEV !== "undefined" && MK_DEV ? mkDevTime(1000):1000));
 		}
 		iCntStep++;
 	}
@@ -5465,15 +5463,10 @@ function startGame() {
 			if (iTeamPlay && !onlineSpectatorId)
 				showTeam(tnCountdown);
 		}
-		//*
 		setTimeout(fncCount,tnCountdown);
-		//*/setTimeout(fncCount,5);
 	}
-	else {
-		//* gogogo
-		setTimeout(fncCount,bMusic?3000:1500);
-		//*/setTimeout(fncCount,bMusic?3:1.5);
-	}
+	else
+		setTimeout(fncCount,(typeof MK_DEV !== "undefined" && MK_DEV ? mkDevTime(bMusic?3000:1500):bMusic?3000:1500));
 	if (isMobile()) {
 		if (onlineSpectatorId)
 			showSpectatorKeyboard();
@@ -6659,7 +6652,7 @@ function continuer() {
 				nextRace();
 			};
 			if (isOnline)
-				setTimeout(function(){if(forceClic3)nextRace();},5000);
+				setTimeout(function(){if(forceClic3)nextRace();},(typeof MK_DEV !== "undefined" && MK_DEV ? mkDevTime(5000):5000));
 		}
 		else {
 			oContinue.value = toLanguage("           NEXT           ", "         SUIVANT          ");
@@ -18900,7 +18893,7 @@ function resetDatas() {
 								oContinue.focus()
 						}, 500);
 
-						setTimeout(function(){if(forceClic2)continuer();}, 5000);
+						setTimeout(function(){if(forceClic2)continuer();}, (typeof MK_DEV !== "undefined" && MK_DEV ? mkDevTime(5000):5000));
 						oContinue.onclick = function() {
 							forceClic2 = false;
 							hadInputDuringRace = true;
@@ -18912,7 +18905,7 @@ function resetDatas() {
 						hadInputDuringRace = true;
 						updateTable();
 					};
-					setTimeout(function(){if(forceClic)updateTable();}, 5000);
+					setTimeout(function(){if(forceClic)updateTable();}, (typeof MK_DEV !== "undefined" && MK_DEV ? mkDevTime(5000):5000));
 
 					oTd.appendChild(oContinue);
 					oTr.appendChild(oTd);
@@ -30895,6 +30888,7 @@ function choose(map,rand) {
 						else
 							oDoubleItemsEnabled = true;
 						var tNow = new Date().getTime();
+						if (typeof MK_DEV !== "undefined" && MK_DEV) rCode[2] = mkDevTime(rCode[2]);
 						tnCourse = tNow+rCode[2];
 						if (isSingle)
 							rCode[2] = 0;
@@ -30906,9 +30900,8 @@ function choose(map,rand) {
 									rCode[2] -= gameRules.selectionTime;
 							}
 							else
-								tnCourse += 5000;
+								tnCourse += (typeof MK_DEV !== "undefined" && MK_DEV ? mkDevTime(5000):5000);
 						}
-						//rCode[2] = 0; // TODO remove
 						var tThen = tNow+rCode[2];
 						connecte = rCode[3]+1;
 						var cCursor = 0;

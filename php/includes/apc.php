@@ -22,8 +22,17 @@ if (!function_exists('apcu_fetch')) {
         global $apcStore;
         unset($apcStore[$key]);
     }
+    // getCourse.php relies on apcu_add as a lock between concurrent requests, so unlike the
+    // rest of this fallback it has to hold across requests: an exclusive file create does.
     function apcu_add($key,$value,$ttl=0) {
         global $apcStore;
+        $lock = sys_get_temp_dir().'/mkpc-apcu-'.md5($key);
+        if ($ttl && file_exists($lock) && (filemtime($lock)+$ttl < time()))
+            @unlink($lock);
+        $handle = @fopen($lock, 'x');
+        if (!$handle)
+            return false;
+        fclose($handle);
         $apcStore[$key] = $value;
         return true;
     }
