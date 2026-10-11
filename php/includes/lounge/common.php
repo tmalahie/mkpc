@@ -1320,13 +1320,8 @@ function lounge_match_lineup_size($privgameKey) {
 }
 
 // A voided mogi rates nobody, except the players who got it voided: they pay a flat penalty,
-// recorded on the mogi's own rows so that a recalculation of the season replays it.
-function lounge_charge_cancellation($matchId, $presentIds) {
-	lounge_lock_ratings();
-	lounge_charge_cancellation_locked($matchId, $presentIds);
-	lounge_unlock_ratings();
-}
-
+// recorded on the mogi's own rows so that a recalculation of the season replays it. Called
+// under the ratings lock, taken before the void was claimed.
 function lounge_charge_cancellation_locked($matchId, $presentIds) {
 	$penalty = -floatval(lounge_setting('cancel_penalty'));
 	$present = array_flip(array_map('intval', $presentIds));
@@ -1383,13 +1378,18 @@ function lounge_void_if_too_many_bots($privgameKey, $course) {
 		return false;
 	// whoever walked out since the last race has not been struck for it yet
 	lounge_strike_dropouts($privgameKey, $course);
+	// taken before the claim: a lock that never comes then leaves the mogi to the next caller
+	// instead of voided with nobody charged
+	lounge_lock_ratings();
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_queues` SET status="cancelled"
 		WHERE id="'. intval($row['queue']) .'" AND status="launched"'
 	);
-	if (!mysql_affected_rows())
+	if (!mysql_affected_rows()) {
+		lounge_unlock_ratings();
 		return true;
+	}
 	$present = array();
 	$res = mysql_query(
 		'SELECT mp.player FROM `mklounge_match_players` mp
@@ -1409,7 +1409,8 @@ function lounge_void_if_too_many_bots($privgameKey, $course) {
 	lounge_log('match_abandoned', array('queue' => $row['queue'], 'key' => $privgameKey), array(
 		'reason' => 'too_many_bots', 'lineup' => intval($row['lineup']), 'present' => $present
 	));
-	lounge_charge_cancellation(intval($row['match']), $present);
+	lounge_charge_cancellation_locked(intval($row['match']), $present);
+	lounge_unlock_ratings();
 	return true;
 }
 
@@ -1633,6 +1634,11 @@ function lounge_finish_match($queueId) {
 	if (!$queue)
 		return false;
 
+	// A replay rebuilds every counter and rating from the ended matches, so this one is
+	// claimed, counted, rated and marked ended in a single hold of the lock, or a replay in
+	// between would drop it - and a lock that never comes leaves it unclaimed for the next tick.
+	lounge_lock_ratings();
+
 	// Claim the queue before doing any work. lounge_tick() runs on every poll, so two
 	// requests can reach this at once; without the claim both would tally the standings
 	// and both would apply the rating change, counting the match twice.
@@ -1641,25 +1647,25 @@ function lounge_finish_match($queueId) {
 		'UPDATE `mklounge_queues` SET status="finished"
 		WHERE id="'. intval($queueId) .'" AND status="launched"'
 	);
-	if (!mysql_affected_rows())
+	if (!mysql_affected_rows()) {
+		lounge_unlock_ratings();
 		return false;
+	}
 
 	$match = mysql_fetch_array(mysql_query(
 		'SELECT id FROM `mklounge_matches`
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
 	));
-	if (!$match)
+	if (!$match) {
+		lounge_unlock_ratings();
 		return false;
+	}
 	$matchId = intval($match['id']);
 
 	// Last chance to catch teams if no race-end snapshot got through; by now the room may
 	// already be gone, which is exactly why lounge_race_finished() does it every race.
 	lounge_snapshot_teams($queue['privgame_key']);
 
-	// A replay rebuilds every counter and rating from the ended matches, so this one is
-	// counted, rated and marked ended in a single hold of the lock, or a replay in between
-	// would drop it.
-	lounge_lock_ratings();
 	$standings = array();
 	$getStandings = mysql_query(
 		'SELECT r.player, r.pts FROM `mkgamerank` r
@@ -2182,14 +2188,17 @@ function lounge_handle_join_timeout($queueId) {
 		return true;
 	}
 
-	// same claim as lounge_finish_match: only one caller may void the match
+	// same claim as lounge_finish_match, under the lock for the same reason
+	lounge_lock_ratings();
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_queues` SET status="cancelled"
 		WHERE id="'. intval($queueId) .'" AND status="launched"'
 	);
-	if (!mysql_affected_rows())
+	if (!mysql_affected_rows()) {
+		lounge_unlock_ratings();
 		return false;
+	}
 
 	lounge_strike_no_shows($queueId, $joined);
 	$match = mysql_fetch_array(mysql_query(
@@ -2200,7 +2209,8 @@ function lounge_handle_join_timeout($queueId) {
 		WHERE queue="'. intval($queueId) .'" AND ended_at IS NULL'
 	);
 	if ($match)
-		lounge_charge_cancellation(intval($match['id']), array_keys($joined));
+		lounge_charge_cancellation_locked(intval($match['id']), array_keys($joined));
+	lounge_unlock_ratings();
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
@@ -2417,16 +2427,25 @@ function lounge_lock_ratings() {
 	lounge_get_lock('mkpc-lounge-ratings');
 }
 
+function lounge_try_lock_ratings() {
+	return lounge_try_lock('mkpc-lounge-ratings');
+}
+
 // GET_LOCK gives up after its timeout, and going on without the lock is exactly the write
-// it exists to prevent: keep waiting, and abort the request if it never comes, which rolls
-// back whatever it had started.
+// it exists to prevent: keep waiting, and abort the request if it never comes. Callers take
+// it before claiming anything, so an aborted request leaves the work to the next one.
 function lounge_get_lock($name) {
+	if (!lounge_try_lock($name))
+		throw new RuntimeException('lounge: could not acquire '. $name);
+}
+
+function lounge_try_lock($name) {
 	for ($i = 0; $i < 6; $i++) {
 		$row = mysql_fetch_array(mysql_query('SELECT GET_LOCK("'. $name .'", 20) AS got'));
 		if ($row && $row['got'])
-			return;
+			return true;
 	}
-	throw new RuntimeException('lounge: could not acquire '. $name);
+	return false;
 }
 
 function lounge_unlock_ratings() {

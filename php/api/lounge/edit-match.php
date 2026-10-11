@@ -108,15 +108,22 @@ if (!$match) {
 $storedAdjusts = array();
 $storedPlacements = array();
 if ($match) {
-	$res = mysql_query(
-		'SELECT mp.player, mp.mmr_adjust, p.placement FROM `mklounge_match_players` mp
-		LEFT JOIN `mklounge_players` p ON p.player=mp.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
-		WHERE mp.`match`="'. intval($matchId) .'"'
-	);
-	while ($row = mysql_fetch_array($res)) {
+	$res = mysql_query('SELECT player, mmr_adjust FROM `mklounge_match_players` WHERE `match`="'. intval($matchId) .'"');
+	while ($row = mysql_fetch_array($res))
 		$storedAdjusts[intval($row['player'])] = $row['mmr_adjust'];
+}
+// a placement belongs to the player, so it is shown on whichever table they are first rated
+// in - including one being added
+$tablePlayers = array();
+foreach ($table['players'] as $player)
+	$tablePlayers[] = intval($player['id']);
+if ($tablePlayers) {
+	$res = mysql_query(
+		'SELECT player, placement FROM `mklounge_players`
+		WHERE season="'. LOUNGE_CURRENT_SEASON .'" AND player IN ('. implode(',', $tablePlayers) .')'
+	);
+	while ($row = mysql_fetch_array($res))
 		$storedPlacements[intval($row['player'])] = $row['placement'];
-	}
 }
 function untouched($value, $stored) {
 	return !is_null($value) && !is_null($stored) && (round(floatval($stored)) == $value);
