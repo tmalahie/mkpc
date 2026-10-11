@@ -216,7 +216,7 @@
 	"admin.see_admin_logs": "Voir les <strong>logs admin</strong>",
 	"admin.retrace_understand_different_actions_done": "Pour retracer et comprendre les différentes actions réalisées par les admins MKPC",
 	"admin.moderate_ct_lounge": "Modérer le <strong>CT Lounge</strong>",
-	"admin.adjust_rating_ban_release_queue": "Pour ajuster un MMR, bannir du classé ou lever un ban, ou libérer une file bloquée",
+	"admin.set_placement_ban_release_queue": "Pour définir le placement d'un joueur, bannir du classé ou lever un ban, modifier les tables ou libérer une file bloquée",
 	"admin_logs.deleted_award": "Titre supprimé",
 	"admin_logs.deleted_account": "Compte supprimé",
 	"admin_logs.deleted_topic": "Topic supprimé",
