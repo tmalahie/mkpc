@@ -1360,7 +1360,18 @@ function lounge_charge_cancellation_locked($matchId, $presentIds) {
 
 // Checked as each race after the first starts: the first is the join timeout's call. Returns
 // whether the mogi was voided, in which case the race must not go ahead.
+//
+// Who is in the room is read under the ratings lock that charging the void needs: read before
+// waiting for it, a player back in the meantime would still be counted absent. And a lock that
+// never comes then aborts before anything is claimed, leaving the mogi to the next caller.
 function lounge_void_if_too_many_bots($privgameKey, $course) {
+	lounge_lock_ratings();
+	$voided = lounge_void_if_too_many_bots_locked($privgameKey, $course);
+	lounge_unlock_ratings();
+	return $voided;
+}
+
+function lounge_void_if_too_many_bots_locked($privgameKey, $course) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT q.id AS queue, m.id AS `match`, COUNT(mp.player) AS lineup,
 			SUM(j.course="'. intval($course) .'") AS present
@@ -1378,18 +1389,13 @@ function lounge_void_if_too_many_bots($privgameKey, $course) {
 		return false;
 	// whoever walked out since the last race has not been struck for it yet
 	lounge_strike_dropouts($privgameKey, $course);
-	// taken before the claim: a lock that never comes then leaves the mogi to the next caller
-	// instead of voided with nobody charged
-	lounge_lock_ratings();
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_queues` SET status="cancelled"
 		WHERE id="'. intval($row['queue']) .'" AND status="launched"'
 	);
-	if (!mysql_affected_rows()) {
-		lounge_unlock_ratings();
+	if (!mysql_affected_rows())
 		return true;
-	}
 	$present = array();
 	$res = mysql_query(
 		'SELECT mp.player FROM `mklounge_match_players` mp
@@ -1410,7 +1416,6 @@ function lounge_void_if_too_many_bots($privgameKey, $course) {
 		'reason' => 'too_many_bots', 'lineup' => intval($row['lineup']), 'present' => $present
 	));
 	lounge_charge_cancellation_locked(intval($row['match']), $present);
-	lounge_unlock_ratings();
 	return true;
 }
 
@@ -2169,7 +2174,16 @@ function lounge_strike_no_shows($queueId, $joined) {
 // Rule 4da penalises the player who did not turn up, not the seven who did - so as long as
 // enough of the lineup is in the room, the absentees are struck, the room is shrunk to the
 // players actually in it, and the mogi goes ahead. Only a lineup too small to race is voided.
+//
+// Under the ratings lock, for the same reasons as lounge_void_if_too_many_bots().
 function lounge_handle_join_timeout($queueId) {
+	lounge_lock_ratings();
+	$handled = lounge_handle_join_timeout_locked($queueId);
+	lounge_unlock_ratings();
+	return $handled;
+}
+
+function lounge_handle_join_timeout_locked($queueId) {
 	$queue = mysql_fetch_array(mysql_query(
 		'SELECT id, privgame_key FROM `mklounge_queues`
 		WHERE id="'. intval($queueId) .'" AND status="launched" AND privgame_key IS NOT NULL'
@@ -2188,17 +2202,14 @@ function lounge_handle_join_timeout($queueId) {
 		return true;
 	}
 
-	// same claim as lounge_finish_match, under the lock for the same reason
-	lounge_lock_ratings();
+	// same claim as lounge_finish_match: only one caller may void the match
 	global $q;
 	$q = mysql_query(
 		'UPDATE `mklounge_queues` SET status="cancelled"
 		WHERE id="'. intval($queueId) .'" AND status="launched"'
 	);
-	if (!mysql_affected_rows()) {
-		lounge_unlock_ratings();
+	if (!mysql_affected_rows())
 		return false;
-	}
 
 	lounge_strike_no_shows($queueId, $joined);
 	$match = mysql_fetch_array(mysql_query(
@@ -2210,7 +2221,6 @@ function lounge_handle_join_timeout($queueId) {
 	);
 	if ($match)
 		lounge_charge_cancellation_locked(intval($match['id']), array_keys($joined));
-	lounge_unlock_ratings();
 	mysql_query(
 		'UPDATE `mklounge_queue_members` SET dropped_at=NOW()
 		WHERE queue="'. intval($queueId) .'" AND dropped_at IS NULL'
