@@ -783,6 +783,7 @@
 	}
 
 	var LB_TABLE_ERRORS = {
+		match_running: ['This mogi is still being played: it can be edited once it has ended.', 'Ce mogi est encore en cours : il pourra être modifié une fois terminé.'],
 		team_penalty: ['Team penalties are not supported: give the players an MMR compensation instead.', 'Les pénalités d\'équipe ne sont pas gérées : donnez plutôt une compensation de MMR aux joueurs.'],
 		no_score: ['A player line needs a score after the name.', 'Une ligne de joueur doit avoir un score après le nom.'],
 		bad_score: ['This score is not a number, or a sum like 70+20+8.', 'Ce score n\'est pas un nombre, ni une somme comme 70+20+8.'],
@@ -917,7 +918,9 @@
 						'Delete mogi #' + matchId + '? Every mogi played since is recalculated without it.',
 						'Supprimer le mogi n°' + matchId + ' ? Tous les mogis joués depuis sont recalculés sans lui.'))) return;
 					postJSON('lounge/edit-match.php', 'action=delete&match=' + matchId, function(res) {
-						if (res && res.deleted) location.href = lbUrl({});
+						if (!res) return;
+						showErrors(res.errors || []);
+						if (res.deleted) location.href = lbUrl({});
 					});
 				});
 				actions.appendChild(remove);
