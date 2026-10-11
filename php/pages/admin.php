@@ -177,10 +177,13 @@ include('../includes/menu.php');
 		?>
 	</ul>
 	<?php
-	if (hasRight('moderator')) {
+	if (hasRight('moderator') || hasRight('lounge')) {
 		?>
 	<h2><?= t('common.online_mode') ?></h2>
 	<ul>
+		<?php
+		if (hasRight('moderator')) {
+			?>
 		<li>
 			<a class="action-ctn" href="updatepts.php">
 				<div class="action-title"><?= t('admin.online_give_remove_points') ?></div>
@@ -203,6 +206,19 @@ include('../includes/menu.php');
 				</div>
 			</a>
 		</li>
+			<?php
+		}
+		if (hasRight('lounge')) {
+			?>
+		<li>
+			<a class="action-ctn" href="admin-lounge.php">
+				<div class="action-title"><?= t('admin.moderate_ct_lounge') ?></div>
+				<div class="action-desc"><?= t('admin.set_placement_ban_release_queue') ?></div>
+			</a>
+		</li>
+			<?php
+		}
+		?>
 	</ul>
 	<h2><?= t('admin.share_management') ?></h2>
 	<ul>
@@ -267,18 +283,6 @@ include('../includes/menu.php');
 			<a class="action-ctn" href="adminReports.php">
 				<div class="action-title"><?= t('admin.see_forum_reported_messages') ?></div>
 				<div class="action-desc"><?= t('admin.quickly_perform_actions_what_members') ?></div>
-			</a>
-		</li>
-			<?php
-		}
-		?>
-		<?php
-		if (hasRight('lounge')) {
-			?>
-		<li>
-			<a class="action-ctn" href="admin-lounge.php">
-				<div class="action-title"><?= t('admin.moderate_ct_lounge') ?></div>
-				<div class="action-desc"><?= t('admin.adjust_rating_ban_release_queue') ?></div>
 			</a>
 		</li>
 			<?php
