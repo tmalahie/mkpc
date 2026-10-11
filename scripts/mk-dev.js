@@ -37,7 +37,19 @@
  *   hooks guarded by `typeof MK_DEV !== "undefined" && MK_DEV`, and put the logic in this file.
  *   A helper that needs MarioKart's variables can be written as a normal function and compiled
  *   in the game's scope with inGame(fn), like startRace below.
+ *
+ * Game timers
+ *   The waits that only pace the game - the countdown, the results screens, the online track
+ *   vote and loading - go through mkDevTime(ms), which multiplies them by mkDevTimeScale.
+ *   Set window.mkDevTimeScale before the game loads (page.addInitScript in Playwright), e.g. 0.1
+ *   for a game ten times faster. Online, give every player of the room the same scale: the race
+ *   start is computed by each client.
  */
+
+var mkDevTimeScale = window.mkDevTimeScale || 1;
+function mkDevTime(ms) {
+	return ms*mkDevTimeScale;
+}
 
 var mkDevAttach = "window.mkDevEval = function(code) { return eval(code); };";
 
