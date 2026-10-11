@@ -419,17 +419,19 @@ if ($id) {
 				if ($finishing && $isLocal) {
 					$isLounge = !empty($courseRules->lounge);
 					// a tick finishing the mogi on the last race's count must also find
-					// that race's attendance, so both are written under the lock it takes
+					// that race's attendance, so both are written under the lock it takes;
+					// the race is counted even if the lock never comes
 					if ($isLounge) {
 						require_once('../includes/lounge/common.php');
-						lounge_lock_ratings();
+						$locked = lounge_try_lock_ratings();
 					}
 					incCourseState($courseOptions['id']);
 					// nobody sits on the lounge page during a mogi, so the lounge tick
 					// never runs while one is being played: this is its only heartbeat
 					if ($isLounge) {
 						lounge_record_race_attendance($courseOptions['id'], $course);
-						lounge_unlock_ratings();
+						if ($locked)
+							lounge_unlock_ratings();
 						lounge_race_finished($courseOptions['id'], $course);
 					}
 				}
