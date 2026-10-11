@@ -46,6 +46,14 @@ function editedValue($name) {
 	return array(true, floatval($value));
 }
 
+// A mogi still being played belongs to its room: its lineup is who may race and who gets
+// substituted, so staff edit it once it has ended. Read under the ratings lock, which
+// lounge_finish_match() holds until it sets ended_at.
+function matchRunning($matchId) {
+	$row = mysql_fetch_array(mysql_query('SELECT ended_at FROM `mklounge_matches` WHERE id="'. intval($matchId) .'"'));
+	return $row && is_null($row['ended_at']);
+}
+
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 $matchId = !empty($_POST['match']) ? intval($_POST['match']) : null;
 $match = $matchId ? lounge_match_payload($matchId) : null;
@@ -64,6 +72,10 @@ if ($action === 'delete') {
 	if (!$match)
 		respond(array('error' => 'not_found'));
 	lounge_lock_ratings();
+	if (matchRunning($matchId)) {
+		lounge_unlock_ratings();
+		respond(array('errors' => array(array(0, 'match_running'))));
+	}
 	$text = lounge_table_text($match);
 	lounge_delete_table($matchId);
 	lounge_recompute_season();
@@ -91,17 +103,41 @@ if (!$match) {
 	}
 }
 
+// The editor shows ratings rounded and sends every field back, so a field left as it was
+// arrives as the rounded value: keep what is stored rather than rounding it away.
+$storedAdjusts = array();
+$storedPlacements = array();
+if ($match) {
+	$res = mysql_query(
+		'SELECT mp.player, mp.mmr_adjust, p.placement FROM `mklounge_match_players` mp
+		LEFT JOIN `mklounge_players` p ON p.player=mp.player AND p.season="'. LOUNGE_CURRENT_SEASON .'"
+		WHERE mp.`match`="'. intval($matchId) .'"'
+	);
+	while ($row = mysql_fetch_array($res)) {
+		$storedAdjusts[intval($row['player'])] = $row['mmr_adjust'];
+		$storedPlacements[intval($row['player'])] = $row['placement'];
+	}
+}
+function untouched($value, $stored) {
+	return !is_null($value) && !is_null($stored) && (round(floatval($stored)) == $value);
+}
+
 mysql_query('START TRANSACTION');
 lounge_lock_ratings();
+if ($match && matchRunning($matchId)) {
+	mysql_query('ROLLBACK');
+	lounge_unlock_ratings();
+	respond(array('errors' => array(array(0, 'match_running'))));
+}
 $savedId = lounge_save_table($matchId, $table, $tierId, $playedAt);
 $adjustments = array();
 $placements = array();
 foreach ($table['players'] as $player) {
 	list($given, $adjust) = editedValue('adjust_'. $player['id']);
-	if ($given)
+	if ($given && !untouched($adjust, isset($storedAdjusts[$player['id']]) ? $storedAdjusts[$player['id']] : null))
 		$adjustments[$player['id']] = $adjust;
 	list($given, $placement) = editedValue('placement_'. $player['id']);
-	if ($given)
+	if ($given && !untouched($placement, isset($storedPlacements[$player['id']]) ? $storedPlacements[$player['id']] : null))
 		$placements[$player['id']] = is_null($placement) ? null : max(lounge_setting('mmr_min'), $placement);
 }
 lounge_edit_ratings($savedId, $adjustments, $placements);
