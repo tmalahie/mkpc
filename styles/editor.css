@@ -1586,6 +1586,81 @@ embed,#ytplayer {
 #shortcut-options .form-submit button {
 	font-size: 1em;
 }
+
+#box-decor-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+#box-decor-options .box-decor-dialog {
+	padding: 5px;
+}
+#box-decor-options h1 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	color: #058;
+}
+#box-decor-options .form-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 5px;
+	gap: 6px;
+}
+#box-decor-options .form-row-block {
+	flex-direction: column;
+	gap: 0;
+}
+#box-decor-options .form-label {
+	color: #058;
+}
+#box-decor-options .form-row-block .form-value {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+#box-decor-options .form-row-block .form-value table {
+	border-spacing: 0;
+	border: 1px solid white;
+	outline: 2px solid black;
+}
+#box-decor-options .form-cell {
+	width: 20px;
+	height: 20px;
+	background-color: black;
+	border: 1px solid white;
+}
+#box-decor-options .noarrow::-webkit-outer-spin-button,
+#box-decor-options .noarrow::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+#box-decor-options .noarrow {
+	width: 100%;
+	height: 26px;
+	color: white;
+	background-color: black;
+	border: none;
+	box-sizing: border-box;
+	text-align: center;
+  	-moz-appearance: textfield;
+}
+#box-decor-options .form-row-block .form-value img {
+	height: 100%;
+	margin: 4px;
+}
+#box-decor-options .form-submit {
+	margin-top: 15px;
+	margin-bottom: 5px;
+	font-size: 1.2em;
+}
+#box-decor-options .form-submit button {
+	font-size: 1em;
+}
+
 #offroad-transfer .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 5px;
@@ -2190,7 +2265,6 @@ embed,#ytplayer {
 .main-decor a:hover {
 	color: #049;
 }
-
 
 @keyframes progressive-fade {
 	15% {
