@@ -133,7 +133,22 @@ $clRulesByType = array(
 			'course' => array('vs')
 		),
 		'hit_items' => array(
-			'description' => $language ? 'Hit all item boxes':'Toucher toutes les boites à objet',
+			'description_mockup' => $language ? 'Hit item boxes...':'Toucher les boites à objet...',
+			'description_lambda' => function($language,&$scope) {
+				if (isset($scope->nb)) {
+					$nb = $scope->nb;
+					if ($nb >= 2)
+						return $language ? "Hit $nb item boxes":"Toucher $nb boites à objet";
+					return $language ? 'Hit an item box':'Toucher une boite à objet';
+				}
+				return $language ? 'Hit all item boxes':'Toucher toutes les boites à objet';
+			},
+			'parser' => function(&$scope) {
+				if (empty($scope['nb']))
+					unset($scope['nb']);
+				else
+					$scope['nb'] = intval($scope['nb']);
+			},
 			'course' => array('vs','battle')
 		),
 		'collect_coins' => array(

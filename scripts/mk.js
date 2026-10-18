@@ -15009,12 +15009,12 @@ var challengeRules = {
 				addChallengeHud("items", {
 					title: toLanguage("Items","Objets"),
 					value: clLocalVars.nbItems,
-					out_of: clLocalVars.totalItems
+					out_of: scope.nb || clLocalVars.totalItems
 				});
 			});
 		},
 		"success": function(scope) {
-			if (clLocalVars.nbItems >= clLocalVars.totalItems)
+			if (clLocalVars.nbItems >= (scope.nb || clLocalVars.totalItems))
 				return true;
 		}
 	},

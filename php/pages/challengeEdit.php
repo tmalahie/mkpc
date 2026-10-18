@@ -368,15 +368,24 @@ function selectMainRule() {
 			'</label>'
 		);
 		break;
+	case 'hit_items':
+		$extra.html(
+			'<div>'+ (language ? 'Number of item boxes to hit:':'Nombre de boites à objet à toucher :') + '<br />'+
+			'<label><input type="radio" name="goal_all" onclick="toggleGoalAllOption(1)" checked="checked" value="1" />'+ (language ? "All":"Toutes") + '</label> &nbsp; '+
+			'<label><input type="radio" name="goal_all" onclick="toggleGoalAllOption(0)" value="0" /> '+
+			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbGoal()" placeholder="5" min="1" autocomplete="off" /></label>' +
+			'</div>'
+		);
+		break;
 	case 'collect_coins':
 		$extra.html(
 			'<div style="margin:10px 0"><label>'+ (language ? 'Coins location: ':'Position des pièces : ') +
 			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<button type="button" onclick="openZoneEditor(\'coins\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
 			'<div>'+ (language ? 'Number of coins to collect:':'Nombre de pièces à récupérer :') + '<br />'+
-			'<label><input type="radio" name="goal_coins_all" onclick="toggleGoalAllOption(1)" checked="checked" value="1" />'+ (language ? "All":"Toutes") + '</label> &nbsp; '+
-			'<label><input type="radio" name="goal_coins_all" onclick="toggleGoalAllOption(0)" value="0" /> '+
-			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbCoins()" placeholder="25" min="1" autocomplete="off" /></label>' +
+			'<label><input type="radio" name="goal_all" onclick="toggleGoalAllOption(1)" checked="checked" value="1" />'+ (language ? "All":"Toutes") + '</label> &nbsp; '+
+			'<label><input type="radio" name="goal_all" onclick="toggleGoalAllOption(0)" value="0" /> '+
+			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbGoal()" placeholder="25" min="1" autocomplete="off" /></label>' +
 			'</div>'
 		);
 		break;
@@ -1183,8 +1192,8 @@ function toggleDecorAllOption(decorKey,value) {
 	else
 		document.forms[0].elements["goal[value]["+decorKey+"][nb]"].focus();
 }
-function selectNbCoins() {
-	document.forms[0].elements["goal_coins_all"].value = 0;
+function selectNbGoal() {
+	document.forms[0].elements["goal_all"].value = 0;
 }
 function selectNbDecors(decorKey) {
 	document.forms[0].elements["goal[value]["+decorKey+"][all]"].value = 0;
@@ -1502,9 +1511,10 @@ $(function() {
 			}
 		}
 		switch (mainRule.type) {
+		case "hit_items":
 		case "collect_coins":
 			if (mainRule.nb) {
-				selectNbCoins();
+				selectNbGoal();
 				mainForm.elements["goal[nb]"].value = mainRule.nb;
 			}
 			break;
