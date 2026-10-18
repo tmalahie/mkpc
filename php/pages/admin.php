@@ -1,10 +1,10 @@
 <?php
 include('../includes/session.php');
+include('../includes/language.php');
 if (!$id) {
 	echo t('admin.you_arent_logged');
 	exit;
 }
-include('../includes/language.php');
 include('../includes/initdb.php');
 if (!$id) {
 	echo t('admin.you_arent_logged');
