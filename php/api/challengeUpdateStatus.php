@@ -5,7 +5,7 @@ if (isset($_POST['challenge']) && isset($_POST['status'])) {
 	include('../includes/initdb.php');
 	include('../includes/language.php');
 	require_once('../includes/utils-challenges.php');
-	$challenge = getChallenge($_POST['challenge']);
+	$challenge = getChallenge($_POST['challenge'], false, 'manage_challenges');
 	$newStatus = 'unknown';
 	if (isset($challenge)) {
 		$oldStatus = $challenge['status'];

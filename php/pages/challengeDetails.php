@@ -4,16 +4,17 @@ include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
 if (isset($_GET['ch'])) {
-	$challenge = getChallenge($_GET['ch']);
+	$challenge = getChallenge($_GET['ch'], false, 'manage_challenges');
 	if ($challenge)
-		$clRace = getClRace($challenge['clist']);
+		$clRace = getClRace($challenge['clist'], false, 'manage_challenges');
 }
 if (empty($clRace)) {
 	mysql_close();
 	exit;
 }
 include('../includes/challenge-cldata.php');
-mysql_query('DELETE FROM `mknotifs` WHERE identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND type="challenge_moderated" AND link="'. $challenge['id'] .'"');
+if (isClRaceOwner($clRace))
+	mysql_query('DELETE FROM `mknotifs` WHERE identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND type="challenge_moderated" AND link="'. $challenge['id'] .'"');
 $challengeDetails = getChallengeDetails($challenge);
 ?>
 <!DOCTYPE html>

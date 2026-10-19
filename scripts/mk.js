@@ -184,6 +184,7 @@ if (typeof shareLink !== "undefined") {
 }
 var $changeRace = document.getElementById("changeRace");
 var myCircuit = ($changeRace != null) && (!$changeRace.dataset || !$changeRace.dataset.collab);
+var canManageChallenges = myCircuit || !!challengesCollabParam();
 
 function setFps(iValue) {
 	if (iValue == -2) {
@@ -16614,7 +16615,7 @@ window.publishChallenge = function(id) {
 					if (creationChallenges.main)
 						openChallengeEditor();
 					else
-						document.location.href = "challenges.php?cl="+creationChallenges.id;
+						document.location.href = "challenges.php?cl="+creationChallenges.id+challengesCollabParam();
 				}
 			}
 		}
@@ -25104,7 +25105,7 @@ function selectTypeScreen() {
 			oModes.unshift("Grand Prix");
 			oModeIds.unshift("GP");
 		}
-		if (hasChallenges() || myCircuit) {
+		if (hasChallenges() || canManageChallenges) {
 			oModes.push(toLanguage("Challenges", "Défis"));
 			oModeIds.push("CH");
 		}
@@ -25348,7 +25349,7 @@ function selectNbJoueurs(force) {
 	}
 	oContainers[0].appendChild(oScr);
 
-	if ((myCircuit || hasChallenges()) && (!nid || isBattle)) {
+	if ((canManageChallenges || hasChallenges()) && (!nid || isBattle)) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
 		oPInput.value = toLanguage("Challenges...", "Défis...");
@@ -25464,9 +25465,14 @@ function openOnlineMode(isBattle, options) {
 	else
 		document.location.href = "online.php"+ (isBattle ? "?battle":"");
 }
+function challengesCollabParam() {
+	if (typeof challengesCollabKey !== "undefined" && challengesCollabKey)
+		return "&collab="+encodeURIComponent(challengesCollabKey);
+	return "";
+}
 function openChallengeEditor() {
 	if (clId && !edittingCircuit)
-		document.location.href = "challenges.php?cl="+clId;
+		document.location.href = "challenges.php?cl="+clId+challengesCollabParam();
 	else
 		document.location.href = document.location.href.replace(/\/(\w+)\.php\?(.+)$/g, '/challenges.php?page=$1&$2');
 }
@@ -28949,7 +28955,7 @@ function selectChallengesScreen() {
 	oScr.appendChild(oPInput);
 
 	if (aChallenge) {
-		if (myCircuit) {
+		if (canManageChallenges) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
 			oPInput.value = toLanguage("Manage challenges...", "Gérer les défis...");
@@ -28995,7 +29001,7 @@ function selectChallengesScreen() {
 			}
 			oLink.style.fontSize = (2*iScreenScale)+"px";
 			oLink.style.position = "absolute";
-			oLink.style.right = ((myCircuit ? 22:2)*iScreenScale)+"px";
+			oLink.style.right = ((canManageChallenges ? 22:2)*iScreenScale)+"px";
 			oLink.style.top = (35*iScreenScale)+"px";
 			if (!oLink.dataset)
 				oLink.dataset = {};

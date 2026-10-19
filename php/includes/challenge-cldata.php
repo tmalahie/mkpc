@@ -105,6 +105,8 @@ elseif (isset($_GET['page'])) {
 	if (isset($clTable) && isset($clCid)) {
 		$clCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'.$clTable.'` WHERE id="'.$clCid.'"'));
 		$clRace = mysql_fetch_array(mysql_query('SELECT * FROM `mkclrace` WHERE type="'. $clTable .'" AND circuit="'. $clCid .'"  AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
+		if (!$clRace && !empty($clCollabRight) && hasCircuitChallengeCollabRight($clTable, $clCid, $clCollabRight))
+			$clRace = mysql_fetch_array(mysql_query('SELECT * FROM `mkclrace` WHERE type="'. $clTable .'" AND circuit="'. $clCid .'"'));
 		unset($clCid);
 	}
 }
@@ -197,22 +199,25 @@ function backCircuitUrl() {
 		return nextPageUrl(urlencode($_GET['page']).'.php', array('page'=>null));
 	}
 	elseif (!empty($clRace)) {
-		if ($clCircuit) {
-			switch ($clRace['type']) {
-			case 'circuits':
-				return 'map.php?i='. $clCircuit['ID'];
-			case 'mkcircuits':
-				return ($clCircuit['type'] ? 'arena':'circuit') .'.php?id='. $clCircuit['id'];
-			case 'arenes':
-				return 'battle.php?i='. $clCircuit['ID'];
-			case 'mkcups':
-				return getCupPage($clCircuit['mode']) .'.php?cid='. $clCircuit['id'];
-			case 'mkmcups':
-				return getCupPage($clCircuit['mode']) .'.php?mid='. $clCircuit['id'];
-			}
-		}
+		if ($clCircuit && ($circuitUrl = circuitUrlFromClRace()))
+			return $circuitUrl . getChallengeCollabParam();
 	}
 	return 'mariokart.php';
+}
+function circuitUrlFromClRace() {
+	global $clRace, $clCircuit;
+	switch ($clRace['type']) {
+	case 'circuits':
+		return 'map.php?i='. $clCircuit['ID'];
+	case 'mkcircuits':
+		return ($clCircuit['type'] ? 'arena':'circuit') .'.php?id='. $clCircuit['id'];
+	case 'arenes':
+		return 'battle.php?i='. $clCircuit['ID'];
+	case 'mkcups':
+		return getCupPage($clCircuit['mode']) .'.php?cid='. $clCircuit['id'];
+	case 'mkmcups':
+		return getCupPage($clCircuit['mode']) .'.php?mid='. $clCircuit['id'];
+	}
 }
 function backCircuitText() {
 	global $language, $clCourse;
