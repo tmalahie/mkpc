@@ -3,17 +3,19 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
+include('../includes/session.php');
 if (isset($_GET['ch'])) {
 	$challenge = getChallenge($_GET['ch'], false, 'manage_challenges');
+	if (!$challenge && $id && mysql_fetch_array(mysql_query('SELECT last_editor FROM `mkpublishers` WHERE type="mkchallenges" AND creation_id="'. $_GET['ch'] .'" AND last_editor="'. $id .'"')))
+		$challenge = mysql_fetch_array(mysql_query('SELECT * FROM `mkchallenges` WHERE id="'. $_GET['ch'] .'"'));
 	if ($challenge)
-		$clRace = getClRace($challenge['clist'], false, 'manage_challenges');
+		$clRace = getClRace($challenge['clist'], true);
 }
 if (empty($clRace)) {
 	mysql_close();
 	exit;
 }
 include('../includes/challenge-cldata.php');
-include('../includes/session.php');
 mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND link="'. $challenge['id'] .'" AND (user="'. $id .'" OR (identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"))');
 $challengeDetails = getChallengeDetails($challenge);
 ?>
