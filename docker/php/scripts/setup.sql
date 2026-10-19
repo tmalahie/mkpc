@@ -1408,7 +1408,7 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mkpublishers` (
-  `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups','mkchars') NOT NULL,
+  `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups','mkchars','mkchallenges') NOT NULL,
   `creation_id` int(11) NOT NULL,
   `publisher` int(11) NOT NULL,
   `last_editor` int(11) NOT NULL,
@@ -2240,3 +2240,4 @@ INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);
 INSERT INTO mkgamecpu VALUES(0,0,1000000000);
 INSERT INTO mkrights VALUES(1, "admin");
 INSERT INTO mkidentifiants SET identifiant=0,disable_cooldown=1;
+INSERT INTO mkmigrations SET name="20261018-2354-challenge-publishers.sql";

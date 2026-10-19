@@ -80,7 +80,10 @@ if ($ban) {
             $banId = substr($ban, strlen($profileUrl));
         elseif (str_starts_with($ban, $challengeUrl)) {
             $challengeId = intval(substr($ban, strlen($challengeUrl)));
-            if ($getIp = mysql_fetch_array(mysql_query('SELECT l.identifiant,l.circuit,l.type FROM `mkchallenges` c INNER JOIN `mkclrace` l ON c.clist=l.id WHERE c.id="'. $challengeId .'" AND l.circuit IS NOT NULL'))) {
+            require_once('../includes/utils-publishers.php');
+            if ($publishers = getPublishers('mkchallenges', $challengeId))
+                $banId = $publishers['last_editor'];
+            elseif ($getIp = mysql_fetch_array(mysql_query('SELECT l.identifiant,l.circuit,l.type FROM `mkchallenges` c INNER JOIN `mkclrace` l ON c.clist=l.id WHERE c.id="'. $challengeId .'" AND l.circuit IS NOT NULL'))) {
                 $banIp = $getIp['identifiant'];
                 $circuitId = $getIp['circuit'];
                 $circuitType = $getIp['type'];

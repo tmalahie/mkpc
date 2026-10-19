@@ -16270,6 +16270,8 @@ function challengeSucceeded(challenge) {
 		return;
 	}
 	var challengePayload = "id="+challenge.id;
+	if ("active" !== challenge.status)
+		challengePayload += challengesCollabParam();
 	xhr("trackStats.php", "stats="+encodeURIComponent(getRecordStats(challengePayload)), function(res) {
 		if (res != 1)
 			return false;

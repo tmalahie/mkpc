@@ -13,8 +13,8 @@ if (empty($clRace)) {
 	exit;
 }
 include('../includes/challenge-cldata.php');
-if (isClRaceOwner($clRace))
-	mysql_query('DELETE FROM `mknotifs` WHERE identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND type="challenge_moderated" AND link="'. $challenge['id'] .'"');
+include('../includes/session.php');
+mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND link="'. $challenge['id'] .'" AND (user="'. $id .'" OR (identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"))');
 $challengeDetails = getChallengeDetails($challenge);
 ?>
 <!DOCTYPE html>

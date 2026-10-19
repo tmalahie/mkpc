@@ -16,8 +16,11 @@ if (isset($_GET['ch'])) {
 	if (!empty($clRace)) {
 		if (mysql_fetch_array(mysql_query('SELECT player FROM `mkclwin` WHERE challenge="'. $challenge['id'] .'" AND creator=0')))
 			mysql_query('UPDATE `mkchallenges` SET status="deleted" WHERE id="'. $challenge['id'] .'"');
-		else
+		else {
 			mysql_query('DELETE FROM `mkchallenges` WHERE id="'. $challenge['id'] .'"');
+			require_once('../includes/utils-publishers.php');
+			forgetPublisher('mkchallenges', $challenge['id']);
+		}
 	}
 	mysql_close();
 	header('location: '. nextPageUrl('challenges.php', array('cl'=>$clRace['clid'],'ch'=>null,'token'=>null)));
