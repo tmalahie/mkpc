@@ -4,11 +4,13 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
+$clCollabRight = 'manage_challenges';
 if (isset($_GET['cl']))
-	$clRace = getClRace($_GET['cl']);
+	$clRace = getClRace($_GET['cl'], false, $clCollabRight);
 include('../includes/challenge-cldata.php');
 require_once('../includes/tokens.php');
 assign_token();
+$clCollaborator = empty($clRace) ? (bool)getChallengeCollabKey() : !isClRaceOwner($clRace);
 if (isset($_GET['clmsg'])) {
 	switch ($_GET['clmsg']) {
 	case 'challenge_edited':
@@ -57,7 +59,7 @@ function showClMsg(newMsg) {
 function publishChallenge(id, skip_confirm) {
 	if (publishingChallenge) return;
 	publishingChallenge = true;
-	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_moderation" + (skip_confirm ? "":"&require_confirmation"), function(res) {
+	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_moderation" + (skip_confirm ? "":"&require_confirmation") + "<?php echo getChallengeCollabParam(); ?>", function(res) {
 		if (res) {
 			if (res == "pending_moderation")
 				showClMsg("challenge_published");
@@ -96,7 +98,7 @@ function publishChallenge(id, skip_confirm) {
 function unpublishChallenge(id) {
 	if (publishingChallenge) return;
 	publishingChallenge = true;
-	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_publication", function(res) {
+	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_publication<?php echo getChallengeCollabParam(); ?>", function(res) {
 		if (res) {
 			if (res == "pending_publication")
 				showClMsg("challenge_unpublished");
@@ -195,7 +197,13 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		</div>
 		<div class="challenge-navigation advanced-challenge-actions">
 			<a href="<?php echo nextPageUrl('challengeOrder.php'); ?>""><u><?php echo $language ? 'Reorder challenges' : 'Ordonner les défis'; ?></u> &gt;</a>
+			<?php
+			if (!$clCollaborator) {
+				?>
 			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>""><u><?php echo $language ? 'Challenge rewards' : 'Gérer les récompenses'; ?></u> &gt;</a>
+				<?php
+			}
+			?>
 		</div>
 		<div></div>
 		<?php
@@ -311,7 +319,13 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		</div>
 		<div class="challenge-navigation advanced-challenge-actions">
 			<a href="<?php echo nextPageUrl('challengeOrder.php'); ?>""><u><?php echo $language ? 'Reorder challenges' : 'Ordonner les défis'; ?></u> &gt;</a>
+			<?php
+			if (!$clCollaborator) {
+				?>
 			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>""><u><?php echo $language ? 'Challenge rewards' : 'Gérer les récompenses'; ?></u> &gt;</a>
+				<?php
+			}
+			?>
 		</div>
 		<div class="pub">
 			<?php

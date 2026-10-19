@@ -19,6 +19,9 @@ function includeShareLib() {
         $canShare = true;
     }
     $ctActions = getCTActions();
+    ?>
+    var challengesCollabKey = <?php echo json_encode(isset($collab['rights']['manage_challenges']) ? $collab['key'] : null); ?>;
+    <?php
     if ($canChange) {
         if (!$isCup) {
             $shareParams = $CREATION_ENTITIES[$creationMode]['get_share_params']();
