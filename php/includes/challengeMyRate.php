@@ -3,13 +3,13 @@ function getMyRating($challenge) {
 	global $id;
 	if (!$id)
 		return null;
+	if (mysql_fetch_array(mysql_query('SELECT last_editor FROM `mkpublishers` WHERE type="mkchallenges" AND creation_id='. $challenge['id'] .' AND last_editor='. $id)))
+		return null;
 	if ($getWin = mysql_fetch_array(mysql_query('SELECT player,rating FROM `mkclwin` WHERE challenge='. $challenge['id'] .' AND player='. $id .' AND creator=0'))) {
 		if ($getWin['rating'])
 			return $getWin;
 	}
 	if (mysql_fetch_array(mysql_query('SELECT player FROM `mkclwin` WHERE challenge='. $challenge['id'] .' AND player='. $id .' AND creator=1')))
-		return null;
-	if (mysql_fetch_array(mysql_query('SELECT last_editor FROM `mkpublishers` WHERE type="mkchallenges" AND creation_id='. $challenge['id'] .' AND last_editor='. $id)))
 		return null;
 	if ($getIdentifiants = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id='. $id))) {
 		if ($cList = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkclrace` WHERE id='. $challenge['clist']))) {
