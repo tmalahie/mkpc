@@ -32,6 +32,9 @@ if (isset($_GET['clmsg'])) {
 	case 'circuit_required':
 		$clError = $language ? 'You must share the circuit before publishing the challenge':'Vous devez partager le circuit avant de publier le défi';
 		break;
+	case 'account_required':
+		$clError = $language ? 'You need to be logged in to publish a challenge. <a href="forum.php" target="_blank">Log in / Register</a>':'Vous devez être connecté pour publier un défi. <a href="forum.php" target="_blank">Connexion / Inscription</a>';
+		break;
 	case 'banned':
 		$clError = $language ? "You can't publish challenges while you're banned" : "Vous ne pouvez pas publier de défis tant que vous êtes banni";
 		break;
@@ -88,6 +91,8 @@ function publishChallenge(id, skip_confirm) {
 			}
 			else if (res == "banned")
 				showClMsg("banned");
+			else if (res == "account_required")
+				showClMsg("account_required");
 			else
 				document.location.reload();
 			return true;

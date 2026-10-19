@@ -59,11 +59,9 @@ if (!empty($_GET['hide_succeeded']) && $id) {
 	$chWhere[] = 'w.player IS NULL';
 }
 if (isset($_GET['author'])) {
-	if ($getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'. $_GET['author'] .'"'))) {
-		$chWhere[] = 'l.identifiant='.$getProfile['identifiant'];
-		$chWhere[] = 'l.identifiant2='.$getProfile['identifiant2'];
-		$chWhere[] = 'l.identifiant3='.$getProfile['identifiant3'];
-		$chWhere[] = 'l.identifiant4='.$getProfile['identifiant4'];
+	if ($getProfile = mysql_fetch_array(mysql_query('SELECT id FROM `mkprofiles` WHERE id="'. $_GET['author'] .'"'))) {
+		$chJoin[] = 'INNER JOIN mkpublishers p ON p.type="mkchallenges" AND p.creation_id=c.id';
+		$chWhere[] = 'p.last_editor='.$getProfile['id'];
 		if ($username = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['author'] .'"')))
 			$challengeTitle = $language ? 'Challenges list of '.$username['nom']:'Liste des défis de '.$username['nom'];
 	}

@@ -120,6 +120,7 @@ function snapshotChallenge($challenge) {
 		'data' => decodeSnapshotJson($challenge['data']),
 		'validation' => decodeSnapshotJson($challenge['validation'])
 	);
+	$res = array_merge($res, snapshotPublishers('mkchallenges', $challenge['id']));
 	$clRace = mysql_fetch_array(mysql_query('SELECT type,circuit FROM `mkclrace` WHERE id="'. intval($challenge['clist']) .'"'));
 	if ($clRace && !empty($clRace['type']))
 		$res['track'] = snapshotTrack($clRace['type'], $clRace['circuit']);

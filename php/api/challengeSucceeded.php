@@ -39,6 +39,13 @@ if (isset($_POST['id'])) {
 			mysql_query('UPDATE `mkchallenges` SET status="pending_publication" WHERE id="'. $challengeId .'"');
 			$res['publish'] = true;
 		}
+		elseif ($id) {
+			if (!isset($identifiants))
+				include('../includes/getId.php');
+			require_once('../includes/utils-challenges.php');
+			if (getClRace($challenge['clist'], false, 'manage_challenges'))
+				mysql_query('UPDATE `mkclwin` SET creator=1 WHERE challenge="'. $challengeId .'" AND player="'. $id .'"');
+		}
 		if ($id) {
 			require_once('../includes/utils-challenges.php');
 			$completedRewards = getRewardedPlayers(array(
