@@ -13,7 +13,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
 			require_once('../includes/credentials.php');
-			setcookie('mkp', credentials_encrypt($id,$_POST['code']), 4294967295,'/');
+			setcookie('mkp', credentials_encrypt($id,$_POST['code']), array('expires'=>4294967295,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']),'httponly'=>true,'samesite'=>'Lax'));
 			if ($getId['deleted'])
 				mysql_query('UPDATE `mkjoueurs` SET deleted=0 WHERE id="'. $id .'"');
 			function banIfBlackIp() {
