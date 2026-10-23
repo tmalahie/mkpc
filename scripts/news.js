@@ -1,6 +1,6 @@
 function delComment(id) {
 	if (confirm(o_language ? 'Delete this comment?' : 'Supprimer ce commentaire ?'))
-		document.location.href = 'delNewscom.php?id=' + id;
+		document.location.href = 'delNewscom.php?id=' + id + '&token=' + encodeURIComponent(o_newsToken);
 }
 function editComment(id) {
 	$("#news-comment-ctn-"+id).addClass("news-comment-editting");
@@ -11,6 +11,6 @@ function undoEditComment(id) {
 }
 function rejectNews(id) {
 	o_prompt(o_language ? 'Please enter a short message to explain your rejection:' : 'Entrez un court message expliquant votre refus :', '', function(res) {
-		document.location.href = "rejectNews.php?id="+id+"&reason="+encodeURIComponent(res);
+		document.location.href = "rejectNews.php?id="+id+"&reason="+encodeURIComponent(res)+"&token="+encodeURIComponent(o_newsToken);
 	});
 }

@@ -13,13 +13,15 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 $member = isset($_GET['member']) ? $_GET['member']:'';
 $memberId = null;
 if ($member !== '') {
 	if ($getMember = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $member .'"')))
 		$memberId = $getMember['id'];
 }
-if ($memberId && isset($_GET['del'])) {
+if ($memberId && isset($_GET['del']) && isset($_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf']) {
 	$sanctionSnapshot = snapshotQuery('SELECT id,player,moderator,type AS sanction_type,reason,sanction_date,end_date FROM `mksanctions` WHERE id="'. $_GET['del'] .'" AND player="'. $memberId .'"');
 	$q = mysql_query('DELETE FROM `mksanctions` WHERE id="'. $_GET['del'] .'" AND player="'. $memberId .'"');
 	if (mysql_affected_rows())
@@ -140,7 +142,7 @@ include('../includes/menu.php');
 						else
 							echo '<td><a class="profile" href="profil.php?id='. $sanction['modId'] .'">'. htmlspecialchars($sanction['modName']) .'</a></td>';
 						?>
-						<td><a class="action_button" href="?member=<?php echo urlencode($member); ?>&amp;del=<?php echo $sanction['id']; ?>" onclick="return confirmDelete()"><?php echo $language ? 'Delete':'Supprimer'; ?></a></td>
+						<td><a class="action_button" href="?member=<?php echo urlencode($member); ?>&amp;del=<?php echo $sanction['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirmDelete()"><?php echo $language ? 'Delete':'Supprimer'; ?></a></td>
 					</tr>
 					<?php
 					$i++;

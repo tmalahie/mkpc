@@ -14,6 +14,8 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 $chatActions = array('none', 'block', 'mute');
 $checkWord = null;
 $checkSeparators = false;
@@ -68,7 +70,7 @@ if ($wordRequest) {
         $editedWord = null;
     }
 }
-elseif (isset($_GET['del'])) {
+elseif (isset($_GET['del']) && isset($_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf']) {
     $wordSnapshot = snapshotWord('mkbadwords', $_GET['del'], 'word,action,ignore_separators');
     mysql_query('DELETE FROM mkbadwords WHERE id="'. $_GET['del'] .'"');
     insertLog($id, 'Unblacklist '. $_GET['del'], array_merge(
@@ -523,7 +525,7 @@ else {
             echo '<tr class="'. ($i%2 ? 'fonce':'clair') . ($i >= $trimmedRows ? ' extra-row':'') .'">
                 <td class="word-cell"><code>'.htmlspecialchars($blacklist['word']).'</code>'. ($blacklist['ignore_separators'] ? '<br /><span class="word-flag">'. separatorsLabel(true) .'</span>':'') .'</td>
                 <td class="action-cell">'. actionLabel($blacklist['action']) .'</td>
-                <td class="options-cell"><a class="action_button" href="'. $previewUrl .'">'. ($language ? 'See messages':'Voir les messages') .'</a><a class="action_button action_warning" href="?edit='. $blacklist['id'] .'">'. ($language ? 'Edit':'Modifier') .'</a><a class="action_button action_delete" href="?del='. $blacklist['id'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
+                <td class="options-cell"><a class="action_button" href="'. $previewUrl .'">'. ($language ? 'See messages':'Voir les messages') .'</a><a class="action_button action_warning" href="?edit='. $blacklist['id'] .'">'. ($language ? 'Edit':'Modifier') .'</a><a class="action_button action_delete" href="?del='. $blacklist['id'] .'&amp;token='. $_SESSION['csrf'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
             </tr>';
             $i++;
         }

@@ -74,7 +74,7 @@ include('../includes/menu.php');
 		?>
 		<div class="news-options">
 			<a class="news-edit" href="editNews.php?id=<?php echo $newsId; ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a>
-			<a class="news-del" href="supprNews.php?id=<?php echo $newsId; ?>" onclick="return confirm('<?php echo $language ? 'Delete news?':'Supprimer la news ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
+			<a class="news-del" href="supprNews.php?id=<?php echo $newsId; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo $language ? 'Delete news?':'Supprimer la news ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 		</div>
 		<?php
 	}
@@ -257,7 +257,7 @@ elseif ($news['status'] == 'pending') {
 		<?php
 		if (hasRight('publisher')) {
 			?>
-			<a href="acceptNews.php?id=<?php echo $newsId; ?>" class="news-moderate news-accept"><?php echo $language ? 'Accept':'Accepter'; ?></a>
+			<a href="acceptNews.php?id=<?php echo $newsId; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="news-moderate news-accept"><?php echo $language ? 'Accept':'Accepter'; ?></a>
 			<a href="javascript:rejectNews(<?php echo $newsId; ?>)" class="news-moderate news-reject"><?php echo $language ? 'Reject':'Refuser'; ?></a>
 			<?php
 		}
@@ -290,6 +290,7 @@ mysql_close();
 include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
+<script type="text/javascript">var o_newsToken = <?php echo json_encode($_SESSION['csrf']); ?>;</script>
 <script type="text/javascript" src="scripts/news.js"></script>
 </body>
 </html>

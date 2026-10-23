@@ -4,7 +4,7 @@ include('../includes/session.php');
 include('../includes/initdb.php');
 require_once('../includes/getRights.php');
 require_once('../includes/utils-logs.php');
-if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (hasRight('publisher')||($news['author']==$id))) {
+if (isset($_GET['id']) && isset($_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (hasRight('publisher')||($news['author']==$id))) {
 	?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
