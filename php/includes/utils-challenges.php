@@ -190,7 +190,7 @@ $clRulesByType = array(
 				$nbItems = count($decors);
 				foreach ($decors as $i=>$options) {
 					if (isset($options->nb)) {
-						$nb = $options->nb;
+						$nb = htmlspecialchars($options->nb);
 						$decorName = getChallengeDecorName($options->key, $options->name, $nb);
 						$decorNameLabel = "$nb $decorName";
 					}
@@ -322,9 +322,9 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'description_lambda' => function($language,&$scope) {
 				if ($language)
-					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'');
+					return 'in '.htmlspecialchars($scope->value).'cc'.(isset($scope->mirror) ? ' mirror':'');
 				else
-					return 'en '.$scope->value.'cc'.(isset($scope->mirror) ? ' miroir':'');
+					return 'en '.htmlspecialchars($scope->value).'cc'.(isset($scope->mirror) ? ' miroir':'');
 				exit;
 			},
 			'parser' => function(&$scope) {
@@ -472,7 +472,7 @@ $clRulesByType = array(
 			'description_lambda' => function($language,&$scope) {
 				$sPerso = $scope->value;
 				$characterName = isset($scope->custom_name) ? $scope->custom_name : getCharacterName($sPerso);
-				return ($language ? 'with ':'avec ') . $characterName;
+				return ($language ? 'with ':'avec ') . htmlspecialchars($characterName);
 			},
 			'parser' => function(&$scope) {
 				if (!empty($scope['value'])) {
@@ -1222,14 +1222,14 @@ function getRuleDescription($rule,$rulesClass=null) {
 		$res = preg_replace_callback('#\$\{?(\w+)\}?#', function($matches) use ($scope) {
 			$k = $matches[1];
 			if (isset($scope[$k]) && !is_array($scope[$k]))
-				return $scope[$k];
+				return htmlspecialchars($scope[$k]);
 			return $matches[0];
 		}, $res);
 		$res = preg_replace_callback('#\$\{?(\w+)\[(\w+)\]\}?#', function($matches) use ($scope) {
 			$a = $matches[1];
 			$k = $matches[2];
 			if (isset($scope[$a]) && is_array($scope[$a]) && isset($scope[$a][$k]))
-				return $scope[$a][$k];
+				return htmlspecialchars($scope[$a][$k]);
 			return $matches[0];
 		}, $res);
 	}
@@ -1422,7 +1422,7 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		return htmlspecialchars($name);
 	if (isset($decorMapping[$key]))
 		return $decorMapping[$key];
-	return $key;
+	return htmlspecialchars($key);
 }
 function getChallengeItemNames(&$scope) {
 	global $language;
@@ -1499,7 +1499,7 @@ function getChallengeItemNames(&$scope) {
 function getChallengeItemName(&$itemMapping,$key) {
 	if (isset($itemMapping[$key]))
 		return $itemMapping[$key]['label'];
-	return $key;
+	return htmlspecialchars($key);
 }
 function allChallengeItemSelected(&$itemMapping,&$scope) {
 	$usedItemsDict = array();

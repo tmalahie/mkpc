@@ -159,7 +159,7 @@ var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, 
 						<input type="file" accept="image/png,image/gif,image/jpeg" name="sprites"<?php if (!$isUrl) echo ' required="required"'; ?> />
 					</div>
 					<div class="editor-upload-input<?php if ($isUrl) echo ' editor-upload-input-selected'; ?>">
-                        <input type="url" name="sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png"<?php if ($isUrl) echo ' value="'. $decor['imgdata']['url'] .'" required="required"'; ?> />
+                        <input type="url" name="sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png"<?php if ($isUrl) echo ' value="'. htmlspecialchars($decor['imgdata']['url']) .'" required="required"'; ?> />
 					</div>
 				</div>
 			</div>
