@@ -17,7 +17,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
 			require_once('../includes/credentials.php');
-			setcookie('mkp', credentials_encrypt($id,$_POST['code']), 4294967295,'/');
+			credentials_set_cookie($id,$_POST['code']);
 			include('../includes/setId.php');
 			if (ip_banned()) {
 				include('../includes/language.php');

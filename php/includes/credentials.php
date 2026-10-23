@@ -32,3 +32,6 @@ function credentials_decrypt($token) {
     if (null === $rawCredentials) return array(null,null);
     return explode(':', $rawCredentials, 2);
 }
+function credentials_set_cookie($id,$password) {
+    setcookie('mkp', credentials_encrypt($id,$password), array('expires'=>4294967295,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']),'httponly'=>true,'samesite'=>'Lax'));
+}

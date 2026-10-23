@@ -26,7 +26,7 @@ if (isset($_GET['code'])) {
 					$_SESSION['mkid'] = $player;
 					$id = $player;
 					require_once('../includes/credentials.php');
-					setcookie('mkp', credentials_encrypt($id,$nouveau), 4294967295,'/');
+					credentials_set_cookie($id,$nouveau);
 					include('../includes/setId.php');
 				}
 			}

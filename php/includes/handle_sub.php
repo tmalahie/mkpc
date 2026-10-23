@@ -46,7 +46,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm'])
 		if ($id) {
 			$_SESSION['mkid'] = $id;
 			require_once('credentials.php');
-			setcookie('mkp', credentials_encrypt($id,$_POST['code']), 4294967295,'/');
+			credentials_set_cookie($id,$_POST['code']);
 			$date = date('Y-m-d H:i:s');
 			mysql_query('INSERT INTO `mkprofiles` VALUES('. $id .', NULL,0,0,0,"","'.$_POST['pseudo'].'",0,"'.$email.'",'.$countryId.',NULL,"'.$date.'",NULL,"")');
 			include('setId.php');

@@ -19,7 +19,7 @@ if ($id) {
 			mysql_query('UPDATE `mkjoueurs` SET code="'. password_hash($nouveau,PASSWORD_DEFAULT) .'" WHERE id="'. $id .'"');
 			$modifie = true;
 			require_once('../includes/credentials.php');
-			setcookie('mkp', credentials_encrypt($id,$nouveau), 4294967295,'/');
+			credentials_set_cookie($id,$nouveau);
 		}
 	}
 }
