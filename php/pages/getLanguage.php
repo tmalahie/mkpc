@@ -1,3 +1,3 @@
 <?php
-echo $_COOKIE['language'];
+echo htmlspecialchars(isset($_COOKIE['language']) ? $_COOKIE['language'] : '');
 ?>

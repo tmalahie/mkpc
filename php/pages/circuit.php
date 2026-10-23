@@ -42,9 +42,9 @@ include('../includes/c_comments.php');
 include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
-var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
-var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
-var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? $_COOKIE['mkdifficulty']:1); ?>;
+var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) && preg_match('#^[0-9,]+$#', $_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
+var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? intval($_COOKIE['mkteam']):0); ?>;
+var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? intval($_COOKIE['mkdifficulty']):1); ?>;
 var challenges = <?php echo json_encode($challenges); ?>;
 var clRewards = <?php echo json_encode($clRewards); ?>;
 var clId = <?php echo json_encode($clId); ?>;

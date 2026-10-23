@@ -23,9 +23,9 @@ include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var page = "MK";
-var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
-var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
-var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? $_COOKIE['mkdifficulty']:1); ?>;
+var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) && preg_match('#^[0-9,]+$#', $_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
+var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? intval($_COOKIE['mkteam']):0); ?>;
+var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? intval($_COOKIE['mkdifficulty']):1); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var lCircuits = <?php
 include_once('circuitNames.php');
