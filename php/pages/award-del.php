@@ -18,7 +18,7 @@ if (!hasRight('organizer')) {
 	mysql_close();
 	exit;
 }
-if (!isset($_GET['id'])) {
+if (!isset($_GET['id']) || !isset($_GET['token'], $_SESSION['csrf']) || $_GET['token'] !== $_SESSION['csrf']) {
 	mysql_close();
 	exit;
 }

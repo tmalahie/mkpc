@@ -17,6 +17,8 @@ if (!hasRight('organizer')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -115,7 +117,7 @@ include('../includes/menu.php');
 			?></td>
 			<td>
 				<a class="action_button" href="award-edit.php?id=<?php echo $award['id']; ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a>
-				<a class="action_button action_delete" href="award-del.php?id=<?php echo $award['id']; ?>" onclick="return confirm('<?php echo $language ? 'Delete':'Supprimer'; ?> &quot;<?php echo addslashes(htmlspecialchars($award['name'])); ?>&quot; ?')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
+				<a class="action_button action_delete" href="award-del.php?id=<?php echo $award['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo $language ? 'Delete':'Supprimer'; ?> &quot;<?php echo addslashes(htmlspecialchars($award['name'])); ?>&quot; ?')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 			</td>
 		</tr>
 		<?php
@@ -147,7 +149,7 @@ include('../includes/menu.php');
 			</td>
 			<td>
 				<a class="action_button" href="awarded-edit.php?user=<?php echo $awarded['user']; ?>&amp;award=<?php echo $awarded['award']; ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a>
-				<a class="action_button action_delete" href="awarded-del.php?user=<?php echo $awarded['user']; ?>&amp;award=<?php echo $awarded['award']; ?>" onclick="return confirm('<?php echo $language ? 'Delete':'Supprimer'; ?> &quot;<?php echo addslashes(htmlspecialchars($awarded['value'])); ?>&quot; ?')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
+				<a class="action_button action_delete" href="awarded-del.php?user=<?php echo $awarded['user']; ?>&amp;award=<?php echo $awarded['award']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo $language ? 'Delete':'Supprimer'; ?> &quot;<?php echo addslashes(htmlspecialchars($awarded['value'])); ?>&quot; ?')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 			</td>
 		</tr>
 		<?php

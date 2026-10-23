@@ -8,6 +8,10 @@ if (isset($_GET['id'])) {
 			mysql_close();
 			exit;
 		}
+		if (!isset($_GET['token'], $_SESSION['csrf']) || $_GET['token'] !== $_SESSION['csrf']) {
+			mysql_close();
+			exit;
+		}
 		require_once('../includes/getRights.php');
 		require_once('../includes/utils-logs.php');
 		$getCom = mysql_query('SELECT author,news,message,date FROM `mknewscoms` WHERE id="'. $_GET['id'] .'"');

@@ -14,6 +14,8 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 $checkWord = null;
 $checkSeparators = false;
 $justAdded = false;
@@ -99,7 +101,7 @@ elseif (!empty($_GET['word'])) {
         $checkWord = null;
     }
 }
-elseif (isset($_GET['del'])) {
+elseif (isset($_GET['del']) && isset($_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf']) {
     $wordSnapshot = snapshotWord('mkbadnicks', $_GET['del'], 'word,ignore_separators');
     mysql_query('DELETE FROM mkbadnicks WHERE id="'. $_GET['del'] .'"');
     insertLog($id, 'NUnblacklist '. $_GET['del'], array_merge(
@@ -107,7 +109,7 @@ elseif (isset($_GET['del'])) {
         $wordSnapshot
     ));
 }
-elseif (isset($_GET['del_good'])) {
+elseif (isset($_GET['del_good']) && isset($_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf']) {
     $wordSnapshot = snapshotWord('mkgoodwords', $_GET['del_good'], 'word');
     mysql_query('DELETE FROM mkgoodwords WHERE id="'. $_GET['del_good'] .'"');
     insertLog($id, 'Unwhitelist '. $_GET['del_good'], array_merge(
@@ -540,7 +542,7 @@ else {
             $previewUrl = '?word='. urlencode($blacklist['word']) . ($blacklist['ignore_separators'] ? '&amp;ignore_separators=1':'');
             echo '<tr class="'. ($i%2 ? 'fonce':'clair') . ($i >= $trimmedRows ? ' extra-row':'') .'">
                 <td class="word-cell"><code>'.htmlspecialchars($blacklist['word']).'</code>'. ($blacklist['ignore_separators'] ? '<br /><span class="word-flag">'. separatorsLabel(true) .'</span>':'') .'</td>
-                <td class="options-cell"><a class="action_button" href="'. $previewUrl .'">'. ($language ? 'See members':'Voir les membres') .'</a><a class="action_button action_warning" href="?edit='. $blacklist['id'] .'">'. ($language ? 'Edit':'Modifier') .'</a><a class="action_button action_delete" href="?del='. $blacklist['id'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
+                <td class="options-cell"><a class="action_button" href="'. $previewUrl .'">'. ($language ? 'See members':'Voir les membres') .'</a><a class="action_button action_warning" href="?edit='. $blacklist['id'] .'">'. ($language ? 'Edit':'Modifier') .'</a><a class="action_button action_delete" href="?del='. $blacklist['id'] .'&amp;token='. $_SESSION['csrf'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
             </tr>';
             $i++;
         }
@@ -576,7 +578,7 @@ else {
         while ($whitelist = mysql_fetch_array($getWhitelist)) {
             echo '<tr class="'. ($i%2 ? 'fonce':'clair') . ($i >= $trimmedRows ? ' extra-row':'') .'">
                 <td class="word-cell"><code>'.htmlspecialchars($whitelist['word']).'</code></td>
-                <td class="options-cell"><a class="action_button action_delete" href="?del_good='. $whitelist['id'] .'#allowed-words" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($whitelist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
+                <td class="options-cell"><a class="action_button action_delete" href="?del_good='. $whitelist['id'] .'&amp;token='. $_SESSION['csrf'] .'#allowed-words" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($whitelist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
             </tr>';
             $i++;
         }
