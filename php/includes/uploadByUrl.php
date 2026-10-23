@@ -1,6 +1,7 @@
 <?php
+require_once('fileutils.php');
 $isUploaded = true;
-if ((!isset($_FILES['image'])||$_FILES['image']['error']) && !empty($_POST['url'])) {
+if ((!isset($_FILES['image'])||$_FILES['image']['error']) && !empty($_POST['url']) && is_fetchable_url($_POST['url'])) {
 	$isUploaded = false;
 	$fileContent = @file_get_contents($_POST['url']);
 	if ($fileContent) {
