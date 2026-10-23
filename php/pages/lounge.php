@@ -27,7 +27,7 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 </script>
 <script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript" src="scripts/notify.js"></script>
-<script type="text/javascript" src="scripts/lounge.js?reload=8" defer></script>
+<script type="text/javascript" src="scripts/lounge.js?reload=9" defer></script>
 </head>
 <body>
 <?php if (!$id) { ?>
