@@ -12,7 +12,7 @@ else {
     }
     function mysql_select_db($db) {
         global $dbh, $dbconn;
-        $dbh = new PDO('mysql:host='.$dbconn['host'].';dbname='.$db, $dbconn['user'], $dbconn['password']);
+        $dbh = new PDO('mysql:host='.$dbconn['host'].';dbname='.$db, $dbconn['user'], $dbconn['password'], array(PDO::MYSQL_ATTR_MULTI_STATEMENTS => false));
         unset($dbconn);
     }
     function mysql_set_charset($cs) {
