@@ -181,7 +181,7 @@ include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/challenge-creations.css?reload=1" />
-<link rel="stylesheet" type="text/css" href="styles/profil.css" />
+<link rel="stylesheet" type="text/css" href="styles/profil.css?reload=1" />
 
 <script type="text/javascript" src="scripts/topic.js"></script>
 <script type="text/javascript" src="scripts/profile.js"></script>
