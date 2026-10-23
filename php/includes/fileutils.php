@@ -13,9 +13,9 @@ function is_public_ip($ip) {
 	}
 	return true;
 }
-function resolve_public_ip($host) {
+function resolve_public_ips($host) {
 	if (filter_var($host, FILTER_VALIDATE_IP))
-		return is_public_ip($host) ? $host : null;
+		return is_public_ip($host) ? array($host) : null;
 	$ips = @gethostbynamel($host);
 	if (!$ips)
 		$ips = array();
@@ -31,7 +31,7 @@ function resolve_public_ip($host) {
 		if (!is_public_ip($ip))
 			return null;
 	}
-	return $ips[0];
+	return $ips;
 }
 function fetch_public_url($url) {
 	for ($redirects = 0; $redirects <= 5; $redirects++) {
@@ -42,8 +42,8 @@ function fetch_public_url($url) {
 		if ($scheme !== 'http' && $scheme !== 'https')
 			return false;
 		$host = trim($parts['host'], '[]');
-		$ip = resolve_public_ip($host);
-		if (!$ip)
+		$ips = resolve_public_ips($host);
+		if (!$ips)
 			return false;
 		$port = isset($parts['port']) ? $parts['port'] : ($scheme === 'https' ? 443 : 80);
 		$ch = curl_init($url);
@@ -53,9 +53,12 @@ function fetch_public_url($url) {
 			CURLOPT_CONNECTTIMEOUT => 10,
 			CURLOPT_TIMEOUT => 60
 		));
-		if ($ip !== $host) {
-			// Pin to the validated IP to defeat DNS rebinding between resolve and connect
-			curl_setopt($ch, CURLOPT_RESOLVE, array($host.':'.$port.':'.(strpos($ip, ':') === false ? $ip : '['.$ip.']')));
+		if ($ips !== array($host)) {
+			// Pin to the validated IPs to defeat DNS rebinding between resolve and connect
+			$addresses = array_map(function($ip) {
+				return strpos($ip, ':') === false ? $ip : '['.$ip.']';
+			}, $ips);
+			curl_setopt($ch, CURLOPT_RESOLVE, array($host.':'.$port.':'.implode(',', $addresses)));
 		}
 		$body = curl_exec($ch);
 		$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
