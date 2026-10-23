@@ -1200,7 +1200,7 @@ else {
 				<div class="editor-section editor-description">
 					<?php
 					if (isset($_GET['error']))
-						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
+						echo '<div class="editor-error">'. htmlspecialchars(stripslashes($_GET['error'])) .'</div>';
 					?>
 					Welcome to the arena editor in complete mode.
 					With this mode, you will be able to create an arena from A to Z.
@@ -1228,7 +1228,7 @@ else {
 				<div class="editor-section editor-description">
 					<?php
 					if (isset($_GET['error']))
-						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
+						echo '<div class="editor-error">'. htmlspecialchars(stripslashes($_GET['error'])) .'</div>';
 					?>
 					Bienvenue dans l'éditeur d'arènes en mode complet.
 					Avec ce mode, vous allez pouvoir créer une arène de A à Z.
