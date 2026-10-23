@@ -5,28 +5,28 @@ $isMCup = false;
 $isSingle = false;
 $isBattle = isset($_POST['battle']);
 if (isset($_POST['mid']) && is_numeric($_POST['mid'])) {
-    $nid = $_POST['mid'];
+    $nid = intval($_POST['mid']);
     if (mysql_numrows(mysql_query('SELECT * FROM mkmcups WHERE id='. $nid))) {
         $isCup = true;
         $isMCup = true;
     }
 }
 elseif (isset($_POST['cid']) && is_numeric($_POST['cid'])) {
-    $nid = $_POST['cid'];
+    $nid = intval($_POST['cid']);
     if (mysql_numrows(mysql_query('SELECT * FROM mkcups WHERE id='. $nid .' AND mode=1'))) {
         $isCup = true;
         $complete = true;
     }
 }
 elseif (isset($_POST['sid']) && is_numeric($_POST['sid'])) {
-    $nid = $_POST['sid'];
+    $nid = intval($_POST['sid']);
     if (mysql_numrows(mysql_query('SELECT * FROM mkcups WHERE id='. $nid .' AND mode IN (0,2)'))) {
         $isCup = true;
         $complete = false;
     }
 }
 elseif (isset($_POST['id']) && is_numeric($_POST['id'])) {
-    $nid = $_POST['id'];
+    $nid = intval($_POST['id']);
     if (mysql_numrows(mysql_query('SELECT * FROM mkcircuits WHERE id='. $nid))) {
         $isCup = true;
         $complete = false;
