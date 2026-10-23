@@ -140,6 +140,6 @@ function print_bg_div($options) {
 	foreach ($bgLayers as $bgLayer)
 		$layerStyles[] = "url('".$bgLayer['src']."')";
 		$layerStyles = array_reverse($layerStyles);
-	echo '<div class="bg-preview" style="background-image: '. implode(', ', $layerStyles) .'"'. $customAttrs .'></div>';
+	echo '<div class="bg-preview" style="background-image: '. htmlspecialchars(implode(', ', $layerStyles)) .'"'. $customAttrs .'></div>';
 }
 ?>

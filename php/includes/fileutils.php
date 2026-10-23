@@ -72,7 +72,10 @@ function fetch_public_url($url) {
 	return false;
 }
 function url_to_file_payload($url) {
-	$fileContent = fetch_public_url($url);
+	$url = preg_replace_callback('#[\x00-\x20"\'<>\\\\]#', function($matches) {
+		return rawurlencode($matches[0]);
+	}, stripslashes($url));
+	$fileContent = preg_match('#^https?://#i', $url) ? fetch_public_url($url) : false;
 	if ($fileContent) {
 		$file = tmpfile();
 		$fileStream = stream_get_meta_data($file);

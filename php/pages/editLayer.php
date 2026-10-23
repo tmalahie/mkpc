@@ -109,7 +109,7 @@ $hasTransparency = !isset($spriteSrc) || has_transparency('../../'.$spriteSrc);
 						<input type="file" accept="image/png,image/gif,image/jpeg" name="layer"<?php if ($layer['filename'] !== '') echo ' required="required"'; ?> />
 					</div>
 					<div class="editor-upload-input<?php if ($layer['url'] !== '') echo ' editor-upload-input-selected'; ?>">
-						<input type="url" name="url" placeholder="https://tcrf.net/images/c/c0/SMK_UnusedChocoBGPalette.png"<?php if ($layer['url'] !== '') echo ' value="'. $layer['url'] .'" required="required"'; ?> />
+						<input type="url" name="url" placeholder="https://tcrf.net/images/c/c0/SMK_UnusedChocoBGPalette.png"<?php if ($layer['url'] !== '') echo ' value="'. htmlspecialchars($layer['url']) .'" required="required"'; ?> />
 					</div>
 				</div>
 			</div>

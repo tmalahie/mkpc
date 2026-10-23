@@ -1,7 +1,13 @@
 <?php
+$rawChallengeInputs = array();
+foreach (array('goal', 'constraint', 'scope') as $challengeInput) {
+	if (isset($_POST[$challengeInput]))
+		$rawChallengeInputs[$challengeInput] = $_POST[$challengeInput];
+}
 include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
+$_POST = array_merge($_POST, $rawChallengeInputs);
 include('../includes/ip_banned.php');
 if (isBanned()) {
 	mysql_close();

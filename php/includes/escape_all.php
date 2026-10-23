@@ -4,8 +4,12 @@ if (!isset($alreadyEscaped)) {
 	$alreadyEscaped = true;
 	function mres($s) {
 		global $dbh;
-		if (is_array($s))
-			return $s;
+		if (is_array($s)) {
+			$res = array();
+			foreach ($s as $k => $v)
+				$res[mres($k)] = mres($v);
+			return $res;
+		}
 		if (!isset($dbh))
 			return addslashes($s);
 		return mysql_real_escape_string($s);

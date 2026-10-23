@@ -47,7 +47,7 @@ function toSQLFilter($sql, $params) {
 	if (!empty($params['auteur']))
 		$sql .= ' AND auteur LIKE "'. toSQLSearch($params['auteur']) .'"';
 	if (!empty($params['prefix']))
-		$sql .= ' AND id IN (SELECT circuit FROM mktracksettings WHERE type="'. getCircuitTable($params['type']) .'" AND prefix="'. $params['prefix'] .'")';
+		$sql .= ' AND id IN (SELECT circuit FROM mktracksettings WHERE type="'. getCircuitTable($params['type']) .'" AND prefix="'. mysql_real_escape_string($params['prefix']) .'")';
 	if (!empty($params['pids'])) {
 		$pids = $params['pids'];
 		$sql .= ' AND identifiant="'.$pids[0].'" AND identifiant2="'.$pids[1].'" AND identifiant3="'.$pids[2].'" AND identifiant4="'.$pids[3].'"';
