@@ -60,7 +60,7 @@ include('../includes/menu.php');
 			$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $auteur['auteur']));
 			$nbMsgs = $topic['nbmsgs'];
 			?>
-			<a href="topic.php?topic=<?php echo $topic['id']; ?>" title="<?php echo $topic['titre']; ?>">
+			<a href="topic.php?topic=<?php echo $topic['id']; ?>" title="<?php echo htmlspecialchars($topic['titre']); ?>">
 				<h2><?php echo htmlspecialchars(controlLength($topic['titre'],40)); ?></h2>
 				<h3><?php echo $language ? 'Last message':'Dernier message'; ?> <?php echo ($name ? ($language ? 'by':'par') .' <strong>'. $name['nom'].'</strong> ':'').pretty_dates_short($topic['dernier'],array('lower'=>true)); ?></h3>
 				<div class="creation_comments" title="<?php echo $nbMsgs. ' message'. (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>

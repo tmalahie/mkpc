@@ -54,7 +54,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	}
 	$cupId = -1;
 	if ($save) {
-		$optionsJson = isset($_POST['opt']) ? $_POST['opt']:'';
+		$options = isset($_POST['opt']) ? json_decode(stripslashes($_POST['opt'])) : null;
+		$optionsJson = ($options === null) ? '' : mysql_real_escape_string(json_encode($options));
 		setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
 		if (isset($_POST['id'])) {
 			if ($currentCup) {

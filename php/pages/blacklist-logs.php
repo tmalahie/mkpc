@@ -116,7 +116,7 @@ include('../includes/menu.php');
         ?></a></td>
         <td><?php echo to_local_tz($log['date']); ?></td>
         <td><?php
-            echo $log['message'];
+            echo htmlspecialchars($log['message']);
             if ($log['code'] === -3)
                 echo '...';
         ?>
