@@ -12,6 +12,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 		else {
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
+			session_regenerate_id(true);
 			require_once('../includes/credentials.php');
 			credentials_set_cookie($id,$_POST['code']);
 			if ($getId['deleted'])

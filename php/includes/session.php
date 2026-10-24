@@ -22,6 +22,7 @@ if (!$id) {
 		if (($getCode=mysql_fetch_array(mysql_query('SELECT code FROM `mkjoueurs` WHERE id='. $playerId .' AND deleted=0'))) && password_verify($playerCode,$getCode['code'])) {
 			$id = $playerId;
 			$_SESSION['mkid'] = $id;
+			@session_regenerate_id(true);
 			include('setId.php');
 		}
 		else
