@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { createCircuit } from './helpers/mkpc';
 import {
-  CHALLENGER, ensureChallenger, ensureValidator, playerId, loginAs, challengesOf, publisherOf, creatorWins, finishRaceOn,
+  CHALLENGER, ensureChallenger, ensureValidator, newMember, playerId, loginAs, challengesOf, publisherOf, creatorWins, finishRaceOn,
 } from './helpers/challenges';
 
 // The challenge lifecycle as members and validators go through it: create and edit
@@ -54,9 +54,8 @@ async function moderate(page: Page, challengeId: number, action: 'accept' | 'rej
 }
 
 test('a challenge goes from creation to moderation and deletion', async ({ browser }) => {
-  test.setTimeout(60_000);
-  const author = await (await browser.newContext()).newPage();
-  const validator = await (await browser.newContext()).newPage();
+  const author = await newMember(browser);
+  const validator = await newMember(browser);
   await loginAs(author.request, CHALLENGER.name, CHALLENGER.password);
   await loginAs(validator.request, ADMIN_USER, ADMIN_PASSWORD);
   const circuitId = await createCircuit(author.request, { author: 'e2e-challenges' });
@@ -120,8 +119,8 @@ test('a challenge goes from creation to moderation and deletion', async ({ brows
 });
 
 test('a collab link lets another member manage the track challenges', async ({ browser }) => {
-  const owner = await (await browser.newContext()).newPage();
-  const collaborator = await (await browser.newContext()).newPage();
+  const owner = await newMember(browser);
+  const collaborator = await newMember(browser);
   await loginAs(owner.request, CHALLENGER.name, CHALLENGER.password);
   await loginAs(collaborator.request, ADMIN_USER, ADMIN_PASSWORD);
   const circuitId = await createCircuit(owner.request, { author: 'e2e-challenges-collab' });

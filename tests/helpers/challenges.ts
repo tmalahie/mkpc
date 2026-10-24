@@ -1,4 +1,4 @@
-import { APIRequestContext, Page, expect } from '@playwright/test';
+import { APIRequestContext, Browser, Page, expect } from '@playwright/test';
 import { sql } from './db';
 
 // A member without the clvalidator right: publishing as Wargor (an admin) skips
@@ -64,6 +64,14 @@ export async function publisherOf(challengeId: number): Promise<number | undefin
 export async function creatorWins(challengeId: number): Promise<number[]> {
   const rows: any = await sql('SELECT player FROM mkclwin WHERE challenge = ? AND creator = 1 ORDER BY player', [challengeId]);
   return rows.map((r: any) => r.player);
+}
+
+// A member of their own: a fresh context, with the game's countdown and results
+// timers ten times faster (see "Game timers" in scripts/mk-dev.js).
+export async function newMember(browser: Browser): Promise<Page> {
+  const context = await browser.newContext();
+  await context.addInitScript(() => { (window as any).mkDevTimeScale = 0.1; });
+  return context.newPage();
 }
 
 function waitForDevEvent(page: Page, type: string) {
