@@ -9,13 +9,14 @@ if (isset($_GET['moderate'])) {
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
+$clCollabRight = 'manage_challenges';
 if (isset($_GET['ch'])) {
-	$challenge = getChallenge($_GET['ch'], !empty($moderate));
+	$challenge = getChallenge($_GET['ch'], !empty($moderate), $clCollabRight);
 	if ($challenge)
-		$clRace = getClRace($challenge['clist'], !empty($moderate));
+		$clRace = getClRace($challenge['clist'], !empty($moderate), $clCollabRight);
 }
 elseif (isset($_GET['cl']))
-	$clRace = getClRace($_GET['cl']);
+	$clRace = getClRace($_GET['cl'], false, $clCollabRight);
 include('../includes/challenge-cldata.php');
 $circuitUrl = '';
 if (isset($clCircuit) && isset($clTable)) {

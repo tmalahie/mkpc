@@ -21,16 +21,19 @@ if (isset($_GET['moderate'])) {
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
+$clCollabRight = 'manage_challenges';
 if (isset($_GET['ch'])) {
-	$challenge = getChallenge($_GET['ch'], !empty($moderate));
+	$challenge = getChallenge($_GET['ch'], !empty($moderate), $clCollabRight);
 	if ($challenge)
-		$clRace = getClRace($challenge['clist'], !empty($moderate));
+		$clRace = getClRace($challenge['clist'], !empty($moderate), $clCollabRight);
 }
 elseif (isset($_GET['cl']))
-	$clRace = getClRace($_GET['cl'], !empty($moderate));
+	$clRace = getClRace($_GET['cl'], !empty($moderate), $clCollabRight);
 include('../includes/challenge-cldata.php');
 if (isset($_POST['name'])) {
 	$clMsg = null;
+	$circuitOwned = isset($clCircuit) && ($clCircuit['identifiant'] == $identifiants[0]) && ($clCircuit['identifiant2'] == $identifiants[1]) && ($clCircuit['identifiant3'] == $identifiants[2]) && ($clCircuit['identifiant4'] == $identifiants[3]);
+	$circuitOwnedByCollab = isset($clCircuit) && !$circuitOwned && !isset($edittingCircuit) && hasCircuitChallengeCollabRight($clTable, $clCircuit['id'], $clCollabRight);
 	if (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 		if (isset($_POST['goal']) && isset($_POST['difficulty'])) {
 			require_once('../includes/challenge-consts.php');
@@ -73,7 +76,8 @@ if (isset($_POST['name'])) {
 			}
 			else {
 				if (empty($clRace)) {
-					mysql_query('INSERT INTO `mkclrace` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);
+					$clOwnerIds = $circuitOwnedByCollab ? array($clCircuit['identifiant'],$clCircuit['identifiant2'],$clCircuit['identifiant3'],$clCircuit['identifiant4']) : $identifiants;
+					mysql_query('INSERT INTO `mkclrace` SET identifiant='.$clOwnerIds[0].',identifiant2='.$clOwnerIds[1].',identifiant3='.$clOwnerIds[2].',identifiant4='.$clOwnerIds[3]);
 					$clRace = array('id'=>mysql_insert_id(),'clid'=>null);
 					if (!isset($edittingCircuit))
 						$clRace['clid'] = $clRace['id'];
@@ -81,10 +85,10 @@ if (isset($_POST['name'])) {
 				mysql_query('INSERT INTO `mkchallenges` SET clist="'. $clRace['id'] .'",name="'. $_POST['name'] .'",difficulty="'. $_POST['difficulty'] .'",data="'. mysql_real_escape_string($dataJson) .'"');
 				$clMsg = 'challenge_created';
 			}
-			if (isset($clCircuit) && ($clCircuit['identifiant'] == $identifiants[0]) && ($clCircuit['identifiant2'] == $identifiants[1]) && ($clCircuit['identifiant3'] == $identifiants[2]) && ($clCircuit['identifiant4'] == $identifiants[3])) {
+			if ($circuitOwned || $circuitOwnedByCollab) {
 				mysql_query('UPDATE `mkclrace` SET type="'. $clTable .'",circuit='. $clCircuit['id'] .' WHERE id='.$clRace['id']);
 				if (!isset($edittingCircuit))
-					$_GET = array();
+					$_GET = isset($_GET['collab']) ? array('collab' => $_GET['collab']) : array();
 			}
 		}
 	}
@@ -1121,7 +1125,7 @@ var validationUndone;
 function undoValidation() {
 	if (validationUndone) return;
 	validationUndone = true;
-	o_xhr("challengeUpdateStatus.php", "challenge="+challengeId+"&status=pending_completion", function(res) {
+	o_xhr("challengeUpdateStatus.php", "challenge="+challengeId+"&status=pending_completion<?php echo getChallengeCollabParam(); ?>", function(res) {
 		if (res) {
 			document.location.reload();
 			return true;

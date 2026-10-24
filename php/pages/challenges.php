@@ -4,11 +4,13 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
+$clCollabRight = 'manage_challenges';
 if (isset($_GET['cl']))
-	$clRace = getClRace($_GET['cl']);
+	$clRace = getClRace($_GET['cl'], false, $clCollabRight);
 include('../includes/challenge-cldata.php');
 require_once('../includes/tokens.php');
 assign_token();
+$clCollaborator = empty($clRace) ? (bool)getChallengeCollabKey() : !isClRaceOwner($clRace);
 if (isset($_GET['clmsg'])) {
 	switch ($_GET['clmsg']) {
 	case 'challenge_edited':
@@ -29,6 +31,9 @@ if (isset($_GET['clmsg'])) {
 		break;
 	case 'circuit_required':
 		$clError = $language ? 'You must share the circuit before publishing the challenge':'Vous devez partager le circuit avant de publier le défi';
+		break;
+	case 'account_required':
+		$clError = $language ? 'You need to be logged in to publish a challenge. <a href="forum.php" class="pretty-link" target="_blank">Log in / Register</a>':'Vous devez être connecté pour publier un défi. <a href="forum.php" class="pretty-link" target="_blank">Connexion / Inscription</a>';
 		break;
 	case 'banned':
 		$clError = $language ? "You can't publish challenges while you're banned" : "Vous ne pouvez pas publier de défis tant que vous êtes banni";
@@ -57,7 +62,7 @@ function showClMsg(newMsg) {
 function publishChallenge(id, skip_confirm) {
 	if (publishingChallenge) return;
 	publishingChallenge = true;
-	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_moderation" + (skip_confirm ? "":"&require_confirmation"), function(res) {
+	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_moderation" + (skip_confirm ? "":"&require_confirmation") + "<?php echo getChallengeCollabParam(); ?>", function(res) {
 		if (res) {
 			if (res == "pending_moderation")
 				showClMsg("challenge_published");
@@ -86,6 +91,8 @@ function publishChallenge(id, skip_confirm) {
 			}
 			else if (res == "banned")
 				showClMsg("banned");
+			else if (res == "account_required")
+				showClMsg("account_required");
 			else
 				document.location.reload();
 			return true;
@@ -96,7 +103,7 @@ function publishChallenge(id, skip_confirm) {
 function unpublishChallenge(id) {
 	if (publishingChallenge) return;
 	publishingChallenge = true;
-	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_publication", function(res) {
+	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_publication<?php echo getChallengeCollabParam(); ?>", function(res) {
 		if (res) {
 			if (res == "pending_publication")
 				showClMsg("challenge_unpublished");
@@ -195,7 +202,13 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		</div>
 		<div class="challenge-navigation advanced-challenge-actions">
 			<a href="<?php echo nextPageUrl('challengeOrder.php'); ?>""><u><?php echo $language ? 'Reorder challenges' : 'Ordonner les défis'; ?></u> &gt;</a>
+			<?php
+			if (!$clCollaborator) {
+				?>
 			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>""><u><?php echo $language ? 'Challenge rewards' : 'Gérer les récompenses'; ?></u> &gt;</a>
+				<?php
+			}
+			?>
 		</div>
 		<div></div>
 		<?php
@@ -311,7 +324,13 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		</div>
 		<div class="challenge-navigation advanced-challenge-actions">
 			<a href="<?php echo nextPageUrl('challengeOrder.php'); ?>""><u><?php echo $language ? 'Reorder challenges' : 'Ordonner les défis'; ?></u> &gt;</a>
+			<?php
+			if (!$clCollaborator) {
+				?>
 			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>""><u><?php echo $language ? 'Challenge rewards' : 'Gérer les récompenses'; ?></u> &gt;</a>
+				<?php
+			}
+			?>
 		</div>
 		<div class="pub">
 			<?php

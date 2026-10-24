@@ -350,7 +350,7 @@ include('../includes/menu.php');
 				$place = 1+$place['cnt'];
 				$whereIP = 'identifiant="'.$getProfile['identifiant'].'" AND identifiant2='.$getProfile['identifiant2'].' AND identifiant3='.$getProfile['identifiant3'].' AND identifiant4='.$getProfile['identifiant4'].'';
 				$nbClSucceess = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkclwin` WHERE player="'. $profileId .'" AND creator=0'));
-				$nbClCreate = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkclrace` l INNER JOIN `mkchallenges` c ON c.clist=l.id WHERE '. $whereIP .' AND c.status="active"'));
+				$nbClCreate = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkpublishers` p INNER JOIN `mkchallenges` c ON c.id=p.creation_id WHERE p.type="mkchallenges" AND p.last_editor="'. $profileId .'" AND c.status="active"'));
 				if ($pts) {
 					echo '<div class="player-league">';
 						echo '<img src="images/cups/cup1.png" alt="Challenges" />';
@@ -806,7 +806,7 @@ include('../includes/menu.php');
 				'circuit' => true
 			);
 			if ($nbClCreate['nb']) {
-				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE l.type!="" AND c.status="active" AND '. $whereIP .' ORDER BY c.avgrating DESC, c.nbratings DESC, c.date DESC LIMIT 3');
+				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id INNER JOIN mkpublishers p ON p.type="mkchallenges" AND p.creation_id=c.id WHERE l.type!="" AND c.status="active" AND p.last_editor="'. $profileId .'" ORDER BY c.avgrating DESC, c.nbratings DESC, c.date DESC LIMIT 3');
 				if (mysql_numrows($getChallenges)) {
 					?>
 					<hr />

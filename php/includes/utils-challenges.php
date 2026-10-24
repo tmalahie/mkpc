@@ -908,6 +908,10 @@ function listChallenges($clRace, &$params=array()) {
 				$myCircuit = true;
 				$isClKey = true;
 			}
+			elseif (getChallengeCollabKey() && ($collabClist = getClRace($clRace, false, 'manage_challenges'))) {
+				$getClist = $collabClist;
+				$myCircuit = true;
+			}
 		}
 		if ($myCircuit)
 			$statusCheck = 'status!="deleted"';
@@ -1120,20 +1124,50 @@ function getCircuitPayload(&$clRace) {
 	}
 	return $res;
 }
-function getChallenge($chId, $isModerator=false) {
+function getChallenge($chId, $isModerator=false, $collabRight=null) {
 	global $identifiants;
 	if ($res = mysql_fetch_array(mysql_query('SELECT c.* FROM `mkchallenges` c'. ($isModerator ? ' WHERE c.id="'. $chId .'"':' LEFT JOIN `mkclrace` l ON l.id=c.clist WHERE c.id="'. $chId .'" AND (l.id IS NULL OR (l.identifiant='.$identifiants[0].' AND l.identifiant2='.$identifiants[1].' AND l.identifiant3='.$identifiants[2].' AND l.identifiant4='.$identifiants[3].'))'))))
 		return $res;
+	if ($collabRight && ($res = mysql_fetch_array(mysql_query('SELECT * FROM `mkchallenges` WHERE id="'. $chId .'"')))) {
+		if (getClRace($res['clist'], false, $collabRight))
+			return $res;
+	}
 }
-function getClRace($clId, $isModerator=false) {
-	global $identifiants;
+function getClRace($clId, $isModerator=false, $collabRight=null) {
 	if ($res = mysql_fetch_array(mysql_query('SELECT * FROM `mkclrace` WHERE id="'. $clId .'"'))) {
 		if ($isModerator)
 			return $res;
-		if (($res['identifiant'] == $identifiants[0]) && ($res['identifiant2'] == $identifiants[1]) && ($res['identifiant3'] == $identifiants[2]) && ($res['identifiant4'] == $identifiants[3]))
+		if (isClRaceOwner($res))
+			return $res;
+		if ($collabRight && hasClRaceCollabRight($res, $collabRight))
 			return $res;
 	}
 	return null;
+}
+function isClRaceOwner(&$clRace) {
+	global $identifiants;
+	return ($clRace['identifiant'] == $identifiants[0]) && ($clRace['identifiant2'] == $identifiants[1]) && ($clRace['identifiant3'] == $identifiants[2]) && ($clRace['identifiant4'] == $identifiants[3]);
+}
+function getChallengeCollabKey() {
+	if (isset($_POST['collab']) && is_string($_POST['collab']))
+		return $_POST['collab'];
+	if (isset($_GET['collab']) && is_string($_GET['collab']))
+		return $_GET['collab'];
+	return null;
+}
+function getChallengeCollabParam() {
+	$key = getChallengeCollabKey();
+	return $key ? '&collab='. urlencode(stripslashes($key)) : '';
+}
+function hasCircuitChallengeCollabRight($table, $circuitId, $right) {
+	require_once('collabUtils.php');
+	$key = getChallengeCollabKey();
+	return hasCollabGrants($table, $circuitId, $key, $right);
+}
+function hasClRaceCollabRight(&$clRace, $right) {
+	if (!$clRace['type'])
+		return false;
+	return hasCircuitChallengeCollabRight($clRace['type'], $clRace['circuit'], $right);
 }
 function getPositionName($place) {
 	global $language;
