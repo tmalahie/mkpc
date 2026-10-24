@@ -219,7 +219,7 @@ include('../includes/menu.php');
 			$lastCourse = 0;
 			function show_censored_message() {
 				global $getLog;
-				echo '<div class="highlight highlight-alert"><a href="profil.php?id='. $getLog['player'] .'">'. $getLog['nom'] .'</a>: '. $getLog['message'] .'</div>';
+				echo '<div class="highlight highlight-alert"><a href="profil.php?id='. $getLog['player'] .'">'. $getLog['nom'] .'</a>: '. htmlspecialchars($getLog['message']) .'</div>';
 			}
 			$showCensored = ($logPage == $currentPage);
 			while ($conv = mysql_fetch_array($getConvs)) {

@@ -84,6 +84,10 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     </div>
     <?php
 }
+function normalizeCupOptions($optionsJson) {
+    $options = json_decode($optionsJson);
+    return ($options === null) ? null : json_encode($options);
+}
 function getTrackPayloads($options) {
     global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cThumb, $cDesc, $commentsLocked, $hdescription, $cDate, $cOptions, $cupIDs, $clId, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode, $challenges;
     include('creation-entities.php');
@@ -117,7 +121,7 @@ function getTrackPayloads($options) {
             $pNote = $getMCup['note'];
             $pNotes = $getMCup['nbnotes'];
             $cDate = $getMCup['publication_date'];
-            $cOptions = $getMCup['options'];
+            $cOptions = normalizeCupOptions($getMCup['options']);
             $creationData = $getMCup;
             $cShared = true;
             $getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');
@@ -145,7 +149,7 @@ function getTrackPayloads($options) {
             $pNote = $getCup['note'];
             $pNotes = $getCup['nbnotes'];
             $cDate = $getCup['publication_date'];
-            $cOptions = isset($getCup['options']) ? $getCup['options'] : null;
+            $cOptions = isset($getCup['options']) ? normalizeCupOptions($getCup['options']) : null;
             $creationData = $getCup;
             $cShared = true;
             for ($i=0;$i<4;$i++) {

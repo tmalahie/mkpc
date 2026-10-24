@@ -39,7 +39,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	}
 	if ($save) {
 		$nbCups = $i;
-		$optionsJson = isset($_POST['opt']) ? $_POST['opt']:'';
+		$options = isset($_POST['opt']) ? json_decode(stripslashes($_POST['opt'])) : null;
+		$optionsJson = ($options === null) ? '' : mysql_real_escape_string(json_encode($options));
 		setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
 		if (isset($_POST['id'])) {
 			if ($currentMCup) {
