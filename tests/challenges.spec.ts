@@ -50,7 +50,7 @@ async function moderate(page: Page, challengeId: number, action: 'accept' | 'rej
     await page.locator('.o_dialog_box input[type=text]').fill(msg);
   const moderated = page.waitForResponse((res) => res.url().includes('/api/challengeModerate.php'));
   await page.locator('.o_dialog_box .o_dialog_submit').click();
-  expect((await moderated).ok()).toBe(true);
+  expect((await (await moderated).text()).trim()).toBe('1');
 }
 
 test('a challenge goes from creation to moderation and deletion', async ({ browser }) => {

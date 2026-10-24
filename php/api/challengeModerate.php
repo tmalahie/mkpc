@@ -2,6 +2,7 @@
 header('Content-Type: text/plain');
 if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 	include('../includes/initdb.php');
+	include('../includes/language.php');
 	include('../includes/session.php');
 	require_once('../includes/getRights.php');
 	require_once('../includes/utils-logs.php');
