@@ -1,6 +1,7 @@
 import { FullConfig } from '@playwright/test';
 import { cleanupCreations } from './helpers/mkpc';
 import { cleanupTopics } from './helpers/forum';
+import { cleanupChallenges } from './helpers/challenges';
 
 // Runs once before the suite and once after it, outside every worker.
 //
@@ -18,6 +19,7 @@ import { cleanupTopics } from './helpers/forum';
 export default async function globalCleanup(config: FullConfig) {
   const baseURL = config.projects[0]?.use?.baseURL;
   if (!baseURL) throw new Error('cleanup needs a baseURL: set use.baseURL or BASE_URL');
+  await cleanupChallenges();
   await cleanupCreations(baseURL);
   await cleanupTopics();
 }
