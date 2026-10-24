@@ -3,17 +3,22 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
+include('../includes/session.php');
 if (isset($_GET['ch'])) {
-	$challenge = getChallenge($_GET['ch']);
+	$challenge = getChallenge($_GET['ch'], false, 'manage_challenges');
+	if (!$challenge && $id && mysql_fetch_array(mysql_query('SELECT last_editor FROM `mkpublishers` WHERE type="mkchallenges" AND creation_id="'. $_GET['ch'] .'" AND last_editor="'. $id .'"'))) {
+		$challenge = mysql_fetch_array(mysql_query('SELECT * FROM `mkchallenges` WHERE id="'. $_GET['ch'] .'"'));
+		$publisherOnly = true;
+	}
 	if ($challenge)
-		$clRace = getClRace($challenge['clist']);
+		$clRace = getClRace($challenge['clist'], true);
 }
 if (empty($clRace)) {
 	mysql_close();
 	exit;
 }
 include('../includes/challenge-cldata.php');
-mysql_query('DELETE FROM `mknotifs` WHERE identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND type="challenge_moderated" AND link="'. $challenge['id'] .'"');
+mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND link="'. $challenge['id'] .'" AND (user="'. $id .'" OR (identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"))');
 $challengeDetails = getChallengeDetails($challenge);
 ?>
 <!DOCTYPE html>
@@ -110,7 +115,17 @@ include('../includes/o_online.php');
 		</div>
 	</div>
 	<div class="challenge-navigation">
-		<a href="<?php echo nextPageUrl('challenges.php', array('ch'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])); ?>">&lt; <u><?php echo $language ? 'Back to challenges list':'Retour à la liste des défis'; ?></u></a>
+		<?php
+		if (isset($publisherOnly)) {
+			$backUrl = backCircuitUrl();
+			$backText = ('mariokart.php' === $backUrl) ? ($language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC') : backCircuitText();
+		}
+		else {
+			$backUrl = nextPageUrl('challenges.php', array('ch'=>null,'cl'=>empty($clRace)?null:$clRace['clid']));
+			$backText = $language ? 'Back to challenges list':'Retour à la liste des défis';
+		}
+		?>
+		<a href="<?php echo htmlspecialchars($backUrl); ?>">&lt; <u><?php echo $backText; ?></u></a>
 	</div>
 </body>
 </html>

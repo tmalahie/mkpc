@@ -265,8 +265,8 @@
 						if ($clData = mysql_fetch_array(mysql_query('SELECT * FROM `mkchallenges` WHERE id="'. $myNotif['link'] .'" AND status="active"'))) {
 							$notifData['link'] = 'challengeTry.php?challenge='. $clData['id'];
 							$notifData['challenge'] = $clData;
-							if ($clRaceData = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkclrace` WHERE id="'. $clData['clist'] .'"')))
-								$notifData['sender'] = getFollowerFromIp($clRaceData);
+							if ($clPublisher = mysql_fetch_array(mysql_query('SELECT last_editor FROM `mkpublishers` WHERE type="mkchallenges" AND creation_id="'. $clData['id'] .'"')))
+								$notifData['sender'] = $clPublisher['last_editor'];
 						}
 						else
 							$toDelete = true;

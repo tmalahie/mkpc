@@ -8,7 +8,8 @@ if (isset($_POST['challenge'])) {
 	if (hasRight('clvalidator')) {
 		$challengeId = $_POST['challenge'];
 		if ($challenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
-            $clRace = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM mkclrace WHERE id='. $challenge['clist']));
+            require_once('../includes/utils-publishers.php');
+            $publishers = getPublishers('mkchallenges', $challengeId);
             $validStatus = false;
             $validation = '';
             if (!empty($challenge['validation'])) {
@@ -35,16 +36,13 @@ if (isset($_POST['challenge'])) {
             case 'pending_completion':
                 $validStatus = true;
                 mysql_query('UPDATE `mkchallenges` SET status="pending_moderation",validation="'.$validation.'" WHERE id="'. $challengeId .'"');
-                if ($clRace) {
-                    if ($getPlayer = mysql_fetch_array(mysql_query('SELECT p.id FROM mkprofiles p INNER JOIN mkjoueurs j ON p.id=j.id WHERE p.identifiant="'.$clRace['identifiant'].'" AND p.identifiant2="'.$clRace['identifiant2'].'" AND p.identifiant3="'.$clRace['identifiant3'].'" AND p.identifiant4="'.$clRace['identifiant4'].'" ORDER BY j.deleted,j.pts_challenge DESC,p.id DESC LIMIT 1')))
-                        mysql_query('INSERT IGNORE INTO `mkclwin` SET challenge="'. $challengeId .'",player="'. $getPlayer['id'] .'",creator=1');
-                }
+                if ($publishers)
+                    mysql_query('INSERT IGNORE INTO `mkclwin` SET challenge="'. $challengeId .'",player="'. $publishers['last_editor'] .'",creator=1');
                 $logKey = 'URChallenge';
                 break;
             }
             if ($validStatus) {
-                if ($clRace)
-                    mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND link="'. $challengeId .'"');
+                mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND link="'. $challengeId .'"');
                 $editedChallenge = mysql_fetch_array(mysql_query('SELECT id,name,status,difficulty,clist,data,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'));
                 insertLog($id, $logKey .' '. $challengeId, array(
                     'type' => 'challenge',

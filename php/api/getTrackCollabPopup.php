@@ -31,18 +31,22 @@ if (isset($_POST['id']) && isset($_POST['type'])) {
     case 'circuit':
         $itemLabel = $language ? "circuit" : "circuit";
         $theItemLabel = $language ? "the circuit" : "le circuit";
+        $ofTheItemLabel = $language ? "the circuit's" : "du circuit";
         break;
     case 'arena':
         $itemLabel = $language ? "arena" : "arène";
         $theItemLabel = $language ? "the arena" : "l'arène";
+        $ofTheItemLabel = $language ? "the arena's" : "de l'arène";
         break;
     case 'cup':
         $itemLabel = $language ? "cup" : "coupe";
         $theItemLabel = $language ? "the cup" : "la coupe";
+        $ofTheItemLabel = $language ? "the cup's" : "de la coupe";
         break;
     case 'multicup':
         $itemLabel = $language ? "multicup" : "multicoupe";
         $theItemLabel = $language ? "the multicup" : "la multicoupe";
+        $ofTheItemLabel = $language ? "the multicup's" : "de la multicoupe";
         break;
     }
     $rights = array(
@@ -73,6 +77,10 @@ if (isset($_POST['id']) && isset($_POST['type'])) {
             'default_val' => true
         );
     }
+    $rights[] = array(
+        'key' => 'manage_challenges',
+        'label' => $language ? "Manage $ofTheItemLabel challenges" : "Gérer les défis $ofTheItemLabel"
+    );
     printCollabPopup(array(
         'type' => $itemType,
         'id' => $itemId,

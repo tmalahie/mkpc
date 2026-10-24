@@ -9,15 +9,18 @@ if (isset($_GET['ch'])) {
 	include('../includes/language.php');
 	include('../includes/initdb.php');
 	require_once('../includes/utils-challenges.php');
-	$challenge = getChallenge($_GET['ch']);
+	$challenge = getChallenge($_GET['ch'], false, 'manage_challenges');
 	if ($challenge)
-		$clRace = getClRace($challenge['clist']);
+		$clRace = getClRace($challenge['clist'], false, 'manage_challenges');
 	include('../includes/challenge-cldata.php');
 	if (!empty($clRace)) {
 		if (mysql_fetch_array(mysql_query('SELECT player FROM `mkclwin` WHERE challenge="'. $challenge['id'] .'" AND creator=0')))
 			mysql_query('UPDATE `mkchallenges` SET status="deleted" WHERE id="'. $challenge['id'] .'"');
-		else
+		else {
 			mysql_query('DELETE FROM `mkchallenges` WHERE id="'. $challenge['id'] .'"');
+			require_once('../includes/utils-publishers.php');
+			forgetPublisher('mkchallenges', $challenge['id']);
+		}
 	}
 	mysql_close();
 	header('location: '. nextPageUrl('challenges.php', array('cl'=>$clRace['clid'],'ch'=>null,'token'=>null)));

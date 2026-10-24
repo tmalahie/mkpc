@@ -3,8 +3,9 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
+$clCollabRight = 'manage_challenges';
 if (isset($_GET['cl']))
-    $clRace = getClRace($_GET['cl']);
+    $clRace = getClRace($_GET['cl'], false, $clCollabRight);
 include('../includes/challenge-cldata.php');
 $clOptions = array('alltracks' => true, 'status' => array('pending_completion','pending_publication','pending_moderation','active'), 'circuit' => true);
 $clMsg = null;
