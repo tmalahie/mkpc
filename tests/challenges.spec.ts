@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { createCircuit } from './helpers/mkpc';
 import {
-  CHALLENGER, ensureChallenger, playerId, loginAs, challengesOf, publisherOf, creatorWins, finishRaceOn,
+  CHALLENGER, ensureChallenger, ensureValidator, playerId, loginAs, challengesOf, publisherOf, creatorWins, finishRaceOn,
 } from './helpers/challenges';
 
 // The challenge lifecycle as members and validators go through it: create and edit
@@ -18,6 +18,7 @@ let adminId: number;
 test.beforeAll(async () => {
   challengerId = await ensureChallenger();
   adminId = await playerId(ADMIN_USER);
+  await ensureValidator(adminId);
 });
 
 async function createChallenge(page: Page, listUrl: string, name: string) {

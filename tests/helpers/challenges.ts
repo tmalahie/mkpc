@@ -30,6 +30,11 @@ export async function ensureChallenger(): Promise<number> {
   return id;
 }
 
+// The seed makes Wargor an admin, which does not include the clvalidator right.
+export async function ensureValidator(playerId: number) {
+  await sql('INSERT IGNORE INTO mkrights SET player = ?, privilege = "clvalidator"', [playerId]);
+}
+
 export async function playerId(name: string): Promise<number> {
   const [{ id }]: any = await sql('SELECT id FROM mkjoueurs WHERE nom = ?', [name]);
   return id;
