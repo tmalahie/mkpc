@@ -37,7 +37,19 @@
  *   hooks guarded by `typeof MK_DEV !== "undefined" && MK_DEV`, and put the logic in this file.
  *   A helper that needs MarioKart's variables can be written as a normal function and compiled
  *   in the game's scope with inGame(fn), like startRace below.
+ *
+ * Game timers
+ *   The waits that only pace the game - the countdown, the results screens, the online track
+ *   vote and loading - go through mkDevTime(ms), which multiplies them by mkDevTimeScale.
+ *   Set window.mkDevTimeScale before the game loads (page.addInitScript in Playwright), e.g. 0.1
+ *   for a game ten times faster. Online, give every player of the room the same scale: the race
+ *   start is computed by each client.
  */
+
+var mkDevTimeScale = window.mkDevTimeScale || 1;
+function mkDevTime(ms) {
+	return ms*mkDevTimeScale;
+}
 
 var mkDevAttach = "window.mkDevEval = function(code) { return eval(code); };";
 
@@ -54,6 +66,14 @@ function mkDevLog(type, data) {
 // and functions. fn must not use anything from this file's scope.
 function inGame(fn) {
 	return mkDevEval("(" + fn + ")");
+}
+
+function goToFinishLine() {
+	var finishLine = inGame(function() {
+		var oPlayer = oPlayers[0];
+		return getCurrentLMap(getCurrentLapId(oPlayer)).checkpointCoords[getNextCp(oPlayer)].O;
+	})();
+	cheatOrThrow("/tp " + finishLine[0] + " " + finishLine[1] + " cur");
 }
 
 function cheatOrThrow(code) {
@@ -123,13 +143,16 @@ window.mkDev = {
 	},
 	// Puts the player on its last checkpoint and onto the finish line: the race (or the player's
 	// race, online) ends on the next frame. Not for battle mode.
+	// Online, the server takes at most one more lap per update (reload.php), so a jump to the
+	// last lap is ignored there: finish lap by lap with finishLap() instead.
 	finishRace: function() {
 		cheatOrThrow("/lap");
-		var finishLine = inGame(function() {
-			var oPlayer = oPlayers[0];
-			return getCurrentLMap(getCurrentLapId(oPlayer)).checkpointCoords[getNextCp(oPlayer)].O;
-		})();
-		cheatOrThrow("/tp " + finishLine[0] + " " + finishLine[1] + " cur");
+		goToFinishLine();
+	},
+	// Completes the current lap at the next frame, the way finishRace() completes the race.
+	finishLap: function() {
+		cheatOrThrow("/lap " + mkDevEval("oPlayers[0].tours"));
+		goToFinishLine();
 	},
 
 	// Skips the menus and starts a local race, as if picked from the menus. Call it from a menu
