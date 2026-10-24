@@ -139,6 +139,16 @@ test.describe('mkDev.startRace', () => {
   });
 });
 
+test('mkDevTimeScale speeds up the countdown', async ({ page }) => {
+  await page.addInitScript(() => { (window as any).mkDevTimeScale = 0.1; });
+  await startRace(page, {});
+  const list = await events(page);
+  const countdown = list.find((e) => e.type === 'screen' && e.name === 'countdown')!;
+  const raceStart = list.find((e) => e.type === 'raceStart')!;
+  // three seconds at the normal pace
+  expect(raceStart.t - countdown.t).toBeLessThan(1000);
+});
+
 test('race helpers drive a GP to its next race', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
