@@ -68,6 +68,8 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 				}
 				if ($publishers)
 					mysql_query('INSERT INTO `mknotifs` SET type="challenge_moderated", user="'. $publishers['last_editor'] .'", link="'. $challengeId .'"');
+				elseif ($clRace = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkclrace` WHERE id="'. $challenge['clist'] .'"')))
+					mysql_query('INSERT INTO `mknotifs` SET type="challenge_moderated", identifiant="'. $clRace['identifiant'] .'",identifiant2="'. $clRace['identifiant2'] .'",identifiant3="'. $clRace['identifiant3'] .'",identifiant4="'. $clRace['identifiant4'] .'", link="'. $challengeId .'"');
 			}
 		}
 	}
