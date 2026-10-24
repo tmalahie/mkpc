@@ -56,7 +56,8 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 					while ($clWin = mysql_fetch_array($getWins))
 						mysql_query('UPDATE `mkjoueurs` SET pts_challenge=pts_challenge+'.$challengeReward.' WHERE id="'. $clWin['player'] .'"');
 					mysql_query('UPDATE `mkchallenges` SET date=NULL WHERE id="'. $challengeId .'"');
-					if ($publishers) {
+					require_once('../includes/utils-challenges.php');
+					if ($publishers && !wasChallengeActive($challengeId)) {
 						$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $publishers['last_editor'] .'" AND follower!="'. $id .'"');
 						while ($follower = mysql_fetch_array($getFollowers))
 							mysql_query('INSERT INTO `mknotifs` SET type="follower_challenge", user="'. $follower['follower'] .'", link="'. $challengeId .'"');

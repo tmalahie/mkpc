@@ -1324,6 +1324,10 @@ function resetChallengeCompletion($challenge) {
 	mysql_query('DELETE FROM `mkclwin` WHERE challenge="'. $challengeId .'"');
 	mysql_query('UPDATE `mkchallenges` SET status="pending_completion",avgrating=0,nbratings=0 WHERE id="'. $challengeId .'"');
 }
+// An active challenge only goes back to moderation through a logged remoderation
+function wasChallengeActive($challengeId) {
+	return (bool) mysql_fetch_array(mysql_query('SELECT id FROM `mklogs` WHERE log="UAChallenge '. $challengeId .'" LIMIT 1'));
+}
 function activateChallenge($challenge) {
 	global $id;
 	$challengeId = $challenge['id'];
@@ -1334,7 +1338,7 @@ function activateChallenge($challenge) {
 	while ($clWin = mysql_fetch_array($getWins))
 		mysql_query('UPDATE `mkjoueurs` SET pts_challenge=pts_challenge+'.$challengeReward.' WHERE id="'. $clWin['player'] .'"');
 	mysql_query('UPDATE `mkchallenges` SET status="active",date=NULL WHERE id="'. $challengeId .'"');
-	if ($id) {
+	if ($id && !wasChallengeActive($challengeId)) {
 		$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 		while ($follower = mysql_fetch_array($getFollowers))
 			mysql_query('INSERT INTO `mknotifs` SET type="follower_challenge", user="'. $follower['follower'] .'", link="'. $challengeId .'"');
