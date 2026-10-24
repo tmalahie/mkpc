@@ -22,6 +22,7 @@ if (isset($_GET['code'])) {
 				mysql_query('UPDATE `mkjoueurs` SET code="'. password_hash($nouveau,PASSWORD_DEFAULT) .'",deleted=0 WHERE id="'. $player .'"');
 				mysql_query('DELETE FROM mkpassrecovery WHERE token="'. $code .'"');
 				if ($pseudo) {
+					require_once('../includes/session-config.php');
 					session_start();
 					$_SESSION['mkid'] = $player;
 					$id = $player;

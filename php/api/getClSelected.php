@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: application/json');
+require_once('../includes/session-config.php');
 session_start();
 $res = array();
 if (isset($_SESSION['clselected'])) {

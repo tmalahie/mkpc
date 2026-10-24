@@ -1,4 +1,5 @@
 <?php
+require_once('session-config.php');
 @session_start();
 $id = isset($_SESSION['mkid']) ? $_SESSION['mkid'] : null;
 if (!$id) {

@@ -2,6 +2,7 @@
 include('../includes/initdb.php');
 include('../includes/getId.php');
 include('../includes/language.php');
+require_once('../includes/session-config.php');
 session_start();
 require_once('../includes/circuitEnums.php');
 $musicOptions = $language

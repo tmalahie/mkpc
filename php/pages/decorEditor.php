@@ -1,6 +1,7 @@
 <?php
 include('../includes/language.php');
 include('../includes/getId.php');
+require_once('../includes/session-config.php');
 session_start();
 include('../includes/tokens.php');
 assign_token();

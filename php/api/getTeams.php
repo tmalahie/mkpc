@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 include('../includes/initdb.php');
+require_once('../includes/session-config.php');
 session_start();
 $res = array();
 if (!empty($_SESSION['mkid'])) {

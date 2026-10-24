@@ -33,7 +33,7 @@ if (!isset($mkSalt)) {
 		global $mkSalt;
 		$tokenData = substr($mkToken,0,-32);
 		$tokenChecksum = substr($mkToken,-32);
-		if (md5($mkSalt.$tokenData) == $tokenChecksum)
+		if (hash_equals(md5($mkSalt.$tokenData), (string) $tokenChecksum))
 			return $tokenData;
 		return null;
 	}

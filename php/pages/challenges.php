@@ -1,4 +1,5 @@
 <?php
+include('../includes/session.php');
 include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
@@ -6,6 +7,8 @@ require_once('../includes/utils-challenges.php');
 if (isset($_GET['cl']))
 	$clRace = getClRace($_GET['cl']);
 include('../includes/challenge-cldata.php');
+require_once('../includes/tokens.php');
+assign_token();
 if (isset($_GET['clmsg'])) {
 	switch ($_GET['clmsg']) {
 	case 'challenge_edited':
@@ -292,7 +295,7 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 					else {
 						?>
 						<a class="challenge-action-edit" href="<?php echo nextPageUrl('challengeEdit.php', array('cl' => null, 'ch' => $challenge['id'])); ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a><br />
-						<a class="challenge-action-del" href="<?php echo nextPageUrl('challengeDel.php', array('cl' => null, 'ch' => $challenge['id'])); ?>" onclick="return confirm('<?php echo $language ? 'Delete this challenge?':'Supprimer ce défi ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
+						<a class="challenge-action-del" href="<?php echo nextPageUrl('challengeDel.php', array('cl' => null, 'ch' => $challenge['id'], 'token' => $_SESSION['csrf'])); ?>" onclick="return confirm('<?php echo $language ? 'Delete this challenge?':'Supprimer ce défi ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 						<?php
 					}
 					?>

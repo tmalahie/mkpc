@@ -19,6 +19,7 @@ if (isset($_GET['id'])) {
         if ($hasReadGrants) {
 			include('../includes/language.php');
 			require_once('../includes/utils-bgs.php');
+            require_once('../includes/session-config.php');
             session_start();
             include('../includes/tokens.php');
             assign_token();
