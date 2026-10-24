@@ -1,6 +1,18 @@
 <?php
 if (!isset($_GET['id'])) exit;
+include('../includes/session.php');
+include('../includes/language.php');
+if (!$id) {
+	echo t('admin.you_arent_logged');
+	exit;
+}
 include('../includes/initdb.php');
+require_once('../includes/getRights.php');
+if (!hasRight('admin')) {
+	echo t('admin.you_arent_admin');
+	mysql_close();
+	exit;
+}
 $baseSettings = array(
     'range' => 1000,
     'position' => 0.5,

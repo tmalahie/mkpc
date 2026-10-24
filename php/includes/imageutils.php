@@ -170,8 +170,8 @@ function resize_img_resource($original_src,$thumb_src, $minw,$minh) {
 		$wh = $width.'x'.$height;
 		$newWH = $newWidth.'x'.$newHeight;
 		$thumb_gif = preg_replace("#png$#", 'gif', $thumb_src);
-		system("convert $original_src -coalesce $temp_file");
-		system("convert -size $wh $temp_file -resize $newWH $thumb_gif");
+		system('convert '. escapeshellarg($original_src) .' -coalesce '. escapeshellarg($temp_file));
+		system('convert -size '. escapeshellarg($wh) .' '. escapeshellarg($temp_file) .' -resize '. escapeshellarg($newWH) .' '. escapeshellarg($thumb_gif));
 		rename($thumb_gif, $thumb_src);
 		@unlink($temp_file);
 		@rmdir($temp_dir);

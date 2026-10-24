@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: text/plain');
+require_once('../includes/session-config.php');
 session_start();
 if (isset($_POST['msg'])) {
 	include('../includes/session.php');

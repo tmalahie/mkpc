@@ -19,6 +19,7 @@ if (isset($_GET['id'])) {
         if ($hasReadGrants) {
             include('../includes/language.php');
             include('../includes/utils-decors.php');
+            require_once('../includes/session-config.php');
             session_start();
             include('../includes/tokens.php');
             $decorSrcs = get_decor_srcs($decor);

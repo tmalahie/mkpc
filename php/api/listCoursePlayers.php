@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: text/plain');
+require_once('../includes/session-config.php');
 session_start();
 echo '[';
 if (!empty($_SESSION['mkid'])) {

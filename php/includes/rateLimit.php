@@ -23,7 +23,7 @@ function handleRateLimit() {
                 apcu_store('pending_ddos', 1, $rateLimitTime);
             file_put_contents('/tmp/fail2ban-'.$ip, json_encode(getallheaders()));
             $dir = dirname(__FILE__);
-            shell_exec("sudo $dir/block_ip.sh $ip");
+            shell_exec('sudo '. escapeshellarg("$dir/block_ip.sh") .' '. escapeshellarg($ip));
         }
         exit;
     }

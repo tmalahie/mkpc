@@ -1,5 +1,10 @@
 <?php
 if (isset($_GET['ch'])) {
+	include('../includes/session.php');
+	if (!isset($_GET['token'], $_SESSION['csrf']) || $_GET['token'] !== $_SESSION['csrf']) {
+		echo 'Invalid token';
+		exit;
+	}
 	include('../includes/getId.php');
 	include('../includes/language.php');
 	include('../includes/initdb.php');
@@ -15,6 +20,6 @@ if (isset($_GET['ch'])) {
 			mysql_query('DELETE FROM `mkchallenges` WHERE id="'. $challenge['id'] .'"');
 	}
 	mysql_close();
-	header('location: '. nextPageUrl('challenges.php', array('cl'=>$clRace['clid'],'ch'=>null)));
+	header('location: '. nextPageUrl('challenges.php', array('cl'=>$clRace['clid'],'ch'=>null,'token'=>null)));
 }
 ?>

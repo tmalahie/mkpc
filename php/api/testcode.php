@@ -13,6 +13,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 		if (ip_banned())
 			$id = 0;
 		else {
+			require_once('../includes/session-config.php');
 			session_start();
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
