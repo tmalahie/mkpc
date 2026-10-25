@@ -14,6 +14,8 @@ if (!hasRight('moderator')) {
 	exit;
 }
 include('../includes/getId.php');
+require_once('../includes/tokens.php');
+assign_token();
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -61,7 +63,7 @@ include('../includes/o_online.php');
 include('../includes/header.php');
 $page = 'game';
 include('../includes/menu.php');
-if (isset($_GET['del'])) {
+if (isset($_GET['del'], $_GET['token']) && ($_GET['token'] === $_SESSION['csrf'])) {
     if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant,player,rating,date FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
         if ($circuit = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
             if ($circuit['identifiant'] != $identifiants[0]) {
@@ -137,7 +139,7 @@ if (isset($_GET['url'])) {
                             <td>'. ($rating['player'] ? '<a href="profil.php?id='. $rating['player'] .'">'.$rating['nom'].'</a>' : '<em>'.($language ? 'No account':'Aucun compte').'</em>') .'</td>
                             <td>'.$rating['rating'].'/5</td>
                             <td>'.$rating['date'].'</td>
-                            '. ($myCircuit ? '': '<td><a class="action_button" href="?url='. urlencode($_GET['url']) .'&del='. $rating['id'] .'" onclick="return confirmDelete()">'. ($language ? 'Delete':'Supprimer') .'</a></td>') .'
+                            '. ($myCircuit ? '': '<td><a class="action_button" href="?url='. urlencode($_GET['url']) .'&amp;del='. $rating['id'] .'&amp;token='. $_SESSION['csrf'] .'" onclick="return confirmDelete()">'. ($language ? 'Delete':'Supprimer') .'</a></td>') .'
                         </tr>';
                         $i++;
                     }

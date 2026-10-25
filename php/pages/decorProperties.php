@@ -1,5 +1,5 @@
 <?php
-if (isset($_GET['id'])) {
+if (isset($_GET['id']) && ($_SERVER['REQUEST_METHOD'] === 'POST')) {
     $decorId = intval($_GET['id']);
     $decorOptions = array('hitbox', 'spin', 'unbreaking', 'breaking');
     $rawItems = isset($_POST['items']) ? $_POST['items'] : '';

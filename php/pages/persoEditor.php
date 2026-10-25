@@ -69,7 +69,7 @@ function sharePerso() {
 	document.getElementById("perso-share-mask").style.display = "block";
 	var persoVal = document.getElementById("myperso-"+persoId).dataset.author;
 	if (persoVal != undefined) {
-		document.getElementById("delete-share-link").href = "unsharePerso.php?id="+persoId;
+		document.getElementById("delete-share-link").href = "unsharePerso.php?id="+persoId+"&token=<?php echo $_SESSION['csrf']; ?>";
 		document.getElementById("delete-share-link").style.display = "block";
 	}
 	else

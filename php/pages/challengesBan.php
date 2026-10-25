@@ -13,6 +13,8 @@ if (!hasRight('clvalidator')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -128,7 +130,7 @@ if ($ban) {
         ));
 	}
 }
-$unban = isset($_GET['unban']) ? $_GET['unban']:null;
+$unban = isset($_GET['unban'], $_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf'] ? $_GET['unban']:null;
 if ($unban) {
     if ($getUsername = mysql_fetch_array(mysql_query('SELECT username FROM `mkclbans` WHERE id="'. $unban .'"'))) {
         $banUsername = $getUsername['username'];
@@ -147,16 +149,16 @@ if ($unban) {
 	<?php
 	if ($banIp) {
         if ($language)
-            echo '<p><strong>'. $banUsername .'</strong> has been banned</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> has been banned</p>';
         else
-            echo '<p><strong>'. $banUsername .'</strong> a été banni</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> a été banni</p>';
     }
 	elseif ($unban) {
         if (!$banUsername) $banUsername = $language ? 'Anonymous':'Anonyme';
         if ($language)
-            echo '<p><strong>'. $banUsername .'</strong> has been unbanned</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> has been unbanned</p>';
         else
-            echo '<p><strong>'. $banUsername .'</strong> a été débanni</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> a été débanni</p>';
 	}
 	?>
 	<h1><?php
@@ -235,14 +237,14 @@ if ($unban) {
 	while ($joueur = mysql_fetch_array($bannished)) {
 		?>
 		<tr>
-		<td><a class="profile" href="<?php echo $joueur['link']; ?>"><?php echo $joueur['username'] ? $joueur['username'] : ($language ? 'Anonymous':'Anonyme'); ?></a></td>
+		<td><a class="profile" href="<?php echo htmlspecialchars($joueur['link']); ?>"><?php echo $joueur['username'] ? htmlspecialchars($joueur['username']) : ($language ? 'Anonymous':'Anonyme'); ?></a></td>
 		<td title="<?php if ($joueur['msg']) echo htmlspecialchars($joueur['msg']); ?>"><?php
 			if ($joueur['msg']) echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>
 		<?php
         echo '<td>'. $joueur['ban_until_date'] .'</td>';
         ?>
-		<td><a href="?unban=<?php echo $joueur['id']; ?>" class="action_button"><?php
+		<td><a href="?unban=<?php echo $joueur['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="action_button"><?php
         echo $language ? 'Unban':'Débannir';
         ?></a></td>
 		</tr>

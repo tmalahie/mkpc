@@ -1,4 +1,8 @@
 <?php
+require_once('../includes/session-config.php');
+session_start();
+require_once('../includes/tokens.php');
+assign_token();
 include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/initdb.php');
@@ -117,7 +121,7 @@ else {
                 echo '<div class="challenge-description challenge-description-extra">'. $challengeDesc['extra'] .'</div>';*/
             ?></td>
             <td class="challenges-td-center"><a class="challenge-action-edit" href="<?php echo nextPageUrl('challengeReward.php', array('cl' => null, 'rw' => $reward['id'])); ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a><br />
-            <a class="challenge-action-del" href="<?php echo nextPageUrl('challengeRewardDel.php', array('cl' => null, 'rw' => $reward['id'])); ?>" onclick="return confirm('<?php echo $language ? 'Delete this reward?':'Supprimer cette récompense ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a></td>
+            <a class="challenge-action-del" href="<?php echo nextPageUrl('challengeRewardDel.php', array('cl' => null, 'rw' => $reward['id'], 'token' => $_SESSION['csrf'])); ?>" onclick="return confirm('<?php echo $language ? 'Delete this reward?':'Supprimer cette récompense ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a></td>
         </tr>
         <?php
     }

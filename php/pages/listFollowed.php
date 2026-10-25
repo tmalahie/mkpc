@@ -1,5 +1,7 @@
 <?php
 include('../includes/session.php');
+require_once('../includes/tokens.php');
+assign_token();
 if ($id) {
 	include('../includes/language.php');
 	include('../includes/initdb.php');
@@ -68,7 +70,7 @@ include('../includes/menu.php');
 				echo '</div>';
 				?>
 			</a>
-			<a class="unfollow-user" href="follow-user.php?user=<?php echo urlencode($user['followed']); ?>&amp;src=follows&amp;page=<?php echo $page; ?>" title="<?php echo $language ? 'Unfollow':'Ne plus suivre'; ?>" onclick="return confirm('<?php echo htmlspecialchars(addslashes($confirmMsg), ENT_QUOTES); ?>')">&times;</a>
+			<a class="unfollow-user" href="follow-user.php?user=<?php echo urlencode($user['followed']); ?>&amp;src=follows&amp;page=<?php echo $page; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" title="<?php echo $language ? 'Unfollow':'Ne plus suivre'; ?>" onclick="return confirm('<?php echo htmlspecialchars(addslashes($confirmMsg), ENT_QUOTES); ?>')">&times;</a>
 		</div>
 		<?php
 	}

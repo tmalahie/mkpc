@@ -2,6 +2,12 @@
 if (empty($_GET['id'])) exit;
 include('../includes/session.php');
 if ($id != 1) exit;
+require_once('../includes/tokens.php');
+assign_token();
+if (!isset($_GET['token']) || ($_GET['token'] !== $_SESSION['csrf'])) {
+	echo '<a href="?id='. intval($_GET['id']) . (isset($_GET['d']) ? '&amp;d='. urlencode($_GET['d']) : '') .'&amp;token='. $_SESSION['csrf'] .'">Convert track '. intval($_GET['id']) .'</a>';
+	exit;
+}
 include('../includes/initdb.php');
 $trackID = intval($_GET['id']);
 $getMain = mysql_fetch_array(mysql_query('SELECT id,map,laps,nom,auteur,note,nbnotes,publication_date,type,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $trackID .'"'));

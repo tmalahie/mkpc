@@ -1,5 +1,7 @@
 <?php
-if (isset($_GET['id'])) {
+require_once('../includes/session-config.php');
+session_start();
+if (isset($_GET['id'], $_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf'])) {
 	$decorId = intval($_GET['id']);
 	include('../includes/initdb.php');
 	include('../includes/getId.php');

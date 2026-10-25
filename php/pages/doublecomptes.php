@@ -51,7 +51,7 @@ if ($ban) {
 		));
 	}
 }
-$unban = isset($_GET['unban']) ? $_GET['unban']:null;
+$unban = isset($_GET['unban'], $_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf']) ? $_GET['unban']:null;
 if ($unban) {
 	$liftedSnapshot = array(
 		'type' => 'unban',
