@@ -17,6 +17,8 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -52,7 +54,7 @@ include('../includes/menu.php');
 function toIp($joueur) {
 	return floor($joueur['ip1']/256/256/256).'.'.(floor($joueur['ip1']/256/256)%256).'.'.(floor($joueur['ip1']/256)%256).'.'.($joueur['ip1']%256);
 }
-if (isset($_GET['ip1'])) {
+if (isset($_GET['ip1'], $_GET['token']) && ($_GET['token'] === $_SESSION['csrf'])) {
 	$ip1 = $_GET['ip1'];
 	for ($i=2;$i<=4;$i++)
 		${'ip'.$i} = isset($_GET['ip'.$i]) ? $_GET['ip'.$i]:0;
@@ -111,6 +113,7 @@ if (isset($_GET['ip1'])) {
 			}
 			echo 'ip'.$i.'='.$joueur['ip'.$i];
 		}
+		echo '&amp;token='. $_SESSION['csrf'];
 		?>" class="action_button"><?php echo $language ? 'Unban':'Débannir'; ?></a></td>
 		</tr>
 		<?php

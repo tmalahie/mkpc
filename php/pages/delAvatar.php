@@ -1,6 +1,10 @@
 <?php
 include('../includes/initdb.php');
 include('../includes/session.php');
+if (!isset($_GET['token'], $_SESSION['csrf']) || ($_GET['token'] !== $_SESSION['csrf'])) {
+	mysql_close();
+	exit;
+}
 if (isset($_GET['id'])) {
 	$aId = $id;
 	require_once('../includes/getRights.php');

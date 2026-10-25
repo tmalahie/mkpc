@@ -13,6 +13,8 @@ if (!hasRight('moderator')) {
 	exit;
 }
 include('../includes/getId.php');
+require_once('../includes/tokens.php');
+assign_token();
 $resMessage = '';
 if (!empty($_GET['url'])) {
     include('../includes/adminUtils.php');
@@ -55,7 +57,7 @@ if (!empty($_GET['url'])) {
                 $resMessage .= '</div>';
                 $resMessage .= '<br /><em>'. ($language ? "Note: if you want to prevent the user from posting new creations, you'll have to IP-ban the account" : "Note : si vous souhaitez empêcher l'utilisateur de poster d'autres créations, il vous faudra ban-IP son compte") .'</em>';
             }
-            elseif (isset($_GET['create'])) {
+            elseif (isset($_GET['create'], $_GET['token']) && ($_GET['token'] === $_SESSION['csrf'])) {
                 $pseudo = $getCreation[$authorCol];
                 $pseudo = preg_replace('#[^a-zA-Z0-9_\-]#', '', $pseudo);
                 if (!$pseudo)
@@ -77,7 +79,7 @@ if (!empty($_GET['url'])) {
                 if ($userId) {
                     mysql_query('INSERT INTO `mkprofiles` SET id='. $userId .', identifiant='.$getCreation['identifiant'].',identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="'.$pseudo.'",nbmessages=0,email="",country=0,sub_date=NOW(),description=""');
                     $get = $_GET;
-                    unset($get['create']);
+                    unset($get['create'], $get['token']);
                     $get['created'] = $userId;
                     header('location: findByCreation.php?'. http_build_query($get));
                 }
@@ -89,6 +91,7 @@ if (!empty($_GET['url'])) {
                 $resMessage .= '. ';
                 $get = $_GET;
                 $get['create'] = 1;
+                $get['token'] = $_SESSION['csrf'];
                 $resMessage .= '<a href="findByCreation.php?'. http_build_query($get) .'" style="color: #080">';
                 $resMessage .= $language ? "Create account from user" : "Créer un compte à partir de l'utilisateur";
                 $resMessage .= '</a>';

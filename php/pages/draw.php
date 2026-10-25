@@ -1431,7 +1431,7 @@ else {
 		var language = <?php echo $language ? 1:0; ?>;
 		var isBattle = false;
 		</script>
-		<script src="scripts/editor-form.js?reload=1"></script>
+		<script src="scripts/editor-form.js"></script>
 	</head>
 	<body class="home-body">
 		<?php

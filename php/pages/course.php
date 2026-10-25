@@ -1153,7 +1153,7 @@ else {
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var isBattle = true;
 		</script>
-		<script src="scripts/editor-form.js?reload=1"></script>
+		<script src="scripts/editor-form.js"></script>
 	</head>
 	<body class="home-body">
 		<?php

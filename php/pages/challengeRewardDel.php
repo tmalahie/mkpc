@@ -1,5 +1,7 @@
 <?php
-if (isset($_GET['rw'])) {
+require_once('../includes/session-config.php');
+session_start();
+if (isset($_GET['rw'], $_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf'])) {
 	include('../includes/getId.php');
 	include('../includes/language.php');
 	include('../includes/initdb.php');
@@ -12,6 +14,6 @@ if (isset($_GET['rw'])) {
         mysql_query('DELETE c,r,w FROM mkclrewards c LEFT JOIN mkclrewardchs r ON c.id=r.reward LEFT JOIN mkclrewarded w ON c.id=w.reward WHERE c.id="'. $reward['id'] .'"');
 	}
 	mysql_close();
-	header('location: '. nextPageUrl('challengeRewards.php', array('cl'=>$clRace['clid'],'rw'=>null)));
+	header('location: '. nextPageUrl('challengeRewards.php', array('cl'=>$clRace['clid'],'rw'=>null,'token'=>null)));
 }
 ?>

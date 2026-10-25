@@ -1,4 +1,8 @@
 <?php
+require_once('../includes/session-config.php');
+session_start();
+require_once('../includes/tokens.php');
+assign_token();
 if (isset($_GET['id'])) {
 	include('../includes/initdb.php');
 	$decorId = intval($_GET['id']);
@@ -192,9 +196,9 @@ var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, 
 			</div>
 			<div id="map-icon-toggle">
 			<?php if ($noMapIcon): ?>
-				<a class="map-icon-enable" href="toggleDecorMapIcon.php?id=<?php echo $decorId . htmlspecialchars($collabSuffix); ?>&amp;enable"><?php echo $language ? 'Re-enable minimap icon':'Réactiver l\'icône de la mini-map'; ?></a>
+				<a class="map-icon-enable" href="toggleDecorMapIcon.php?id=<?php echo $decorId . htmlspecialchars($collabSuffix); ?>&amp;enable&amp;token=<?php echo $_SESSION['csrf']; ?>"><?php echo $language ? 'Re-enable minimap icon':'Réactiver l\'icône de la mini-map'; ?></a>
 			<?php else: ?>
-				<a class="map-icon-disable" href="toggleDecorMapIcon.php?id=<?php echo $decorId . htmlspecialchars($collabSuffix); ?>" onclick="return confirm('<?php echo addslashes($language ? 'The decor icon will no longer appear on the minimap. Confirm?' : "L'icone du décor n'apparaitra plus sur la minimap. Confirmer ?"); ?>')"><?php echo $language ? 'Disable minimap icon':'Désactiver l\'icône de la mini-map'; ?></a>
+				<a class="map-icon-disable" href="toggleDecorMapIcon.php?id=<?php echo $decorId . htmlspecialchars($collabSuffix); ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo addslashes($language ? 'The decor icon will no longer appear on the minimap. Confirm?' : "L'icone du décor n'apparaitra plus sur la minimap. Confirmer ?"); ?>')"><?php echo $language ? 'Disable minimap icon':'Désactiver l\'icône de la mini-map'; ?></a>
 			<?php endif; ?>
 			</div>
 			<?php

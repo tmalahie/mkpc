@@ -2,7 +2,9 @@
 include('../includes/language.php');
 $isBattle = isset($_GET['battle']);
 $table = $isBattle ? 'arenes':'circuits';
-if (isset($_GET['i'])) {
+require_once('../includes/session-config.php');
+session_start();
+if (isset($_GET['i'], $_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf'])) {
     include('../includes/getId.php');
     include('../includes/initdb.php');
     $cID = intval($_GET['i']);
