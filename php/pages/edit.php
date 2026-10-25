@@ -72,14 +72,14 @@ showRegularAdSection();
 				foreach ($mentions0[1] as $pseudo)
 					array_rmvalue($newMentions,$pseudo);
 				foreach ($oldMentions as $pseudo) {
-					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. mysql_real_escape_string($pseudo) .'"');
 					if ($getMid=mysql_fetch_array($getMids))
-						mysql_query('DELETE FROM `mknotifs`  WHERE type="forum_mention" AND user="'. $getMid['id'] .'" AND link="'.$_GET['topic'].','. ($_GET['id']) .'"');
+						mysql_query('DELETE FROM `mknotifs`  WHERE type="forum_mention" AND user="'. $getMid['id'] .'" AND link="'.intval($_GET['topic']).','. intval($_GET['id']) .'"');
 				}
 				foreach ($newMentions as $pseudo) {
-					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. mysql_real_escape_string($pseudo) .'"');
 					if ($getMid=mysql_fetch_array($getMids))
-						mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($_GET['id']) .'"');
+						mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.intval($_GET['topic']).','. intval($_GET['id']) .'"');
 				}
 				preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
 				preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', $lastMessage['message'], $quotes0);
@@ -90,14 +90,14 @@ showRegularAdSection();
 				foreach ($quotes0[1] as $pseudo)
 					array_rmvalue($newQuotes,$pseudo);
 				foreach ($oldQuotes as $pseudo) {
-					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. mysql_real_escape_string($pseudo) .'"');
 					if ($getMid=mysql_fetch_array($getMids))
-						mysql_query('DELETE FROM `mknotifs`  WHERE type="forum_quote" AND user="'. $getMid['id'] .'" AND link="'.$_GET['topic'].','. ($_GET['id']) .'"');
+						mysql_query('DELETE FROM `mknotifs`  WHERE type="forum_quote" AND user="'. $getMid['id'] .'" AND link="'.intval($_GET['topic']).','. intval($_GET['id']) .'"');
 				}
 				foreach ($newQuotes as $pseudo) {
-					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+					$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. mysql_real_escape_string($pseudo) .'"');
 					if ($getMid=mysql_fetch_array($getMids))
-						mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($_GET['id']) .'"');
+						mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.intval($_GET['topic']).','. intval($_GET['id']) .'"');
 				}
 				echo $language ? '<p id="successSent">Message edited successfully<br />
 				<a href="topic.php?topic='. urlencode($_GET['topic']).'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<="'. $_GET['id'] .'"'))/20) .'">Click here</a> to go to the topic.<br />

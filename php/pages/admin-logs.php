@@ -428,6 +428,8 @@ $logGlobals = array(
         return $res;
     },
     'join' => function($value, $table, $col, $field) {
+        if (!preg_match('#^\w+$#', $table) || !preg_match('#^\w+$#', $col) || !preg_match('#^\w+$#', $field))
+            return null;
         if ($value !== null)
             $value = mysql_real_escape_string($value);
         if ($getRow = mysql_fetch_array(mysql_query('SELECT '.$field.' FROM `'.$table.'` WHERE '. mysql_real_escape_string($col) .'="'. $value .'"'))) {
@@ -501,7 +503,7 @@ function preprocess_pattern($pattern, $logArgs) {
         else
             $patternPart = substr($pattern, $offset, $bracesPos-$offset);
         $patternPart = preg_replace_callback('#\$(\d)#', function($matches) use ($logArgs) {
-            return evaluate_group($logArgs[$matches[1]]);
+            return str_replace(array('{', '}'), array('&#123;', '&#125;'), evaluate_group($logArgs[$matches[1]]));
         }, $patternPart);
         $res .= $patternPart;
         if ($bracesPos === false) break;

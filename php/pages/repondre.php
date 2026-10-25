@@ -88,18 +88,18 @@ showRegularAdSection();
 							mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs+1 WHERE id="'. $_GET['topic'] .'"');
 							$getFollowers = mysql_query('SELECT * FROM `mkfollowers` WHERE topic="'. $_GET['topic'] .'" AND user!="'. $id .'"');
 							while ($follower = mysql_fetch_array($getFollowers))
-								mysql_query('INSERT INTO `mknotifs` SET type="answer_forum", user="'. $follower['user'] .'", link="'.$_GET['topic'].','. ($msgId) .'"');
+								mysql_query('INSERT INTO `mknotifs` SET type="answer_forum", user="'. $follower['user'] .'", link="'.intval($_GET['topic']).','. ($msgId) .'"');
 							preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
 							foreach ($mentions[1] as $pseudo) {
 								$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
 								if ($getMid=mysql_fetch_array($getMids))
-									mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($msgId) .'"');
+									mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.intval($_GET['topic']).','. ($msgId) .'"');
 							}
 							preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
 							foreach ($quotes[1] as $pseudo) {
-								$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+								$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. mysql_real_escape_string($pseudo) .'"');
 								if ($getMid=mysql_fetch_array($getMids))
-									mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($msgId) .'"');
+									mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.intval($_GET['topic']).','. ($msgId) .'"');
 							}
 							return $msgId;
 						}

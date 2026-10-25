@@ -4,7 +4,7 @@ include('../includes/session.php');
 if ($id) {
 	include('../includes/initdb.php');
 	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'))) {
-		$pseudo = $getPseudo['nom'];
+		$pseudo = mysql_real_escape_string($getPseudo['nom']);
 		$timestamp = time();
 		mysql_query("DELETE FROM `writting` WHERE pseudo='$pseudo' OR connecte < ". ($timestamp-10));
 		$writting = (isset($_POST["writting"]) ? 1:0);

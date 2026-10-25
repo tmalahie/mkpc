@@ -12,7 +12,7 @@ if (isset($_POST['topic']) && is_numeric($_POST['topic'])) {
 					mysql_query('INSERT IGNORE INTO `mkfollowers` VALUES("'. $id .'","'. $_POST['topic'] .'")');
 					if ($getFirstMessage = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $_POST['topic'] .'" AND id=1 LIMIT 1'))) {
 						if ($getFirstMessage['auteur'] != $id)
-							mysql_query('INSERT INTO `mknotifs` SET type="new_followtopic", user="'. $getFirstMessage['auteur'] .'", link="'.$_POST['topic'].','.$id.'"');
+							mysql_query('INSERT INTO `mknotifs` SET type="new_followtopic", user="'. $getFirstMessage['auteur'] .'", link="'.intval($_POST['topic']).','.$id.'"');
 					}
 				}
 			}

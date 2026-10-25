@@ -1,7 +1,7 @@
 <?php
 if (isset($_POST['id']) && isset($_POST['x']) && isset($_POST['y']) && ($_POST['x'] > 0) && ($_POST['y'] > 0) && ($_POST['x'] < 10000) && ($_POST['y'] < 10000)) {
 	include('../includes/escape_all.php');
-	$id = $_POST['id'];
+	$id = intval($_POST['id']);
 	$src = isset($_POST['arenes']) ? 'course':'map';
 	$db = isset($_POST['arenes']) ? 'arenes':'circuits';
 	$isrc = isset($_POST['arenes']) ? 'coursepreview':'racepreview';

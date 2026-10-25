@@ -385,7 +385,7 @@ function get_challenges_until($day) {
 }
 function fetch_advent_challenges($selectedChallenges) {
 	global $language;
-	$challengeIds = array_values($selectedChallenges);
+	$challengeIds = array_map('intval', array_values($selectedChallenges));
 	$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE c.id IN ('. implode(',', $challengeIds).')');
 	$challengeById = array();
 	while ($challenge = mysql_fetch_array($getChallenges))
