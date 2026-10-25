@@ -1,5 +1,6 @@
 <?php
-if($_SERVER['HTTP_HOST']!=='localhost:8080') exit;
+@include('../includes/config/dev.php');
+if (!defined('MKPC_DEV')) exit;
 if (isset($_GET['p'])) {
     $p = intval($_GET['p']);
     $isBattle = isset($_GET['battle']);

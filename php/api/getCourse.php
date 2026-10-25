@@ -146,7 +146,7 @@ if ($id) {
 			. ($course ? " AND mariokart.id=$course" : '')
 			. $cupSQL .
 			' GROUP BY mariokart.id
-			HAVING(lastConnect>='. $limConnect .' AND nbAttendees<'. $linkOptions->rules->maxPlayers .')
+			HAVING(lastConnect>='. $limConnect .' AND nbAttendees<'. intval($linkOptions->rules->maxPlayers) .')
 			ORDER BY nbAttendees DESC, lastConnect DESC LIMIT 1'
 		);
 		if ($activeCourse = mysql_fetch_array($getActiveCourses)) {

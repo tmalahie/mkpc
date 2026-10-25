@@ -49,7 +49,7 @@ else {
     if ($hasFilter)
         $page = null;
     else
-        $page = isset($_POST['page']) ? $_POST['page'] : 0;
+        $page = isset($_POST['page']) ? intval($_POST['page']) : 0;
     $resPerPage = 20;
     $resultsQueries = array();
     foreach ($cIDs as $cID) {

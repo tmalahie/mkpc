@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['topic'])) {
 	$tableToLock = 'mktopics';
-	$idToLock = $_GET['topic'];
+	$idToLock = intval($_GET['topic']);
 	$url = 'topic.php?topic='.$idToLock;
 	$getItem = 'SELECT t.locked,t.titre AS title,m.auteur AS author FROM mktopics t INNER JOIN mkmessages m ON m.topic=t.id AND m.id=1 WHERE t.id="'. $idToLock .'"';
 	$logAction = $_GET['value'] ? 'LTopic':'ULTopic';
@@ -9,7 +9,7 @@ if (isset($_GET['topic'])) {
 }
 elseif (isset($_GET['news'])) {
 	$tableToLock = 'mknews';
-	$idToLock = $_GET['news'];
+	$idToLock = intval($_GET['news']);
 	$url = 'news.php?id='.$idToLock.'#news-comments';
 	$getItem = 'SELECT locked,title,author FROM mknews WHERE id="'. $idToLock .'"';
 	$logAction = $_GET['value'] ? 'LNews':'ULNews';

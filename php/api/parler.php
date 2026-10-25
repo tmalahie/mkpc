@@ -55,7 +55,7 @@ if (isset($_POST['msg'])) {
 				if ($getRecentMsgs['nb'] >= 5)
 					return_failure(-2);
 			}
-			$msg = HTMLentities($msg);
+			$msg = htmlentities($msg, ENT_QUOTES|ENT_SUBSTITUTE|ENT_HTML401);
 			$msg = preg_replace('#((https?|ftp|gopher|telnet|ms-help)://[\w\d:\#@%/;$()~_?\+\-=\\\.&]*)#', '<a href="$0" class="chatLink" target="_blank" rel="noopener noreferrer">$0</a>', $msg);
 			mysql_query("INSERT INTO `mkchat` VALUES(null, $course, $id, '$msg',null)");
 			if ($shouldLog) {

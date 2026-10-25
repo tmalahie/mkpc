@@ -1,7 +1,7 @@
 <?php
 if (isset($_POST['id'])) {
 	include('../includes/escape_all.php');
-	$id = $_POST['id'];
+	$id = intval($_POST['id']);
 	$src = isset($_POST['arenes']) ? 'course':'map';
 	$db = isset($_POST['arenes']) ? 'arenes':'circuits';
 	$isrc = isset($_POST['arenes']) ? 'coursepreview':'racepreview';

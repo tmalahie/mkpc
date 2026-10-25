@@ -69,7 +69,7 @@ if (isset($_POST['newpseudo'])) {
         if ($nextNickChange > time())
             $message = $language ? 'You have changed your username recently, therefore you are not allowed to rechange it for now. Please come back later.':'Vous avez changé votre pseudo récemment, vous ne pouvez donc pas le rechanger pour l\'instant. Revenez plus tard.';
         else
-            $success = editNick($id,$getPseudo['nom'],$new,$message);
+            $success = editNick($id,mysql_real_escape_string($getPseudo['nom']),$new,$message);
 	}
 	else
         $message = $language ? 'You have been banned, you cannot edit your username.':'Vous avez été banni, vous ne pouvez pas modifier votre pseudo.';

@@ -59,7 +59,7 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 			mysql_query('DELETE FROM `mkghostsdata` WHERE id='. $cID);
 		}
 		else {
-			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',class='.$cc.',type="'.$type.'",circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
+			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',class='.intval($cc).',type="'.$type.'",circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
 			$cID = mysql_insert_id();
 		}
 		$ptsData = array();
