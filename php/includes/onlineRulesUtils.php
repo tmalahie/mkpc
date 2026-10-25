@@ -133,6 +133,8 @@ function isRuleValid($rule,$value) {
 		if (!isset($rule['accepted'][$value]))
 			return false;
 	}
+	if ((isset($rule['min_value']) || isset($rule['max_value'])) && !is_numeric($value))
+		return false;
 	if (isset($rule['min_value'])) {
 		if ($value < $rule['min_value'])
 			return false;

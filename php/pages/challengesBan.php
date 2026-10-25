@@ -107,7 +107,7 @@ if ($ban) {
     else {
         if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
             $banId = $getId['id'];
-            $banLink = "$origin/profil.php?id=". $getId['id'];
+            $banLink = mysql_real_escape_string("$origin/profil.php?id=". $getId['id']);
         }
     }
 

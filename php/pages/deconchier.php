@@ -10,9 +10,9 @@ while ($fichier=@readdir($dir)) {
 			if (preg_match('#overload#',$fichier))
 				continue;
 			if ($circuit = preg_match('#map#',$fichier))
-				$id = preg_replace('#^map([0-9]+).+$#','$1',$fichier);
+				$id = intval(preg_replace('#^map([0-9]+).+$#','$1',$fichier));
 			else
-				$id = preg_replace('#^course([0-9]+).+$#','$1',$fichier);
+				$id = intval(preg_replace('#^course([0-9]+).+$#','$1',$fichier));
 			if (($circuit && !mysql_numrows(mysql_query('SELECT * FROM `circuits` WHERE id="'. $id .'"'))) || (!$circuit && !mysql_numrows(mysql_query('SELECT * FROM `arenes` WHERE id="'. $id .'"')))) {
 				$pds += filesize($rep.'/'.$fichier);
 				$inc++;

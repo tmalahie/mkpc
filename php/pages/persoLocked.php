@@ -328,7 +328,7 @@ if (empty($clId)) {
 }
 $playerId = intval($id);
 $rewardsPerPage = 20;
-$currentPage = isset($_GET['page']) ? $_GET['page']:1;
+$currentPage = isset($_GET['page']) ? intval($_GET['page']):1;
 $currentCursor = ($currentPage-1)*$rewardsPerPage;
 $rewardsSQL = array(
     'data' => array(

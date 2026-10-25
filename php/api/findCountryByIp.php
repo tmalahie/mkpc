@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: text/plain');
 include('../includes/initdb.php');
-$ip = $_SERVER['REMOTE_ADDR'];
+$ip = mysql_real_escape_string($_SERVER['REMOTE_ADDR']);
 $getCountryCode = mysql_query('SELECT country,date FROM `mkipcountry` WHERE ip="'. $ip .'"');
 if ($countryCode = mysql_fetch_array($getCountryCode)) {
 	if (strtotime($countryCode['date'].' Europe/Paris') < (time()-7*86400)) {

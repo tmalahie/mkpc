@@ -5,7 +5,7 @@ $a = " WHERE ";
 while ($ignore = mysql_fetch_array($ignores)) {
 	$where .= $a;
 	$a = " AND ";
-	$where .= "pseudo!='". $ignore['nom'] ."'";
+	$where .= "pseudo!='". mysql_real_escape_string($ignore['nom']) ."'";
 }
 $nbMessages = mysql_fetch_array(mysql_query("SELECT COUNT(*) AS nb FROM `minichat`$where ORDER BY id"));
 $nbKept = 30;

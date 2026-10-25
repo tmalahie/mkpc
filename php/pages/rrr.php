@@ -1,6 +1,7 @@
 <?php
 if (empty($_GET['map'])) exit;
-if($_SERVER['HTTP_HOST']!=='localhost:8080') exit;
+@include('../includes/config/dev.php');
+if (!defined('MKPC_DEV')) exit;
 include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 if (isset($_GET['pieces'])) {

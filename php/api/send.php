@@ -4,8 +4,8 @@ include('../includes/session.php');
 if ($id && isset($_POST['message'])) {
 	include('../includes/initdb.php');
 	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'))) {
-		$pseudo = $getPseudo['nom'];
-		$message = htmlspecialchars($_POST["message"]);
+		$pseudo = mysql_real_escape_string($getPseudo['nom']);
+		$message = htmlspecialchars($_POST["message"], ENT_QUOTES|ENT_SUBSTITUTE|ENT_HTML401);
 		$message = str_replace('%u20AC', '&euro;', $message);
 		if ($message != null) {
 			$message = nl2br($message);

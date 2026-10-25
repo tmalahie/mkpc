@@ -73,7 +73,7 @@ function handle_bg_upload($files,$options=array()) {
 
 	foreach ($layerFiles as $layerFile) {
 		if (isset($options['layer']))
-			$layerId = $options['layer'];
+			$layerId = intval($options['layer']);
 		else {
 			mysql_query('INSERT INTO `mkbglayers` SET bg="'. $id .'",ordering="'. $ordering .'",filename="",url=""');
 			$layerId = mysql_insert_id();

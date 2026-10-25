@@ -874,7 +874,7 @@ $circuitImg->local = 0;
 $circuitImg->url = "https://$_SERVER[HTTP_HOST]/mapcreate.php$circuitUrl";
 $circuitFile = getCircuitLocalFile($circuitImg);
 $table = $isBattle ? 'arenes':'circuits';
-mysql_query('INSERT INTO `'.$table.'` SET nom="'.$getMain['nom'].'",auteur="'.$getMain['auteur'].'",identifiant='.$getMain['identifiant'].',identifiant2='.$getMain['identifiant2'].',identifiant3='.$getMain['identifiant3'].',identifiant4='.$getMain['identifiant4'].',img_data="'.getCircuitImgDataRaw($circuitFile['path'],$circuitImg->url,0).'"');
+mysql_query('INSERT INTO `'.$table.'` SET nom="'.mysql_real_escape_string($getMain['nom']).'",auteur="'.mysql_real_escape_string($getMain['auteur']).'",identifiant='.$getMain['identifiant'].',identifiant2='.$getMain['identifiant2'].',identifiant3='.$getMain['identifiant3'].',identifiant4='.$getMain['identifiant4'].',img_data="'.getCircuitImgDataRaw($circuitFile['path'],$circuitImg->url,0).'"');
 $nid = mysql_insert_id();
 $data = array();
 $startposition = $isBattle ? $circuitData->startposition[0] : $circuitData->startposition;

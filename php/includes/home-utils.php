@@ -390,7 +390,7 @@ function getRecentActivity($limit = 14, $offset = 0) {
                 $ms = $timeMS % 1000;
                 $secs = floor($timeMS / 1000) % 60;
                 $mins = floor($timeMS / 60000);
-                $records = mysql_query('SELECT time FROM `mkrecords` WHERE class="' . $comment['class'] . '" AND circuit="' . $comment['circuit'] . '" AND type="' . $comment['type'] . '" AND best=1');
+                $records = mysql_query('SELECT time FROM `mkrecords` WHERE class="' . mysql_real_escape_string($comment['class']) . '" AND circuit="' . mysql_real_escape_string($comment['circuit']) . '" AND type="' . mysql_real_escape_string($comment['type']) . '" AND best=1');
                 $place = 1;
                 $nbRecords = 0;
                 while ($record = mysql_fetch_array($records)) {

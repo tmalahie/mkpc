@@ -71,13 +71,14 @@
 			}
 		}
 		while ($myNotif = mysql_fetch_array($myNotifications)) {
+			$myNotif['link'] = mysql_real_escape_string($myNotif['link']);
 			$notifData = Array();
 			$toDelete = false;
 			switch ($myNotif['type']) {
 			case 'new_reaction':
 				if ($notifReaction = mysql_fetch_array(mysql_query('SELECT type,member,link FROM `mkreactions` WHERE id="'. $myNotif['link'] .'"'))) {
 					$notifData['reaction'] = $notifReaction;
-					$myNotif['link'] = $notifData['reaction']['link'];
+					$myNotif['link'] = mysql_real_escape_string($notifData['reaction']['link']);
 					switch ($notifReaction['type']) {
 					case 'topic':
 						$myNotif['type'] = 'reaction_topic';
@@ -169,7 +170,7 @@
 								else {
 									if (isset($notifData['reaction']))
 										$notifData['sender'] = $notifData['reaction']['member'];
-									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $linkData[0] .'" AND id<='. $linkData[1]))/20);
+									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $linkData[0] .'" AND id<='. intval($linkData[1])))/20);
 								}
 							}
 							else
@@ -360,7 +361,7 @@
 							$toDelete = true;
 						break;
 					case 'currently_online' :
-						$onlineUserId = $myNotif['link'];
+						$onlineUserId = intval($myNotif['link']);
 						$currentCoTime = time();
 						$minCoTime = floor(($currentCoTime-15)*1000/67);
 

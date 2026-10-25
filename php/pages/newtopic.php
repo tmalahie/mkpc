@@ -85,7 +85,7 @@ showRegularAdSection();
 					}
 					preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
 					foreach ($quotes[1] as $pseudo) {
-						$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+						$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. mysql_real_escape_string($pseudo) .'"');
 						if ($getMid=mysql_fetch_array($getMids))
 							mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
 					}
