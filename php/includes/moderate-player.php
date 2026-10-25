@@ -15,6 +15,8 @@ if (!hasRight('moderator')) {
 }
 require_once('banUtils.php');
 require_once('utils-logs.php');
+require_once('tokens.php');
+assign_token();
 liftExpiredSanctions();
 $defaultWarnEnd = date('Y-m-d', strtotime('+14 days'));
 $autocompleteNick = '';
@@ -145,7 +147,7 @@ if ($ban) {
     else
         $ban = null;
 }
-$unban = isset($_GET['unban']) ? $_GET['unban']:null;
+$unban = isset($_GET['unban'], $_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf'] ? $_GET['unban']:null;
 if ($unban) {
     switch ($action) {
     case 'ban':
@@ -178,15 +180,15 @@ if ($unban) {
         switch ($action) {
         case 'ban':
             if ($language)
-                echo '<p><strong>'. $ban .'</strong> has been banned</p>';
+                echo '<p><strong>'. htmlspecialchars($ban) .'</strong> has been banned</p>';
             else
-                echo '<p><strong>'. $ban .'</strong> a été banni</p>';
+                echo '<p><strong>'. htmlspecialchars($ban) .'</strong> a été banni</p>';
             break;
         case 'warn':
             if ($language)
-                echo '<p><strong>'. $ban .'</strong> has been warned</p>';
+                echo '<p><strong>'. htmlspecialchars($ban) .'</strong> has been warned</p>';
             else
-                echo '<p>Un avertissement a été envoyé à <strong>'. $ban .'</strong></p>';
+                echo '<p>Un avertissement a été envoyé à <strong>'. htmlspecialchars($ban) .'</strong></p>';
         }
     }
 	elseif ($unban) {
@@ -194,15 +196,15 @@ if ($unban) {
             switch ($action) {
             case 'ban':
                 if ($language)
-                    echo '<p><strong>'. $getNom['nom'] .'</strong> has been unbanned</p>';
+                    echo '<p><strong>'. htmlspecialchars($getNom['nom']) .'</strong> has been unbanned</p>';
                 else
-                    echo '<p><strong>'. $getNom['nom'] .'</strong> a été débanni</p>';
+                    echo '<p><strong>'. htmlspecialchars($getNom['nom']) .'</strong> a été débanni</p>';
                 break;
             case 'warn':
                 if ($language)
-                    echo '<p>Warning removed for <strong>'. $getNom['nom'] .'</strong></p>';
+                    echo '<p>Warning removed for <strong>'. htmlspecialchars($getNom['nom']) .'</strong></p>';
                 else
-                    echo '<p>Avertissement retiré pour <strong>'. $getNom['nom'] .'</strong></p>';
+                    echo '<p>Avertissement retiré pour <strong>'. htmlspecialchars($getNom['nom']) .'</strong></p>';
             }
         }
 	}
@@ -337,7 +339,7 @@ if ($unban) {
 			if ($joueur['msg']) echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>
 		<td><?php echo $joueur['end_date'] ? $joueur['end_date']:($language ? 'Never':'Jamais'); ?></td>
-		<td><a href="?unban=<?php echo $joueur['id']; ?>" class="action_button"><?php
+		<td><a href="?unban=<?php echo $joueur['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="action_button"><?php
         switch ($action) {
         case 'ban':
             echo $language ? 'Unban':'Débannir';

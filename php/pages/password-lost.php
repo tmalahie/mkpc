@@ -1,6 +1,76 @@
 <?php
 include('../includes/language.php');
 include('../includes/initdb.php');
+function send_recovery_mail($email, $name, $title, $msg) {
+	$msgTxt = strip_tags($msg);
+
+	$url = 'https://api.mailjet.com/v3.1/send';
+	// Create a new cURL resource
+	$ch = curl_init($url);
+
+	include('../includes/config/mail.php');
+	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+
+	// Setup request to send json via POST
+	$data = array(
+		"Messages" => array(
+			array(
+				"From" => array(
+				"Email" => "mkpc@malahieude.net",
+				"Name" => "MKPC"
+				),
+				"To" => array(
+					array(
+						"Email" => $email,
+						"Name" => $name
+					)
+				),
+				"Subject" => $title,
+				"TextPart" => $msgTxt,
+				"HTMLPart" => nl2br($msg)
+			)
+		)
+	);
+	$payload = json_encode($data);
+
+	// Attach encoded JSON string to the POST fields
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+	// Set the content type to application/json
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+		'Content-Type:application/json'
+	));
+
+	// Return response instead of outputting
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+	// Execute the POST request
+	$result = curl_exec($ch);
+	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+	// Close cURL resource
+	curl_close($ch);
+
+	if ($httpCode < 200 || $httpCode >= 300)
+		error_log('Mailjet send failed (HTTP '.$httpCode.'): '.$result);
+	else {
+		// Mailjet stores every recipient as a contact, and the free plan stops sending past 1000 contacts
+		$ch = curl_init('https://api.mailjet.com/v3/REST/contact/'.rawurlencode($email));
+		curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$contact = json_decode(curl_exec($ch), true);
+		curl_close($ch);
+		if (isset($contact['Data'][0]['ID'])) {
+			$ch = curl_init('https://api.mailjet.com/v4/contacts/'.$contact['Data'][0]['ID']);
+			curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_exec($ch);
+			curl_close($ch);
+		}
+	}
+}
 $howEmail = false;
 $showMissNick = false;
 $showEmail = false;
@@ -42,76 +112,7 @@ Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien ci-dessous 
 
 À bientôt sur Mario Kart PC :)';
 
-				$msgTxt = strip_tags($msg);
-
-				curl_init();
-
-				$url = 'https://api.mailjet.com/v3.1/send';
-				// Create a new cURL resource
-				$ch = curl_init($url);
-
-				include('../includes/config/mail.php');
-				curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-				curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
-
-				// Setup request to send json via POST
-				$data = array(
-					"Messages" => array(
-						array(
-							"From" => array(
-							"Email" => "mkpc@malahieude.net",
-							"Name" => "MKPC"
-							),
-							"To" => array(
-								array(
-									"Email" => $email,
-									"Name" => $pseudo
-								)
-							),
-							"Subject" => $title,
-							"TextPart" => $msgTxt,
-							"HTMLPart" => nl2br($msg)
-						)
-					)
-				);
-				$payload = json_encode($data);
-
-				// Attach encoded JSON string to the POST fields
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-
-				// Set the content type to application/json
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-					'Content-Type:application/json'
-				));
-
-				// Return response instead of outputting
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-				// Execute the POST request
-				$result = curl_exec($ch);
-				$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-				// Close cURL resource
-				curl_close($ch);
-
-				if ($httpCode < 200 || $httpCode >= 300)
-					error_log('Mailjet send failed (HTTP '.$httpCode.'): '.$result);
-				else {
-					// Mailjet stores every recipient as a contact, and the free plan stops sending past 1000 contacts
-					$ch = curl_init('https://api.mailjet.com/v3/REST/contact/'.rawurlencode($email));
-					curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					$contact = json_decode(curl_exec($ch), true);
-					curl_close($ch);
-					if (isset($contact['Data'][0]['ID'])) {
-						$ch = curl_init('https://api.mailjet.com/v4/contacts/'.$contact['Data'][0]['ID']);
-						curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
-						curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-						curl_exec($ch);
-						curl_close($ch);
-					}
-				}
+				send_recovery_mail($email, $pseudo, $title, $msg);
 			}
 		}
 		else
@@ -123,14 +124,49 @@ Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien ci-dessous 
 elseif (isset($_GET['email'])) {
 	$showEmail = true;
 	$showMissNick = true;
-	$getNicknames = mysql_query('SELECT nom FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE p.email="'. $_GET['email'] .'"');
-	$pseudos = array();
+	$success = 'nick_mail_sent';
+	$getNicknames = mysql_query('SELECT j.id,j.nom,p.email FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE p.email="'. $_GET['email'] .'" AND p.email!=""');
+	$accounts = array();
 	while ($nickName = mysql_fetch_array($getNicknames))
-		$pseudos[] = '<a href="?pseudo='.$nickName['nom'].'">'.$nickName['nom'].'</a>';
-	if (empty($pseudos))
-		$error = $language ? 'Sorry, this email doesn\'t have any associated account':'Désolé, cette adresse mail n\'a pas de compte associé';
-	else
-		$success = 'nick_found';
+		$accounts[] = $nickName;
+	if (!empty($accounts)) {
+		include('../includes/getId.php');
+		include('../includes/utils-cooldown.php');
+		if (isPassRecoveryCooldowned())
+			logCooldownEvent('pass_recovery');
+		else {
+			require_once('../includes/reset-password.php');
+			$accountLines = array();
+			foreach ($accounts as $account) {
+				$link = generatePasswordLink($account['id']);
+				$accountLines[] = '- <strong>'. htmlspecialchars($account['nom']) .'</strong>'. ($language ? ' — reset the password: ':' — réinitialiser le mot de passe : ') .'<a href="'.$link.'">'.$link.'</a>';
+			}
+			$accountList = implode("\n", $accountLines);
+			$title = $language?'MKPC - Your usernames':'MKPC - Vos pseudos';
+			$msg = $language ? 'Hello,
+You are receiving this email because someone asked which Mario Kart PC accounts use this address.
+
+If you did not make this request, you can safely ignore this email — no changes have been made to your accounts.
+
+'. (count($accounts) > 1 ? 'The accounts linked to this address are:':'The account linked to this address is:') .'
+'. $accountList .'
+
+⚠️ <strong>These links are personal and confidential. Do not share them with anyone under any circumstances.</strong>
+
+See you soon on Mario Kart PC :)' : 'Bonjour,
+Vous recevez cet e-mail parce que quelqu’un a demandé quels comptes Mario Kart PC utilisent cette adresse.
+
+Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Aucun changement ne sera effectué sur vos comptes.
+
+'. (count($accounts) > 1 ? 'Les comptes associés à cette adresse sont :':'Le compte associé à cette adresse est :') .'
+'. $accountList .'
+
+⚠️ <strong>Ces liens sont personnels et confidentiels. Ne les partagez sous aucun prétexte.</strong>
+
+À bientôt sur Mario Kart PC :)';
+			send_recovery_mail($accounts[0]['email'], $accounts[0]['nom'], $title, $msg);
+		}
+	}
 }
 ?>
 <!DOCTYPE html>
@@ -194,10 +230,9 @@ include('../includes/menu.php');
 		function obfuscate_email($email) {
 			$em   = explode("@", $email);
 			$name = implode('@', array_slice($em, 0, count($em)-1));
-			$len  = min(3,floor(strlen($name)/2));
-			$rLen = strlen($name)-$len;
+			$len  = min(2,floor(strlen($name)/2));
 
-			return substr($name,0, $len) . str_repeat('*', $rLen) . "@" . end($em);   
+			return substr($name,0, $len) . str_repeat('*', 5) . "@" . end($em);   
 		}
 		switch ($success) {
 			case 'mail_sent':
@@ -222,17 +257,14 @@ include('../includes/menu.php');
 				?></p>
 				<?php
 				break;
-			case 'nick_found':
+			case 'nick_mail_sent':
 				?>
-				<p class="big-instructions" id="success">
-					<?php
-					if (count($pseudos) > 1)
-						echo $language ? 'The following usernames have been found: ':'Les pseudos suivants ont été trouvés : ';
-					else
-						echo $language ? 'The following username has been found: ':'Le pseudo suivant a été trouvé : ';
-					echo implode(', ', $pseudos);
-					?>
-				</p>
+				<p class="big-instructions" id="success"><?php
+				echo $language ? 'If an account uses this address, we have sent it an email listing its usernames, with a link to reset each password.':'Si un compte utilise cette adresse, un email lui a été envoyé avec la liste de ses pseudos et un lien pour réinitialiser chaque mot de passe.';
+				?></p>
+				<p><?php
+				echo $language ? 'Also check if it is not in your spam.':'Pensez également à regarder si celui-ci ne se trouve pas dans vos courriers indésirables (spam).';
+				?></p>
 				<?php
 				break;
 		}
@@ -288,17 +320,8 @@ include('../includes/menu.php');
 	}
 	?>
 	<?php
-	if (!isset($success) || ($success != 'nick_found')) {
-		?>
-		<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
-		<?php
-	}
-	else {
-		?>
-		<p><a href="password-lost.php"><?php echo $language ? 'Cancel':'Annuler'; ?></a></p>
-		<?php
-	}
 	?>
+	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
 </main>
 <?php
 include('../includes/footer.php');

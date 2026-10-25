@@ -13,6 +13,8 @@ if (!hasRight('clvalidator')) {
 	mysql_close();
 	exit;
 }
+require_once('../includes/tokens.php');
+assign_token();
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -128,7 +130,7 @@ if ($ban) {
         ));
 	}
 }
-$unban = isset($_GET['unban']) ? $_GET['unban']:null;
+$unban = isset($_GET['unban'], $_GET['token'], $_SESSION['csrf']) && $_GET['token'] === $_SESSION['csrf'] ? $_GET['unban']:null;
 if ($unban) {
     if ($getUsername = mysql_fetch_array(mysql_query('SELECT username FROM `mkclbans` WHERE id="'. $unban .'"'))) {
         $banUsername = $getUsername['username'];
@@ -147,16 +149,16 @@ if ($unban) {
 	<?php
 	if ($banIp) {
         if ($language)
-            echo '<p><strong>'. $banUsername .'</strong> has been banned</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> has been banned</p>';
         else
-            echo '<p><strong>'. $banUsername .'</strong> a été banni</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> a été banni</p>';
     }
 	elseif ($unban) {
         if (!$banUsername) $banUsername = $language ? 'Anonymous':'Anonyme';
         if ($language)
-            echo '<p><strong>'. $banUsername .'</strong> has been unbanned</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> has been unbanned</p>';
         else
-            echo '<p><strong>'. $banUsername .'</strong> a été débanni</p>';
+            echo '<p><strong>'. htmlspecialchars($banUsername) .'</strong> a été débanni</p>';
 	}
 	?>
 	<h1><?php
@@ -242,7 +244,7 @@ if ($unban) {
 		<?php
         echo '<td>'. $joueur['ban_until_date'] .'</td>';
         ?>
-		<td><a href="?unban=<?php echo $joueur['id']; ?>" class="action_button"><?php
+		<td><a href="?unban=<?php echo $joueur['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="action_button"><?php
         echo $language ? 'Unban':'Débannir';
         ?></a></td>
 		</tr>
