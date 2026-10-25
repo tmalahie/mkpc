@@ -425,7 +425,7 @@ include('../includes/menu.php');
 					continue;
 				$isCup = (strpos($circuit['cicon'], ',') !== false);
 				if (isset($moderate)) {
-					$getRejections = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkclvalidations WHERE challenge="'. $challenge['id'] .'"'));
+					$getRejections = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkclvalidations WHERE challenge="'. $challenge['id'] .'" AND accepted=0'));
 					$countRejections = $getRejections['nb'];
 				}
 				else
