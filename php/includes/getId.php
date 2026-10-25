@@ -1,8 +1,8 @@
 <?php
 include('utilId.php');
-if (isset($_COOKIE['mktoken']) && fetch_mkid())
+if (isset($_COOKIE['mktoken']) && fetch_mkid() && empty($_COOKIE['mktoken_lax']))
 	set_mkid_cookie();
-if (!isset($identifiants) && isset($_SERVER['HTTP_SEC_FETCH_SITE']) && ($_SERVER['HTTP_SEC_FETCH_SITE'] === 'cross-site')) {
+if (!isset($identifiants) && lax_cookies_withheld()) {
 	$crossSiteKey = hash('sha256', 'cross-site:'. $_SERVER['REMOTE_ADDR']);
 	$identifiants = Array();
 	for ($i=0;$i<4;$i++)

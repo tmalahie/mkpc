@@ -45,11 +45,20 @@ if (!isset($mkSalt)) {
 			$_COOKIE['mktoken'] = encode_mkid(base64($identifiants[0]).base64($identifiants[1]).base64($identifiants[2]).base64($identifiants[3]));
 		set_mkid_cookie();
 	}
+	function lax_cookies_withheld() {
+		if (!isset($_SERVER['HTTP_SEC_FETCH_SITE']) || ($_SERVER['HTTP_SEC_FETCH_SITE'] !== 'cross-site'))
+			return false;
+		$isTopLevelGet = ($_SERVER['REQUEST_METHOD'] === 'GET') && isset($_SERVER['HTTP_SEC_FETCH_MODE']) && ($_SERVER['HTTP_SEC_FETCH_MODE'] === 'navigate');
+		return !$isTopLevelGet;
+	}
 	function set_mkid_cookie() {
-		if (isset($_SERVER['HTTP_SEC_FETCH_SITE']) && ($_SERVER['HTTP_SEC_FETCH_SITE'] === 'cross-site'))
+		if (lax_cookies_withheld())
 			return;
-		if (!isset($_SERVER['HTTP_REFERER']) || !str_starts_with($_SERVER['HTTP_REFERER'], 'https://www.google.'))
-			@setcookie('mktoken', $_COOKIE['mktoken'], array('expires'=>4294967295,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']),'httponly'=>true,'samesite'=>'Lax'));
+		if (!isset($_SERVER['HTTP_REFERER']) || !str_starts_with($_SERVER['HTTP_REFERER'], 'https://www.google.')) {
+			$cookieOptions = array('expires'=>4294967295,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']),'httponly'=>true,'samesite'=>'Lax');
+			@setcookie('mktoken', $_COOKIE['mktoken'], $cookieOptions);
+			@setcookie('mktoken_lax', '1', $cookieOptions);
+		}
 	}
 	function fetch_mkid() {
 		global $identifiants;
