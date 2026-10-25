@@ -264,7 +264,7 @@ if ($unban) {
             echo $language ? 'Warn a member:':'Avertir un membre :';
             break;
         }
-        ?></strong></label> &nbsp;<input type="text" name="joueur" id="joueur"<?php if ($autocompleteNick) echo ' value="'. $autocompleteNick .'"'; ?> /> <input type="button" value="&rarr;" class="action_button show_form_details" onclick="showBanFormDetails()" />
+        ?></strong></label> &nbsp;<input type="text" name="joueur" id="joueur"<?php if ($autocompleteNick) echo ' value="'. htmlspecialchars($autocompleteNick) .'"'; ?> /> <input type="button" value="&rarr;" class="action_button show_form_details" onclick="showBanFormDetails()" />
 		<div id="ban_msg"<?php if ($autocompleteNick) echo ' style="display: block"'; ?>>
 			<?= t('common.message'); ?> <textarea name="msg" cols="30" rows="4"<?php if ($action === 'warn') echo ' required="required"'; ?>></textarea><br />
             <?php
@@ -334,7 +334,7 @@ if ($unban) {
 	while ($joueur = mysql_fetch_array($bannished)) {
 		?>
 		<tr>
-		<td><a class="profile" href="profil.php?id=<?php echo $joueur['id']; ?>"><?php echo $joueur['nom']; ?></a></td>
+		<td><a class="profile" href="profil.php?id=<?php echo $joueur['id']; ?>"><?php echo htmlspecialchars($joueur['nom']); ?></a></td>
 		<td title="<?php if ($joueur['msg']) echo htmlspecialchars($joueur['msg']); ?>"><?php
 			if ($joueur['msg']) echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>

@@ -237,7 +237,7 @@ if ($unban) {
 	while ($joueur = mysql_fetch_array($bannished)) {
 		?>
 		<tr>
-		<td><a class="profile" href="<?php echo $joueur['link']; ?>"><?php echo $joueur['username'] ? $joueur['username'] : ($language ? 'Anonymous':'Anonyme'); ?></a></td>
+		<td><a class="profile" href="<?php echo htmlspecialchars($joueur['link']); ?>"><?php echo $joueur['username'] ? htmlspecialchars($joueur['username']) : ($language ? 'Anonymous':'Anonyme'); ?></a></td>
 		<td title="<?php if ($joueur['msg']) echo htmlspecialchars($joueur['msg']); ?>"><?php
 			if ($joueur['msg']) echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>
