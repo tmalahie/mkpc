@@ -158,7 +158,7 @@ if ($topic['locked'])
 					$lockunlock = ($language ? ($newLockValue?'Lock':'Unlock'):($newLockValue?'Locker':'Unlocker'));
 					?>
 				<div class="buttonGroup">
-					<a href="lock.php?topic=<?php echo $topicId; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
+					<a href="lock.php?topic=<?php echo $topicId; ?>&amp;value=<?php echo $newLockValue; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
 				</div>
 					<?php
 				}
@@ -210,7 +210,7 @@ if ($topic['locked'])
 			if (null !== $newLockValue) {
 				?>
 			<div class="buttonGroup">
-				<a href="lock.php?topic=<?php echo $topicId; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
+				<a href="lock.php?topic=<?php echo $topicId; ?>&amp;value=<?php echo $newLockValue; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
 			</div>
 				<?php
 			}

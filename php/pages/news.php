@@ -121,7 +121,7 @@ if ($news['status'] == 'accepted') {
 		}
 		$lockunlock = ($language ? ($newLockValue?'Lock':'Unlock'):($newLockValue?'Locker':'Unlocker'));
 		?>
-<a href="lock.php?news=<?php echo $newsId; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button news-lock" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' comments':' les commentaires'); ?></a>
+<a href="lock.php?news=<?php echo $newsId; ?>&amp;value=<?php echo $newLockValue; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" class="action_button news-lock" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' comments':' les commentaires'); ?></a>
 		<?php
 	}
 	?>

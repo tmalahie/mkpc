@@ -20,7 +20,7 @@ if (isset($tableToLock) && isset($_GET['value']) && in_array($_GET['value'], arr
 	include('../includes/initdb.php');
 	$allowed = false;
 
-	if ($item = mysql_fetch_array(mysql_query($getItem))) {
+	if (isset($_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf']) && ($item = mysql_fetch_array(mysql_query($getItem)))) {
 		$allowed = false;
 		$moderator = false;
 		if (($item['locked'] != 1) && ($_GET['value'] != 1)) {
