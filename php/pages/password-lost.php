@@ -1,8 +1,7 @@
 <?php
 include('../includes/language.php');
 include('../includes/initdb.php');
-function send_recovery_mail($email, $name, $title, $msg) {
-	$msgTxt = strip_tags($msg);
+function send_recovery_mail($email, $name, $title, $msg) {	$msgTxt = strip_tags($msg);
 
 	$url = 'https://api.mailjet.com/v3.1/send';
 	// Create a new cURL resource
@@ -71,26 +70,13 @@ function send_recovery_mail($email, $name, $title, $msg) {
 		}
 	}
 }
-$howEmail = false;
-$showMissNick = false;
-$showEmail = false;
-if (isset($_GET['pseudo'])) {
-	$showEmail = true;
-	$pseudo = $_GET['pseudo'];
-	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $pseudo .'"'))) {
-		if ($getEmail = mysql_fetch_array(mysql_query('SELECT email FROM mkprofiles WHERE id="'. $getId['id'] .'" AND email!=""'))) {
-			$success = 'mail_sent';
-			$email = $getEmail['email'];
-			include('../includes/getId.php');
-			include('../includes/utils-cooldown.php');
-			if (isPassRecoveryCooldowned())
-				logCooldownEvent('pass_recovery');
-			else {
-				require_once('../includes/reset-password.php');
-				$link = generatePasswordLink($getId['id']);
-
-				$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
-				$msg = $language ? 'Hello '.htmlspecialchars($pseudo).',
+function recovery_mail_title() {
+	global $language;
+	return $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
+}
+function single_account_recovery_msg($pseudo, $link) {
+	global $language;
+	return $language ? 'Hello '.htmlspecialchars($pseudo).',
 You are receiving this email because a password reset was requested for your account on the Mario Kart PC site.
 
 If you did not make this request, you can safely ignore this email — no changes have been made to your account.
@@ -111,8 +97,25 @@ Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien ci-dessous 
 ⚠️ <strong>Ce lien est personnel et confidentiel. Ne le partagez sous aucun prétexte.</strong>
 
 À bientôt sur Mario Kart PC :)';
-
-				send_recovery_mail($email, $pseudo, $title, $msg);
+}
+$howEmail = false;
+$showMissNick = false;
+$showEmail = false;
+if (isset($_GET['pseudo'])) {
+	$showEmail = true;
+	$pseudo = $_GET['pseudo'];
+	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $pseudo .'"'))) {
+		if ($getEmail = mysql_fetch_array(mysql_query('SELECT email FROM mkprofiles WHERE id="'. $getId['id'] .'" AND email!=""'))) {
+			$success = 'mail_sent';
+			$email = $getEmail['email'];
+			include('../includes/getId.php');
+			include('../includes/utils-cooldown.php');
+			if (isPassRecoveryCooldowned())
+				logCooldownEvent('pass_recovery');
+			else {
+				require_once('../includes/reset-password.php');
+				$link = generatePasswordLink($getId['id']);
+				send_recovery_mail($email, $pseudo, recovery_mail_title(), single_account_recovery_msg($pseudo, $link));
 			}
 		}
 		else
@@ -136,35 +139,40 @@ elseif (isset($_GET['email'])) {
 			logCooldownEvent('pass_recovery');
 		else {
 			require_once('../includes/reset-password.php');
-			$accountLines = array();
-			foreach ($accounts as $account) {
-				$link = generatePasswordLink($account['id']);
-				$accountLines[] = '- <strong>'. htmlspecialchars($account['nom']) .'</strong>'. ($language ? ' — reset the password: ':' — réinitialiser le mot de passe : ') .'<a href="'.$link.'">'.$link.'</a>';
+			if (count($accounts) === 1) {
+				$link = generatePasswordLink($accounts[0]['id']);
+				$msg = single_account_recovery_msg($accounts[0]['nom'], $link);
 			}
-			$accountList = implode("\n", $accountLines);
-			$title = $language?'MKPC - Your usernames':'MKPC - Vos pseudos';
-			$msg = $language ? 'Hello,
-You are receiving this email because someone asked which Mario Kart PC accounts use this address.
+			else {
+				$accountLines = array();
+				foreach ($accounts as $account) {
+					$link = generatePasswordLink($account['id']);
+					$accountLines[] = '- <strong>'. htmlspecialchars($account['nom']) .'</strong>'. ($language ? ': ':' : ') .'<a href="'.$link.'">'.$link.'</a>';
+				}
+				$accountList = implode("\n", $accountLines);
+				$msg = $language ? 'Hello,
+You are receiving this email because a password reset was requested for the Mario Kart PC accounts linked to this address.
 
 If you did not make this request, you can safely ignore this email — no changes have been made to your accounts.
 
-'. (count($accounts) > 1 ? 'The accounts linked to this address are:':'The account linked to this address is:') .'
+To reset a password, please click the link next to the account:
 '. $accountList .'
 
 ⚠️ <strong>These links are personal and confidential. Do not share them with anyone under any circumstances.</strong>
 
 See you soon on Mario Kart PC :)' : 'Bonjour,
-Vous recevez cet e-mail parce que quelqu’un a demandé quels comptes Mario Kart PC utilisent cette adresse.
+Vous recevez cet e-mail parce qu’une demande de réinitialisation de mot de passe a été effectuée pour les comptes Mario Kart PC associés à cette adresse.
 
 Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Aucun changement ne sera effectué sur vos comptes.
 
-'. (count($accounts) > 1 ? 'Les comptes associés à cette adresse sont :':'Le compte associé à cette adresse est :') .'
+Pour réinitialiser un mot de passe, veuillez cliquer sur le lien à côté du compte :
 '. $accountList .'
 
 ⚠️ <strong>Ces liens sont personnels et confidentiels. Ne les partagez sous aucun prétexte.</strong>
 
 À bientôt sur Mario Kart PC :)';
-			send_recovery_mail($accounts[0]['email'], $accounts[0]['nom'], $title, $msg);
+			}
+			send_recovery_mail($accounts[0]['email'], $accounts[0]['nom'], recovery_mail_title(), $msg);
 		}
 	}
 }
@@ -260,7 +268,7 @@ include('../includes/menu.php');
 			case 'nick_mail_sent':
 				?>
 				<p class="big-instructions" id="success"><?php
-				echo $language ? 'We have sent you an email with your usernames.':'Nous vous avons envoyé un email avec vos pseudos.';
+				echo $language ? 'We have sent you an email to reset your password.':'Nous vous avons envoyé un email pour réinitialiser votre mot de passe.';
 				?></p>
 				<p><?php
 				echo $language ? 'Didn\'t receive it after a few minutes?':'Vous ne l\'avez pas reçu au bout de quelques minutes ?';
