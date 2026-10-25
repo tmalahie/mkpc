@@ -94,7 +94,7 @@ else
 	</div>
 	<form method="post" action="classement.global.php?cc=<?php echo $cc; ?>">
 	<blockquote>
-	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo htmlspecialchars($joueur ? stripslashes($joueur) : (string) $myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<?php
@@ -136,7 +136,7 @@ else
 	<td><a href="profil.php?id=<?php echo $record['player']; ?>" class="recorder"><?php
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ';
-		echo $joueur;
+		echo htmlspecialchars(stripslashes($joueur));
 	?></a></td>
 	<td style="width:auto"><?php echo $record['score'] ?></td>
 	<td style="width:auto" title="<?php echo $language ? 'See records':'Voir les temps'; ?>"><a href="classement.php?user=<?php echo $record['player']; ?>&amp;cc=<?php echo $cc; ?>&amp;pts"><img src="images/details.png" class="details" alt="Preview" /></a></td>
