@@ -80,7 +80,7 @@ foreach ($get as $k => $getk)
 	else {
 		?>
 		<form method="post" action="?<?php echo http_build_query($get) ?>">
-		<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo $joueur; ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
+		<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo htmlspecialchars(stripslashes((string) $joueur)); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 		</form>
 		<?php
 	}
@@ -131,7 +131,7 @@ foreach ($get as $k => $getk)
 	<td><a href="profil.php?id=<?php echo $record['id']; ?>" class="recorder"><?php
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ';
-		echo $joueur;
+		echo htmlspecialchars(stripslashes($joueur));
 	?></a></td>
 	<td><?php echo $record['nb'] ?></td>
 	</tr>

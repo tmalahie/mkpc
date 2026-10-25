@@ -59,7 +59,7 @@ else
 	</div>
 	<form method="post" action="bestscores.php<?php if ($isBattle) echo '?battle'; ?>">
 	<blockquote>
-	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo htmlspecialchars($joueur ? stripslashes($joueur) : (string) $myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<?php
@@ -105,7 +105,7 @@ else
 	<td><a href="profil.php?id=<?php echo $record['id']; ?>" class="recorder"><?php
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ';
-		echo $joueur;
+		echo htmlspecialchars(stripslashes($joueur));
 	?></a></td>
 	<td><?php echo $record['pts'] ?></td>
 	</tr>

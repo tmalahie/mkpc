@@ -302,12 +302,12 @@ elseif (isset($_POST['override']) && isset($_POST['import-type']) && ($_POST['im
 	?>
 <p id="success"><?php echo $language ? "The image has been changed successfully":"L'image a &eacute;t&eacute; modifi&eacute;e avec succ&egrave;s !"; ?></p>
 <script type="text/javascript">
-window.parent.handleImageFromOverride(<?php echo $_POST['override'] ?>);
+window.parent.handleImageFromOverride(<?php echo intval($_POST['override']); ?>);
 </script>
 	<?php
 	$circuitImg = (object) array(
 		'local' => 0,
-		'override' => $_POST['override']
+		'override' => intval($_POST['override'])
 	);
 }
 elseif (isset($error))

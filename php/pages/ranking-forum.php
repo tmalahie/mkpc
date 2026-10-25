@@ -133,7 +133,7 @@ else
 		<input type="submit" value="Ok" class="action_button" />
 	</form>
 	<form method="post" action="?<?php echo http_build_query($get) ?>">
-	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label><?php echo $language ? ':':' :'; ?> <input type="text" name="joueur" id="joueur" value="<?php echo htmlspecialchars($joueur ? stripslashes($joueur) : (string) $myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Search':'Rechercher'; ?>" class="action_button" /></p>
 	</form>
 	<?php
 	if ($mode) {
@@ -183,7 +183,7 @@ else
 	<td><a href="profil.php?id=<?php echo $record['id']; ?>" class="recorder"><?php
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ';
-		echo $joueur;
+		echo htmlspecialchars(stripslashes($joueur));
 	?></a></td>
 	<td><?php echo $record['nb'] ?></td>
 	</tr>
