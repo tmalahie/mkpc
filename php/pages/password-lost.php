@@ -268,17 +268,17 @@ include('../includes/menu.php');
 			case 'nick_mail_sent':
 				?>
 				<p class="big-instructions" id="success"><?php
-				echo $language ? 'We have sent you an email to reset your password.':'Nous vous avons envoyé un email pour réinitialiser votre mot de passe.';
+				echo $language ? 'We have sent you an email to reset your password.<br />You should receive it in the next few minutes.':'Un email vous a été envoyé pour réinitialiser votre mot de passe.<br />Vous devriez le recevoir dans les prochaines minutes.';
 				?></p>
 				<p><?php
-				echo $language ? 'Didn\'t receive it after a few minutes?':'Vous ne l\'avez pas reçu au bout de quelques minutes ?';
+				echo $language ? 'Didn\'t receive anything?':'Vous n\'avez rien reçu ?';
 				?></p>
 				<ul>
 					<li><?php
 					echo $language ? 'Check that your email address is correct:':'Vérifiez que votre adresse email est correcte :';
 					?> <strong><?php echo htmlspecialchars(stripslashes($_GET['email'])); ?></strong> (<a href="password-lost.php"><?php echo $language ? 'change':'modifier'; ?></a>)</li>
 					<li><?php
-					echo $language ? 'Check your spam folder.':'Regardez dans vos courriers indésirables (spam).';
+					echo $language ? 'Check your spam folder.':'Vérifiez vos courriers indésirables (spam).';
 					?></li>
 				</ul>
 				<?php
