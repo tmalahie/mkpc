@@ -2,12 +2,13 @@
 header('Content-Type: text/plain');
 $data = json_decode(file_get_contents('php://input'));
 if (is_object($data) && isset($data->id) && isset($data->payload)) {
-	$id = $data->id;
+	$id = intval($data->id);
 	$payload = $data->payload;
 	include('../includes/initdb.php');
 	include('../includes/getId.php');
 	require_once('../includes/collabUtils.php');
-	$requireOwner = !hasCollabGrants('arenes', $data->id, $data->collab, 'edit');
+	$collab = isset($data->collab) && is_string($data->collab) ? mysql_real_escape_string($data->collab) : null;
+	$requireOwner = !hasCollabGrants('arenes', $id, $collab, 'edit');
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT img_data FROM arenes WHERE id="'.mysql_real_escape_string($id).'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 		if (isset($data->expectedVersion) && empty($data->force)) {
 			$existingData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'.mysql_real_escape_string($id).'"'));
