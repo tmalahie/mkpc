@@ -125,12 +125,12 @@ elseif (isset($_GET['email'])) {
 	$showEmail = true;
 	$showMissNick = true;
 	$success = 'nick_mail_sent';
+	include('../includes/getId.php');
 	$getNicknames = mysql_query('SELECT j.id,j.nom,p.email FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE p.email="'. $_GET['email'] .'" AND p.email!=""');
 	$accounts = array();
 	while ($nickName = mysql_fetch_array($getNicknames))
 		$accounts[] = $nickName;
 	if (!empty($accounts)) {
-		include('../includes/getId.php');
 		include('../includes/utils-cooldown.php');
 		if (isPassRecoveryCooldowned())
 			logCooldownEvent('pass_recovery');

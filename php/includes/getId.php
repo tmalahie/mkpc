@@ -3,9 +3,10 @@ include('utilId.php');
 if (isset($_COOKIE['mktoken']) && fetch_mkid())
 	set_mkid_cookie();
 if (!isset($identifiants) && isset($_SERVER['HTTP_SEC_FETCH_SITE']) && ($_SERVER['HTTP_SEC_FETCH_SITE'] === 'cross-site')) {
+	$crossSiteKey = hash('sha256', 'cross-site:'. $_SERVER['REMOTE_ADDR']);
 	$identifiants = Array();
 	for ($i=0;$i<4;$i++)
-		$identifiants[$i] = rand(0,4294967295);
+		$identifiants[$i] = hexdec(substr($crossSiteKey, 8*$i, 8));
 }
 if (!isset($identifiants)) {
 	$remoteAddr = $_SERVER['REMOTE_ADDR'];
