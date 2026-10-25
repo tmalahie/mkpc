@@ -28355,7 +28355,7 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		var nbTeams = shareLink.options.nbTeams || defaultGameOptions.nbTeams;
-		oDiv.innerHTML = toLanguage(nbTeams + " teams are selected in each game. You object: defeat the opposing team"+ (nbTeams>2 ? "s":"") +".", nbTeams + " équipes sont sélectionnées à chaque partie. Votre objectif : vaincre "+ (nbTeams>2 ? "les équipes adverses":"l'équipe adverse") + ".");
+		oDiv.innerHTML = toLanguage(nbTeams + " teams are selected in each game. Your objective: defeat the opposing team"+ (nbTeams>2 ? "s":"") +".", nbTeams + " équipes sont sélectionnées à chaque partie. Votre objectif : vaincre "+ (nbTeams>2 ? "les équipes adverses":"l'équipe adverse") + ".");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
