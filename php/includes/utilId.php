@@ -43,8 +43,13 @@ if (!isset($mkSalt)) {
 			$_COOKIE['mktoken'] = encode_mkid(base64($identifiants[0]));
 		else
 			$_COOKIE['mktoken'] = encode_mkid(base64($identifiants[0]).base64($identifiants[1]).base64($identifiants[2]).base64($identifiants[3]));
+		set_mkid_cookie();
+	}
+	function set_mkid_cookie() {
+		if (isset($_SERVER['HTTP_SEC_FETCH_SITE']) && ($_SERVER['HTTP_SEC_FETCH_SITE'] === 'cross-site'))
+			return;
 		if (!isset($_SERVER['HTTP_REFERER']) || !str_starts_with($_SERVER['HTTP_REFERER'], 'https://www.google.'))
-			@setcookie('mktoken', $_COOKIE['mktoken'], 4294967295,'/');
+			@setcookie('mktoken', $_COOKIE['mktoken'], array('expires'=>4294967295,'path'=>'/','secure'=>!empty($_SERVER['HTTPS']),'httponly'=>true,'samesite'=>'Lax'));
 	}
 	function fetch_mkid() {
 		global $identifiants;

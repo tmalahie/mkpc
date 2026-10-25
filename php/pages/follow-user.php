@@ -2,7 +2,7 @@
 if (isset($_GET['user']) && is_numeric($_GET['user'])) {
 	$user = intval($_GET['user']);
 	include('../includes/session.php');
-	if ($id && ($id!=$user)) {
+	if ($id && ($id!=$user) && isset($_GET['token'], $_SESSION['csrf']) && ($_GET['token'] === $_SESSION['csrf'])) {
 		include('../includes/initdb.php');
 		if (isset($_GET['follow'])) {
 			if (mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE id="'. $user .'"'))) {

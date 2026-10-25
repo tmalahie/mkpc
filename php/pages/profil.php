@@ -21,11 +21,13 @@ elseif (isset($_GET['id'])) {
 }
 if (isset($profileId)) {
 	include('../includes/session.php');
+	require_once('../includes/tokens.php');
+	assign_token();
 	$me = ($id == $profileId);
 	include('../includes/language.php');
 	include('../includes/avatars.php');
 	$their = $me ? ($language ? 'your':'mes') : ($language ? 'their':'ses');
-	if (!$me) {
+	if (!$me && isset($_GET['token']) && ($_GET['token'] === $_SESSION['csrf'])) {
 		if (isset($_GET['unignore'])) {
 			mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"');
 			$unignored = true;
@@ -37,7 +39,7 @@ if (isset($profileId)) {
 		if ($getInfos['banned'])
 			$error = $language ? 'This account has been banned.':'Ce compte a été banni.';
 		elseif (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'.$id.'" AND ignored="'.$profileId.'"')))
-			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. You won\'t see their messages in MKPC chat nor in online mode. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Unignore</a>':'Vous venez d\'ignorer '. $getInfos['nom'] .'. Vous ne verrez plus ses messages dans le chat MKPC ni dans le mode en ligne. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Désignorer</a>';
+			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. You won\'t see their messages in MKPC chat nor in online mode. <a href="?id='. urlencode($profileId) .'&amp;unignore=1&amp;token='. $_SESSION['csrf'] .'">Unignore</a>':'Vous venez d\'ignorer '. $getInfos['nom'] .'. Vous ne verrez plus ses messages dans le chat MKPC ni dans le mode en ligne. <a href="?id='. urlencode($profileId) .'&amp;unignore=1&amp;token='. $_SESSION['csrf'] .'">Désignorer</a>';
 		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,DATE(sub_date) AS sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $profileId .'"'));
 		if ($getProfile['identifiant'] === null)
 			$getProfile['identifiant'] = -1;
@@ -167,7 +169,7 @@ if (isset($profileId)) {
 				$success = $language ? 'You have stopped following '. $getInfos['nom']:'Vous ne suivez plus '. $getInfos['nom'];
 		}
 		elseif (isset($unignored)) {
-			$success = $language ? 'You have stopped ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1">Reignore</a>':'Vous avez désignoré '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1">Réignorer</a>';
+			$success = $language ? 'You have stopped ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1&amp;token='. $_SESSION['csrf'] .'">Reignore</a>':'Vous avez désignoré '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1&amp;token='. $_SESSION['csrf'] .'">Réignorer</a>';
 			$successCenter = true;
 		}
 		include('../includes/bbCode.php');
@@ -272,7 +274,7 @@ include('../includes/menu.php');
 							$warningMsg = ($language ? 'Delete your avatar?':'Supprimer votre avatar ?');
 						else
 							$warningMsg = ($language ? 'Delete '. $getInfos['nom'] .'\\\'s avatar?':'Supprimer l\\\'avatar de '. $getInfos['nom'] .' ?');
-						echo '<br /><a href="delAvatar.php'. ($me ? '':'?id='.$profileId) .'" class="suppr" onclick="event.stopPropagation();return confirm(\''. $warningMsg .'\')">'. ($language ? 'Delete':'Supprimer') .'</a>';
+						echo '<br /><a href="delAvatar.php?token='. $_SESSION['csrf'] . ($me ? '':'&amp;id='.$profileId) .'" class="suppr" onclick="event.stopPropagation();return confirm(\''. $warningMsg .'\')">'. ($language ? 'Delete':'Supprimer') .'</a>';
 					}
 					echo '</form>';
 				}
@@ -304,7 +306,7 @@ include('../includes/menu.php');
 				elseif ($id) {
 					$isFollower = $followedUsers['userisfollower'];
 					if ($isFollower || !isPermanentlyBanned($profileId))
-						echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
+						echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'&amp;token='. $_SESSION['csrf'] .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
 				}
 				?>
 				</div>
@@ -607,9 +609,9 @@ include('../includes/menu.php');
 					<ul>
 						<?php
 						if (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"')))
-							echo '<li><a href="?id='. $profileId .'&amp;unignore">'. ($language ? 'Stop ignoring ' . $getInfos['nom']:'Ne plus ignorer ' . $getInfos['nom']) .'</a></li>';
+							echo '<li><a href="?id='. $profileId .'&amp;unignore&amp;token='. $_SESSION['csrf'] .'">'. ($language ? 'Stop ignoring ' . $getInfos['nom']:'Ne plus ignorer ' . $getInfos['nom']) .'</a></li>';
 						else
-							echo '<li><a href="?id='. $profileId .'&amp;ignore">'. ($language ? 'Ignore ' . $getInfos['nom']:'Ignorer ' . $getInfos['nom']) .'</a></li>';
+							echo '<li><a href="?id='. $profileId .'&amp;ignore&amp;token='. $_SESSION['csrf'] .'">'. ($language ? 'Ignore ' . $getInfos['nom']:'Ignorer ' . $getInfos['nom']) .'</a></li>';
 						if ($isModerator) {
 							echo '<li><a href="edit-profile.php?member='. $profileId .'">'. ($language ? 'Edit profile':'Modifier le profil') .'</a></li>';
 							echo '<li><a href="edit-pseudo.php?member='. $profileId .'">'. ($language ? 'Edit username':'Modifier le pseudo') .'</a></li>';

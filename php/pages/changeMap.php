@@ -1,4 +1,8 @@
 <?php
+require_once('../includes/session-config.php');
+session_start();
+require_once('../includes/tokens.php');
+assign_token();
 $id = isset($_GET['i']) ? intval($_GET['i']) : 0;
 $imgData = isset($_GET['img_data']) ? $_GET['img_data'] : null;
 include('../includes/getId.php');
@@ -112,7 +116,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 		}
 	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez réessayez';
 	}
-	elseif (isset($_GET['delete']) && $lap) {
+	elseif (isset($_GET['delete'], $_GET['token']) && ($_GET['token'] === $_SESSION['csrf']) && $lap) {
 		if (!$newImg) {
 			deleteCircuitFile($circuitImg);
 			unset($baseCircuitImg->lapOverrides->$lap);
@@ -353,7 +357,7 @@ if ($lap)
 <input type="submit" value="<?php echo $language ? 'Confirm':'Valider'; ?>" id="modifier" disabled="disabled" />
 <?php
 if ($lap && !$newImg)
-	echo '&nbsp;<a class="del-override" href="changeMap.php?'. http_build_query($_GET) .'&amp;delete" onclick="return confirmRemoveOverride()">'. ($language ? "Remove image override" : "Supprimer l'image") .'</a>';
+	echo '&nbsp;<a class="del-override" href="changeMap.php?'. http_build_query(array_merge($_GET, array('token' => $_SESSION['csrf']))) .'&amp;delete" onclick="return confirmRemoveOverride()">'. ($language ? "Remove image override" : "Supprimer l'image") .'</a>';
 ?></p>
 </fieldset>
 </form>

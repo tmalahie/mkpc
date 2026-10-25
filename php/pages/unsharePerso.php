@@ -2,6 +2,10 @@
 if (isset($_GET['id'])) {
 	include('../includes/initdb.php');
 	include('../includes/session.php');
+	if (!isset($_GET['token'], $_SESSION['csrf']) || ($_GET['token'] !== $_SESSION['csrf'])) {
+		mysql_close();
+		exit;
+	}
 	$persoId = $_GET['id'];
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('../includes/getId.php');

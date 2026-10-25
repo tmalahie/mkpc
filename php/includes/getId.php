@@ -1,7 +1,12 @@
 <?php
 include('utilId.php');
-if (isset($_COOKIE['mktoken']))
-	fetch_mkid();
+if (isset($_COOKIE['mktoken']) && fetch_mkid())
+	set_mkid_cookie();
+if (!isset($identifiants) && isset($_SERVER['HTTP_SEC_FETCH_SITE']) && ($_SERVER['HTTP_SEC_FETCH_SITE'] === 'cross-site')) {
+	$identifiants = Array();
+	for ($i=0;$i<4;$i++)
+		$identifiants[$i] = rand(0,4294967295);
+}
 if (!isset($identifiants)) {
 	$remoteAddr = $_SERVER['REMOTE_ADDR'];
 	$ip = explode('.', $remoteAddr);
