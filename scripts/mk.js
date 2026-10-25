@@ -2665,6 +2665,7 @@ function throwItem(oKart,newItem,k) {
 		if (isOnline)
 			syncItems.push(lastItem);
 		oKart.using.shift();
+		updateUsingItemsHud(oKart);
 	}
 	return lastItem;
 }
@@ -13031,7 +13032,9 @@ function supprime(item, sound) {
 			var j = aKarts[i].using.indexOf(item);
 			if (j != -1) {
 				aKarts[i].using.splice(j,1);
-				if (!aKarts[i].using.length)
+				if (aKarts[i].using.length)
+					updateUsingItemsHud(aKarts[i]);
+				else
 					consumeItemIfDouble(i);
 				if (sound) {
 					if (playIfShould(aKarts[i],"musics/events/hit.mp3"))
@@ -18591,7 +18594,9 @@ function resetDatas() {
 						if (oItemId != -1) {
 							oKart.using.splice(oItemId,1);
 							uItem.lapId = getCurrentLapId(oKart);
-							if (!oKart.using.length)
+							if (oKart.using.length)
+								updateUsingItemsHud(oKart);
+							else
 								consumeItemIfDouble(j);
 						}
 					}
@@ -20998,6 +21003,27 @@ function handleDecorExplosions(fSprite, callback) {
 	});
 }
 
+var tripleItemsBase = {
+	"bananeX3": "banane",
+	"carapaceX3": "carapace",
+	"carapacerougeX3": "carapacerouge"
+};
+function getDisplayedArme(oKart) {
+	var baseItem = tripleItemsBase[oKart.arme];
+	if (baseItem && oDoubleItemsEnabled) {
+		switch (oKart.using.length) {
+		case 1:
+			return baseItem;
+		case 2:
+			return baseItem+"X2";
+		}
+	}
+	return oKart.arme;
+}
+function updateUsingItemsHud(oKart) {
+	if (oDoubleItemsEnabled && tripleItemsBase[oKart.arme] && kartIsPlayer(oKart))
+		updateObjHud(aKarts.indexOf(oKart));
+}
 var oRoulettesPrefixes = ["", "2"];
 var oArmeKeys = ["arme", "stash"];
 function updateObjHud(ID) {
@@ -21005,7 +21031,7 @@ function updateObjHud(ID) {
 	for (var i=0;i<oRoulettesPrefixes.length;i++) {
 		var prefix = oRoulettesPrefixes[i];
 		var oArmeKey = oArmeKeys[i];
-		var oArme = oKart[oArmeKey];
+		var oArme = i ? oKart[oArmeKey] : getDisplayedArme(oKart);
 		var isArme = false, isRoulette = false;
 		if (oArme) {
 			if (oKart["roulette"+prefix] < 25)
