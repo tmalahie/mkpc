@@ -99,7 +99,7 @@ function printNewUserCooldowned() {
             <p>
                 To prevent spam, new accounts aren't allowed to post on the forum for a short period of time.<br />
                 Please wait a few minutes before sending your 1<sup>st</sup> message.<br />
-                If you haven't done it yet, you can take this time to read the <a href="topic.php?topic=19829" target="_blank">forum's rules</a>.<br />
+                If you haven't already, you can take this time to read the <a href="topic.php?topic=19829" target="_blank">forum's rules</a>.<br />
                 Thanks for your understanding, and welcome to MKPC <sub><img src="images/smileys/smiley0.png" alt=":)" /></sub>
             </p>
             <?php

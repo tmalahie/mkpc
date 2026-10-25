@@ -444,7 +444,7 @@ function getShapeType(oBox) {
 	return "polygon";
 }
 function showOrderHelp() {
-	alert(language ? "If enabled, the player will have to pass through the zones in the right order to complete the challenge. If disabled, the player will have to pass the zones but in the order he wants." : "Si activé, le joueur devra traverser les zones dans le bon ordre pour réussir le défi. Si désactivé, il devra passer par toutes les zones mais dans l'ordre qu'il veut.")
+	alert(language ? "If enabled, the player will have to pass through the zones in the right order to complete the challenge. If disabled, the player will still have to pass through every zone, but in any order." : "Si activé, le joueur devra traverser les zones dans le bon ordre pour réussir le défi. Si désactivé, il devra passer par toutes les zones mais dans l'ordre qu'il veut.")
 }
 function showFloorHelp() {
 	alert(language ? "If enabled, the player will be allowed to jump over the zone, but not to touch the floor." : "Si activé, le joueur pourra sauter par-dessus la zone mais pas rouler dessus.")
