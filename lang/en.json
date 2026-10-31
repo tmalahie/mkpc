@@ -139,7 +139,7 @@
 	"news.published": "Published",
 	"news.back_news_list": "Back to the news list",
 	"forum.auto_ban_ip": "Auto-ban by IP",
-	"forum.welcome_mkpc_forum_if_you": "Welcome to the MKPC forum! If you haven't done it yet, please check out the <a href=\"{url}\">rules</a> before posting.",
+	"forum.welcome_mkpc_forum_if_you": "Welcome to the MKPC forum! If you haven't already, please check out the <a href=\"{url}\">rules</a> before posting.",
 	"forum.my_profile": "My profile",
 	"forum.log_out": "Log out",
 	"forum.this_account_has_been_deleted": "This account has been deleted. The connection to it has been disabled.",

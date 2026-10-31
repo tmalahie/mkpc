@@ -10,6 +10,7 @@ var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
+var webGLContextUnrecoverable = false;
 var selectedCc = localStorage.getItem("cc") || "150";
 var selectedMirror = !!localStorage.getItem("mirror");
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
@@ -1703,7 +1704,7 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
-	bLegacyEngine = localStorage.getItem("settings.engine") === "canvas";
+	bLegacyEngine = webGLContextUnrecoverable || (localStorage.getItem("settings.engine") === "canvas");
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -2665,6 +2666,7 @@ function throwItem(oKart,newItem,k) {
 		if (isOnline)
 			syncItems.push(lastItem);
 		oKart.using.shift();
+		updateUsingItemsHud(oKart);
 	}
 	return lastItem;
 }
@@ -6167,7 +6169,10 @@ function resetScreen() {
 
 		if (!bLegacyEngine) {
 			var glInfo = initWebGL(canvas);
-			if (glInfo && glInfo.gl) oScreens[i].glInfo = glInfo;
+			if (glInfo && glInfo.gl) {
+				oScreens[i].glInfo = glInfo;
+				handleWebGLContextLoss(canvas);
+			}
 			else {
 				console.error("Failed to initialize WebGL, falling back to legacy engine");
 				bLegacyEngine = true;
@@ -6227,30 +6232,71 @@ function resetScreen() {
 	}
 	mapCanvas = document.createElement("canvas");
 
-	if (bLegacyEngine) {
-		var fLastZ = 0;
-		for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
-			var iTotalY = iViewY + iViewHeight;
-			var iDeltaY = iCamHeight - iTotalY;
-			var iPointZ = (iTotalY/(iDeltaY / iCamDist));
-			var fScaleRatio = fFocal / (fFocal + iPointZ);
-			var iStripWidth = Math.floor(iWidth/fScaleRatio);
-			if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
-				if (iViewY == 0)
-					fLastZ = iPointZ - 1;
-				aStrips.push({
-					viewy : iViewY,
-					mapz : iPointZ,
-					scale : fScaleRatio,
-					stripwidth : iStripWidth,
-					mapzspan : iPointZ - fLastZ
-				});
-				fLastZ = iPointZ;
-			}
+	if (bLegacyEngine)
+		setupLegacyStrips();
+}
+
+function setupLegacyStrips() {
+	var fLastZ = 0;
+	for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
+		var iTotalY = iViewY + iViewHeight;
+		var iDeltaY = iCamHeight - iTotalY;
+		var iPointZ = (iTotalY/(iDeltaY / iCamDist));
+		var fScaleRatio = fFocal / (fFocal + iPointZ);
+		var iStripWidth = Math.floor(iWidth/fScaleRatio);
+		if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
+			if (iViewY == 0)
+				fLastZ = iPointZ - 1;
+			aStrips.push({
+				viewy : iViewY,
+				mapz : iPointZ,
+				scale : fScaleRatio,
+				stripwidth : iStripWidth,
+				mapzspan : iPointZ - fLastZ
+			});
+			fLastZ = iPointZ;
 		}
-		oViewCanvas = document.createElement("canvas");
-		oViewCanvas.width = iViewCanvasWidth;
-		oViewCanvas.height = iViewCanvasHeight;
+	}
+	oViewCanvas = document.createElement("canvas");
+	oViewCanvas.width = iViewCanvasWidth;
+	oViewCanvas.height = iViewCanvasHeight;
+}
+
+function handleWebGLContextLoss(canvas) {
+	var restoreTimeout;
+	canvas.addEventListener("webglcontextlost", function(e) {
+		e.preventDefault();
+		logGameCrash("WebGL context lost");
+		restoreTimeout = setTimeout(fallbackToLegacyEngine, 1000);
+	});
+	canvas.addEventListener("webglcontextrestored", function() {
+		clearTimeout(restoreTimeout);
+		if (bLegacyEngine) return;
+		var glInfo = initWebGL(canvas);
+		if (glInfo)
+			canvas.glInfo = glInfo;
+		else
+			fallbackToLegacyEngine();
+	});
+}
+
+function fallbackToLegacyEngine() {
+	if (bLegacyEngine) return;
+	logGameCrash("WebGL context not restored, falling back to legacy engine");
+	webGLContextUnrecoverable = true;
+	bLegacyEngine = true;
+	fLineScale = 1/iScreenScale;
+	aStrips = [];
+	setupLegacyStrips();
+	for (var i=0;i<oScreens.length;i++) {
+		var glCanvas = oScreens[i];
+		if (!glCanvas.glInfo) continue;
+		var canvas = document.createElement("canvas");
+		canvas.style.cssText = glCanvas.style.cssText;
+		canvas.width = iWidth/fLineScale;
+		canvas.height = iHeight/fLineScale;
+		glCanvas.parentNode.replaceChild(canvas, glCanvas);
+		oScreens[i] = canvas;
 	}
 }
 
@@ -13031,7 +13077,9 @@ function supprime(item, sound) {
 			var j = aKarts[i].using.indexOf(item);
 			if (j != -1) {
 				aKarts[i].using.splice(j,1);
-				if (!aKarts[i].using.length)
+				if (aKarts[i].using.length)
+					updateUsingItemsHud(aKarts[i]);
+				else
 					consumeItemIfDouble(i);
 				if (sound) {
 					if (playIfShould(aKarts[i],"musics/events/hit.mp3"))
@@ -18347,12 +18395,14 @@ function resetDatas() {
 	}
 	if (onlineSpectatorId)
 		payload.spectator = onlineSpectatorId;
+	var responseReceived = false;
 	fetch('api/reload.php', {
 		method: 'post',
 		body: JSON.stringify(payload)
 	}).then(function(response) {
 		return response.json();
 	}).then(function(rCode) {
+		responseReceived = true;
 		if (rCode != -1) {
 			refreshDatas = true;
 			var oCodes = rCode[1];
@@ -18591,7 +18641,9 @@ function resetDatas() {
 						if (oItemId != -1) {
 							oKart.using.splice(oItemId,1);
 							uItem.lapId = getCurrentLapId(oKart);
-							if (!oKart.using.length)
+							if (oKart.using.length)
+								updateUsingItemsHud(oKart);
+							else
 								consumeItemIfDouble(j);
 						}
 					}
@@ -18840,6 +18892,8 @@ function resetDatas() {
 		}
 	}).catch(function(e) {
 		console.error(e);
+		if (responseReceived)
+			logGameError(e);
 		if (!refreshDatas) {
 			refreshDatas = true;
 			for (var i=aSyncItems.length-1;i>=0;i--)
@@ -20998,6 +21052,27 @@ function handleDecorExplosions(fSprite, callback) {
 	});
 }
 
+var tripleItemsBase = {
+	"bananeX3": "banane",
+	"carapaceX3": "carapace",
+	"carapacerougeX3": "carapacerouge"
+};
+function getDisplayedArme(oKart) {
+	var baseItem = tripleItemsBase[oKart.arme];
+	if (baseItem && oDoubleItemsEnabled) {
+		switch (oKart.using.length) {
+		case 1:
+			return baseItem;
+		case 2:
+			return baseItem+"X2";
+		}
+	}
+	return oKart.arme;
+}
+function updateUsingItemsHud(oKart) {
+	if (oDoubleItemsEnabled && tripleItemsBase[oKart.arme] && kartIsPlayer(oKart))
+		updateObjHud(aKarts.indexOf(oKart));
+}
 var oRoulettesPrefixes = ["", "2"];
 var oArmeKeys = ["arme", "stash"];
 function updateObjHud(ID) {
@@ -21005,7 +21080,7 @@ function updateObjHud(ID) {
 	for (var i=0;i<oRoulettesPrefixes.length;i++) {
 		var prefix = oRoulettesPrefixes[i];
 		var oArmeKey = oArmeKeys[i];
-		var oArme = oKart[oArmeKey];
+		var oArme = i ? oKart[oArmeKey] : getDisplayedArme(oKart);
 		var isArme = false, isRoulette = false;
 		if (oArme) {
 			if (oKart["roulette"+prefix] < 25)
@@ -22619,14 +22694,20 @@ function runOneFrame() {
 	}
 	catch (e) {
 		console.error(e);
-		var errorTs = new Date().getTime();
-		if (errorTs - lastErrorTs > 10000) {
-			xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
-				return true;
-			});
-			lastErrorTs = errorTs;
-		}
+		logGameError(e);
 	}
+}
+function logGameError(e) {
+	var errorTs = new Date().getTime();
+	if (errorTs - lastErrorTs > 10000) {
+		logGameCrash(e.stack);
+		lastErrorTs = errorTs;
+	}
+}
+function logGameCrash(stack) {
+	xhr("logGameCrash.php", "error="+encodeURIComponent(stack), function() {
+		return true;
+	});
 }
 
 var gameControls = {
@@ -28329,7 +28410,7 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		var nbTeams = shareLink.options.nbTeams || defaultGameOptions.nbTeams;
-		oDiv.innerHTML = toLanguage(nbTeams + " teams are selected in each game. You object: defeat the opposing team"+ (nbTeams>2 ? "s":"") +".", nbTeams + " équipes sont sélectionnées à chaque partie. Votre objectif : vaincre "+ (nbTeams>2 ? "les équipes adverses":"l'équipe adverse") + ".");
+		oDiv.innerHTML = toLanguage(nbTeams + " teams are selected in each game. Your objective: defeat the opposing team"+ (nbTeams>2 ? "s":"") +".", nbTeams + " équipes sont sélectionnées à chaque partie. Votre objectif : vaincre "+ (nbTeams>2 ? "les équipes adverses":"l'équipe adverse") + ".");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

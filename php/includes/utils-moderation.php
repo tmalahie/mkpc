@@ -8,7 +8,7 @@ function printForumReplyNotices() {
         <?php
         if ($language) {
             ?>
-            Looks like this is your first message to MKPC! Welome to the forum, if you haven't done it yet, please have a look at the <a href="forum-rules.php" target="_blank">rules</a> before proceeding.
+            Looks like this is your first message to MKPC! Welcome to the forum! If you haven't already, please have a look at the <a href="forum-rules.php" target="_blank">rules</a> before proceeding.
             <?php
         }
         else {
