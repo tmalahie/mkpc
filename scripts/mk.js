@@ -10,6 +10,7 @@ var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
+var webGLContextUnrecoverable = false;
 var selectedCc = localStorage.getItem("cc") || "150";
 var selectedMirror = !!localStorage.getItem("mirror");
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
@@ -1703,7 +1704,7 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
-	bLegacyEngine = localStorage.getItem("settings.engine") === "canvas";
+	bLegacyEngine = webGLContextUnrecoverable || (localStorage.getItem("settings.engine") === "canvas");
 	if (isMobile()) {
 		if (ctrlSettings.autoacc === undefined)
 			ctrlSettings.autoacc = 1;
@@ -6282,6 +6283,7 @@ function handleWebGLContextLoss(canvas) {
 function fallbackToLegacyEngine() {
 	if (bLegacyEngine) return;
 	logGameCrash("WebGL context not restored, falling back to legacy engine");
+	webGLContextUnrecoverable = true;
 	bLegacyEngine = true;
 	fLineScale = 1/iScreenScale;
 	aStrips = [];
