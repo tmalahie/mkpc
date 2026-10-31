@@ -6168,7 +6168,10 @@ function resetScreen() {
 
 		if (!bLegacyEngine) {
 			var glInfo = initWebGL(canvas);
-			if (glInfo && glInfo.gl) oScreens[i].glInfo = glInfo;
+			if (glInfo && glInfo.gl) {
+				oScreens[i].glInfo = glInfo;
+				handleWebGLContextLoss(canvas);
+			}
 			else {
 				console.error("Failed to initialize WebGL, falling back to legacy engine");
 				bLegacyEngine = true;
@@ -6228,30 +6231,70 @@ function resetScreen() {
 	}
 	mapCanvas = document.createElement("canvas");
 
-	if (bLegacyEngine) {
-		var fLastZ = 0;
-		for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
-			var iTotalY = iViewY + iViewHeight;
-			var iDeltaY = iCamHeight - iTotalY;
-			var iPointZ = (iTotalY/(iDeltaY / iCamDist));
-			var fScaleRatio = fFocal / (fFocal + iPointZ);
-			var iStripWidth = Math.floor(iWidth/fScaleRatio);
-			if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
-				if (iViewY == 0)
-					fLastZ = iPointZ - 1;
-				aStrips.push({
-					viewy : iViewY,
-					mapz : iPointZ,
-					scale : fScaleRatio,
-					stripwidth : iStripWidth,
-					mapzspan : iPointZ - fLastZ
-				});
-				fLastZ = iPointZ;
-			}
+	if (bLegacyEngine)
+		setupLegacyStrips();
+}
+
+function setupLegacyStrips() {
+	var fLastZ = 0;
+	for (var iViewY = 0; iViewY < iHeight; iViewY += fLineScale) {
+		var iTotalY = iViewY + iViewHeight;
+		var iDeltaY = iCamHeight - iTotalY;
+		var iPointZ = (iTotalY/(iDeltaY / iCamDist));
+		var fScaleRatio = fFocal / (fFocal + iPointZ);
+		var iStripWidth = Math.floor(iWidth/fScaleRatio);
+		if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
+			if (iViewY == 0)
+				fLastZ = iPointZ - 1;
+			aStrips.push({
+				viewy : iViewY,
+				mapz : iPointZ,
+				scale : fScaleRatio,
+				stripwidth : iStripWidth,
+				mapzspan : iPointZ - fLastZ
+			});
+			fLastZ = iPointZ;
 		}
-		oViewCanvas = document.createElement("canvas");
-		oViewCanvas.width = iViewCanvasWidth;
-		oViewCanvas.height = iViewCanvasHeight;
+	}
+	oViewCanvas = document.createElement("canvas");
+	oViewCanvas.width = iViewCanvasWidth;
+	oViewCanvas.height = iViewCanvasHeight;
+}
+
+function handleWebGLContextLoss(canvas) {
+	var restoreTimeout;
+	canvas.addEventListener("webglcontextlost", function(e) {
+		e.preventDefault();
+		logGameCrash("WebGL context lost");
+		restoreTimeout = setTimeout(fallbackToLegacyEngine, 1000);
+	});
+	canvas.addEventListener("webglcontextrestored", function() {
+		clearTimeout(restoreTimeout);
+		if (bLegacyEngine) return;
+		var glInfo = initWebGL(canvas);
+		if (glInfo)
+			canvas.glInfo = glInfo;
+		else
+			fallbackToLegacyEngine();
+	});
+}
+
+function fallbackToLegacyEngine() {
+	if (bLegacyEngine) return;
+	logGameCrash("WebGL context not restored, falling back to legacy engine");
+	bLegacyEngine = true;
+	fLineScale = 1/iScreenScale;
+	aStrips = [];
+	setupLegacyStrips();
+	for (var i=0;i<oScreens.length;i++) {
+		var glCanvas = oScreens[i];
+		if (!glCanvas.glInfo) continue;
+		var canvas = document.createElement("canvas");
+		canvas.style.cssText = glCanvas.style.cssText;
+		canvas.width = iWidth/fLineScale;
+		canvas.height = iHeight/fLineScale;
+		glCanvas.parentNode.replaceChild(canvas, glCanvas);
+		oScreens[i] = canvas;
 	}
 }
 
@@ -18350,12 +18393,14 @@ function resetDatas() {
 	}
 	if (onlineSpectatorId)
 		payload.spectator = onlineSpectatorId;
+	var responseReceived = false;
 	fetch('api/reload.php', {
 		method: 'post',
 		body: JSON.stringify(payload)
 	}).then(function(response) {
 		return response.json();
 	}).then(function(rCode) {
+		responseReceived = true;
 		if (rCode != -1) {
 			refreshDatas = true;
 			var oCodes = rCode[1];
@@ -18845,6 +18890,8 @@ function resetDatas() {
 		}
 	}).catch(function(e) {
 		console.error(e);
+		if (responseReceived)
+			logGameError(e);
 		if (!refreshDatas) {
 			refreshDatas = true;
 			for (var i=aSyncItems.length-1;i>=0;i--)
@@ -22645,14 +22692,20 @@ function runOneFrame() {
 	}
 	catch (e) {
 		console.error(e);
-		var errorTs = new Date().getTime();
-		if (errorTs - lastErrorTs > 10000) {
-			xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
-				return true;
-			});
-			lastErrorTs = errorTs;
-		}
+		logGameError(e);
 	}
+}
+function logGameError(e) {
+	var errorTs = new Date().getTime();
+	if (errorTs - lastErrorTs > 10000) {
+		logGameCrash(e.stack);
+		lastErrorTs = errorTs;
+	}
+}
+function logGameCrash(stack) {
+	xhr("logGameCrash.php", "error="+encodeURIComponent(stack), function() {
+		return true;
+	});
 }
 
 var gameControls = {
