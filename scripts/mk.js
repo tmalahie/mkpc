@@ -6390,19 +6390,20 @@ function reprendre(debug) {
 	}
 }
 
-// Shown once a player crosses the entry criteria, above the button it is pointing at. It
+// Shown once a player crosses the entry criteria, next to the button it is pointing at. It
 // comes back on every online.php load until they either use ranked or say not to - which is
 // the server's call, handed over as loungeUnlockBanner.
-function rankedUnlockBanner() {
+function rankedUnlockBanner(target) {
+	var bannerColor = "rgb(255 127 21)";
 	var banner = document.createElement("div");
 	banner.style.position = "absolute";
 	// the band to the left of the two buttons: the character grid above it and the menu links
 	// below it are the only things on this screen that must not be covered
-	banner.style.right = (19*iScreenScale)+"px";
 	banner.style.top = (28*iScreenScale)+"px";
 	banner.style.boxSizing = "border-box";
 	banner.style.padding = Math.round(iScreenScale*0.5)+"px " + iScreenScale+"px";
-	banner.style.backgroundColor = "rgba(230, 81, 48, 0.95)";
+	banner.style.backgroundColor = bannerColor;
+	banner.style.fontFamily = "Tahoma, sans-serif";
 	banner.style.border = "solid 1px white";
 	banner.style.borderRadius = Math.round(iScreenScale*0.8)+"px";
 	banner.style.color = "white";
@@ -6455,7 +6456,31 @@ function rankedUnlockBanner() {
 	}));
 	actions.appendChild(bannerAction("Ok", "Ok", {}, function() {}));
 	banner.appendChild(actions);
-	return banner;
+
+	var arrowHalfHeight = Math.round(iScreenScale*1);
+	var arrowWidth = Math.round(arrowHalfHeight*1.2);
+	var arrowGap = Math.round(iScreenScale*0.5);
+	function arrowTriangle(inset, color) {
+		var triangle = document.createElement("div");
+		triangle.style.position = "absolute";
+		triangle.style.left = "calc(100% - "+ inset +"px)";
+		triangle.style.width = "0";
+		triangle.style.height = "0";
+		triangle.style.borderTop = triangle.style.borderBottom = (arrowHalfHeight-inset)+"px solid transparent";
+		triangle.style.borderLeft = (arrowWidth - Math.round(inset*1.4))+"px solid "+ color;
+		return triangle;
+	}
+	var arrowOutline = arrowTriangle(0, "white");
+	var arrowFill = arrowTriangle(1, bannerColor);
+	banner.appendChild(arrowOutline);
+	banner.appendChild(arrowFill);
+
+	target.parentNode.appendChild(banner);
+	var bannerRight = target.offsetLeft - arrowGap - arrowWidth + 1;
+	banner.style.right = (target.parentNode.clientWidth - bannerRight + 2)+"px";
+	var arrowTop = target.offsetTop + target.offsetHeight/2 - banner.offsetTop - banner.clientTop - arrowHalfHeight;
+	arrowOutline.style.top = Math.round(arrowTop)+"px";
+	arrowFill.style.top = Math.round(arrowTop+1)+"px";
 }
 
 var discordInvite = "https://discord.gg/qh9DhJsMw";
@@ -26769,8 +26794,6 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				// and account age are checked server-side and handed over as loungeEligible.
 				if (document.location.pathname.split("/").pop() == "online.php" && !document.location.search
 					&& (typeof loungeEligible !== "undefined") && loungeEligible) {
-					if ((typeof loungeUnlockBanner !== "undefined") && loungeUnlockBanner)
-						oScr.appendChild(rankedUnlockBanner());
 					var oPInput = document.createElement("input");
 					oPInput.type = "button";
 					oPInput.value = toLanguage("Ranked game...", "Partie classée...");
@@ -26787,6 +26810,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						document.location.href = "ranked.php";
 					}
 					oScr.appendChild(oPInput);
+					if ((typeof loungeUnlockBanner !== "undefined") && loungeUnlockBanner)
+						rankedUnlockBanner(oPInput);
 				}
 
 				var oPInput = document.createElement("input");
