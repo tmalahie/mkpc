@@ -555,6 +555,16 @@ a.circuit-comment:hover .circuit-comment-infos {
 	color: #090;
 	text-decoration: none;
 }
+.profile-summary .lounge-leaderboard {
+	color: #0C0;
+	text-decoration: none;
+	margin-left: 2px;
+	font-size: 0.95em;
+}
+.profile-summary .lounge-leaderboard:hover {
+	color: #090;
+	text-decoration: none;
+}
 .follow-user {
 	display: inline-block;
 	background-color: #0C0;
