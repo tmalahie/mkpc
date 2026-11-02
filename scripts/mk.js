@@ -11,6 +11,7 @@ var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
 var webGLContextUnrecoverable = false;
+var webGLCanvases = [];
 var selectedCc = localStorage.getItem("cc") || "150";
 var selectedMirror = !!localStorage.getItem("mirror");
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
@@ -6138,6 +6139,8 @@ function initWebGL(canvas) {
 function resetScreen() {
 	fSpriteScale = iScreenScale / 4;
 
+	releaseDetachedWebGLContexts();
+
 	if (bLegacyEngine) {
 		fLineScale = 1/iScreenScale;
 		aStrips = [];
@@ -6172,6 +6175,7 @@ function resetScreen() {
 			if (glInfo && glInfo.gl) {
 				oScreens[i].glInfo = glInfo;
 				handleWebGLContextLoss(canvas);
+				webGLCanvases.push(canvas);
 			}
 			else {
 				console.error("Failed to initialize WebGL, falling back to legacy engine");
@@ -6262,16 +6266,31 @@ function setupLegacyStrips() {
 	oViewCanvas.height = iViewCanvasHeight;
 }
 
+function releaseDetachedWebGLContexts() {
+	for (var i=webGLCanvases.length-1;i>=0;i--) {
+		var canvas = webGLCanvases[i];
+		if (canvas.isConnected) continue;
+		var loseContextExt = canvas.glInfo.gl.getExtension("WEBGL_lose_context");
+		if (loseContextExt)
+			loseContextExt.loseContext();
+		webGLCanvases.splice(i, 1);
+	}
+}
+
 function handleWebGLContextLoss(canvas) {
 	var restoreTimeout;
 	canvas.addEventListener("webglcontextlost", function(e) {
+		if (!canvas.isConnected) return;
 		e.preventDefault();
 		logGameCrash("WebGL context lost");
-		restoreTimeout = setTimeout(fallbackToLegacyEngine, 1000);
+		restoreTimeout = setTimeout(function() {
+			if (canvas.isConnected)
+				fallbackToLegacyEngine();
+		}, 1000);
 	});
 	canvas.addEventListener("webglcontextrestored", function() {
 		clearTimeout(restoreTimeout);
-		if (bLegacyEngine) return;
+		if (bLegacyEngine || !canvas.isConnected) return;
 		var glInfo = initWebGL(canvas);
 		if (glInfo)
 			canvas.glInfo = glInfo;
