@@ -30,8 +30,17 @@ if ($id) {
 	if (hasRight('moderator')) {
 		$notifs['admin_report'] = $language ? 'Reported messages on the forum' : 'Messages signalés sur le forum';
 	}
+	require_once('../includes/lounge/common.php');
+	// Only ever sent to a player who could enter ranked, so only offered to one - the way the
+	// rest of the site hides ranked from anyone who cannot use it.
+	if (lounge_is_eligible($id)) {
+		$notifs['lounge_queue'] = $language ? 'A ranked lineup is gathering':'Un membre a rejoint une partie classée';
+	}
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-		$getNotifMute = mysql_query('DELETE FROM `mknotifmute` WHERE user="'. $id .'"');
+		// Scoped to the types this form offered: the two conditional ones above are absent for
+		// most members, and an unscoped delete would quietly un-mute them on someone else's save.
+		$getNotifMute = mysql_query('DELETE FROM `mknotifmute` WHERE user="'. $id .'"
+			AND type IN ("'. implode('","', array_keys($notifs)) .'")');
 		foreach ($notifs as $type => $notif) {
 			if (!isset($_POST[$type]))
 				mysql_query('INSERT INTO `mknotifmute` VALUES('. $id .',"'. $type .'")');
