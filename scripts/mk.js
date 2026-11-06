@@ -11398,34 +11398,36 @@ var decorBehaviors = {
 			if (!extraParams.path)
 				extraParams.path = lMap.aipoints.slice(0, lMap.airoutesmeta.cpu);
 			var aipoints = extraParams.path[decorData[5]];
-			do {
-				var aipoint = aipoints[decorData[6]];
-				aimX = aipoint[0]-x; aimY = aipoint[1]-y;
-				var dist = Math.hypot(aimX,aimY);
-				if (dist < speed) {
-					x += aimX;
-					y += aimY;
-					speed -= dist;
-					if (++decorData[6] >= aipoints.length)
-						decorData[6] = 0;
+			if (aipoints.length) {
+				do {
+					var aipoint = aipoints[decorData[6]];
+					aimX = aipoint[0]-x; aimY = aipoint[1]-y;
+					var dist = Math.hypot(aimX,aimY);
+					if (dist < speed) {
+						x += aimX;
+						y += aimY;
+						speed -= dist;
+						if (++decorData[6] >= aipoints.length)
+							decorData[6] = 0;
+					}
+					else {
+						x += aimX*speed/dist;
+						y += aimY*speed/dist;
+						speed = 0;
+					}
+				} while (speed > 0);
+				decorData[0] = x;
+				decorData[1] = y;
+				if (aimX || aimY) {
+					var aimAngle = nearestAngle(Math.atan2(aimX,aimY)*180/Math.PI, decorData[4],360);
+					var maxOmega = 8*decorData[7];
+					if (decorData[4] < (aimAngle-maxOmega))
+						decorData[4] += maxOmega;
+					else if (decorData[4] > (aimAngle+maxOmega))
+						decorData[4] -= maxOmega;
+					else
+						decorData[4] = aimAngle;
 				}
-				else {
-					x += aimX*speed/dist;
-					y += aimY*speed/dist;
-					speed = 0;
-				}
-			} while (speed > 0);
-			decorData[0] = x;
-			decorData[1] = y;
-			if (aimX || aimY) {
-				var aimAngle = nearestAngle(Math.atan2(aimX,aimY)*180/Math.PI, decorData[4],360);
-				var maxOmega = 8*decorData[7];
-				if (decorData[4] < (aimAngle-maxOmega))
-					decorData[4] += maxOmega;
-				else if (decorData[4] > (aimAngle+maxOmega))
-					decorData[4] -= maxOmega;
-				else
-					decorData[4] = aimAngle;
 			}
 			for (var i=0;i<oPlayers.length;i++) {
 				var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(i))-decorData[4], 180,360);
