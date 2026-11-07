@@ -674,6 +674,7 @@ function addConstraintRule(clClass, autoOpen) {
 			$offroadSelector.find("button").click(function() {
 				toggleOffroad(this);
 			});
+			toggleOffroad($anyOffroadBtn[0]);
 			break;
 		case 'avoid_zones':
 			$form.html(
@@ -993,10 +994,16 @@ function toggleOffroad(btn, name) {
 	var $names = $(".challenge-offroad-names");
 	var key = btn.dataset.value;
 	if (btn.dataset.selected) {
+		if (key === "") {
+			btn.blur();
+			return;
+		}
 		delete btn.dataset.selected;
 		$names.children().filter(function() {
 			return this.dataset.offroad === key;
 		}).remove();
+		if (!$selector.find("button[data-selected]").length)
+			$selector.find('button[data-value=""]').attr("data-selected", "1");
 	}
 	else if (key === "") {
 		$selector.find("button[data-selected]").removeAttr("data-selected");
@@ -1012,8 +1019,8 @@ function toggleOffroad(btn, name) {
 		$nameInput.attr("name", "scope[avoid_offroads][value]["+ key +"][name]");
 		$nameInput.attr("placeholder", btn.textContent);
 		var isCustom = key.indexOf("custom-") === 0;
-	$nameInput.val(name || (isCustom ? btn.textContent : ""));
-	$nameInput.prop("required", isCustom);
+		$nameInput.val(name || (isCustom ? btn.textContent : ""));
+		$nameInput.prop("required", isCustom);
 		$names.append($offroadName);
 	}
 	$("input[name='avoid_offroads_fake1']").val($selector.find("button[data-selected]").length ? "1":"");
@@ -1502,8 +1509,6 @@ $(function() {
 					case "avoid_offroads":
 						var $offroadSelector = $rule.find(".challenge-offroad-btn-options");
 						var offroadKeys = Object.keys(constraint.value);
-						if (!offroadKeys.length)
-							toggleOffroad($offroadSelector.find('button[data-value=""]')[0]);
 						for (var k=0;k<offroadKeys.length;k++) {
 							var offroadBtn = $offroadSelector.find("button").filter(function() {
 								return this.dataset.value === offroadKeys[k];
