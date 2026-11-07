@@ -19953,7 +19953,7 @@ function move(getId, triggered) {
 			}
 			else {
 				if (clLocalVars.offroadsHit && (oKart === oPlayers[0]) && !isActivelyGrinding(oKart)) {
-					var touchedOffroad = ralenti(fNewPosX, fNewPosY);
+					var touchedOffroad = ralenti(oKart.x, oKart.y);
 					if (touchedOffroad)
 						clLocalVars.offroadsHit[touchedOffroad] = true;
 				}
