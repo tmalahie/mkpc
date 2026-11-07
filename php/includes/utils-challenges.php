@@ -44,7 +44,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('battle')
+			'course' => array('vs','battle')
 		),
 		'eliminate' => array(
 			'description' => $language ? 'Eliminate $value opponent$s by yourself':'Éliminer $value adversaire$s par vous-même',
@@ -66,7 +66,7 @@ $clRulesByType = array(
 			'formatter' => function(&$scope) {
 				$scope->value = formatTime($scope->value);
 			},
-			'course' => array('battle')
+			'course' => array('vs','battle')
 		),
 		'reach_zone' => array(
 			'description_mockup' => $language ? 'Reach zone...':'Atteindre la zone...',
@@ -430,6 +430,48 @@ $clRulesByType = array(
 			},
 			'group' => 'no_action',
 			'course' => array('vs', 'battle')
+		),
+		'avoid_offroads' => array(
+			'description_mockup' => $language ? 'without touching off-road...':'sans toucher le hors-piste...',
+			'description_lambda' => function($language,&$scope) {
+				$offroadNames = array();
+				foreach ($scope->value as $key=>$offroad)
+					$offroadNames[] = getChallengeOffroadName($key, isset($offroad->name) ? $offroad->name : null);
+				$offroadNames = array_values(array_unique($offroadNames));
+				$nbOffroads = count($offroadNames);
+				if (!$nbOffroads)
+					return $language ? 'without touching any off-road':'sans toucher de hors-piste';
+				$offroadNamesString = '';
+				foreach ($offroadNames as $i=>$offroadName) {
+					if ($i) {
+						if ($i === ($nbOffroads-1))
+							$offroadNamesString .= $language ? ' nor ':' ni ';
+						else
+							$offroadNamesString .= ', ';
+					}
+					$offroadNamesString .= $offroadName;
+				}
+				return $language ? 'without touching any '. $offroadNamesString:'sans toucher '. (in_array(mb_strtolower(mb_substr($offroadNamesString,0,1)),array('a','e','é','i','o','u','h')) ? "d'":"de ") . $offroadNamesString;
+			},
+			'parser' => function(&$scope) {
+				$offroads = array();
+				if (!empty($scope['value']) && is_array($scope['value'])) {
+					foreach ($scope['value'] as $key => $options) {
+						$offroad = new stdClass();
+						if (isset($options['name']) && trim($options['name']) !== '')
+							$offroad->name = trim($options['name']);
+						$offroads[$key] = $offroad;
+					}
+				}
+				$scope['value'] = (object) $offroads;
+			},
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
+		'no_rails' => array(
+			'description' => $language ? 'without riding rails':'sans prendre de rails',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'avoid_walls' => array(
 			'description' => $language ? 'without touching the walls':'sans toucher les murs',
@@ -1461,6 +1503,24 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 	if (isset($decorMapping[$key]))
 		return $decorMapping[$key];
 	return htmlspecialchars($key);
+}
+function getChallengeOffroadNames() {
+	global $language;
+	return array(
+		'herbe' => $language ? 'grass':'herbe',
+		'eau' => $language ? 'water':'eau',
+		'glace' => $language ? 'ice':'glace',
+		'choco' => $language ? 'choco':'choco'
+	);
+}
+function getChallengeOffroadName($key, $name) {
+	global $language;
+	if (!empty($name))
+		return htmlspecialchars($name);
+	$offroadNames = getChallengeOffroadNames();
+	if (isset($offroadNames[$key]))
+		return $offroadNames[$key];
+	return $language ? 'custom off-road':'hors-piste personnalisé';
 }
 function getChallengeItemNames(&$scope) {
 	global $language;
