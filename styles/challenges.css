@@ -711,7 +711,9 @@ a.pretty-link:hover {
 .challenge-rule-btn-options.challenge-rule-text-options button {
 	width: auto;
 	height: auto;
-	margin: 0 2px;
+	margin: 2px;
+	padding: 1px 6px;
+	font-size: 0.75em;
 	background-color: #EEF3FF;
 	border-color: #CCD;
 }
@@ -719,6 +721,9 @@ a.pretty-link:hover {
 	background-color: #88D;
 	border-color: #559;
 	color: white;
+}
+.challenge-offroad-names:not(:empty) {
+	margin-top: 6px;
 }
 .searchable-select {
 	position: relative;
