@@ -131,6 +131,16 @@ function searchableSelect(select, params) {
 		refresh();
 		select.dispatchEvent(new Event("change", { bubbles: true }));
 	}
+	function position() {
+		var viewportMargin = 8;
+		var viewportWidth = document.documentElement.clientWidth;
+		dropdown.style.left = "";
+		dropdown.style.maxWidth = Math.min(450, viewportWidth - 2*viewportMargin) + "px";
+		var rect = dropdown.getBoundingClientRect();
+		var overflow = rect.right - (viewportWidth - viewportMargin);
+		if (overflow > 0)
+			dropdown.style.left = -Math.min(overflow, rect.left - viewportMargin) + "px";
+	}
 	function onOutsideClick(e) {
 		if (!wrapper.contains(e.target))
 			close();
@@ -141,14 +151,17 @@ function searchableSelect(select, params) {
 		wrapper.classList.add("searchable-select-open");
 		search.value = initialQuery || "";
 		render();
+		position();
 		search.focus();
 		document.addEventListener("mousedown", onOutsideClick);
+		window.addEventListener("resize", position);
 	}
 	function close() {
 		if (!isOpen) return;
 		isOpen = false;
 		wrapper.classList.remove("searchable-select-open");
 		document.removeEventListener("mousedown", onOutsideClick);
+		window.removeEventListener("resize", position);
 	}
 
 	toggle.addEventListener("click", function() {
