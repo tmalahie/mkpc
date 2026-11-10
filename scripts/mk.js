@@ -19249,6 +19249,8 @@ function move(getId, triggered) {
 		if (handleHeightInc(oKart)) {
 			delete oKart.jumped;
 			if (oKart.driftinc) {
+				if (oKart === oPlayers[0])
+					clLocalVars.drifted = true;
 				if (carDrift && !oKart.driftSound && kartIsPlayer(oKart)) {
 					carDrift.currentTime = 0;
 					carDrift.play();
