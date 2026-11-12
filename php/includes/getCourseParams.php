@@ -56,7 +56,11 @@ if (isset($_POST['key']) && is_numeric($_POST['key'])) {
     elseif ($getOptions = mysql_fetch_array(mysql_query('SELECT rules,public FROM `mkgameoptions` WHERE id='.$nlink))) {
         $linkOptions->rules = json_decode($getOptions['rules']);
         $linkOptions->public = $getOptions['public'];
-        if (in_array($privGameData['player'], array(3586,5164,40764))) {
+        // Lounge rooms pin minPlayers to the exact lineup, so one player who does not make it
+        // in wedges the whole mogi - which is the case worth having a trace of. The hardcoded
+        // ids stand for the same thing on the Discord side, where staff host the mogi from a
+        // link they made by hand and the rules carry no lounge flag.
+        if (!empty($linkOptions->rules->lounge) || in_array($privGameData['player'], array(3586,5164,40764))) {
             $verboseLogs = true;
             $logCtx = bin2hex(random_bytes(8));
         }
