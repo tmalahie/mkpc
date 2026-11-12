@@ -2007,8 +2007,31 @@ function initMap() {
 		var mapOverrides = oMap.lapOverrides;
 		var lapOverrides = [];
 		var conditionPayloadIds = [];
+		var overridesReachability = [];
+		function isOverrideReachable(i) {
+			if (overridesReachability[i] !== undefined)
+				return overridesReachability[i];
+			overridesReachability[i] = true;
+			var lapOverride = mapOverrides[i];
+			var res = true;
+			if (lapOverride.challenge !== undefined)
+				res = !!(clSelected && clSelected.id === lapOverride.challenge);
+			else if (lapOverride.requiredOverrides) {
+				for (var j=0;j<lapOverride.requiredOverrides.length;j++) {
+					var requiredId = lapOverride.requiredOverrides[j]-1;
+					if (mapOverrides[requiredId] && !isOverrideReachable(requiredId)) {
+						res = false;
+						break;
+					}
+				}
+			}
+			overridesReachability[i] = res;
+			return res;
+		}
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
+			if (lapOverride.lap === undefined && lapOverride.challenge === undefined && !isOverrideReachable(i))
+				continue;
 			if (lapOverride.challenge !== undefined) {
 				if (clSelected && clSelected.id === lapOverride.challenge) {
 					oMap.conditionOverrides.push(lapOverride);
