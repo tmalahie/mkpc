@@ -403,11 +403,6 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
-		'avoid_boomerang_break' => array(
-			'description' => $language ? 'without breaking any of your boomerangs' : 'sans casser aucun de vos boomerangs',
-			'group' => 'no_action',
-			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
-		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
@@ -430,6 +425,16 @@ $clRulesByType = array(
 			},
 			'group' => 'no_action',
 			'course' => array('vs', 'battle')
+		),
+		'no_rails' => array(
+			'description' => $language ? 'without riding rails':'sans prendre de rails',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
+		'avoid_walls' => array(
+			'description' => $language ? 'without touching the walls':'sans toucher les murs',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'avoid_offroads' => array(
 			'description_mockup' => $language ? 'without touching off-road...':'sans toucher le hors-piste...',
@@ -465,16 +470,6 @@ $clRulesByType = array(
 				}
 				$scope['value'] = (object) $offroads;
 			},
-			'group' => 'no_action',
-			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
-		),
-		'no_rails' => array(
-			'description' => $language ? 'without riding rails':'sans prendre de rails',
-			'group' => 'no_action',
-			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
-		),
-		'avoid_walls' => array(
-			'description' => $language ? 'without touching the walls':'sans toucher les murs',
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
@@ -581,6 +576,11 @@ $clRulesByType = array(
 		),
 		'no_stunt' => array(
 			'description' => $language ? 'without making tricks':'sans faire de figures',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
+		'avoid_boomerang_break' => array(
+			'description' => $language ? 'without breaking any boomerang' : 'sans casser vos boomerangs',
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
@@ -1520,7 +1520,7 @@ function getChallengeOffroadName($key, $name) {
 	$offroadNames = getChallengeOffroadNames();
 	if (isset($offroadNames[$key]))
 		return $offroadNames[$key];
-	return $language ? 'custom off-road':'hors-piste personnalisé';
+	return $language ? '<Deleted profile>':'<Profil supprimé>';
 }
 function getChallengeItemNames(&$scope) {
 	global $language;
