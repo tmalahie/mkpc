@@ -130,6 +130,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 		'value' => ''
 	);
 	$decorOptions = array();
+	$offroadOptions = array();
 	if (!empty($clRace) && $clRace['type']) {
 		$decorTable = $clRace['type'];
 		$decorCircuit = $clRace['circuit'];
@@ -169,8 +170,11 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 				$circuitDecor = (array)$circuitData->decor;
 				$circuitAssets = isset($circuitData->assets) ? $circuitData->assets:new \stdClass();
 				$decorExtra = isset($circuitData->decorparams->extra) ? $circuitData->decorparams->extra:new \stdClass();
+				$circuitOffroads = isset($circuitData->horspistes) ? array_keys((array)$circuitData->horspistes):array();
 				if (isset($circuitData->lapOverrides)) {
 					foreach ($circuitData->lapOverrides as $lapOverride) {
+						if (isset($lapOverride->horspistes))
+							$circuitOffroads = array_merge($circuitOffroads, array_keys((array)$lapOverride->horspistes));
 						if (isset($lapOverride->decor))
 							$circuitDecor = array_merge($circuitDecor, (array)$lapOverride->decor);
 						if (isset($lapOverride->decorparams->extra))
@@ -219,6 +223,15 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 					}
 					$decorOptions[] = $decorOption;
 				}
+				$builtinOffroadNames = getChallengeOffroadNames();
+				foreach (array_unique($circuitOffroads) as $type) {
+					if (isset($builtinOffroadNames[$type]))
+						$offroadOptions[] = array('value' => $type, 'label' => $builtinOffroadNames[$type]);
+					elseif (preg_match('#^custom-(\d+)$#', $type, $matches)) {
+						$customOffroad = mysql_fetch_array(mysql_query('SELECT name FROM mkoffroads WHERE id='. $matches[1]));
+						$offroadOptions[] = array('value' => $type, 'label' => $customOffroad ? $customOffroad['name'] : getChallengeDeletedOffroadName());
+					}
+				}
 			}
 
 			break;
@@ -247,6 +260,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <?php include('../includes/c_challenges.php'); ?>
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/searchable-select.js"></script>
 <?php
 if (empty($moderate))
 	include('../includes/o_online.php');
@@ -272,6 +286,7 @@ echo 'var clCourse = "'. $clCourse .'";';
 ?>
 var persoOptions = <?php echo isset($persoOptions) ? json_encode($persoOptions) : 'null'; ?>;
 var decorOptions = <?php echo isset($decorOptions) ? json_encode($decorOptions) : 'null'; ?>;
+var offroadOptions = <?php echo isset($offroadOptions) ? json_encode($offroadOptions) : 'null'; ?>;
 var selectedConstraints = {};
 function selectMainRule() {
 	var ruleValue = $("#challenge-main-rule").val();
@@ -419,7 +434,13 @@ function selectMainRule() {
 	}
 	$extra.find("input,select").first().focus();
 }
-function addConstraintRule(clClass) {
+function enableSearch(select) {
+	return searchableSelect(select, {
+		placeholder: language ? 'Search...':'Rechercher...',
+		noResults: language ? 'No results':'Aucun résultat'
+	});
+}
+function addConstraintRule(clClass, autoOpen) {
 	var $rule = $(
 		'<div class="challenge-contraint challenge-constraint-selecting">'+
 			'<div class="challenge-constraint-selector">'+
@@ -444,6 +465,7 @@ function addConstraintRule(clClass) {
 		$rule.addClass("challenge-constraint-selecting");
 		delete selectedConstraints[ruleId];
 		updateConstraintSelectors();
+		$rulesSelector[0].searchableSelect.open();
 		return false;
 	});
 	$rule.find(".challenge-action-undo, .challenge-action-del").click(function() {
@@ -630,6 +652,30 @@ function addConstraintRule(clClass) {
 				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
 			}
 			break;
+		case 'avoid_offroads':
+			$form.html(
+				'<div>'+ (language?'Avoid off-road:':'Hors-piste à éviter :') +' '+
+				'<input type="text" style="display:none" name="avoid_offroads_fake1" required="required" >'+
+				'<div class="challenge-rule-btn-options challenge-rule-text-options challenge-offroad-btn-options"></div>'+
+				'<div class="challenge-rule-decor-names challenge-offroad-names"></div>'+
+				'</div>'
+			);
+			var $offroadSelector = $form.find(".challenge-offroad-btn-options");
+			var $anyOffroadBtn = $('<button type="button" data-value=""></button>');
+			$anyOffroadBtn.text(language ? 'Any':'Tous');
+			$offroadSelector.append($anyOffroadBtn);
+			var allOffroadOptions = getAllOffroadOptions(getConstraint(clClass, ruleId));
+			for (var i=0;i<allOffroadOptions.length;i++) {
+				var $offroadBtn = $('<button type="button"></button>');
+				$offroadBtn.attr("data-value", allOffroadOptions[i].value);
+				$offroadBtn.text(ucfirst(allOffroadOptions[i].label));
+				$offroadSelector.append($offroadBtn);
+			}
+			$offroadSelector.find("button").click(function() {
+				toggleOffroad(this);
+			});
+			toggleOffroad($anyOffroadBtn[0]);
+			break;
 		case 'avoid_zones':
 			$form.html(
 				'<div style="margin:10px 0"><label>'+ (language ? 'Avoid Zone(s): ':'Zone(s) à éviter : ') +
@@ -771,6 +817,9 @@ function addConstraintRule(clClass) {
 	});
 	updateConstraintSelector(clClass,$rulesSelector);
 	$("#challenge-"+clClass+"-list").append($rule);
+	var searchableRulesSelector = enableSearch($rulesSelector[0]);
+	if (autoOpen)
+		searchableRulesSelector.open();
 	return $rule;
 }
 function updateConstraintSelectors() {
@@ -820,6 +869,8 @@ function updateConstraintSelector(clClass,$rulesSelector) {
 		if (constraintGroup.label)
 			$rulesSelector.append($optGroup);
 	}
+	if ($rulesSelector[0].searchableSelect)
+		$rulesSelector[0].searchableSelect.refresh();
 }
 function getConstraintOptions(clClass,ruleId) {
 	var ruleOptions = clRules[clClass][ruleId].scope.options;
@@ -924,6 +975,56 @@ function getAllDecorOptions(constraint) {
 		// No extra decor, ignore
 	}
 	return Object.values(res);
+}
+function getAllOffroadOptions(constraint) {
+	var res = (offroadOptions || []).slice();
+	if (constraint) {
+		for (var key in constraint.value) {
+			var exists = res.some(function(offroadOption) {
+				return offroadOption.value === key;
+			});
+			if (!exists)
+				res.push({ value: key, label: constraint.value[key].name || key });
+		}
+	}
+	return res;
+}
+function toggleOffroad(btn, name) {
+	var $selector = $(btn).parent();
+	var $names = $(".challenge-offroad-names");
+	var key = btn.dataset.value;
+	if (btn.dataset.selected) {
+		if (key === "") {
+			btn.blur();
+			return;
+		}
+		delete btn.dataset.selected;
+		$names.children().filter(function() {
+			return this.dataset.offroad === key;
+		}).remove();
+		if (!$selector.find("button[data-selected]").length)
+			$selector.find('button[data-value=""]').attr("data-selected", "1");
+	}
+	else if (key === "") {
+		$selector.find("button[data-selected]").removeAttr("data-selected");
+		$names.empty();
+		btn.dataset.selected = "1";
+	}
+	else {
+		$selector.find('button[data-value=""]').removeAttr("data-selected");
+		btn.dataset.selected = "1";
+		var $offroadName = $('<div><label class="challenge-rule-decor-name">'+ (language ? 'Off-road name:':'Nom du hors-piste :') +' <input type="text" /></label></div>');
+		$offroadName.attr("data-offroad", key);
+		var $nameInput = $offroadName.find("input");
+		$nameInput.attr("name", "scope[avoid_offroads][value]["+ key +"][name]");
+		$nameInput.attr("placeholder", btn.textContent);
+		var isCustom = key.indexOf("custom-") === 0;
+		$nameInput.val(name || (isCustom ? btn.textContent : ""));
+		$nameInput.prop("required", isCustom);
+		$names.append($offroadName);
+	}
+	$("input[name='avoid_offroads_fake1']").val($selector.find("button[data-selected]").length ? "1":"");
+	btn.blur();
 }
 function getConstraint(clClass, ruleId) {
 	if (typeof chRules === "undefined")
@@ -1356,6 +1457,9 @@ function toggleSetupOptions() {
 	$("#challenge-setup-options").slideToggle();
 }
 $(function() {
+	var mainRuleSelect = document.getElementById("challenge-main-rule");
+	if (mainRuleSelect)
+		enableSearch(mainRuleSelect);
 	if (typeof chRules != 'undefined') {
 		var mainForm = document.forms[0];
 		var mainRule = chRules.main;
@@ -1400,6 +1504,17 @@ $(function() {
 							var btn = mainForm.querySelector(".challenge-constraint-btn-options button[data-value='"+ key +"']");
 							if (btn)
 								toggleDecor(btn, decorData.name);
+						}
+						break;
+					case "avoid_offroads":
+						var $offroadSelector = $rule.find(".challenge-offroad-btn-options");
+						var offroadKeys = Object.keys(constraint.value);
+						for (var k=0;k<offroadKeys.length;k++) {
+							var offroadBtn = $offroadSelector.find("button").filter(function() {
+								return this.dataset.value === offroadKeys[k];
+							})[0];
+							if (offroadBtn)
+								toggleOffroad(offroadBtn, constraint.value[offroadKeys[k]].name);
 						}
 						break;
 					case "avoid_zones":
@@ -1601,10 +1716,10 @@ function getItemHitOptions() {
 				<legend><?php echo $language ? 'Constraints':'Contraintes'; ?></legend>
 				<h2><?php echo $language ? 'Basic constraints':'Contraintes de base'; ?></h2>
 				<div class="challenge-constraints-list" id="challenge-basic-list"></div>
-				<button type="button" onclick="addConstraintRule('basic')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
+				<button type="button" onclick="addConstraintRule('basic', true)"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
 				<h2><?php echo $language ? 'Additional constraints':'Contraines additionnelles'; ?></h2>
 				<div class="challenge-constraints-list" id="challenge-extra-list"></div>
-				<button type="button" onclick="addConstraintRule('extra')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
+				<button type="button" onclick="addConstraintRule('extra', true)"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
 			</fieldset>
 			<?php
 			if (!empty($clRulesPayload['setup'])) {
@@ -1615,7 +1730,7 @@ function getItemHitOptions() {
 						<legend><?php echo $language ? 'Setup options':'Setup'; ?></legend>
 						<div class="challenge-constraints-explain"><?php echo $language ? 'Change some game setup when the challenge is selected' : 'Modifiez des éléments de la partie lorsque le défi est sélectionné'; ?></div>
 						<div class="challenge-constraints-list" id="challenge-setup-list"></div>
-						<button type="button" onclick="addConstraintRule('setup')"><?php echo $language ? 'Add option':'Ajouter une option'; ?></button>
+						<button type="button" onclick="addConstraintRule('setup', true)"><?php echo $language ? 'Add option':'Ajouter une option'; ?></button>
 					</fieldset>
 				</div>
 				<?php

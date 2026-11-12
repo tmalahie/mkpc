@@ -4102,8 +4102,6 @@ function startGame() {
 		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon && (!this.rail || this.rail.exitCooldown)) {
 			if (this.jumped)
 				this.driftinc = dir;
-			if (this.driftinc)
-				clLocalVars.drifted = true;
 		}
 	}
 	function spinKart(nb) {
@@ -4131,8 +4129,6 @@ function startGame() {
 				hopKart(this);
 				if (this.rotincdir)
 					this.driftinc = (this.rotincdir>0) ? 1:-1;
-				if (this.driftinc)
-					clLocalVars.drifted = true;
 			}
 		}
 		else if (canTrick(this))
@@ -13439,6 +13435,8 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 			}
 			oKart.x = oRail.x;
 			oKart.y = oRail.y;
+			if (oKart === oPlayers[0])
+				clLocalVars.railed = true;
 			oKart.rail = {
 				polyline: oRail.lines,
 				line: oRail.line,
@@ -15569,6 +15567,30 @@ var challengeRules = {
 				return !ruleVars.hit;
 		}
 	},
+	"avoid_offroads": {
+		"initLocalVars": function(scope) {
+			if (!clLocalVars.offroadsHit)
+				clLocalVars.offroadsHit = {};
+		},
+		"success": function(scope) {
+			var anyOffroad = true;
+			for (var key in scope.value) {
+				anyOffroad = false;
+				if (clLocalVars.offroadsHit[key])
+					return false;
+			}
+			if (anyOffroad) {
+				for (var key in clLocalVars.offroadsHit)
+					return false;
+			}
+			return true;
+		}
+	},
+	"no_rails": {
+		"success": function(scope) {
+			return !clLocalVars.railed;
+		}
+	},
 	"avoid_walls": {
 		"success": function(scope) {
 			return !clLocalVars.touchedWalls;
@@ -16197,6 +16219,7 @@ function isSameDistrib(d1,d2) {
 function reinitLocalVars() {
 	clLocalVars = {
 		drifted: false,
+		railed: false,
 		revDrifted: false,
 		stunted: false,
 		itemsGot: false,
@@ -19226,6 +19249,8 @@ function move(getId, triggered) {
 		if (handleHeightInc(oKart)) {
 			delete oKart.jumped;
 			if (oKart.driftinc) {
+				if (oKart === oPlayers[0])
+					clLocalVars.drifted = true;
 				if (carDrift && !oKart.driftSound && kartIsPlayer(oKart)) {
 					carDrift.currentTime = 0;
 					carDrift.play();
@@ -19929,6 +19954,11 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
+				if (clLocalVars.offroadsHit && (oKart === oPlayers[0]) && !isActivelyGrinding(oKart)) {
+					var touchedOffroad = ralenti(oKart.x, oKart.y);
+					if (touchedOffroad)
+						clLocalVars.offroadsHit[touchedOffroad] = true;
+				}
 				if (!oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY)) && (!oKart.protect || offroadAffectsInvincible(oKart, hpType))) {
 					var hpProps = getOffroadProps(oKart,hpType);
 					if ((oKart.turbodrift>oKart.turbodrift0*0.8 || oKart.speed <= 1.5) && !hpProps.drifting)
@@ -20900,6 +20930,8 @@ function timeTrialMode() {
 function handleDriftCpt(getId) {
 	var oKart = aKarts[getId];
 	if (oKart.driftinc) {
+		if (!oKart.z && (oKart === oPlayers[0]))
+			clLocalVars.drifted = true;
 		if (oKart.rotincdir) {
 			if ((oKart.rotincdir>0) == (oKart.driftinc>0)) {
 				oKart.drift += oKart.driftinc;
