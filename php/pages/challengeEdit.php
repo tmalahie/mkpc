@@ -260,7 +260,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <?php include('../includes/c_challenges.php'); ?>
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
-<script type="text/javascript" src="scripts/searchable-select.js"></script>
+<script type="text/javascript" src="scripts/searchable-select.js?reload=1"></script>
 <?php
 if (empty($moderate))
 	include('../includes/o_online.php');
