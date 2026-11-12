@@ -229,7 +229,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 						$offroadOptions[] = array('value' => $type, 'label' => $builtinOffroadNames[$type]);
 					elseif (preg_match('#^custom-(\d+)$#', $type, $matches)) {
 						$customOffroad = mysql_fetch_array(mysql_query('SELECT name FROM mkoffroads WHERE id='. $matches[1]));
-						$offroadOptions[] = array('value' => $type, 'label' => $customOffroad ? $customOffroad['name'] : getChallengeOffroadName($type, null));
+						$offroadOptions[] = array('value' => $type, 'label' => $customOffroad ? $customOffroad['name'] : getChallengeDeletedOffroadName());
 					}
 				}
 			}

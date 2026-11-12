@@ -1520,6 +1520,10 @@ function getChallengeOffroadName($key, $name) {
 	$offroadNames = getChallengeOffroadNames();
 	if (isset($offroadNames[$key]))
 		return $offroadNames[$key];
+	return htmlspecialchars(getChallengeDeletedOffroadName());
+}
+function getChallengeDeletedOffroadName() {
+	global $language;
 	return $language ? '<Deleted profile>':'<Profil supprimé>';
 }
 function getChallengeItemNames(&$scope) {
