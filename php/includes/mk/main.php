@@ -5,5 +5,5 @@ if ($_SERVER['HTTP_HOST'] !== 'mkpc.malahieude.net') {
 	echo '<script type="text/javascript" src="scripts/mk.js"></script>';
 }
 else
-	echo '<script type="text/javascript" src="scripts/mk.v336.js"></script>';
+	echo '<script type="text/javascript" src="scripts/mk.v337.js"></script>';
 ?>

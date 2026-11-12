@@ -306,7 +306,6 @@ body a.challenge-action-edit:hover {
 }
 #challenge-setup-options {
 	display: none;
-	overflow: hidden;
 	padding-top: 10px;
 }
 #challenge-setup-options fieldset {
@@ -709,3 +708,118 @@ a.pretty-link:hover {
 	max-width: 100%;
 	overflow: hidden;
 }
+.challenge-rule-btn-options.challenge-rule-text-options button {
+	width: auto;
+	height: auto;
+	margin: 2px;
+	padding: 1px 6px;
+	font-size: 0.75em;
+	background-color: #EEF3FF;
+	border-color: #CCD;
+}
+.challenge-rule-btn-options.challenge-rule-text-options button[data-selected] {
+	background-color: #88D;
+	border-color: #559;
+	color: white;
+}
+.challenge-offroad-names:not(:empty) {
+	margin-top: 6px;
+}
+.searchable-select {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	text-align: left;
+}
+.searchable-select select.searchable-select-native {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+.searchable-select .searchable-select-toggle {
+	min-width: 200px;
+	max-width: 100%;
+	padding: 2px 22px 2px 6px;
+	text-align: left;
+	color: black;
+	background: #DDF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E") no-repeat right 6px center;
+	border: 1px solid #889;
+	border-radius: 3px;
+	font: inherit;
+	cursor: pointer;
+}
+.searchable-select .searchable-select-toggle:hover {
+	background-color: #CCF;
+}
+.searchable-select .searchable-select-toggle.searchable-select-placeholder {
+	color: #667;
+}
+.searchable-select-invalid .searchable-select-toggle.searchable-select-placeholder {
+	border-color: #C24;
+}
+.searchable-select-dropdown {
+	display: none;
+	position: absolute;
+	left: 0;
+	top: 100%;
+	z-index: 10;
+	min-width: 100%;
+	width: max-content;
+	box-sizing: border-box;
+	margin-top: 2px;
+	background-color: white;
+	border: 1px solid #889;
+	border-radius: 3px;
+	box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+	font-size: 0.9em;
+}
+.searchable-select-open .searchable-select-dropdown {
+	display: block;
+	animation: searchable-select-fade-in 0.12s ease-out;
+}
+@keyframes searchable-select-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+.searchable-select-search {
+	box-sizing: border-box;
+	width: calc(100% - 8px);
+	margin: 4px;
+	padding: 3px 5px;
+}
+.searchable-select-list {
+	list-style: none;
+	margin: 0;
+	padding: 0 0 4px 0;
+	max-height: 300px;
+	overflow-y: auto;
+}
+.searchable-select-group {
+	padding: 4px 6px 2px 6px;
+	font-weight: bold;
+	font-size: 0.85em;
+	color: #556;
+	cursor: default;
+}
+.searchable-select-option {
+	padding: 3px 14px;
+	color: black;
+	cursor: pointer;
+}
+.searchable-select-option.searchable-select-highlighted {
+	background-color: #CCE;
+}
+.searchable-select-empty {
+	padding: 3px 6px;
+	color: #889;
+	font-style: italic;
+}
+

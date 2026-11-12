@@ -2007,8 +2007,31 @@ function initMap() {
 		var mapOverrides = oMap.lapOverrides;
 		var lapOverrides = [];
 		var conditionPayloadIds = [];
+		var overridesReachability = [];
+		function isOverrideReachable(i) {
+			if (overridesReachability[i] !== undefined)
+				return overridesReachability[i];
+			overridesReachability[i] = true;
+			var lapOverride = mapOverrides[i];
+			var res = true;
+			if (lapOverride.challenge !== undefined)
+				res = !!(clSelected && clSelected.id === lapOverride.challenge);
+			else if (lapOverride.requiredOverrides) {
+				for (var j=0;j<lapOverride.requiredOverrides.length;j++) {
+					var requiredId = lapOverride.requiredOverrides[j]-1;
+					if (mapOverrides[requiredId] && !isOverrideReachable(requiredId)) {
+						res = false;
+						break;
+					}
+				}
+			}
+			overridesReachability[i] = res;
+			return res;
+		}
 		for (var i=0;i<mapOverrides.length;i++) {
 			var lapOverride = mapOverrides[i];
+			if (lapOverride.lap === undefined && lapOverride.challenge === undefined && !isOverrideReachable(i))
+				continue;
 			if (lapOverride.challenge !== undefined) {
 				if (clSelected && clSelected.id === lapOverride.challenge) {
 					oMap.conditionOverrides.push(lapOverride);
@@ -4102,8 +4125,6 @@ function startGame() {
 		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon && (!this.rail || this.rail.exitCooldown)) {
 			if (this.jumped)
 				this.driftinc = dir;
-			if (this.driftinc)
-				clLocalVars.drifted = true;
 		}
 	}
 	function spinKart(nb) {
@@ -4131,8 +4152,6 @@ function startGame() {
 				hopKart(this);
 				if (this.rotincdir)
 					this.driftinc = (this.rotincdir>0) ? 1:-1;
-				if (this.driftinc)
-					clLocalVars.drifted = true;
 			}
 		}
 		else if (canTrick(this))
@@ -9915,12 +9934,13 @@ var decorBehaviors = {
 			if (decorData[3]) {
 				if (decorData[3] == 3) {
 					decorData[4] = -1;
+					var drift = scope.limite[i] || (scope.limite[i] = [0,0]);
 					for (var j=0;j<2;j++) {
 						var rng = oPlayers[0].cpu ? Math.random() : (10000*Math.abs(Math.sin(timer+j)))%1;
 						var o = Math.floor(9*rng)-4;
-						if (Math.abs(scope.limite[i][j]+o) > 10)
+						if (Math.abs(drift[j]+o) > 10)
 							o = -o;
-						scope.limite[i][j] += o;
+						drift[j] += o;
 						decorData[j] += o;
 					}
 				}
@@ -11397,34 +11417,36 @@ var decorBehaviors = {
 			if (!extraParams.path)
 				extraParams.path = lMap.aipoints.slice(0, lMap.airoutesmeta.cpu);
 			var aipoints = extraParams.path[decorData[5]];
-			do {
-				var aipoint = aipoints[decorData[6]];
-				aimX = aipoint[0]-x; aimY = aipoint[1]-y;
-				var dist = Math.hypot(aimX,aimY);
-				if (dist < speed) {
-					x += aimX;
-					y += aimY;
-					speed -= dist;
-					if (++decorData[6] >= aipoints.length)
-						decorData[6] = 0;
+			if (aipoints.length) {
+				do {
+					var aipoint = aipoints[decorData[6]];
+					aimX = aipoint[0]-x; aimY = aipoint[1]-y;
+					var dist = Math.hypot(aimX,aimY);
+					if (dist < speed) {
+						x += aimX;
+						y += aimY;
+						speed -= dist;
+						if (++decorData[6] >= aipoints.length)
+							decorData[6] = 0;
+					}
+					else {
+						x += aimX*speed/dist;
+						y += aimY*speed/dist;
+						speed = 0;
+					}
+				} while (speed > 0);
+				decorData[0] = x;
+				decorData[1] = y;
+				if (aimX || aimY) {
+					var aimAngle = nearestAngle(Math.atan2(aimX,aimY)*180/Math.PI, decorData[4],360);
+					var maxOmega = 8*decorData[7];
+					if (decorData[4] < (aimAngle-maxOmega))
+						decorData[4] += maxOmega;
+					else if (decorData[4] > (aimAngle+maxOmega))
+						decorData[4] -= maxOmega;
+					else
+						decorData[4] = aimAngle;
 				}
-				else {
-					x += aimX*speed/dist;
-					y += aimY*speed/dist;
-					speed = 0;
-				}
-			} while (speed > 0);
-			decorData[0] = x;
-			decorData[1] = y;
-			if (aimX || aimY) {
-				var aimAngle = nearestAngle(Math.atan2(aimX,aimY)*180/Math.PI, decorData[4],360);
-				var maxOmega = 8*decorData[7];
-				if (decorData[4] < (aimAngle-maxOmega))
-					decorData[4] += maxOmega;
-				else if (decorData[4] > (aimAngle+maxOmega))
-					decorData[4] -= maxOmega;
-				else
-					decorData[4] = aimAngle;
 			}
 			for (var i=0;i<oPlayers.length;i++) {
 				var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(i))-decorData[4], 180,360);
@@ -13436,6 +13458,8 @@ function checkRailEnter(getId, aPosX,aPosY,aPosZ, callback) {
 			}
 			oKart.x = oRail.x;
 			oKart.y = oRail.y;
+			if (oKart === oPlayers[0])
+				clLocalVars.railed = true;
 			oKart.rail = {
 				polyline: oRail.lines,
 				line: oRail.line,
@@ -15566,6 +15590,30 @@ var challengeRules = {
 				return !ruleVars.hit;
 		}
 	},
+	"avoid_offroads": {
+		"initLocalVars": function(scope) {
+			if (!clLocalVars.offroadsHit)
+				clLocalVars.offroadsHit = {};
+		},
+		"success": function(scope) {
+			var anyOffroad = true;
+			for (var key in scope.value) {
+				anyOffroad = false;
+				if (clLocalVars.offroadsHit[key])
+					return false;
+			}
+			if (anyOffroad) {
+				for (var key in clLocalVars.offroadsHit)
+					return false;
+			}
+			return true;
+		}
+	},
+	"no_rails": {
+		"success": function(scope) {
+			return !clLocalVars.railed;
+		}
+	},
 	"avoid_walls": {
 		"success": function(scope) {
 			return !clLocalVars.touchedWalls;
@@ -16194,6 +16242,7 @@ function isSameDistrib(d1,d2) {
 function reinitLocalVars() {
 	clLocalVars = {
 		drifted: false,
+		railed: false,
 		revDrifted: false,
 		stunted: false,
 		itemsGot: false,
@@ -19223,6 +19272,8 @@ function move(getId, triggered) {
 		if (handleHeightInc(oKart)) {
 			delete oKart.jumped;
 			if (oKart.driftinc) {
+				if (oKart === oPlayers[0])
+					clLocalVars.drifted = true;
 				if (carDrift && !oKart.driftSound && kartIsPlayer(oKart)) {
 					carDrift.currentTime = 0;
 					carDrift.play();
@@ -19926,6 +19977,11 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
+				if (clLocalVars.offroadsHit && (oKart === oPlayers[0]) && !isActivelyGrinding(oKart)) {
+					var touchedOffroad = ralenti(oKart.x, oKart.y);
+					if (touchedOffroad)
+						clLocalVars.offroadsHit[touchedOffroad] = true;
+				}
 				if (!oKart.champi && !oKart.figuring && !isActivelyGrinding(oKart) && (hpType=ralenti(fNewPosX, fNewPosY)) && (!oKart.protect || offroadAffectsInvincible(oKart, hpType))) {
 					var hpProps = getOffroadProps(oKart,hpType);
 					if ((oKart.turbodrift>oKart.turbodrift0*0.8 || oKart.speed <= 1.5) && !hpProps.drifting)
@@ -20897,6 +20953,8 @@ function timeTrialMode() {
 function handleDriftCpt(getId) {
 	var oKart = aKarts[getId];
 	if (oKart.driftinc) {
+		if (!oKart.z && (oKart === oPlayers[0]))
+			clLocalVars.drifted = true;
 		if (oKart.rotincdir) {
 			if ((oKart.rotincdir>0) == (oKart.driftinc>0)) {
 				oKart.drift += oKart.driftinc;
