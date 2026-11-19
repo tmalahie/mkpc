@@ -183,7 +183,7 @@ include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/challenge-creations.css?reload=1" />
-<link rel="stylesheet" type="text/css" href="styles/profil.css" />
+<link rel="stylesheet" type="text/css" href="styles/profil.css?reload=1" />
 
 <script type="text/javascript" src="scripts/topic.js"></script>
 <script type="text/javascript" src="scripts/profile.js"></script>
@@ -370,6 +370,28 @@ include('../includes/menu.php');
 							echo ' - <strong>'. $nbClCreate['nb'] .' '. ($language ? 'challenge':'défi') . $s .'</strong> '. ($language ? 'created':'créé'.$s);
 						}
 						echo ' - '. toPlace($place);
+					echo '</div>';
+				}
+				require_once('../includes/lounge/common.php');
+				$loungeState = lounge_get_player_state($profileId);
+				if ($loungeState['games']) {
+					$getLoungePlace = mysql_fetch_array(mysql_query(
+						'SELECT 1+COUNT(*) AS place FROM `mklounge_players` p
+						INNER JOIN `mkjoueurs` j ON j.id=p.player
+						INNER JOIN `mklounge_players` me ON me.player="'. $profileId .'" AND me.season=p.season
+						WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0
+						AND p.mmr>me.mmr'
+					));
+					echo '<div class="player-league">';
+						echo '<img src="images/cups/cup2.png" alt="CT Lounge" title="CT Lounge" />';
+						echo '<strong>'. $loungeState['mmr'] .' MMR</strong> ';
+						if ($loungeState['rank'])
+							echo '- <strong style="color:'. $loungeState['rank']['color'] .'">'. $loungeState['rank']['label'] .'</strong> ';
+						echo '- <strong>'. $loungeState['games'] .' mogi'. plural($loungeState['games']) .'</strong>';
+						if (!is_null($loungeState['avg_score']))
+							echo ' - '. ($language ? 'avg. score' : 'score moyen') .' <strong>'. $loungeState['avg_score'] .'</strong>';
+						echo ' - '. toPlace($getLoungePlace['place']);
+						echo $language ? ' <a class="lounge-leaderboard" href="lounge.php?season='. LOUNGE_CURRENT_SEASON .'&tab=leaderboard&player='. $profileId .'">[View]</a>' : ' <a class="lounge-leaderboard" href="lounge.php?season='. LOUNGE_CURRENT_SEASON .'&tab=leaderboard&player='. $profileId .'">[Voir]</a>';
 					echo '</div>';
 				}
 				$getRecordsByCc = mysql_query('SELECT class,COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1 GROUP BY class ORDER BY class');

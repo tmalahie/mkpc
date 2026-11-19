@@ -177,10 +177,13 @@ include('../includes/menu.php');
 		?>
 	</ul>
 	<?php
-	if (hasRight('moderator')) {
+	if (hasRight('moderator') || hasRight('lounge')) {
 		?>
 	<h2><?= t('common.online_mode') ?></h2>
 	<ul>
+		<?php
+		if (hasRight('moderator')) {
+			?>
 		<li>
 			<a class="action-ctn" href="updatepts.php">
 				<div class="action-title"><?= t('admin.online_give_remove_points') ?></div>
@@ -203,7 +206,24 @@ include('../includes/menu.php');
 				</div>
 			</a>
 		</li>
+			<?php
+		}
+		if (hasRight('lounge')) {
+			?>
+		<li>
+			<a class="action-ctn" href="admin-lounge.php">
+				<div class="action-title"><?= t('admin.moderate_ct_lounge') ?></div>
+				<div class="action-desc"><?= t('admin.set_placement_ban_release_queue') ?></div>
+			</a>
+		</li>
+			<?php
+		}
+		?>
 	</ul>
+		<?php
+	}
+	if (hasRight('moderator')) {
+		?>
 	<h2><?= t('admin.share_management') ?></h2>
 	<ul>
 		<li>
