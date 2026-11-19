@@ -1,0 +1,8 @@
+User-agent: GPTBot
+User-agent: ClaudeBot
+Disallow: /classement.php
+Disallow: /profil.php
+Crawl-delay: 2
+
+User-agent: *
+Disallow:
