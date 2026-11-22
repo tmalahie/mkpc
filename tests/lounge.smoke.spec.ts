@@ -226,6 +226,49 @@ test('ranked is hidden from a player short of the entry criteria', async ({ page
 	await login(page);
 });
 
+// A season is announced before it opens: until then ranked is offered nowhere, the lounge
+// says when it opens, and a join is refused.
+test('ranked stays closed until the season opens', async ({ page }) => {
+	const met = 'e2e-lounge-entry-soon';
+	const metId = await createEntryBot(met, 999999);
+	const [season]: any = await sql(`SELECT DATE_FORMAT(started_at, '%Y-%m-%d %H:%i:%s') AS started_at FROM mklounge_seasons WHERE id = 1`);
+	await sql(`UPDATE mklounge_seasons SET started_at = '2037-11-28 18:00:00' WHERE id = 1`);
+	try {
+		expect(await loungeFlags(page, met)).toEqual({ eligible: false, banner: false });
+
+		const state = await (await page.request.post('http://127.0.0.1:8080/api/lounge/tiers.php')).json();
+		expect(state.access_error).toBe('season_not_started');
+		expect(state.season_starts_at).toBe('2037-11-28 18:00:00');
+		await page.goto('http://127.0.0.1:8080/lounge.php');
+		await expect(page.locator('.lounge-season-soon')).toContainText('28/11/2037');
+		await expect(page.locator('.lounge-tier')).toHaveCount(0);
+
+		const joined = await (await page.request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: '1' } })).json();
+		expect(joined.error).toBe('season_not_started');
+
+		const lounge = page;
+		const home = await page.context().newPage();
+		await home.goto('http://127.0.0.1:8080/index.php');
+		await expect(home.locator('.action_gotoranked')).toHaveCount(0);
+
+		// and the moment it opens, it is there without reloading
+		await sql(`UPDATE mklounge_seasons SET started_at = NOW() - INTERVAL 1 MINUTE WHERE id = 1`);
+		await expect(lounge.locator('.lounge-season-soon')).toHaveCount(0, { timeout: 15000 });
+		await expect(lounge.locator('.lounge-rules-gate, .lounge-tier').first()).toBeVisible();
+		await home.reload();
+		await expect(home.locator('.action_gotoranked')).toHaveCount(1);
+		await home.close();
+	}
+	finally {
+		// the open lounge polls as the bot, and would write its row back after the delete
+		await page.goto('about:blank');
+		await sql(`UPDATE mklounge_seasons SET started_at = ? WHERE id = 1`, [season.started_at]);
+		await sql(`DELETE FROM mklounge_players WHERE player = ?`, [metId]);
+		await sql(`DELETE FROM mkjoueurs WHERE id = ?`, [metId]);
+		await login(page);
+	}
+});
+
 // Someone who has already used ranked does not need telling it exists.
 test('the unlock banner stops once a player has queued', async ({ page }) => {
 	const name = 'e2e-lounge-entry-queued';
@@ -812,7 +855,7 @@ test('a mogi has a page of its own, saying what each rating moved from and to', 
 	await expect(top.locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-up/);
 	await expect(top.locator('.lounge-placemove-from')).toHaveText('#5');
 	await expect(top.locator('.lounge-placemove-to')).toHaveText('#3');
-	await expect(top.locator('.lounge-ratings-rank .lounge-rank')).toHaveText('Silver');
+	await expect(top.locator('.lounge-ratings-rank .lounge-rank')).toHaveText('Silver 1');
 	// and a rating that went down says so in red
 	await expect(updates.nth(2).locator('.lounge-ratings-delta')).toHaveText('-15');
 	await expect(updates.nth(2).locator('.lounge-ratings-delta .lounge-delta')).toHaveClass(/is-down/);

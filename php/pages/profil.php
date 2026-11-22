@@ -374,12 +374,12 @@ include('../includes/menu.php');
 				}
 				require_once('../includes/lounge/common.php');
 				$loungeState = lounge_get_player_state($profileId);
-				if ($loungeState['games']) {
+				if ($loungeState['games'] || !is_null(lounge_player_placement($profileId))) {
 					$getLoungePlace = mysql_fetch_array(mysql_query(
 						'SELECT 1+COUNT(*) AS place FROM `mklounge_players` p
 						INNER JOIN `mkjoueurs` j ON j.id=p.player
 						INNER JOIN `mklounge_players` me ON me.player="'. $profileId .'" AND me.season=p.season
-						WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0
+						WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND '. lounge_on_ladder_sql('p') .' AND j.deleted=0
 						AND p.mmr>me.mmr'
 					));
 					echo '<div class="player-league">';

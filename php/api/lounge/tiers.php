@@ -56,6 +56,7 @@ echo json_encode(array(
 	'requirements' => lounge_access_requirements(),
 	'vs_points' => $access ? intval($access['pts_vs']) : 0,
 	'account_age_days' => ($access && !is_null($access['account_age'])) ? intval($access['account_age']) : null,
-	'access_error' => lounge_access_error($id)
+	'access_error' => lounge_access_error($id),
+	'season_starts_at' => lounge_season_start()['upcoming'] ? lounge_season_start()['at'] : null
 ));
 mysql_close();

@@ -474,6 +474,24 @@ function lounge_get_player_state($playerId) {
 // The entry criteria on their own. This is what decides whether ranked is offered to a player
 // at all, as opposed to whether they may queue this second - the rules tick is a gate inside
 // the lounge, not a reason to hide it from someone who has earned their way in.
+// A season is announced ahead of its start, and ranked stays out of sight until then: every
+// entry point asks lounge_is_eligible(), so this one check keeps them all closed. Compared in
+// SQL, whose clock is the one started_at was written in.
+function lounge_season_start() {
+	global $loungeSeasonStart;
+	if (!isset($loungeSeasonStart)) {
+		$row = mysql_fetch_array(mysql_query(
+			'SELECT started_at, started_at > NOW() AS upcoming FROM `mklounge_seasons`
+			WHERE id="'. LOUNGE_CURRENT_SEASON .'"'
+		));
+		$loungeSeasonStart = array(
+			'at' => $row ? $row['started_at'] : null,
+			'upcoming' => $row && $row['upcoming']
+		);
+	}
+	return $loungeSeasonStart;
+}
+
 function lounge_entry_error($playerId) {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT j.banned, j.deleted, j.pts_vs,
@@ -486,6 +504,9 @@ function lounge_entry_error($playerId) {
 		return 'no_account';
 	if ($row['banned'])
 		return 'site_banned';
+	$season = lounge_season_start();
+	if ($season['upcoming'])
+		return 'season_not_started';
 	$minAge = lounge_setting('min_account_age_days');
 	if ($minAge && !is_null($row['account_age']) && intval($row['account_age']) < $minAge)
 		return 'account_too_new';
@@ -1725,7 +1746,7 @@ function lounge_ladder_rows($limit = 0) {
 		'SELECT p.player, p.mmr, p.peak_mmr, p.games, p.wins, p.total_score, j.nom
 		FROM `mklounge_players` p
 		INNER JOIN `mkjoueurs` j ON j.id=p.player
-		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0
+		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND '. lounge_on_ladder_sql('p') .' AND j.deleted=0
 		ORDER BY p.mmr DESC, p.player'
 		. ($limit ? (' LIMIT '. intval($limit)) : '')
 	);
@@ -1741,6 +1762,12 @@ function lounge_ladder_rows($limit = 0) {
 	return $rows;
 }
 
+// Who the ladder lists: a player is on it once rated, or as soon as staff place them, as on
+// Lorenzi - so a placed season opens with its ladder already set out.
+function lounge_on_ladder_sql($alias) {
+	return '('. $alias .'.games>0 OR '. $alias .'.placement IS NOT NULL)';
+}
+
 function lounge_ladder_places() {
 	$places = array();
 	foreach (lounge_ladder_rows() as $row)
@@ -1752,7 +1779,7 @@ function lounge_ladder_size() {
 	$row = mysql_fetch_array(mysql_query(
 		'SELECT COUNT(*) AS n FROM `mklounge_players` p
 		INNER JOIN `mkjoueurs` j ON j.id=p.player
-		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0'
+		WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND '. lounge_on_ladder_sql('p') .' AND j.deleted=0'
 	));
 	return $row ? intval($row['n']) : 0;
 }
@@ -2530,6 +2557,13 @@ function lounge_recompute_season() {
 	$ratings = array();
 	$peaks = array();
 	$ranked = array();
+	// placed players are on the ladder before their first mogi, so they count in its places
+	foreach ($placements as $playerId => $placement) {
+		$ratings[$playerId] = $placement;
+		$peaks[$playerId] = $placement;
+		if (!isset($deleted[$playerId]))
+			$ranked[$playerId] = true;
+	}
 	foreach ($matches as $matchId => $match) {
 		$participants = array();
 		foreach ($match['rows'] as $row) {

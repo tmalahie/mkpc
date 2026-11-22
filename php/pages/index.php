@@ -892,7 +892,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						if ($isRanked) {
 							// Aliased to the same id/nom/pts the other modes return, so the row
 							// loop below stays one loop.
-							$players = mysql_query('SELECT p.player AS id,j.nom,ROUND(p.mmr) AS pts,p.mmr FROM `mklounge_players` p INNER JOIN `mkjoueurs` j ON j.id=p.player WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND p.games>0 AND j.deleted=0 ORDER BY p.mmr DESC, p.player LIMIT 10');
+							$players = mysql_query('SELECT p.player AS id,j.nom,ROUND(p.mmr) AS pts,p.mmr FROM `mklounge_players` p INNER JOIN `mkjoueurs` j ON j.id=p.player WHERE p.season="'. LOUNGE_CURRENT_SEASON .'" AND '. lounge_on_ladder_sql('p') .' AND j.deleted=0 ORDER BY p.mmr DESC, p.player LIMIT 10');
 						}
 						elseif ($isClm) {
 							$cc = ($i===3) ? 200 : 150;

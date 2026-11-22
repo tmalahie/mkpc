@@ -91,8 +91,11 @@ export async function stashLoungeSettings() {
   if (existsSync(SETTINGS_SNAPSHOT)) return;
   const settings: any = await sql('SELECT name, value FROM mklounge_settings');
   const tiers: any = await sql('SELECT code, min_players FROM mklounge_tiers');
-  writeFileSync(SETTINGS_SNAPSHOT, JSON.stringify({ settings, tiers }));
+  // a season announced for later keeps ranked closed; the specs play in an open one
+  const [season]: any = await sql(`SELECT DATE_FORMAT(started_at, '%Y-%m-%d %H:%i:%s') AS started_at FROM mklounge_seasons WHERE id = 1`);
+  writeFileSync(SETTINGS_SNAPSHOT, JSON.stringify({ settings, tiers, seasonStart: season ? season.started_at : null }));
   await sql('UPDATE mklounge_tiers SET min_players = ?', [SEEDED_MIN_PLAYERS]);
+  await sql('UPDATE mklounge_seasons SET started_at = LEAST(started_at, NOW() - INTERVAL 1 DAY) WHERE id = 1');
 }
 
 export async function restoreLoungeSettings() {
@@ -103,6 +106,8 @@ export async function restoreLoungeSettings() {
     await sql('INSERT INTO mklounge_settings (name, value) VALUES (?, ?)', [row.name, row.value]);
   for (const row of saved.tiers)
     await sql('UPDATE mklounge_tiers SET min_players = ? WHERE code = ?', [row.min_players, row.code]);
+  if (saved.seasonStart)
+    await sql('UPDATE mklounge_seasons SET started_at = ? WHERE id = 1', [saved.seasonStart]);
   unlinkSync(SETTINGS_SNAPSHOT);
 }
 

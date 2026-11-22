@@ -822,6 +822,26 @@ test('players who arrive while the join timeout waits for a replay are counted',
 // The ladder place either side of a mogi. Absolute places depend on the whole season's
 // table, so what is asserted is the relation: the same order the ratings are in, and a move
 // in the direction the rating went.
+// As on Lorenzi, staff's placements set the ladder out before anyone has played: a placed
+// player is listed from the start, at their placement, and a player nobody placed only once
+// they have played.
+test('a placed player is on the ladder before their first mogi', async ({ page }) => {
+	const [placed, unplaced] = await createLoungeBots(2, 'placedladder');
+	// above any rating the other tests leave behind
+	await sql(`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, placement, games) VALUES (?, 1, 999999, 999999, 999999, 0), (?, 1, 600, 600, NULL, 0)
+		ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr), placement = VALUES(placement), games = VALUES(games)`,
+		[placed, unplaced]);
+	await login(page);
+	const ladder = await (await page.request.post('http://127.0.0.1:8080/api/lounge/leaderboard.php', { form: { limit: '500' } })).json();
+	const ids = ladder.players.map((p: any) => p.id);
+	expect(ladder.players[0]).toMatchObject({ id: placed, place: 1, mmr: 999999, games: 0 });
+	expect(ids).not.toContain(unplaced);
+	expect(ladder.total).toBe(ladder.players.length);
+
+	const html = await (await page.request.get('/profil.php?id=' + placed)).text();
+	expect(html.match(/<div class="player-league"><img src="images\/cups\/cup2.png".*?<\/div>/s)![0]).toMatch(/ - 1<sup>/);
+});
+
 test('a rated mogi records where it left every player on the ladder', async ({ page }) => {
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const key = LOUNGE_KEY_MIN + 9;

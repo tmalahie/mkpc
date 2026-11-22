@@ -1282,6 +1282,10 @@
 	function renderTierScreen(data) {
 		var container = $('lounge-tiers');
 		if (!container) return;
+		if (data.access_error === 'season_not_started') {
+			renderSeasonSoon(container, data.season_starts_at);
+			return;
+		}
 		if (!data.rules_accepted) {
 			renderRulesGate(container);
 			return;
@@ -1341,6 +1345,28 @@
 			});
 		});
 		box.appendChild(btn);
+		container.appendChild(box);
+	}
+
+	// The server's clock is French time, so the opening is given in it rather than converted.
+	function renderSeasonSoon(container, startsAt) {
+		if (container.querySelector('.lounge-season-soon')) return;
+		container.innerHTML = '';
+		var box = document.createElement('div');
+		box.className = 'lounge-access-block lounge-season-soon';
+		var title = document.createElement('h2');
+		title.textContent = toLanguage('The season has not started yet', 'La saison n\'a pas encore commencé');
+		box.appendChild(title);
+		var parts = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(startsAt || '');
+		if (parts) {
+			var when = document.createElement('p');
+			when.className = 'lounge-access-note';
+			when.textContent = toLanguage(
+				'Ranked opens on ' + parts[3] + '/' + parts[2] + '/' + parts[1] + ' at ' + parts[4] + ':' + parts[5] + ' (French time).',
+				'Le classé ouvre le ' + parts[3] + '/' + parts[2] + '/' + parts[1] + ' à ' + parts[4] + 'h' + parts[5] + ' (heure française).'
+			);
+			box.appendChild(when);
+		}
 		container.appendChild(box);
 	}
 
@@ -1469,6 +1495,7 @@
 			case 'account_too_new': return toLanguage('Your account is too new for ranked.', 'Votre compte est trop récent pour le classé.');
 			case 'not_enough_points': return toLanguage('You do not have enough online VS points for ranked.', 'Vous n\'avez pas assez de points en ligne VS pour le classé.');
 			case 'rules_not_accepted': return toLanguage('You must accept the lounge rules first.', 'Vous devez d\'abord accepter les règles du lounge.');
+			case 'season_not_started': return toLanguage('The season has not started yet.', 'La saison n\'a pas encore commencé.');
 			default: return toLanguage('Could not join queue.', 'Impossible de rejoindre la file.');
 		}
 	}
