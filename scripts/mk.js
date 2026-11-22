@@ -6329,6 +6329,8 @@ function handleWebGLContextLoss(canvas) {
 function fallbackToLegacyEngine() {
 	if (bLegacyEngine) return;
 	logGameCrash("WebGL context not restored, falling back to legacy engine");
+	if (!webGLContextUnrecoverable)
+		recordWebGLFallback();
 	webGLContextUnrecoverable = true;
 	bLegacyEngine = true;
 	fLineScale = 1/iScreenScale;
@@ -6344,6 +6346,29 @@ function fallbackToLegacyEngine() {
 		glCanvas.parentNode.replaceChild(canvas, glCanvas);
 		oScreens[i] = canvas;
 	}
+}
+function recordWebGLFallback() {
+	var maxAge = 7*24*3600*1000;
+	try {
+		var now = Date.now();
+		var fallbacks = JSON.parse(localStorage.getItem("settings.engine.fallbacks") || "[]");
+		if (!(fallbacks instanceof Array))
+			fallbacks = [];
+		fallbacks = fallbacks.filter(function(t) {
+			return (typeof t === "number") && (now-t < maxAge);
+		});
+		fallbacks.push(now);
+		localStorage.setItem("settings.engine.fallbacks", JSON.stringify(fallbacks));
+		if (fallbacks.length < 2) return;
+		if (localStorage.getItem("settings.engine") === "canvas") return;
+		if (localStorage.getItem("settings.engine.optout")) return;
+		localStorage.setItem("settings.engine", "canvas");
+		localStorage.setItem("settings.engine.auto", "1");
+	}
+	catch (e) {
+		return;
+	}
+	logGameCrash("WebGL failed on 2 page loads in 7 days, switched the engine setting to canvas");
 }
 
 function getFrameSettings(currentSettings) {
@@ -33195,14 +33220,41 @@ function editCommands(options) {
 			$controlSelect.appendChild($controlOption);
 		}
 		$controlSelect.value = (localStorage.getItem("settings.engine") === "canvas") ? "canvas" : "webgl";
+		var engineAutoSwitched = false;
+		try {
+			engineAutoSwitched = !!localStorage.getItem("settings.engine.auto");
+		}
+		catch (e) {
+		}
+		var $engineAutoNote;
 		$controlSelect.onchange = function() {
-			if (this.value === "canvas")
-				localStorage.setItem("settings.engine", "canvas");
-			else
-				localStorage.removeItem("settings.engine");
+			try {
+				if (this.value === "canvas")
+					localStorage.setItem("settings.engine", "canvas");
+				else {
+					localStorage.removeItem("settings.engine");
+					if (localStorage.getItem("settings.engine.auto")) {
+						localStorage.removeItem("settings.engine.auto");
+						localStorage.removeItem("settings.engine.fallbacks");
+						localStorage.setItem("settings.engine.optout", "1");
+						if ($engineAutoNote)
+							$engineAutoNote.style.display = "none";
+					}
+				}
+			}
+			catch (e) {
+			}
 		};
 		$controlSetting.appendChild($controlSelect);
 		$controlSettings.appendChild($controlSetting);
+		if (engineAutoSwitched) {
+			$engineAutoNote = document.createElement("div");
+			$engineAutoNote.style.margin = "0 15px 4px 15px";
+			$engineAutoNote.style.fontSize = "0.85em";
+			$engineAutoNote.style.color = "#BBB";
+			$engineAutoNote.innerHTML = toLanguage("Switched automatically after WebGL errors", "Changé automatiquement suite à des erreurs WebGL");
+			$controlSettings.appendChild($engineAutoNote);
+		}
 	}
 	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
@@ -33382,6 +33434,8 @@ function editCommands(options) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("settings.vol");
 			localStorage.removeItem("settings.engine");
+			localStorage.removeItem("settings.engine.auto");
+			localStorage.removeItem("settings.engine.fallbacks");
 			localStorage.removeItem("iQuality");
 			editCommands(options);
 		}
