@@ -11,6 +11,7 @@ var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
 var webGLContextUnrecoverable = false;
+var webGLContextLossCount = 0;
 var webGLCanvases = [];
 var selectedCc = localStorage.getItem("cc") || "150";
 var selectedMirror = !!localStorage.getItem("mirror");
@@ -6301,7 +6302,14 @@ function handleWebGLContextLoss(canvas) {
 	canvas.addEventListener("webglcontextlost", function(e) {
 		if (!canvas.isConnected) return;
 		e.preventDefault();
-		logGameCrash("WebGL context lost");
+		webGLContextLossCount++;
+		if (webGLContextLossCount === 1)
+			logGameCrash("WebGL context lost");
+		clearTimeout(restoreTimeout);
+		if (webGLContextLossCount >= 3) {
+			fallbackToLegacyEngine();
+			return;
+		}
 		restoreTimeout = setTimeout(function() {
 			if (canvas.isConnected)
 				fallbackToLegacyEngine();
