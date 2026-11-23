@@ -2482,6 +2482,7 @@ function lounge_try_lock($name) {
 		if ($row && $row['got'])
 			return true;
 	}
+	lounge_log('lock_timeout', array(), array('lock' => $name));
 	return false;
 }
 

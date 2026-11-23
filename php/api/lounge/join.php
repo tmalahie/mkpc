@@ -94,7 +94,7 @@ mysql_query('COMMIT');
 mysql_query('SELECT RELEASE_LOCK("mkpc-lounge-join-'. intval($id) .'")');
 
 $count = lounge_active_member_count($queueId);
-lounge_log('queue_joined', array('player' => $id, 'queue' => $queueId), array('tier' => $tierId, 'players' => $count));
+lounge_log('queue_joined', array('player' => $id, 'queue' => $queueId), array('tier' => $tierId, 'players' => $count, 'mmr' => $playerState['mmr']));
 $wasBelowMin = ($count - 1) < lounge_queue_min_players($queueId);
 lounge_update_queue_status($queueId);
 

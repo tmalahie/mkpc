@@ -2004,6 +2004,23 @@ test('a player cannot drop out of a list they just joined', async ({ page }) => 
 
 // A mogi reported as having gone wrong is investigated from mklounge_events, so what a player
 // did and what they were refused both have to be in it, in the order it happened.
+// A broken lounge page leaves no trace on the server unless the page reports it, the way the
+// game reports its own crashes.
+test('an error on the lounge page is reported with the game crashes', async ({ page }) => {
+	await login(page);
+	const [{ since }]: any = await sql(`SELECT IFNULL(MAX(id), 0) AS since FROM mkgamecrash`);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await page.waitForFunction(() => typeof (window as any).xhr === 'function');
+	await page.evaluate(() => setTimeout(() => { throw new Error('lounge e2e probe'); }));
+	await expect.poll(async () => (await sql(
+		`SELECT stack, referrer FROM mkgamecrash WHERE id > ? AND stack LIKE '[lounge]%'`, [since])) as any[],
+		{ timeout: 10000 }).toHaveLength(1);
+	const [crash]: any = await sql(`SELECT stack, referrer FROM mkgamecrash WHERE id > ? AND stack LIKE '[lounge]%'`, [since]);
+	expect(crash.stack).toContain('lounge e2e probe');
+	expect(crash.referrer).toContain('lounge.php');
+	await sql(`DELETE FROM mkgamecrash WHERE id > ? AND stack LIKE '[lounge]%'`, [since]);
+});
+
 test('joining, a refused drop and leaving are all in the event log, in order', async ({ page }) => {
 	await login(page);
 	await dropOut(page.request);
@@ -2027,6 +2044,9 @@ test('joining, a refused drop and leaving are all in the event log, in order', a
 	expect(events[0].player).toBe(playerId);
 	expect(events[0].actor).toBe(playerId);
 	expect(events[0].source).toBe('join.php');
+	// the rating the tier was granted on, to check a player was let into the right one
+	const [{ mmr }]: any = await sql(`SELECT mmr FROM mklounge_players WHERE player = ? AND season = 1`, [playerId]);
+	expect(JSON.parse(events[0].data).mmr).toBe(mmr);
 	expect(JSON.parse(events[1].data).seconds_left).toBeGreaterThan(0);
 	// the last one out empties the queue, and the row says which request did it
 	expect(events[3].source).toBe('leave.php');

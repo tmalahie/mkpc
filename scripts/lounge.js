@@ -1,6 +1,15 @@
 (function() {
 	if (typeof mId !== 'number') return;
 
+	var lastErrorReport = 0;
+	window.addEventListener('error', function(e) {
+		var now = new Date().getTime();
+		if (now - lastErrorReport < 10000) return;
+		lastErrorReport = now;
+		var stack = (e.error && e.error.stack) ? e.error.stack : (e.message +' at '+ e.filename +':'+ e.lineno);
+		xhr('logGameCrash.php', 'error='+ encodeURIComponent('[lounge] '+ stack), function() { return true; });
+	});
+
 	var POLL_INTERVAL_TIERS = 5000;
 	var POLL_INTERVAL_WAITING = 3000;
 

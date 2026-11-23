@@ -82,9 +82,15 @@ function lounge_discord_call($method, $path, $payload = null) {
 	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 	$body = curl_exec($ch);
 	$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$curlError = curl_error($ch);
 	curl_close($ch);
-	if (($status < 200) || ($status >= 300))
+	if (($status < 200) || ($status >= 300)) {
+		lounge_log('discord_failed', array(), array(
+			'method' => $method, 'path' => $path, 'status' => $status,
+			'error' => $curlError ? $curlError : substr((string) $body, 0, 300)
+		));
 		return null;
+	}
 	return json_decode($body, true);
 }
 
