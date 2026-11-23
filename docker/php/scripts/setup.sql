@@ -2430,7 +2430,7 @@ INSERT INTO `mkcountries` VALUES
 (245,'rs','Serbie','Serbia',32767),
 (246,'zm','Zambie','Zambia',32767);
 INSERT INTO `mklounge_ranks` VALUES (1,'iron1','Iron 1',0,'#655d5d',0),(2,'iron2','Iron 2',200,'#796f6f',1),(3,'bronze1','Bronze 1',400,'#bb742d',2),(4,'bronze2','Bronze 2',650,'#cd7f32',3),(5,'silver1','Silver 1',900,'#99a3a3',4),(6,'silver2','Silver 2',1050,'#a7b4b4',5),(7,'gold1','Gold 1',1200,'#e9d11c',6),(8,'gold2','Gold 2',1350,'#f4d80b',7),(9,'platinum','Platinum',1500,'#9aabc6',8),(10,'emerald','Emerald',1800,'#27dd6a',9),(11,'amethyst','Amethyst',2100,'#bd46ff',10),(12,'diamond','Diamond',2400,'#31f4ff',11),(13,'master','Master',2700,'#000000',12),(14,'gm','GM',3000,'#a32937',13);
-INSERT INTO `mklounge_tiers` VALUES (1,'all','Tier All',0,NULL,4,0),(2,'C','Tier C',0,1199,4,1),(3,'B','Tier B',500,1799,4,2),(4,'A','Tier A',900,NULL,4,3),(5,'X','Tier X',1600,NULL,4,4);
+INSERT INTO `mklounge_tiers` VALUES (1,'all','Tier All',0,NULL,4,0),(3,'B','Tier B',0,1349,4,2),(4,'A','Tier A',1050,NULL,4,3),(5,'X','Tier X',2100,NULL,4,4);
 INSERT INTO mkjoueurs SET id=1,course=0,nom="Wargor",code="$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/tqGwnO",joueur="mario",choice_map=0,choice_rand=0,pts_vs=5000,pts_battle=5000,pts_challenge=0,online=0,deleted=0;
 INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="Wargor",nbmessages=0,email="",country=76,description="";
 INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);
@@ -2445,3 +2445,4 @@ INSERT INTO mkmigrations SET name="20261004-2100-lounge-rating-edits.sql";
 INSERT INTO mkmigrations SET name="20261010-2200-lounge-mmr-mult.sql";
 INSERT INTO mkmigrations SET name="20261122-2300-lounge-season-1-ranks.sql";
 INSERT INTO mkmigrations SET name="20261122-2301-lounge-season-1-launch.php";
+INSERT INTO mkmigrations SET name="20261123-1200-lounge-season-1-tiers.sql";

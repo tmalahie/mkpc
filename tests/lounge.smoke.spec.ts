@@ -85,10 +85,10 @@ test('lounge page renders tiers for logged-in user', async ({ page }) => {
 	await expect(page.locator('.lounge-tier').first()).toBeVisible({ timeout: 5000 });
 
 	const tiers = page.locator('.lounge-tier');
-	await expect(tiers).toHaveCount(5);
+	await expect(tiers).toHaveCount(4);
 
 	await expect(tiers.nth(0).locator('.lounge-tier-title')).toContainText('All');
-	await expect(tiers.nth(1).locator('.lounge-tier-title')).toContainText('C');
+	await expect(tiers.nth(1).locator('.lounge-tier-title')).toContainText('B');
 
 	// which tiers are locked depends on the account's current MMR, so derive it
 	// from the API rather than assuming the player is still at the default rating
@@ -228,6 +228,29 @@ test('ranked is hidden from a player short of the entry criteria', async ({ page
 
 // A season is announced before it opens: until then ranked is offered nowhere, the lounge
 // says when it opens, and a join is refused.
+test('the rules tab lists every rank and which ranks each tier lets in', async ({ page }) => {
+	await uiLogin(page);
+	await page.goto('http://127.0.0.1:8080/lounge.php');
+	await page.click('[data-tab="howitworks"]');
+	const ranks: any[] = await sql(`SELECT label, min_mmr FROM mklounge_ranks ORDER BY min_mmr DESC`);
+	const rankRows = page.locator('.lounge-legend-ranks tr');
+	await expect(rankRows).toHaveCount(ranks.length);
+	await expect(rankRows.first()).toContainText(ranks[0].label + ranks[0].min_mmr + '+ MMR');
+	await expect(rankRows.last()).toContainText(ranks[ranks.length - 1].label + '0–' + (ranks[ranks.length - 2].min_mmr - 1) + ' MMR');
+
+	const tiers: any[] = await sql(`SELECT label, min_mmr, max_mmr FROM mklounge_tiers ORDER BY ordering DESC`);
+	const tierRows = page.locator('.lounge-legend-tiers tr');
+	await expect(tierRows).toHaveCount(tiers.length);
+	for (let i = 0; i < tiers.length; i++) {
+		const t = tiers[i];
+		await expect(tierRows.nth(i).locator('th')).toHaveText(t.label);
+		if (!t.min_mmr && t.max_mmr === null)
+			await expect(tierRows.nth(i)).toContainText('Everyone');
+		else
+			await expect(tierRows.nth(i)).toContainText(t.max_mmr === null ? t.min_mmr + '+ MMR' : t.min_mmr + '–' + t.max_mmr + ' MMR');
+	}
+});
+
 test('ranked stays closed until the season opens', async ({ page }) => {
 	const met = 'e2e-lounge-entry-soon';
 	const metId = await createEntryBot(met, 999999);
@@ -2808,7 +2831,7 @@ test('one account joining two tiers at once ends up in one queue', async ({ brow
 	await cleanupLoungeQueues();
 	const [player] = await createLoungeBots(1, 'heldjoin');
 	const [all]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
-	const [tierC]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'C'`);
+	const [tierB]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'B'`);
 	const sessions = [];
 	for (let i = 0; i < 2; i++) {
 		const session = await (await browser.newContext()).newPage();
@@ -2821,7 +2844,7 @@ test('one account joining two tiers at once ends up in one queue', async ({ brow
 	const release = await holdLock('mkpc-lounge-join-' + player);
 	let joins;
 	try {
-		joins = Promise.all([all.id, tierC.id].map((tier, i) =>
+		joins = Promise.all([all.id, tierB.id].map((tier, i) =>
 			sessions[i].request.post('http://127.0.0.1:8080/api/lounge/join.php', { form: { tier: String(tier) } })));
 		await sessions[0].waitForTimeout(1500);
 		expect(await queued()).toBe(0);

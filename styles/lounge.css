@@ -1617,3 +1617,45 @@ td.lounge-results-place.is-bronze { color: #e0904a; }
 	white-space: nowrap;
 	border-bottom: solid 1px var(--lounge-frame-off);
 }
+
+/* The "?" tab's legend: every rank with its MMR band, and which ranks each tier lets in. */
+.lounge-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 32px;
+	align-items: flex-start;
+	max-width: 860px;
+	box-sizing: border-box;
+	padding: 12px 20px 14px;
+	background: var(--lounge-panel);
+	border: outset 2px var(--lounge-frame);
+	border-radius: 5px;
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(3px);
+}
+
+.lounge-legend table {
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+}
+
+.lounge-legend td,
+.lounge-legend th {
+	padding: 3px 8px 3px 0;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.lounge-legend th {
+	color: var(--lounge-legend);
+	padding-right: 14px;
+}
+
+@media (max-width: 480px) {
+	.lounge-legend {
+		padding: 10px 12px;
+	}
+	.lounge-legend-tiers td:last-child {
+		white-space: normal;
+	}
+}

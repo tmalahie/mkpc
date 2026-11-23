@@ -170,7 +170,6 @@ ${DISCORD_STAND_IN_MARKER}
 $loungeDiscordMlluChannel = '100000000000000009';
 $loungeDiscordTierChannels = array(
   'all' => '100000000000000001',
-  'C' => '100000000000000002',
   'B' => '100000000000000003',
   'A' => '100000000000000004',
   'X' => '100000000000000005',

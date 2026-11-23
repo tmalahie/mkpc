@@ -9,6 +9,11 @@ if ($id) {
 	$isLoungeMod = hasRight('lounge');
 	if (isset($_GET['key']))
 		lounge_log('results_opened', array('player' => $id, 'key' => intval($_GET['key'])));
+	$loungeRanks = lounge_ranks();
+	$loungeTiers = array();
+	$res = mysql_query('SELECT label, min_mmr, max_mmr FROM `mklounge_tiers` ORDER BY ordering DESC');
+	while ($row = mysql_fetch_array($res))
+		$loungeTiers[] = $row;
 	mysql_close();
 }
 ?>
@@ -100,6 +105,41 @@ var mPerso = <?php echo isset($_GET['perso']) ? json_encode(preg_replace('#[^\w\
 		<p>Le reste du lounge se passe sur Discord&nbsp;: les joueurs s'y retrouvent entre deux mogis, les r&eacute;sultats y sont publi&eacute;s, et le staff y r&eacute;pond aux questions.</p>
 		<p><a class="lounge-discord" href="<?= LOUNGE_DISCORD_INVITE ?>" target="_blank" rel="noopener"><?= $discordLogo ?>Rejoindre le serveur Discord du CT Lounge</a></p>
 		<?php } ?>
+		</div>
+		<div class="lounge-bar"><?php echo $language ? 'Ranks and tiers':'Rangs et tiers'; ?></div>
+		<div class="lounge-legend">
+			<table class="lounge-legend-ranks">
+				<tbody>
+<?php
+function lounge_rank_chip($rank) {
+	return '<span class="lounge-rank" style="background-color:'. htmlspecialchars($rank['color']) .';color:'. lounge_rank_ink($rank['color']) .'">'. htmlspecialchars($rank['label']) .'</span>';
+}
+function lounge_mmr_range($min, $max) {
+	return is_null($max) ? $min .'+ MMR' : $min .'&ndash;'. $max .' MMR';
+}
+$above = null;
+foreach ($loungeRanks as $rank) {
+	echo '<tr><td>'. lounge_rank_chip($rank) .'</td><td>'. lounge_mmr_range($rank['min_mmr'], is_null($above) ? null : $above-1) .'</td></tr>';
+	$above = $rank['min_mmr'];
+}
+?>
+				</tbody>
+			</table>
+			<table class="lounge-legend-tiers">
+				<tbody>
+<?php
+foreach ($loungeTiers as $tier) {
+	$min = intval($tier['min_mmr']);
+	$max = is_null($tier['max_mmr']) ? null : intval($tier['max_mmr']);
+	if (!$min && is_null($max))
+		$ranks = '<td colspan="2">'. ($language ? 'Everyone':'Tout le monde') .'</td>';
+	else
+		$ranks = '<td>'. lounge_rank_chip(lounge_rank_for_mmr($min)) .' &rarr; '. lounge_rank_chip(is_null($max) ? $loungeRanks[0] : lounge_rank_for_mmr($max)) .'</td><td>'. lounge_mmr_range($min, $max) .'</td>';
+	echo '<tr><th>'. htmlspecialchars($tier['label']) .'</th>'. $ranks .'</tr>';
+}
+?>
+				</tbody>
+			</table>
 		</div>
 	</section>
 </div>
