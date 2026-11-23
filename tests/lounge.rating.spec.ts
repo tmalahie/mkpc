@@ -842,6 +842,34 @@ test('a placed player is on the ladder before their first mogi', async ({ page }
 	expect(html.match(/<div class="player-league"><img src="images\/cups\/cup2.png".*?<\/div>/s)![0]).toMatch(/ - 1<sup>/);
 });
 
+// Every player lands on the results the moment the last race ends, and only one of their
+// requests rates the mogi: a page that arrived first shows it unrated, then has to catch up.
+test('the results page fills in the ratings once the mogi is rated', async ({ page }) => {
+	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
+	const key = LOUNGE_KEY_MIN + 70;
+	const players = await createLoungeBots(2, 'resultsearly');
+	const queue: any = await sql(
+		`INSERT INTO mklounge_queues (season, tier, status, privgame_key, launched_at)
+		 VALUES (1, ?, 'launching', ?, NOW())`, [tier.id, key]);
+	await sql(`INSERT INTO mklounge_matches (queue, season, tier, privgame_key, mode) VALUES (?, 1, ?, ?, 'FFA')`,
+		[queue.insertId, tier.id, key]);
+	const [match]: any = await sql(`SELECT id FROM mklounge_matches WHERE privgame_key = ?`, [key]);
+	for (let i = 0; i < players.length; i++) {
+		await sql(`INSERT INTO mklounge_match_players (\`match\`, player) VALUES (?, ?)`, [match.id, players[i]]);
+		await sql(`INSERT INTO mkgamerank (game, player, pts) VALUES (?, ?, ?)`, [key, players[i], 60 - 30 * i]);
+	}
+	await sql(`INSERT INTO mkgamedata (game, aRaceCount, raceCount) VALUES (?, 999, 999)`, [key]);
+
+	await login(page, loungeBotName('resultsearly', 1), LOUNGE_BOT_PASSWORD);
+	await page.goto('http://127.0.0.1:8080/lounge.php?key=' + key);
+	await expect(page.locator('#lounge-results .lounge-lb-pending').first()).toBeVisible();
+
+	// the request that rates it comes from somebody else's page
+	await publish(key);
+	await expect(page.locator('#lounge-results .lounge-lb-pending')).toHaveCount(0, { timeout: 10000 });
+	await expect(page.locator('#lounge-results .lounge-delta').first()).toBeVisible();
+});
+
 test('a rated mogi records where it left every player on the ladder', async ({ page }) => {
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const key = LOUNGE_KEY_MIN + 9;

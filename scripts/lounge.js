@@ -2276,19 +2276,29 @@
 	function init() {
 		setupTabs();
 		if (mResultKey) {
-			postJSON('lounge/result.php', 'key=' + encodeURIComponent(mResultKey), function(data) {
-				if (data && data.player) renderPlayerStrip(data.player);
-				if (data && data.match) {
-					renderResults(data.match);
-					switchView('results');
-				} else {
-					mResultKey = null;
-					initQueueView();
-				}
-			});
+			loadResults(0);
 			return;
 		}
 		initQueueView();
+	}
+
+	// Every player lands here the moment the last race ends, and only one of their requests
+	// rates the mogi: the others can arrive first, so an unrated mogi is asked for again.
+	var RESULTS_RETRY_INTERVAL = 2000;
+	var RESULTS_RETRY_MAX = 30;
+	function loadResults(attempt) {
+		postJSON('lounge/result.php', 'key=' + encodeURIComponent(mResultKey), function(data) {
+			if (data && data.player) renderPlayerStrip(data.player);
+			if (data && data.match) {
+				renderResults(data.match);
+				switchView('results');
+				if (!data.match.ended_at && !data.match.cancelled_reason && (attempt < RESULTS_RETRY_MAX))
+					setTimeout(function() { loadResults(attempt + 1); }, RESULTS_RETRY_INTERVAL);
+			} else if (!attempt) {
+				mResultKey = null;
+				initQueueView();
+			}
+		});
 	}
 
 	function initQueueView() {
