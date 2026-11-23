@@ -1765,7 +1765,7 @@ function lounge_ladder_rows($limit = 0) {
 // Who the ladder lists: a player is on it once rated, or as soon as staff place them, as on
 // Lorenzi - so a placed season opens with its ladder already set out.
 function lounge_on_ladder_sql($alias) {
-	return '('. $alias .'.games>0 OR '. $alias .'.placement IS NOT NULL)';
+	return '('. $alias .'.games>0 OR '. $alias .'.placed=1)';
 }
 
 function lounge_ladder_places() {
@@ -2520,12 +2520,16 @@ function lounge_ladder_places_of($ratings, $ranked) {
 // were rated with, the penalties they were charged and the staff's adjustments.
 function lounge_recompute_season() {
 	$placements = array();
+	$staffPlaced = array();
 	$res = mysql_query(
-		'SELECT player, placement FROM `mklounge_players`
+		'SELECT player, placement, placed FROM `mklounge_players`
 		WHERE season="'. LOUNGE_CURRENT_SEASON .'" AND placement IS NOT NULL'
 	);
-	while ($row = mysql_fetch_array($res))
+	while ($row = mysql_fetch_array($res)) {
 		$placements[intval($row['player'])] = floatval($row['placement']);
+		if ($row['placed'])
+			$staffPlaced[intval($row['player'])] = true;
+	}
 	$deleted = array();
 	$res = mysql_query(
 		'SELECT DISTINCT j.id FROM `mkjoueurs` j
@@ -2558,10 +2562,11 @@ function lounge_recompute_season() {
 	$ratings = array();
 	$peaks = array();
 	$ranked = array();
-	// placed players are on the ladder before their first mogi, so they count in its places
-	foreach ($placements as $playerId => $placement) {
-		$ratings[$playerId] = $placement;
-		$peaks[$playerId] = $placement;
+	// Staff's placements are on the ladder before their first mogi, so they count in its
+	// places. A start recorded when a player was first rated is not: they enter at that mogi.
+	foreach ($staffPlaced as $playerId => $_) {
+		$ratings[$playerId] = $placements[$playerId];
+		$peaks[$playerId] = $placements[$playerId];
 		if (!isset($deleted[$playerId]))
 			$ranked[$playerId] = true;
 	}
@@ -2696,7 +2701,8 @@ function lounge_edit_ratings($matchId, $adjustments, $placements) {
 		lounge_upsert_player($playerId, array(), 'player=player');
 		mysql_query(
 			'UPDATE `mklounge_players`
-			SET placement='. (is_null($placement) ? 'NULL' : '"'. lounge_mmr_sql($placement) .'"') .'
+			SET placement='. (is_null($placement) ? 'NULL' : '"'. lounge_mmr_sql($placement) .'"') .',
+				placed='. (is_null($placement) ? '0' : '1') .'
 			WHERE player="'. intval($playerId) .'" AND season="'. LOUNGE_CURRENT_SEASON .'"'
 		);
 	}

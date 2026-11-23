@@ -828,8 +828,8 @@ test('players who arrive while the join timeout waits for a replay are counted',
 test('a placed player is on the ladder before their first mogi', async ({ page }) => {
 	const [placed, unplaced] = await createLoungeBots(2, 'placedladder');
 	// above any rating the other tests leave behind
-	await sql(`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, placement, games) VALUES (?, 1, 999999, 999999, 999999, 0), (?, 1, 600, 600, NULL, 0)
-		ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr), placement = VALUES(placement), games = VALUES(games)`,
+	await sql(`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, placement, placed, games) VALUES (?, 1, 999999, 999999, 999999, 1, 0), (?, 1, 600, 600, NULL, 0, 0)
+		ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr), placement = VALUES(placement), placed = VALUES(placed), games = VALUES(games)`,
 		[placed, unplaced]);
 	await login(page);
 	const ladder = await (await page.request.post('http://127.0.0.1:8080/api/lounge/leaderboard.php', { form: { limit: '500' } })).json();
@@ -896,6 +896,27 @@ test('a rated mogi records where it left every player on the ladder', async ({ p
 		`SELECT place_before, place_after FROM mklounge_match_players
 		 WHERE \`match\` = ? AND player = ?`, [match.id, players[0]]);
 	expect(winner.place_after).toBeLessThanOrEqual(winner.place_before);
+
+	// A replay - any staff edit runs one - keeps those places. A start recorded for a player
+	// first rated later must not put them on the ladder of this earlier mogi.
+	const [low, later] = await createLoungeBots(2, 'placesreplay');
+	const [{ nom: lowName }]: any = await sql(`SELECT nom FROM mkjoueurs WHERE id = ?`, [low]);
+	const replay = (placement: string) => page.request.post('http://127.0.0.1:8080/admin-lounge.php',
+		{ form: { player: lowName, action: 'placement', placement } });
+	const recorded = async () => (await sql(
+		`SELECT player, place_before, place_after FROM mklounge_match_players WHERE \`match\` = ? ORDER BY player`,
+		[match.id])) as any[];
+	await replay('1');
+	const before = await recorded();
+	await sql(
+		`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, placement, placed, games) VALUES (?, 1, 999998, 999998, 999998, 0, 0)
+		 ON DUPLICATE KEY UPDATE mmr = VALUES(mmr), peak_mmr = VALUES(peak_mmr), placement = VALUES(placement), placed = 0, games = 0`,
+		[later]);
+	await replay('2');
+	expect(await recorded()).toEqual(before);
+	const [{ placed }]: any = await sql(`SELECT placed FROM mklounge_players WHERE player = ? AND season = 1`, [low]);
+	expect(placed).toBe(1);
+	await sql(`DELETE FROM mklounge_players WHERE player IN (?, ?)`, [low, later]);
 });
 
 // The points a single race was worth, which nothing recorded before: `mkmatches` held the

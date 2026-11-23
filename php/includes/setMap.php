@@ -63,6 +63,14 @@ if ($course) {
 			$raceState = getCourseState($getMap['link']);
 			if (intval($raceState['raceCount']) > 0)
 				$loungeVoided = lounge_void_if_too_many_bots($getMap['link'], $course);
+			// the void check may have waited on the ratings lock: the countdown starts from now
+			$waited = round(microtime(true)*1000) - $now;
+			if ($waited > 0) {
+				$time += $waited;
+				$nConnect = round($time/67);
+				$toUpdate0 = 'connecte='.$nConnect.',tours=1,ballons=1,reserve=4,aipoint=0,finaltime=0,finalts=0';
+				mysql_query('UPDATE `mkplayers` SET connecte='.$nConnect.' WHERE course='.$course);
+			}
 		}
 		// Published only once the void is settled: a player polling in between would see a race
 		// start without the void flag, and stop on "not enough players" instead of the results.

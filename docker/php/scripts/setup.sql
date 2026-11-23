@@ -2446,3 +2446,4 @@ INSERT INTO mkmigrations SET name="20261010-2200-lounge-mmr-mult.sql";
 INSERT INTO mkmigrations SET name="20261122-2300-lounge-season-1-ranks.sql";
 INSERT INTO mkmigrations SET name="20261122-2301-lounge-season-1-launch.php";
 INSERT INTO mkmigrations SET name="20261123-1200-lounge-season-1-tiers.sql";
+INSERT INTO mkmigrations SET name="20261123-1300-lounge-staff-placements.sql";

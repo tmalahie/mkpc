@@ -374,7 +374,7 @@ include('../includes/menu.php');
 				}
 				require_once('../includes/lounge/common.php');
 				$loungeState = lounge_get_player_state($profileId);
-				if ($loungeState['games'] || !is_null(lounge_player_placement($profileId))) {
+				if ($loungeState['games'] || $loungeState['placed']) {
 					$getLoungePlace = mysql_fetch_array(mysql_query(
 						'SELECT 1+COUNT(*) AS place FROM `mklounge_players` p
 						INNER JOIN `mkjoueurs` j ON j.id=p.player
