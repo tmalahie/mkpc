@@ -397,16 +397,21 @@ test('the lounge will not close onto a dark screen while the player is in a line
 });
 
 // The online mode screen is where most players pick how to play, so ranked is only offered
-// there to the ones who have already shown they want it - a player who has never queued keeps
-// the two modes they have always had, and finds ranked through its own entry points.
-test('the online mode screen offers ranked to players who have queued before', async ({ page }) => {
+// there to the ones who have already shown they want it - who queued before, or whom staff
+// placed for the season - and a player who has neither keeps the two modes they have always
+// had, and finds ranked through its own entry points.
+test('the online mode screen offers ranked to players who have queued before or been placed', async ({ page }) => {
 	test.setTimeout(60000);
 	const short = 'e2e-lounge-mode-short';
 	const fresh = 'e2e-lounge-mode-fresh';
 	const regular = 'e2e-lounge-mode-regular';
+	const placed = 'e2e-lounge-mode-placed';
 	await createEntryBot(short, 500);
 	await createEntryBot(fresh, 999999);
 	const regularId = await createEntryBot(regular, 999999);
+	// a season's reset clears every queue, so staff's placement is what still marks a regular
+	const placedId = await createEntryBot(placed, 999999);
+	await sql(`INSERT INTO mklounge_players (player, season, mmr, peak_mmr, placement, placed) VALUES (?, 1, 1500, 1500, 1500, 1)`, [placedId]);
 	const [tier]: any = await sql(`SELECT id FROM mklounge_tiers WHERE code = 'all'`);
 	const past: any = await sql(
 		`INSERT INTO mklounge_queues (season, tier, status) VALUES (1, ?, 'cancelled')`, [tier.id]);
@@ -434,6 +439,9 @@ test('the online mode screen offers ranked to players who have queued before', a
 	await page.locator('input[value="Ranked mode"]:visible').first().click();
 	await expect(page).toHaveURL(/online\.php\?mid=\d+&ranked$/);
 
+	await login(page, placed, LOUNGE_BOT_PASSWORD);
+	expect((await modes()).map(b => b.v)).toEqual(['VS mode', 'Battle mode', 'Ranked mode']);
+
 	// eligible but never queued, and short of the criteria: the two original modes, in the
 	// places they have always had
 	for (const name of [fresh, short]) {
@@ -445,7 +453,8 @@ test('the online mode screen offers ranked to players who have queued before', a
 
 	await sql(`DELETE FROM mklounge_queue_members WHERE queue = ?`, [past.insertId]);
 	await sql(`DELETE FROM mklounge_queues WHERE id = ?`, [past.insertId]);
-	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?, ?)`, [short, fresh, regular]);
+	await sql(`DELETE FROM mklounge_players WHERE player = ?`, [placedId]);
+	await sql(`DELETE FROM mkjoueurs WHERE nom IN (?, ?, ?, ?)`, [short, fresh, regular, placed]);
 	await login(page);
 });
 
