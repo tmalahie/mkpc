@@ -8,6 +8,7 @@ function getUserRights($playerId) {
 		if (isset($res['admin'])) {
 			$res['moderator'] = true;
 			$res['organizer'] = true;
+			$res['lounge'] = true;
 		}
 		if (isset($res['moderator']) || isset($res['organizer']))
 			$res['manager'] = true;
@@ -21,7 +22,8 @@ function getRoleNames() {
 		'moderator' => $language ? 'Moderator':'Modérateur',
 		'organizer' => $language ? 'Event host':'Animateur',
 		'publisher' => $language ? 'News publisher':'Rédacteur de news',
-		'clvalidator' => $language ? 'Challenge validator':'Validateur de défis'
+		'clvalidator' => $language ? 'Challenge validator':'Validateur de défis',
+		'lounge' => $language ? 'CT Lounge staff':'Staff du CT Lounge'
 	);
 }
 $hasRight = null;
